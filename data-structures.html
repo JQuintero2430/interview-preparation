@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guía de Algoritmos para Entrevistas</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap");
+
+      :root {
+        --bg: #0d0f14;
+        --surface: #13161d;
+        --border: #1e2330;
+        --accent: #4f8ef7;
+        --accent2: #7c5cfc;
+        --green: #3dd68c;
+        --yellow: #f5c542;
+        --red: #f76c6c;
+        --text: #d4daf2;
+        --muted: #6b7496;
+        --code-bg: #0a0c12;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "IBM Plex Sans", sans-serif;
+        font-size: 15px;
+        line-height: 1.8;
+        padding: 40px 20px 100px;
+      }
+
+      .page {
+        max-width: 820px;
+        margin: 0 auto;
+      }
+
+      /* HEADER */
+      .doc-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 36px;
+        margin-bottom: 56px;
+      }
+
+      .doc-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+
+      h1 {
+        font-size: 36px;
+        font-weight: 700;
+        line-height: 1.15;
+        color: #ffffff;
+        margin-bottom: 16px;
+      }
+
+      .doc-subtitle {
+        color: var(--muted);
+        font-size: 15px;
+        max-width: 560px;
+      }
+
+      /* TABLE OF CONTENTS */
+      .toc {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent2);
+        padding: 28px 32px;
+        margin-bottom: 64px;
+        border-radius: 2px;
+      }
+
+      .toc-title {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 18px;
+      }
+
+      .toc ol {
+        list-style: none;
+        counter-reset: toc-counter;
+      }
+
+      .toc ol li {
+        counter-increment: toc-counter;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        padding: 3px 0;
+        font-size: 14px;
+      }
+
+      .toc ol li::before {
+        content: counter(toc-counter, decimal-leading-zero);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        min-width: 28px;
+      }
+
+      /* SECTION */
+      .section {
+        margin-bottom: 72px;
+      }
+
+      .section-number {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      h2 {
+        font-size: 26px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 22px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--accent);
+        font-family: "IBM Plex Mono", monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 28px 0 12px;
+      }
+
+      p {
+        margin-bottom: 14px;
+        color: var(--text);
+      }
+
+      /* CALLOUT */
+      .callout {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--green);
+        padding: 16px 20px;
+        margin: 18px 0;
+        font-size: 14px;
+        font-style: italic;
+        color: #b0bedd;
+      }
+
+      .callout.warn {
+        border-left-color: var(--yellow);
+      }
+
+      .callout.info {
+        border-left-color: var(--accent);
+      }
+
+      /* CODE */
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        padding: 20px 22px;
+        overflow-x: auto;
+        margin: 16px 0 22px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        line-height: 1.65;
+        border-radius: 2px;
+      }
+
+      code {
+        color: #9ecbff;
+      }
+
+      .kw {
+        color: #c792ea;
+      }
+      .ty {
+        color: #82aaff;
+      }
+      .cm {
+        color: #546a8e;
+        font-style: italic;
+      }
+      .st {
+        color: #c3e88d;
+      }
+      .nm {
+        color: #f78c6c;
+      }
+
+      /* PROBLEM LIST */
+      .problem-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 14px 0;
+      }
+
+      .problem-level {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin: 18px 0 8px;
+      }
+
+      .problem-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        padding: 4px 0;
+      }
+
+      .problem-item::before {
+        content: "→";
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--border);
+        font-size: 12px;
+      }
+
+      .stars {
+        color: var(--yellow);
+        font-size: 11px;
+        font-family: "IBM Plex Mono", monospace;
+        margin-left: auto;
+      }
+
+      /* PATTERN TABLE */
+      .pattern-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0 22px;
+        font-size: 14px;
+      }
+
+      .pattern-table th {
+        background: var(--surface);
+        padding: 10px 16px;
+        text-align: left;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .pattern-table td {
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .pattern-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .tag {
+        display: inline-block;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 2px;
+        background: rgba(79, 142, 247, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(79, 142, 247, 0.25);
+      }
+
+      .tag.green {
+        background: rgba(61, 214, 140, 0.1);
+        color: var(--green);
+        border-color: rgba(61, 214, 140, 0.25);
+      }
+      .tag.purple {
+        background: rgba(124, 92, 252, 0.12);
+        color: #a78bfa;
+        border-color: rgba(124, 92, 252, 0.25);
+      }
+      .tag.yellow {
+        background: rgba(245, 197, 66, 0.1);
+        color: var(--yellow);
+        border-color: rgba(245, 197, 66, 0.25);
+      }
+
+      /* DIVIDER */
+      .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 56px 0;
+      }
+
+      /* COMPLEXITY BADGE */
+      .complexity {
+        display: inline-flex;
+        gap: 16px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 8px 16px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        color: var(--text);
+        margin: 8px 0 18px;
+      }
+
+      .complexity span {
+        color: var(--green);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- HEADER -->
+      <div class="doc-header">
+        <div class="doc-label">Guía de estudio · Entrevistas técnicas</div>
+        <h1>Patrones de algoritmos para BigTech</h1>
+        <p class="doc-subtitle">
+          Una guía de lectura que cubre los 9 algoritmos y patrones esenciales
+          que se repiten en entrevistas de Amazon, Google y similares. Cada
+          sección explica la idea mental, el código base y los problemas de
+          práctica.
+        </p>
+      </div>
+
+      <!-- TOC -->
+      <div class="toc">
+        <div class="toc-title">Contenido</div>
+        <ol>
+          <li>Two Pointers — Dos punteros</li>
+          <li>Sliding Window — Ventana deslizante</li>
+          <li>Prefix Sum — Suma acumulada</li>
+          <li>Kadane's Algorithm — Máximo subarray</li>
+          <li>BFS — Búsqueda en anchura</li>
+          <li>DFS con Stack — Búsqueda en profundidad iterativa</li>
+          <li>Floyd's Tortoise and Hare — Detección de ciclos</li>
+          <li>Monotonic Stack — Stock Span</li>
+          <li>Kahn's Algorithm — Ordenamiento topológico</li>
+        </ol>
+      </div>
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 01 TWO POINTERS -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">01</div>
+        <h2>Two Pointers</h2>
+
+        <p>
+          La idea central de este patrón es recorrer un arreglo desde dos
+          extremos simultáneamente para evitar una segunda pasada. En lugar de
+          probar todas las combinaciones posibles con dos bucles anidados
+          (O(n²)), se toma una decisión inteligente en cada paso para mover uno
+          de los dos punteros.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Puedo mover un extremo y saber cómo cambia el
+          resultado sin revisar todo de nuevo?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado del problema menciona alguna de estas palabras clave:
+          arreglo ordenado, pares con suma objetivo, palíndromos, mover ceros,
+          contenedores de agua. Si el problema trabaja sobre elementos en
+          posiciones opuestas y se puede tomar una decisión binaria (mover
+          izquierda o mover derecha), es Two Pointers.
+        </p>
+
+        <h3>Ejemplo clásico — Two Sum en arreglo ordenado</h3>
+        <p>
+          Dado el arreglo <code>[1, 2, 3, 4, 6, 8, 11]</code> y un objetivo de
+          10, se inicia con un puntero al inicio y otro al final. Si la suma es
+          mayor al objetivo, se mueve el puntero derecho hacia adentro; si es
+          menor, se mueve el izquierdo. Nunca se vuelve atrás.
+        </p>
+
+        <pre><code><span class="kw">int</span> left = <span class="nm">0</span>;
+<span class="kw">int</span> right = arr.length - <span class="nm">1</span>;
+
+<span class="kw">while</span> (left < right) {
+
+    <span class="kw">int</span> sum = arr[left] + arr[right];
+
+    <span class="kw">if</span> (sum == target) {
+        <span class="kw">return true</span>;
+    }
+
+    <span class="kw">if</span> (sum < target) {
+        left++;
+    } <span class="kw">else</span> {
+        right--;
+    }
+}</code></pre>
+
+        <div class="complexity">
+          Tiempo: <span>O(n)</span> &nbsp;·&nbsp; Espacio: <span>O(1)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">Two Sum II (sorted)</div>
+          <div class="problem-item">Valid Palindrome</div>
+          <div class="problem-item">Reverse String</div>
+          <div class="problem-item">Merge Sorted Array</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Container With Most Water <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">3Sum <span class="stars">⭐⭐⭐</span></div>
+          <div class="problem-item">Remove Duplicates from Sorted Array</div>
+          <div class="problem-item">Squares of a Sorted Array</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Trapping Rain Water <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">4Sum</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 02 SLIDING WINDOW -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">02</div>
+        <h2>Sliding Window</h2>
+
+        <p>
+          Este patrón resuelve el problema de recalcular todo desde cero en cada
+          iteración. En lugar de eso, se mantiene una "ventana" activa que se
+          desliza por el arreglo: se agrega el nuevo elemento que entra por la
+          derecha y se quita el que sale por la izquierda. El trabajo ya hecho
+          no se repite.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Estoy recalculando demasiadas veces? ¿Puedo
+          reutilizar la suma o el estado de la iteración anterior?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado menciona: subarray, substring, tamaño k, máximo o mínimo
+          consecutivo, suma continua. Si la respuesta se construye sobre
+          elementos contiguos y se está tentado a usar dos bucles anidados, la
+          solución es Sliding Window.
+        </p>
+
+        <p>
+          Existen dos variantes. La ventana fija (fixed window) trabaja con un
+          tamaño predefinido k. La ventana dinámica expande la ventana hacia la
+          derecha y la contrae por la izquierda cuando se viola alguna
+          condición.
+        </p>
+
+        <h3>Plantilla Fixed Window</h3>
+        <pre><code><span class="kw">int</span> sum = <span class="nm">0</span>;
+
+<span class="cm">// Inicializar la primera ventana</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i < k; i++)
+    sum += arr[i];
+
+<span class="cm">// Deslizar la ventana</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = k; i < arr.length; i++) {
+    sum += arr[i];       <span class="cm">// entra el nuevo</span>
+    sum -= arr[i - k];   <span class="cm">// sale el viejo</span>
+}</code></pre>
+
+        <h3>Plantilla Dynamic Window</h3>
+        <pre><code><span class="kw">int</span> left = <span class="nm">0</span>;
+
+<span class="kw">for</span> (<span class="kw">int</span> right = <span class="nm">0</span>; right < s.length(); right++) {
+
+    <span class="cm">// Expandir: procesar s.charAt(right)</span>
+
+    <span class="kw">while</span> (ventanaInvalida) {
+        <span class="cm">// Contraer desde la izquierda</span>
+        left++;
+    }
+}</code></pre>
+
+        <div class="complexity">
+          Tiempo: <span>O(n)</span> &nbsp;·&nbsp; Espacio:
+          <span>O(1) o O(k)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">Maximum Average Subarray I</div>
+          <div class="problem-item">
+            Longest Substring Without Repeating Characters
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Minimum Size Subarray Sum</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">Permutation in String</div>
+          <div class="problem-item">Find All Anagrams in a String</div>
+          <div class="problem-item">
+            Longest Repeating Character Replacement
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Minimum Window Substring <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Sliding Window Maximum <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 03 PREFIX SUM -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">03</div>
+        <h2>Prefix Sum</h2>
+
+        <p>
+          El Prefix Sum consiste en precalcular sumas acumuladas para poder
+          responder consultas sobre rangos en tiempo O(1). En lugar de sumar los
+          elementos de un rango cada vez que se necesite, se construye un
+          arreglo auxiliar donde cada posición contiene la suma de todos los
+          elementos desde el inicio hasta ese punto.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Necesito recordar el pasado eficientemente para
+          responder preguntas sobre el futuro?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado pregunta por sumas entre rangos, conteo de subarrays que
+          cumplen una condición, balanceo de elementos (0 y 1, pares e impares),
+          o frecuencias acumuladas. Si el problema requiere revisar muchos
+          rangos distintos sobre el mismo arreglo, Prefix Sum evita repetir
+          trabajo.
+        </p>
+
+        <h3>Construcción base y consulta de rango</h3>
+        <pre><code><span class="kw">int</span>[] prefix = <span class="kw">new int</span>[n];
+prefix[<span class="nm">0</span>] = arr[<span class="nm">0</span>];
+
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i < n; i++)
+    prefix[i] = prefix[i - <span class="nm">1</span>] + arr[i];
+
+<span class="cm">// Suma entre índices l y r (inclusive)</span>
+<span class="kw">int</span> range = prefix[r] - (l > <span class="nm">0</span> ? prefix[l - <span class="nm">1</span>] : <span class="nm">0</span>);</code></pre>
+
+        <h3>Variante con HashMap — Conteo de subarrays</h3>
+        <p>
+          La variante más poderosa en entrevistas combina Prefix Sum con un
+          HashMap. La idea es: si en algún momento la suma acumulada hasta el
+          índice actual menos K ya había aparecido antes, entonces existe un
+          subarray de suma K. Se guarda en el mapa cuántas veces ha ocurrido
+          cada suma acumulada.
+        </p>
+
+        <pre><code><span class="ty">Map</span>&lt;<span class="ty">Integer</span>, <span class="ty">Integer</span>&gt; map = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;&gt;();
+map.put(<span class="nm">0</span>, <span class="nm">1</span>); <span class="cm">// suma 0 ocurre una vez antes de empezar</span>
+
+<span class="kw">int</span> sum = <span class="nm">0</span>, count = <span class="nm">0</span>;
+
+<span class="kw">for</span> (<span class="kw">int</span> num : nums) {
+    sum += num;
+
+    <span class="kw">if</span> (map.containsKey(sum - k))
+        count += map.get(sum - k);
+
+    map.put(sum, map.getOrDefault(sum, <span class="nm">0</span>) + <span class="nm">1</span>);
+}</code></pre>
+
+        <div class="complexity">
+          Tiempo: <span>O(n)</span> &nbsp;·&nbsp; Espacio: <span>O(n)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">Range Sum Query – Immutable</div>
+          <div class="problem-item">Find Pivot Index</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Subarray Sum Equals K <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Continuous Subarray Sum</div>
+          <div class="problem-item">Binary Subarrays With Sum</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Count of Range Sum <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Maximum Size Subarray Sum Equals k</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 04 KADANE -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">04</div>
+        <h2>Kadane's Algorithm</h2>
+
+        <p>
+          Kadane resuelve el problema del subarray de suma máxima en O(n). La
+          idea es simple pero elegante: en cada posición se decide si conviene
+          extender el subarray actual o empezar uno nuevo desde ese elemento. Si
+          el acumulado hasta ahora es negativo, es mejor abandonarlo, porque
+          sumar un número negativo siempre perjudica la suma futura.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "Si el pasado me perjudica, lo abandono y empiezo de
+          nuevo."
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado pregunta por: máximo subarray, máxima ganancia continua,
+          mejor beneficio acumulado, o puntaje máximo a lo largo de una
+          secuencia. La clave es que se busca el mejor resultado continuo, no
+          una combinación arbitraria de elementos.
+        </p>
+
+        <h3>Implementación</h3>
+        <p>
+          Se recorre el arreglo manteniendo dos variables: <code>current</code>,
+          que representa la mejor suma terminando en la posición actual, y
+          <code>best</code>, que guarda el máximo global. En cada paso, se elige
+          entre empezar desde cero con el elemento actual o extender el subarray
+          previo.
+        </p>
+
+        <pre><code><span class="kw">int</span> current = nums[<span class="nm">0</span>];
+<span class="kw">int</span> best    = nums[<span class="nm">0</span>];
+
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i < nums.length; i++) {
+    current = <span class="ty">Math</span>.max(nums[i], current + nums[i]);
+    best    = <span class="ty">Math</span>.max(best, current);
+}</code></pre>
+
+        <div class="complexity">
+          Tiempo: <span>O(n)</span> &nbsp;·&nbsp; Espacio: <span>O(1)</span>
+        </div>
+
+        <h3>Ejemplo paso a paso</h3>
+        <p>
+          Con el arreglo <code>[-2, 1, -3, 4, -1, 2, 1, -5, 4]</code>, al llegar
+          al 4 se abandona el acumulado negativo (-4) y se reinicia desde 4.
+          Luego se extiende hasta 4, -1, 2, 1, produciendo la suma máxima de 6.
+        </p>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Maximum Subarray <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">Best Time to Buy and Sell Stock</div>
+          <div class="problem-item">Maximum Product Subarray</div>
+          <div class="problem-item">
+            Maximum Sum Circular Subarray <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">Split Array Largest Sum</div>
+          <div class="problem-item">Maximum Sum Rectangle (2D Kadane)</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 05 BFS -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">05</div>
+        <h2>BFS — Breadth-First Search</h2>
+
+        <p>
+          BFS (búsqueda en anchura) explora un grafo capa por capa: primero
+          todos los nodos a distancia 1, luego los de distancia 2, y así
+          sucesivamente. Esta propiedad lo hace el algoritmo correcto para
+          encontrar el camino más corto en un grafo no ponderado.
+        </p>
+
+        <div class="callout">
+          Regla de oro: si el problema pide el mínimo número de pasos o la
+          distancia más corta en un grafo sin pesos, la respuesta es BFS,
+          siempre.
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          Las palabras clave son: mínimo número de pasos, distancia más corta,
+          movimientos por turnos, expansión simultánea (como naranjas
+          pudriéndose o fuego propagándose), recorrido nivel a nivel, o
+          cualquier problema sobre matrices donde se deba llegar de un punto a
+          otro con el mínimo de movimientos.
+        </p>
+
+        <p>
+          Es importante entender que muchos problemas de matrices son grafos
+          implícitos. Cada celda es un nodo y sus vecinos son los nodos
+          adyacentes. No hace falta que el problema diga "grafo" para usar BFS.
+        </p>
+
+        <h3>Plantilla BFS sobre matriz</h3>
+        <pre><code><span class="kw">int</span>[][] dirs = {{<span class="nm">0</span>,<span class="nm">1</span>},{<span class="nm">0</span>,<span class="nm">-1</span>},{<span class="nm">1</span>,<span class="nm">0</span>},{<span class="nm">-1</span>,<span class="nm">0</span>}};
+
+<span class="ty">Queue</span>&lt;<span class="kw">int</span>[]&gt; q = <span class="kw">new</span> <span class="ty">LinkedList</span>&lt;&gt;();
+<span class="kw">boolean</span>[][] visited = <span class="kw">new boolean</span>[m][n];
+
+q.add(<span class="kw">new int</span>[]{startX, startY});
+visited[startX][startY] = <span class="kw">true</span>;
+
+<span class="kw">int</span> steps = <span class="nm">0</span>;
+
+<span class="kw">while</span> (!q.isEmpty()) {
+
+    <span class="kw">int</span> size = q.size(); <span class="cm">// tamaño del nivel actual</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i < size; i++) {
+
+        <span class="kw">int</span>[] node = q.poll();
+        <span class="kw">int</span> x = node[<span class="nm">0</span>], y = node[<span class="nm">1</span>];
+
+        <span class="kw">if</span> (esObjetivo(x, y)) <span class="kw">return</span> steps;
+
+        <span class="kw">for</span> (<span class="kw">int</span>[] dir : dirs) {
+            <span class="kw">int</span> nx = x + dir[<span class="nm">0</span>];
+            <span class="kw">int</span> ny = y + dir[<span class="nm">1</span>];
+
+            <span class="kw">if</span> (valido(nx, ny) && !visited[nx][ny]) {
+                visited[nx][ny] = <span class="kw">true</span>;
+                q.add(<span class="kw">new int</span>[]{nx, ny});
+            }
+        }
+    }
+
+    steps++; <span class="cm">// termina un nivel, avanza un paso</span>
+}</code></pre>
+
+        <p>
+          El detalle clave está en el bucle interno: se procesa exactamente el
+          tamaño del nivel actual (<code>q.size()</code>) antes de incrementar
+          los pasos. Esto garantiza que <code>steps</code> representa la
+          distancia real desde el origen.
+        </p>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">Flood Fill</div>
+          <div class="problem-item">
+            Number of Islands <span class="stars">⭐</span>
+          </div>
+          <div class="problem-item">
+            Binary Tree Level Order Traversal <span class="stars">⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Rotting Oranges <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            01 Matrix <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Shortest Path in Binary Matrix <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Walls and Gates</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Word Ladder <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Open the Lock <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Minimum Genetic Mutation</div>
+          <div class="problem-item">
+            Bus Routes <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 06 DFS -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">06</div>
+        <h2>DFS con Stack — Iterativo</h2>
+
+        <p>
+          DFS (búsqueda en profundidad) explora un camino hasta el final antes
+          de retroceder y probar otro. Mientras BFS piensa en capas, DFS piensa
+          en rutas completas. Su versión iterativa usa un stack explícito en
+          lugar de recursión, lo que evita StackOverflow en grafos grandes.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Necesito explorar todos los caminos posibles,
+          detectar ciclos, o determinar si algo es alcanzable?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          Se usa DFS cuando el problema requiere: explorar todos los nodos de un
+          componente, detectar ciclos en un grafo, hacer backtracking, validar
+          si existe un camino (sin importar la distancia), o procesar la
+          estructura de un árbol. A diferencia de BFS, DFS no garantiza el
+          camino más corto.
+        </p>
+
+        <h3>Diferencia fundamental con BFS</h3>
+        <p>
+          La única diferencia estructural en el código es la estructura de
+          datos: BFS usa una Queue (FIFO, primero en entrar, primero en salir),
+          que produce exploración por niveles. DFS usa un Stack (LIFO, último en
+          entrar, primero en salir), que produce exploración en profundidad.
+          Todo lo demás es casi idéntico.
+        </p>
+
+        <h3>Plantilla DFS iterativo</h3>
+        <pre><code><span class="ty">Stack</span>&lt;<span class="kw">int</span>[]&gt; stack = <span class="kw">new</span> <span class="ty">Stack</span>&lt;&gt;();
+<span class="kw">boolean</span>[][] visited = <span class="kw">new boolean</span>[m][n];
+
+stack.push(<span class="kw">new int</span>[]{startX, startY});
+
+<span class="kw">while</span> (!stack.isEmpty()) {
+
+    <span class="kw">int</span>[] node = stack.pop();
+    <span class="kw">int</span> x = node[<span class="nm">0</span>], y = node[<span class="nm">1</span>];
+
+    <span class="kw">if</span> (visited[x][y]) <span class="kw">continue</span>; <span class="cm">// puede haberse encolado dos veces</span>
+    visited[x][y] = <span class="kw">true</span>;
+
+    <span class="kw">if</span> (esObjetivo(x, y)) <span class="kw">return true</span>;
+
+    <span class="kw">for</span> (<span class="kw">int</span>[] dir : dirs) {
+        <span class="kw">int</span> nx = x + dir[<span class="nm">0</span>];
+        <span class="kw">int</span> ny = y + dir[<span class="nm">1</span>];
+
+        <span class="kw">if</span> (valido(nx, ny) && !visited[nx][ny])
+            stack.push(<span class="kw">new int</span>[]{nx, ny});
+    }
+}</code></pre>
+
+        <h3>Tabla de decisión rápida</h3>
+        <table class="pattern-table">
+          <thead>
+            <tr>
+              <th>Pregunta del problema</th>
+              <th>Algoritmo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mínimo número de pasos</td>
+              <td><span class="tag">BFS</span></td>
+            </tr>
+            <tr>
+              <td>Distancia más corta</td>
+              <td><span class="tag">BFS</span></td>
+            </tr>
+            <tr>
+              <td>Propagación simultánea</td>
+              <td><span class="tag">BFS</span></td>
+            </tr>
+            <tr>
+              <td>Recorrido nivel a nivel</td>
+              <td><span class="tag">BFS</span></td>
+            </tr>
+            <tr>
+              <td>Todos los caminos posibles</td>
+              <td><span class="tag green">DFS</span></td>
+            </tr>
+            <tr>
+              <td>Existe un camino</td>
+              <td><span class="tag green">DFS</span></td>
+            </tr>
+            <tr>
+              <td>Detectar ciclos</td>
+              <td><span class="tag green">DFS</span></td>
+            </tr>
+            <tr>
+              <td>Componentes conectados</td>
+              <td><span class="tag green">DFS</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Maximum Depth of Binary Tree <span class="stars">⭐</span>
+          </div>
+          <div class="problem-item">Same Tree</div>
+          <div class="problem-item">Path Sum</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Number of Islands (versión DFS) <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Clone Graph <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Course Schedule — detección de ciclo
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Pacific Atlantic Water Flow <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Surrounded Regions <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Graph Valid Tree</div>
+          <div class="problem-item">
+            Reconstruct Itinerary — backtracking DFS
+            <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 07 FLOYD -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">07</div>
+        <h2>Floyd's Tortoise and Hare</h2>
+
+        <p>
+          Este algoritmo detecta ciclos en una secuencia usando solo dos
+          punteros y espacio O(1). A primera vista parece un algoritmo sobre
+          arrays, pero en realidad modela un linked list implícito donde cada
+          valor es un puntero al siguiente nodo.
+        </p>
+
+        <div class="callout">
+          La clave conceptual: cada elemento del arreglo no es un dato, es un
+          puntero. El valor en la posición i apunta a la posición nums[i].
+        </div>
+
+        <h3>El problema que resuelve</h3>
+        <p>
+          Dado un arreglo de n+1 números en el rango [1..n], donde exactamente
+          uno está duplicado, hay que encontrar ese duplicado sin modificar el
+          arreglo y usando espacio constante. La solución ingenua usaría un
+          HashSet (O(n) espacio) o modificaría el arreglo. Floyd lo hace en O(1)
+          espacio.
+        </p>
+
+        <h3>Modelando el linked list</h3>
+        <p>
+          Con el arreglo <code>[1, 3, 4, 2, 2]</code>, se puede construir la
+          cadena de punteros: empezando en el índice 0, su valor es 1, entonces
+          se va al índice 1, cuyo valor es 3, luego al índice 3, cuyo valor es
+          2, luego al índice 2, cuyo valor es 4, luego al índice 4, cuyo valor
+          es 2... y aquí empieza el ciclo entre los índices 2 y 4. El número que
+          forma el ciclo es el duplicado.
+        </p>
+
+        <h3>Fase 1 — Detectar que existe el ciclo</h3>
+        <p>
+          Se usan dos punteros: <code>slow</code> avanza un paso (sigue el
+          puntero una vez) y <code>fast</code> avanza dos pasos. Dado que hay un
+          ciclo, eventualmente se encontrarán. Este punto de encuentro no es la
+          entrada del ciclo, solo confirma su existencia.
+        </p>
+
+        <pre><code><span class="kw">int</span> slow = nums[<span class="nm">0</span>];
+<span class="kw">int</span> fast = nums[<span class="nm">0</span>];
+
+<span class="kw">do</span> {
+    slow = nums[slow];
+    fast = nums[nums[fast]];
+} <span class="kw">while</span> (slow != fast);</code></pre>
+
+        <h3>Fase 2 — Encontrar la entrada del ciclo (el duplicado)</h3>
+        <p>
+          Aquí ocurre lo matemáticamente elegante. Cuando los dos punteros se
+          encuentran, uno de ellos se reinicia al inicio del arreglo y ambos
+          avanzan un solo paso a la vez. El punto donde vuelven a encontrarse es
+          exactamente la entrada del ciclo, que es el número duplicado.
+        </p>
+
+        <p>
+          La razón es geométrica: si se llama <code>a</code> a la distancia
+          desde el inicio hasta la entrada del ciclo, <code>b</code> a la
+          distancia desde la entrada hasta el punto de encuentro, y
+          <code>c</code> al resto del ciclo, entonces cuando chocan, fast
+          recorrió el doble que slow. Resolviendo la ecuación, slow está
+          exactamente a <code>a</code> pasos de la entrada, lo mismo que el
+          inicio del arreglo.
+        </p>
+
+        <pre><code>slow = nums[<span class="nm">0</span>]; <span class="cm">// se reinicia al inicio</span>
+
+<span class="kw">while</span> (slow != fast) {
+    slow = nums[slow];
+    fast = nums[fast]; <span class="cm">// ahora ambos van a 1 paso</span>
+}
+
+<span class="kw">return</span> slow; <span class="cm">// este es el duplicado</span></code></pre>
+
+        <div class="complexity">
+          Tiempo: <span>O(n)</span> &nbsp;·&nbsp; Espacio: <span>O(1)</span>
+        </div>
+
+        <h3>Cuándo reconocerlo en entrevista</h3>
+        <p>
+          Aparece cuando el enunciado combina: números en rango [1..n], arreglo
+          de tamaño n+1, encontrar el duplicado, no modificar el arreglo, y
+          espacio constante. Si están presentes esas cuatro condiciones juntas,
+          casi con certeza es Floyd Cycle Detection.
+        </p>
+
+        <h3>Problemas de práctica</h3>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Find the Duplicate Number <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Linked List Cycle</div>
+          <div class="problem-item">
+            Linked List Cycle II <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Happy Number <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Circular Array Loop</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 08 MONOTONIC STACK -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">08</div>
+        <h2>Monotonic Stack — Stock Span</h2>
+
+        <p>
+          El problema del Stock Span introduce uno de los patrones más poderosos
+          de entrevistas: el Monotonic Stack. La intuición detrás es que cuando
+          aparece un elemento mayor que los anteriores, esos elementos
+          anteriores jamás volverán a ser relevantes para ningún elemento
+          futuro. Se pueden descartar permanentemente.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Hay elementos en el pasado que ya nunca volverán a
+          importar porque el presente los domina?"
+        </div>
+
+        <h3>El problema</h3>
+        <p>
+          Dado un arreglo de precios diarios de una acción, para cada día se
+          debe calcular cuántos días consecutivos hacia atrás el precio fue
+          menor o igual al de hoy. Con el arreglo
+          <code>[100, 80, 60, 70, 60, 75, 85]</code>, el resultado es
+          <code>[1, 1, 1, 2, 1, 4, 6]</code>. Para el precio 85, el span es 6
+          porque los seis días anteriores tuvieron precios menores o iguales.
+        </p>
+
+        <h3>Por qué funciona el stack</h3>
+        <p>
+          La solución ingenua compara cada día con todos los anteriores: O(n²).
+          La mejora viene de observar que si hoy el precio es mayor que ayer,
+          ayer nunca volverá a ser consultado por ningún día futuro (porque
+          cualquier día futuro compara con hoy primero, y si hoy ya es mayor,
+          ayer queda eclipsado). Esto significa que ayer puede eliminarse del
+          stack.
+        </p>
+
+        <p>
+          El stack guarda pares (precio, span acumulado). El span acumulado de
+          un elemento representa cuántos días consecutivos "engloba" ese
+          elemento. Cuando se elimina un elemento del stack porque el precio
+          actual es mayor, se suma su span al span del elemento actual.
+        </p>
+
+        <h3>Implementación</h3>
+        <pre><code><span class="kw">class</span> <span class="ty">StockSpanner</span> {
+
+    <span class="kw">private</span> <span class="ty">Stack</span>&lt;<span class="kw">int</span>[]&gt; stack = <span class="kw">new</span> <span class="ty">Stack</span>&lt;&gt;();
+
+    <span class="kw">public int</span> next(<span class="kw">int</span> price) {
+
+        <span class="kw">int</span> span = <span class="nm">1</span>; <span class="cm">// el día actual siempre cuenta</span>
+
+        <span class="kw">while</span> (!stack.isEmpty() && stack.peek()[<span class="nm">0</span>] <= price) {
+            span += stack.pop()[<span class="nm">1</span>]; <span class="cm">// absorber el span del día eliminado</span>
+        }
+
+        stack.push(<span class="kw">new int</span>[]{price, span});
+        <span class="kw">return</span> span;
+    }
+}</code></pre>
+
+        <h3>Evolución del stack paso a paso</h3>
+        <pre><code><span class="cm">precio 100  →  stack: [(100,1)]
+precio  80  →  stack: [(100,1),(80,1)]
+precio  60  →  stack: [(100,1),(80,1),(60,1)]
+precio  70  →  70>=60, elimina (60,1), span=2
+               stack: [(100,1),(80,1),(70,2)]
+precio  75  →  75>=70, elimina (70,2); 75>=60, ya no está
+               span = 1 + 2 = 3? No:
+               75>=80? No. Detiene.  stack: [(100,1),(80,1),(75,4)]
+               (el 4 viene de: 1 + suma de spans eliminados)
+precio  85  →  85>=75 suma 4, 85>=80 suma 1 → span=6
+               stack: [(100,1),(85,6)]</span></code></pre>
+
+        <p>
+          Cada elemento entra al stack una vez y sale una vez, por lo que el
+          tiempo total es O(n) amortizado.
+        </p>
+
+        <div class="complexity">
+          Tiempo amortizado: <span>O(n)</span> &nbsp;·&nbsp; Espacio:
+          <span>O(n)</span>
+        </div>
+
+        <h3>Cuándo reconocer Monotonic Stack en entrevista</h3>
+        <p>
+          Las palabras clave son: próximo elemento mayor, días hasta temperatura
+          más alta, área en histograma, span o rango continuo, o cualquier
+          situación donde se necesite eliminar elementos que han sido
+          "dominados" por un elemento más grande o más reciente.
+        </p>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Online Stock Span <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Next Greater Element I</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Daily Temperatures <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Next Greater Element II</div>
+          <div class="problem-item">Remove K Digits</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Largest Rectangle in Histogram <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Maximal Rectangle</div>
+          <div class="problem-item">
+            Sum of Subarray Minimums <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 09 KAHN -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">09</div>
+        <h2>Kahn's Algorithm — Ordenamiento Topológico</h2>
+
+        <p>
+          Kahn resuelve el problema de ordenar tareas con dependencias. Si la
+          tarea A debe completarse antes que la tarea B, ¿cuál es un orden
+          válido para ejecutar todas las tareas? Si existe un ciclo (A depende
+          de B y B depende de A), no hay orden válido posible.
+        </p>
+
+        <div class="callout">
+          Idea central: si algo no tiene ninguna dependencia pendiente, se puede
+          hacer ahora. Completarlo puede desbloquear otras tareas.
+        </div>
+
+        <h3>El concepto de in-degree</h3>
+        <p>
+          El in-degree de un nodo es el número de aristas que llegan a él, es
+          decir, cuántas dependencias tiene. Un nodo con in-degree 0 no tiene
+          prerrequisitos y puede ejecutarse de inmediato. Al procesarlo, se
+          reduce el in-degree de todos sus vecinos. Si alguno de ellos llega a
+          0, entra a la cola.
+        </p>
+
+        <h3>Algoritmo paso a paso</h3>
+        <p>
+          Primero se calcula el in-degree de cada nodo recorriendo todas las
+          aristas. Luego se meten en la cola todos los nodos con in-degree 0. Se
+          procesa la cola: se saca un nodo, se agrega al orden resultante, y se
+          reduce el in-degree de sus vecinos. Si algún vecino llega a 0, se
+          agrega a la cola. Al terminar, si el orden resultante no contiene
+          todos los nodos, significa que hay un ciclo y no existe ordenamiento
+          válido.
+        </p>
+
+        <h3>Implementación en Java</h3>
+        <pre><code><span class="kw">public</span> <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; kahnTopoSort(<span class="kw">int</span> n, <span class="ty">List</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt;&gt; graph) {
+
+    <span class="kw">int</span>[] indegree = <span class="kw">new int</span>[n];
+
+    <span class="cm">// Calcular in-degree de cada nodo</span>
+    <span class="kw">for</span> (<span class="kw">int</span> u = <span class="nm">0</span>; u < n; u++)
+        <span class="kw">for</span> (<span class="kw">int</span> v : graph.get(u))
+            indegree[v]++;
+
+    <span class="ty">Queue</span>&lt;<span class="ty">Integer</span>&gt; q = <span class="kw">new</span> <span class="ty">LinkedList</span>&lt;&gt;();
+
+    <span class="cm">// Meter nodos sin dependencias</span>
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i < n; i++)
+        <span class="kw">if</span> (indegree[i] == <span class="nm">0</span>)
+            q.offer(i);
+
+    <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; order = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+    <span class="kw">while</span> (!q.isEmpty()) {
+        <span class="kw">int</span> node = q.poll();
+        order.add(node);
+
+        <span class="kw">for</span> (<span class="kw">int</span> neighbor : graph.get(node)) {
+            indegree[neighbor]--;
+
+            <span class="kw">if</span> (indegree[neighbor] == <span class="nm">0</span>)
+                q.offer(neighbor);
+        }
+    }
+
+    <span class="cm">// Si no se procesaron todos, hay ciclo</span>
+    <span class="kw">if</span> (order.size() != n)
+        <span class="kw">return new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+    <span class="kw">return</span> order;
+}</code></pre>
+
+        <div class="complexity">
+          Tiempo: <span>O(V + E)</span> &nbsp;·&nbsp; Espacio: <span>O(V)</span>
+        </div>
+
+        <h3>Diferencia con DFS Topológico</h3>
+        <p>
+          DFS también puede hacer ordenamiento topológico usando el orden
+          postorden de la recursión. Kahn, al ser BFS, produce un orden que
+          respeta los niveles de dependencias (primero lo que no tiene
+          prerrequisitos, luego lo que dependía de eso). Kahn además detecta
+          ciclos naturalmente como efecto secundario: si quedan nodos sin
+          procesar al final, hay ciclo.
+        </p>
+
+        <h3>Cuándo reconocerlo en entrevista</h3>
+        <p>
+          Las palabras que deben activar este patrón son: prerequisites, course
+          schedule, order of tasks, dependency resolution, build order, alien
+          dictionary, o cualquier variante de "¿puedo completar todas las
+          tareas?". Si hay un orden implícito entre elementos con dependencias,
+          es Kahn o topological sort.
+        </p>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Course Schedule <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Course Schedule II <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Find All Possible Recipes from Given Supplies
+          </div>
+          <div class="problem-item">Parallel Courses</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Alien Dictionary <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Sequence Reconstruction <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Minimum Height Trees</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- RESUMEN FINAL -->
+      <div class="section">
+        <div class="section-number">Resumen</div>
+        <h2>Tabla de reconocimiento rápido</h2>
+
+        <p>
+          En una entrevista, el objetivo no es memorizar implementaciones sino
+          reconocer el patrón en menos de 30 segundos. Esta tabla condensa la
+          señal más rápida de cada algoritmo.
+        </p>
+
+        <table class="pattern-table">
+          <thead>
+            <tr>
+              <th>Palabras clave en el enunciado</th>
+              <th>Patrón</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ordenado / pares / extremos / palíndromo</td>
+              <td><span class="tag">Two Pointers</span></td>
+            </tr>
+            <tr>
+              <td>subarray / substring / consecutivo / tamaño k</td>
+              <td><span class="tag">Sliding Window</span></td>
+            </tr>
+            <tr>
+              <td>rangos / conteos / k suma / balance</td>
+              <td><span class="tag">Prefix Sum</span></td>
+            </tr>
+            <tr>
+              <td>máximo continuo / profit / subarray máximo</td>
+              <td><span class="tag green">Kadane</span></td>
+            </tr>
+            <tr>
+              <td>mínimos pasos / distancia corta / propagación</td>
+              <td><span class="tag">BFS</span></td>
+            </tr>
+            <tr>
+              <td>todos los caminos / ciclos / componentes</td>
+              <td><span class="tag green">DFS</span></td>
+            </tr>
+            <tr>
+              <td>duplicado / rango [1..n] / espacio O(1)</td>
+              <td><span class="tag purple">Floyd</span></td>
+            </tr>
+            <tr>
+              <td>próximo mayor / span / histograma / temperaturas</td>
+              <td><span class="tag yellow">Monotonic Stack</span></td>
+            </tr>
+            <tr>
+              <td>prerrequisitos / orden de tareas / dependencias</td>
+              <td><span class="tag purple">Kahn's</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
