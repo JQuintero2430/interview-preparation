@@ -350,6 +350,16 @@
           <li>Floyd's Tortoise and Hare — Detección de ciclos</li>
           <li>Monotonic Stack — Stock Span</li>
           <li>Kahn's Algorithm — Ordenamiento topológico</li>
+          <li>Binary Search — Búsqueda binaria</li>
+          <li>Dynamic Programming — Programación dinámica</li>
+          <li>Heap / Priority Queue — Montículo</li>
+          <li>Backtracking — Vuelta atrás</li>
+          <li>Trie — Árbol de prefijos</li>
+          <li>Union-Find — Conjuntos disjuntos</li>
+          <li>Dijkstra — Camino más corto con pesos</li>
+          <li>Intervals — Intervalos</li>
+          <li>Greedy — Algoritmos voraces</li>
+          <li>Bit Manipulation — Manipulación de bits</li>
         </ol>
       </div>
 
@@ -1366,6 +1376,999 @@ precio  85  →  85>=75 suma 4, 85>=80 suma 1 → span=6
 
       <hr class="divider" />
 
+      <!-- ─────────────────────────────────────── -->
+      <!-- 10 BINARY SEARCH -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">10</div>
+        <h2>Binary Search</h2>
+
+        <p>
+          La búsqueda binaria descarta la mitad del espacio de búsqueda en cada
+          paso, pasando de O(n) a O(log n). Su verdadero poder en entrevistas no
+          está en buscar un valor dentro de un arreglo ordenado, sino en "buscar
+          sobre la respuesta": cuando la respuesta vive en un rango numérico y se
+          puede verificar si un candidato es válido, se hace binary search sobre
+          ese rango.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿El espacio de posibles respuestas está ordenado de
+          forma monótona? Es decir, ¿si un valor funciona, todos los mayores (o
+          todos los menores) también?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado menciona: arreglo ordenado, encontrar un valor, primer o
+          último elemento que cumple una condición, minimizar el máximo o
+          maximizar el mínimo, o "¿cuál es el menor k tal que...?". Si se puede
+          escribir una función booleana <code>puede(x)</code> que sea monótona
+          (falsa, falsa, ..., verdadera, verdadera), es Binary Search.
+        </p>
+
+        <h3>Plantilla — límite izquierdo (lower bound)</h3>
+        <pre><code><span class="kw">int</span> left = <span class="nm">0</span>;
+<span class="kw">int</span> right = n;          <span class="cm">// rango de búsqueda [left, right)</span>
+
+<span class="kw">while</span> (left < right) {
+    <span class="kw">int</span> mid = left + (right - left) / <span class="nm">2</span>;
+
+    <span class="kw">if</span> (puede(mid)) {
+        right = mid;        <span class="cm">// mid podría ser la respuesta, no lo descartes</span>
+    } <span class="kw">else</span> {
+        left = mid + <span class="nm">1</span>;     <span class="cm">// mid no sirve, descártalo</span>
+    }
+}
+
+<span class="kw">return</span> left;            <span class="cm">// primer valor que cumple la condición</span></code></pre>
+
+        <p>
+          Usar <code>left + (right - left) / 2</code> en lugar de
+          <code>(left + right) / 2</code> evita el desbordamiento cuando los
+          índices son grandes. La invariante clave: nunca descartar
+          <code>mid</code> cuando podría ser la respuesta.
+        </p>
+
+        <div class="complexity">
+          Tiempo: <span>O(log n)</span> &nbsp;·&nbsp; Espacio: <span>O(1)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">Binary Search</div>
+          <div class="problem-item">Search Insert Position</div>
+          <div class="problem-item">
+            First Bad Version <span class="stars">⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Search in Rotated Sorted Array <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Find First and Last Position of Element</div>
+          <div class="problem-item">
+            Koko Eating Bananas <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Find Peak Element</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Median of Two Sorted Arrays <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Split Array Largest Sum <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Capacity To Ship Packages Within D Days
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 11 DYNAMIC PROGRAMMING -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">11</div>
+        <h2>Dynamic Programming</h2>
+
+        <p>
+          La programación dinámica resuelve un problema descomponiéndolo en
+          subproblemas más pequeños que se solapan, y guardando el resultado de
+          cada uno una sola vez. Esto convierte una recursión exponencial (que
+          recalcula los mismos casos una y otra vez) en una solución polinómica.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿La solución se construye a partir de soluciones a
+          versiones más pequeñas del mismo problema, y esos subproblemas se
+          repiten?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado pide: contar de cuántas formas, mínimo o máximo costo,
+          "¿es posible alcanzar?", la subsecuencia más larga, particiones
+          óptimas, o una elección óptima bajo restricciones. La señal más fuerte:
+          se te ocurre una solución recursiva, pero el árbol de llamadas repite
+          los mismos argumentos.
+        </p>
+
+        <h3>Las tres preguntas</h3>
+        <p>
+          Todo problema de DP se resuelve respondiendo tres cosas: cuál es el
+          <strong>estado</strong> (qué representa <code>dp[i]</code>), cuál es la
+          <strong>transición</strong> (cómo se calcula <code>dp[i]</code> a
+          partir de estados anteriores) y cuál es el <strong>caso base</strong>.
+        </p>
+
+        <h3>Plantilla bottom-up (1D)</h3>
+        <pre><code><span class="cm">// dp[i] = mejor resultado considerando hasta el elemento i</span>
+<span class="kw">int</span>[] dp = <span class="kw">new int</span>[n + <span class="nm">1</span>];
+dp[<span class="nm">0</span>] = casoBase;
+
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">1</span>; i <= n; i++) {
+    <span class="cm">// transición: combinar estados ya calculados</span>
+    dp[i] = <span class="ty">Math</span>.max(dp[i - <span class="nm">1</span>], dp[i - <span class="nm">2</span>] + valor[i]);
+}
+
+<span class="kw">return</span> dp[n];</code></pre>
+
+        <p>
+          Este ejemplo corresponde a House Robber: en cada casa se elige entre
+          saltarla (<code>dp[i-1]</code>) o robarla y sumar lo mejor de dos casas
+          atrás (<code>dp[i-2] + valor[i]</code>). El mismo esqueleto sirve para
+          casi cualquier DP lineal.
+        </p>
+
+        <div class="complexity">
+          Tiempo: <span>O(n) a O(n·k)</span> &nbsp;·&nbsp; Espacio:
+          <span>O(n), a veces O(1)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Climbing Stairs <span class="stars">⭐</span>
+          </div>
+          <div class="problem-item">
+            House Robber <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Min Cost Climbing Stairs</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Coin Change <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Longest Increasing Subsequence <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Unique Paths</div>
+          <div class="problem-item">
+            Word Break <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Partition Equal Subset Sum</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Edit Distance <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Longest Common Subsequence</div>
+          <div class="problem-item">
+            Burst Balloons <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Regular Expression Matching <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 12 HEAP -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">12</div>
+        <h2>Heap / Priority Queue</h2>
+
+        <p>
+          Un heap (montículo) mantiene siempre accesible el elemento mínimo o
+          máximo en O(1), con inserción y extracción en O(log n). Es la
+          estructura correcta cuando importa repetidamente "el más grande o el
+          más pequeño de lo que llevo hasta ahora", sin necesidad de ordenar todo
+          el conjunto.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Necesito repetidamente el elemento más grande o más
+          pequeño de un conjunto que va cambiando?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado pide: los K elementos más frecuentes o más grandes, el
+          k-ésimo mayor, mezclar k listas ordenadas, la mediana de un flujo de
+          datos, planificar tareas por prioridad, o extraer repetidamente el
+          mínimo costo. El truco de top-K: para quedarte con los K mayores, usa
+          un <strong>min-heap de tamaño K</strong> y descarta el menor cada vez
+          que se pasa.
+        </p>
+
+        <h3>Plantilla — K-ésimo elemento más grande</h3>
+        <pre><code><span class="cm">// min-heap de tamaño k → al final quedan los k mayores</span>
+<span class="ty">PriorityQueue</span>&lt;<span class="ty">Integer</span>&gt; heap = <span class="kw">new</span> <span class="ty">PriorityQueue</span>&lt;&gt;();
+
+<span class="kw">for</span> (<span class="kw">int</span> num : nums) {
+    heap.offer(num);
+
+    <span class="kw">if</span> (heap.size() > k)
+        heap.poll();       <span class="cm">// saca el menor, mantiene los k mayores</span>
+}
+
+<span class="kw">return</span> heap.peek();        <span class="cm">// la raíz es el k-ésimo mayor</span></code></pre>
+
+        <p>
+          Mantener el heap acotado a tamaño k hace que cada inserción cueste
+          O(log k) en vez de O(log n), reduciendo el total a O(n log k). Para un
+          max-heap en Java se usa
+          <code>new PriorityQueue&lt;&gt;(Collections.reverseOrder())</code>.
+        </p>
+
+        <div class="complexity">
+          Tiempo: <span>O(n log k)</span> &nbsp;·&nbsp; Espacio: <span>O(k)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">Kth Largest Element in a Stream</div>
+          <div class="problem-item">Last Stone Weight</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Kth Largest Element in an Array <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Top K Frequent Elements <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">K Closest Points to Origin</div>
+          <div class="problem-item">
+            Task Scheduler <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Merge k Sorted Lists <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Find Median from Data Stream <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Sliding Window Maximum <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 13 BACKTRACKING -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">13</div>
+        <h2>Backtracking</h2>
+
+        <p>
+          El backtracking construye una solución de forma incremental y abandona
+          un camino en cuanto deja de ser válido (poda), retrocediendo para
+          probar otra opción. Es, en esencia, un DFS sobre el árbol de
+          decisiones, con un patrón de tres pasos: elegir, explorar, deshacer.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Necesito generar todas las combinaciones,
+          permutaciones o subconjuntos posibles, o encontrar una configuración
+          que cumpla ciertas restricciones?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          Las palabras clave son: subsets, permutations, combinations, generar
+          todas las soluciones, sudoku, N-Queens, word search, particiones. La
+          frase reveladora suele ser "todas las formas de..." o "encuentra una
+          asignación válida que...".
+        </p>
+
+        <h3>Plantilla — el patrón elegir / explorar / deshacer</h3>
+        <pre><code><span class="kw">void</span> backtrack(<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; current, <span class="kw">int</span> start) {
+
+    resultado.add(<span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;(current)); <span class="cm">// registrar estado válido</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span> i = start; i < nums.length; i++) {
+        current.add(nums[i]);               <span class="cm">// elegir</span>
+        backtrack(current, i + <span class="nm">1</span>);         <span class="cm">// explorar más profundo</span>
+        current.remove(current.size() - <span class="nm">1</span>); <span class="cm">// deshacer</span>
+    }
+}</code></pre>
+
+        <p>
+          El paso de "deshacer" es lo que diferencia el backtracking de un DFS
+          común: al regresar de la recursión, se restaura el estado exacto que
+          había antes de elegir, dejando el terreno limpio para la siguiente
+          opción del bucle.
+        </p>
+
+        <div class="complexity">
+          Tiempo: <span>O(2ⁿ) a O(n!)</span> &nbsp;·&nbsp; Espacio:
+          <span>O(n) de profundidad</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Subsets <span class="stars">⭐</span>
+          </div>
+          <div class="problem-item">Combinations</div>
+          <div class="problem-item">
+            Letter Combinations of a Phone Number
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Permutations <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Combination Sum <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Word Search <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Palindrome Partitioning</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            N-Queens <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Sudoku Solver <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Word Search II <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 14 TRIE -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">14</div>
+        <h2>Trie — Árbol de prefijos</h2>
+
+        <p>
+          Un Trie almacena cadenas carácter por carácter, compartiendo los
+          prefijos comunes entre palabras. Esto permite buscar una palabra o un
+          prefijo en O(L), donde L es su longitud, sin importar cuántas palabras
+          haya guardadas: el costo depende de lo que buscas, no del tamaño del
+          diccionario.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Estoy consultando muchas palabras que comparten
+          prefijos, o necesito autocompletar y buscar por prefijo de forma
+          eficiente?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado menciona: autocomplete, diccionario, búsqueda por prefijo,
+          validar palabras contra un conjunto grande, búsqueda con comodines, o
+          recorrer una matriz buscando muchas palabras a la vez (donde el Trie se
+          combina con backtracking). Si el problema gira en torno a prefijos
+          compartidos, es un Trie.
+        </p>
+
+        <h3>Estructura e inserción</h3>
+        <pre><code><span class="kw">class</span> <span class="ty">TrieNode</span> {
+    <span class="ty">TrieNode</span>[] children = <span class="kw">new</span> <span class="ty">TrieNode</span>[<span class="nm">26</span>];
+    <span class="kw">boolean</span> isWord;
+}
+
+<span class="kw">void</span> insert(<span class="ty">String</span> word) {
+    <span class="ty">TrieNode</span> node = root;
+
+    <span class="kw">for</span> (<span class="kw">char</span> c : word.toCharArray()) {
+        <span class="kw">int</span> i = c - <span class="st">'a'</span>;
+
+        <span class="kw">if</span> (node.children[i] == <span class="kw">null</span>)
+            node.children[i] = <span class="kw">new</span> <span class="ty">TrieNode</span>();
+
+        node = node.children[i];
+    }
+
+    node.isWord = <span class="kw">true</span>; <span class="cm">// marca el fin de una palabra completa</span>
+}</code></pre>
+
+        <p>
+          La búsqueda de un prefijo es idéntica pero sin marcar
+          <code>isWord</code>: se recorre carácter a carácter y, si algún hijo es
+          <code>null</code>, el prefijo no existe. El flag <code>isWord</code>
+          distingue una palabra completa ("app") de un simple prefijo de otra
+          ("apple").
+        </p>
+
+        <div class="complexity">
+          Insertar / buscar: <span>O(L)</span> &nbsp;·&nbsp; Espacio:
+          <span>O(N·L)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Implement Trie (Prefix Tree) <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Design Add and Search Words Data Structure
+            <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Replace Words</div>
+          <div class="problem-item">Map Sum Pairs</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Word Search II <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Palindrome Pairs <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Stream of Characters</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 15 UNION-FIND -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">15</div>
+        <h2>Union-Find — Disjoint Set Union</h2>
+
+        <p>
+          Union-Find agrupa elementos en conjuntos y responde en tiempo casi
+          constante dos preguntas: "¿están estos dos elementos en el mismo
+          grupo?" y "une estos dos grupos". Con compresión de caminos y unión por
+          tamaño, cada operación cuesta O(α(n)), donde α es la inversa de
+          Ackermann, prácticamente una constante.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Estoy uniendo cosas en grupos y preguntando
+          repetidamente si dos elementos ya están conectados?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado trata de: componentes conectados que se forman de a poco,
+          detectar un ciclo en un grafo no dirigido, contar provincias o islas,
+          redes de amigos, cuentas que se fusionan, o construir un árbol de
+          expansión mínima (Kruskal). Su ventaja sobre DFS es que procesa uniones
+          que llegan una a una, en línea.
+        </p>
+
+        <h3>Implementación con compresión de caminos</h3>
+        <pre><code><span class="kw">int</span>[] parent;
+
+<span class="kw">int</span> find(<span class="kw">int</span> x) {
+    <span class="kw">if</span> (parent[x] != x)
+        parent[x] = find(parent[x]); <span class="cm">// compresión: apunta directo a la raíz</span>
+
+    <span class="kw">return</span> parent[x];
+}
+
+<span class="kw">void</span> union(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+    parent[find(a)] = find(b); <span class="cm">// conecta las dos raíces</span>
+}</code></pre>
+
+        <p>
+          La compresión de caminos aplana el árbol en cada
+          <code>find</code>: tras la primera consulta, los nodos apuntan casi
+          directamente a la raíz. Contar cuántas raíces distintas quedan
+          (<code>find(i) == i</code>) da el número de componentes conectados.
+        </p>
+
+        <div class="complexity">
+          Por operación: <span>O(α(n)) ≈ O(1)</span> &nbsp;·&nbsp; Espacio:
+          <span>O(n)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Number of Provinces <span class="stars">⭐</span>
+          </div>
+          <div class="problem-item">Find if Path Exists in Graph</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Redundant Connection <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Number of Islands (Union-Find) <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Accounts Merge <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Graph Valid Tree</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Most Stones Removed with Same Row or Column
+            <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Smallest String With Swaps <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Number of Connected Components</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 16 DIJKSTRA -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">16</div>
+        <h2>Dijkstra — Camino más corto con pesos</h2>
+
+        <p>
+          Dijkstra encuentra el camino más corto desde un origen en un grafo con
+          pesos no negativos. Es la evolución natural de BFS: donde BFS asume que
+          toda arista cuesta 1 y usa una cola normal, Dijkstra usa una cola de
+          prioridad (min-heap) para expandir siempre el nodo con la menor
+          distancia acumulada conocida.
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Es el camino más corto, pero ahora las aristas
+          tienen pesos distintos entre sí?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado pide: camino o costo mínimo con pesos, tiempo mínimo para
+          que una señal llegue a toda la red, esfuerzo mínimo en una matriz, o el
+          vuelo más barato. La regla de decisión: pesos uniformes → BFS; pesos no
+          negativos → Dijkstra; pesos que pueden ser negativos → Bellman-Ford.
+        </p>
+
+        <h3>Plantilla con cola de prioridad</h3>
+        <pre><code><span class="cm">// [distancia, nodo], ordenado por distancia ascendente</span>
+<span class="ty">PriorityQueue</span>&lt;<span class="kw">int</span>[]&gt; pq = <span class="kw">new</span> <span class="ty">PriorityQueue</span>&lt;&gt;((a, b) -> a[<span class="nm">0</span>] - b[<span class="nm">0</span>]);
+<span class="kw">int</span>[] dist = <span class="kw">new int</span>[n];
+<span class="ty">Arrays</span>.fill(dist, <span class="ty">Integer</span>.MAX_VALUE);
+
+dist[src] = <span class="nm">0</span>;
+pq.offer(<span class="kw">new int</span>[]{<span class="nm">0</span>, src});
+
+<span class="kw">while</span> (!pq.isEmpty()) {
+    <span class="kw">int</span>[] top = pq.poll();
+    <span class="kw">int</span> d = top[<span class="nm">0</span>], u = top[<span class="nm">1</span>];
+
+    <span class="kw">if</span> (d > dist[u]) <span class="kw">continue</span>;      <span class="cm">// entrada obsoleta, ya hay algo mejor</span>
+
+    <span class="kw">for</span> (<span class="kw">int</span>[] e : graph.get(u)) { <span class="cm">// e = [vecino, peso]</span>
+        <span class="kw">int</span> v = e[<span class="nm">0</span>], w = e[<span class="nm">1</span>];
+
+        <span class="kw">if</span> (dist[u] + w < dist[v]) {
+            dist[v] = dist[u] + w;      <span class="cm">// relajación de la arista</span>
+            pq.offer(<span class="kw">new int</span>[]{dist[v], v});
+        }
+    }
+}</code></pre>
+
+        <p>
+          La comprobación <code>if (d > dist[u]) continue</code> descarta
+          entradas viejas de la cola: como no se pueden eliminar elementos
+          intermedios de un heap, simplemente se ignoran cuando se sacan. Por eso
+          Dijkstra falla con pesos negativos: asume que una vez fijada la
+          distancia mínima de un nodo, ya no puede mejorar.
+        </p>
+
+        <div class="complexity">
+          Tiempo: <span>O(E log V)</span> &nbsp;·&nbsp; Espacio: <span>O(V)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Network Delay Time <span class="stars">⭐⭐⭐</span>
+          </div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Cheapest Flights Within K Stops <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Path With Minimum Effort <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Path with Maximum Probability</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Swim in Rising Water <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Minimum Cost to Make at Least One Valid Path
+            <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">The Maze II</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 17 INTERVALS -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">17</div>
+        <h2>Intervals — Intervalos</h2>
+
+        <p>
+          Los problemas de intervalos casi siempre se resuelven ordenando primero
+          por el inicio (a veces por el fin) y luego recorriendo una sola vez,
+          decidiendo en cada paso si el intervalo actual se solapa con el
+          anterior. Ordenar convierte un problema aparentemente O(n²) de comparar
+          todos contra todos en uno de O(n log n).
+        </p>
+
+        <div class="callout">
+          Pregunta mental: "¿Tengo rangos con inicio y fin, y necesito
+          fusionarlos, contar solapamientos, o insertar uno nuevo manteniendo el
+          orden?"
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado menciona: merge intervals, insertar un intervalo, salas de
+          reuniones (¿cuántas se necesitan?), solapamientos, o eliminar el mínimo
+          de intervalos para que ninguno se cruce. Las señales son pares
+          <code>[inicio, fin]</code>, reuniones, calendarios y rangos que se
+          solapan.
+        </p>
+
+        <h3>Plantilla — fusionar intervalos</h3>
+        <pre><code><span class="cm">// ordenar por inicio</span>
+<span class="ty">Arrays</span>.sort(intervals, (a, b) -> a[<span class="nm">0</span>] - b[<span class="nm">0</span>]);
+
+<span class="ty">List</span>&lt;<span class="kw">int</span>[]&gt; merged = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+
+<span class="kw">for</span> (<span class="kw">int</span>[] cur : intervals) {
+    <span class="kw">int</span> last = merged.size() - <span class="nm">1</span>;
+
+    <span class="kw">if</span> (merged.isEmpty() || merged.get(last)[<span class="nm">1</span>] < cur[<span class="nm">0</span>]) {
+        merged.add(cur);                        <span class="cm">// no se solapa, entra nuevo</span>
+    } <span class="kw">else</span> {
+        merged.get(last)[<span class="nm">1</span>] =
+            <span class="ty">Math</span>.max(merged.get(last)[<span class="nm">1</span>], cur[<span class="nm">1</span>]); <span class="cm">// extender el fin</span>
+    }
+}</code></pre>
+
+        <p>
+          Tras ordenar por inicio, dos intervalos se solapan exactamente cuando
+          el fin del último fusionado alcanza o supera el inicio del actual. Para
+          contar salas de reuniones simultáneas, la variante es separar inicios y
+          fines, ordenarlos por separado y barrer con dos punteros.
+        </p>
+
+        <div class="complexity">
+          Tiempo: <span>O(n log n)</span> &nbsp;·&nbsp; Espacio: <span>O(n)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Merge Intervals <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Meeting Rooms</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Insert Interval <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Non-overlapping Intervals <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Meeting Rooms II <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Interval List Intersections</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Employee Free Time <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            My Calendar III <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Minimum Number of Arrows to Burst Balloons
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 18 GREEDY -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">18</div>
+        <h2>Greedy — Algoritmos voraces</h2>
+
+        <p>
+          Un algoritmo voraz toma en cada paso la decisión que parece mejor en
+          ese momento, sin reconsiderar ni retroceder, y confía en que esa
+          cadena de elecciones locales lleva al óptimo global. A diferencia de
+          los demás patrones de esta guía, greedy no es una plantilla: es una
+          estrategia cuya parte difícil no es el código, sino
+          <em>demostrar</em> que la elección local nunca arruina el resultado
+          final.
+        </p>
+
+        <div class="callout warn">
+          Advertencia: greedy es tentador porque casi siempre "parece" correcto.
+          Antes de confiar en él, hay que justificar por qué la mejor decisión de
+          ahora no bloquea una mejor solución después. Si no puedes argumentarlo,
+          probablemente el problema es de DP.
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado pide maximizar o minimizar algo y existe un criterio
+          natural de orden: procesar por el que termina antes, por el más caro,
+          por el más cercano. Palabras clave: máximo número de actividades, mínimo
+          número de saltos o monedas, repostar el mínimo de veces, asignar
+          recursos. Si ordenar por algún atributo hace obvia la siguiente
+          decisión, suele ser greedy.
+        </p>
+
+        <h3>Cómo saber si greedy es válido</h3>
+        <p>
+          Dos propiedades deben cumplirse: <strong>elección voraz</strong> (existe
+          un óptimo global que incluye la elección local) y
+          <strong>subestructura óptima</strong> (la solución del problema contiene
+          soluciones óptimas de sus subproblemas). La técnica clásica de prueba es
+          el <em>argumento de intercambio</em>: suponer una solución óptima
+          distinta y mostrar que se puede cambiar por la voraz sin empeorarla.
+        </p>
+
+        <h3>Ejemplo — Jump Game (¿se puede llegar al final?)</h3>
+        <p>
+          En cada posición se guarda el índice más lejano alcanzable hasta ahora.
+          Si en algún punto el índice actual supera ese alcance, quedaste
+          atascado. No hay que probar cada salto: basta con extender el alcance de
+          forma voraz.
+        </p>
+
+        <pre><code><span class="kw">int</span> alcance = <span class="nm">0</span>;
+
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i < nums.length; i++) {
+
+    <span class="kw">if</span> (i > alcance) <span class="kw">return false</span>; <span class="cm">// inalcanzable</span>
+
+    alcance = <span class="ty">Math</span>.max(alcance, i + nums[i]); <span class="cm">// extender lo más lejos posible</span>
+}
+
+<span class="kw">return true</span>;</code></pre>
+
+        <p>
+          Otro patrón voraz muy frecuente es sobre intervalos: para escoger el
+          máximo de tareas no solapadas, se ordena por el tiempo de fin y se toma
+          siempre la que termina antes, dejando el mayor espacio para las
+          siguientes.
+        </p>
+
+        <div class="complexity">
+          Tiempo: <span>O(n) u O(n log n) si ordena</span> &nbsp;·&nbsp; Espacio:
+          <span>O(1)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Jump Game <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Best Time to Buy and Sell Stock II</div>
+          <div class="problem-item">Assign Cookies</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Jump Game II <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Gas Station <span class="stars">⭐⭐⭐</span></div>
+          <div class="problem-item">Non-overlapping Intervals</div>
+          <div class="problem-item">Task Scheduler</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Candy <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Create Maximum Number <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Minimum Number of Refueling Stops</div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ─────────────────────────────────────── -->
+      <!-- 19 BIT MANIPULATION -->
+      <!-- ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-number">19</div>
+        <h2>Bit Manipulation — Manipulación de bits</h2>
+
+        <p>
+          La manipulación de bits no es un patrón único con plantilla, sino una
+          caja de trucos que operan directamente sobre la representación binaria
+          de los números. Sirve para conseguir soluciones en O(1) de espacio o
+          para eliminar bucles, aprovechando que ciertas operaciones lógicas
+          hacen en un paso lo que normalmente requeriría iterar.
+        </p>
+
+        <div class="callout info">
+          Las operaciones base: <code>&amp;</code> (AND), <code>|</code> (OR),
+          <code>^</code> (XOR), <code>~</code> (NOT), <code>&lt;&lt;</code> y
+          <code>&gt;&gt;</code> (desplazamientos). La estrella en entrevistas es
+          XOR, porque un número consigo mismo da 0 y con 0 se queda igual.
+        </div>
+
+        <h3>Cuándo identificarlo</h3>
+        <p>
+          El enunciado sugiere bits cuando pide: encontrar el número que aparece
+          una sola vez mientras el resto está en pares, contar bits encendidos,
+          generar todos los subconjuntos (una máscara por subconjunto), verificar
+          si un número es potencia de dos, o intercambiar/sumar sin operadores
+          aritméticos. También aparece cuando el rango de valores es pequeño y
+          cabe en una máscara.
+        </p>
+
+        <h3>Trucos esenciales</h3>
+        <pre><code><span class="cm">// XOR cancela pares: el único sin pareja sobrevive</span>
+<span class="kw">int</span> unico = <span class="nm">0</span>;
+<span class="kw">for</span> (<span class="kw">int</span> n : nums) unico ^= n;
+
+<span class="cm">// ¿el bit i está encendido?</span>
+<span class="kw">boolean</span> on = (x &amp; (<span class="nm">1</span> &lt;&lt; i)) != <span class="nm">0</span>;
+
+<span class="cm">// encender / apagar el bit i</span>
+x = x | (<span class="nm">1</span> &lt;&lt; i);   <span class="cm">// set</span>
+x = x &amp; ~(<span class="nm">1</span> &lt;&lt; i);  <span class="cm">// clear</span>
+
+<span class="cm">// quita el bit encendido más bajo (útil para contar bits)</span>
+x = x &amp; (x - <span class="nm">1</span>);
+
+<span class="cm">// ¿potencia de dos? un solo bit encendido</span>
+<span class="kw">boolean</span> pow2 = x > <span class="nm">0</span> &amp;&amp; (x &amp; (x - <span class="nm">1</span>)) == <span class="nm">0</span>;</code></pre>
+
+        <p>
+          El truco <code>x &amp; (x - 1)</code> apaga el bit encendido más a la
+          derecha: repetirlo hasta que <code>x</code> valga 0 cuenta los bits
+          activos en tantas iteraciones como bits haya, no como el ancho total
+          del entero (algoritmo de Brian Kernighan).
+        </p>
+
+        <div class="complexity">
+          Por operación: <span>O(1)</span> &nbsp;·&nbsp; Recorrer bits:
+          <span>O(número de bits)</span>
+        </div>
+
+        <h3>Problemas de práctica</h3>
+
+        <div class="problem-level">Básicos</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Single Number <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Number of 1 Bits</div>
+          <div class="problem-item">Counting Bits</div>
+          <div class="problem-item">Power of Two</div>
+        </div>
+
+        <div class="problem-level">Intermedios</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Single Number II <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Sum of Two Integers <span class="stars">⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">Reverse Bits</div>
+          <div class="problem-item">Subsets (con máscara de bits)</div>
+        </div>
+
+        <div class="problem-level">Avanzados</div>
+        <div class="problem-grid">
+          <div class="problem-item">
+            Single Number III <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Maximum XOR of Two Numbers in an Array
+            <span class="stars">⭐⭐⭐⭐</span>
+          </div>
+          <div class="problem-item">
+            Maximum Product of Word Lengths
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
       <!-- RESUMEN FINAL -->
       <div class="section">
         <div class="section-number">Resumen</div>
@@ -1420,6 +2423,46 @@ precio  85  →  85>=75 suma 4, 85>=80 suma 1 → span=6
             <tr>
               <td>prerrequisitos / orden de tareas / dependencias</td>
               <td><span class="tag purple">Kahn's</span></td>
+            </tr>
+            <tr>
+              <td>rango de respuesta monótono / minimizar el máximo</td>
+              <td><span class="tag">Binary Search</span></td>
+            </tr>
+            <tr>
+              <td>subproblemas que se solapan / contar formas / costo óptimo</td>
+              <td><span class="tag green">DP</span></td>
+            </tr>
+            <tr>
+              <td>top-K / k-ésimo / mediana de flujo / prioridad</td>
+              <td><span class="tag yellow">Heap</span></td>
+            </tr>
+            <tr>
+              <td>todas las combinaciones / permutaciones / subconjuntos</td>
+              <td><span class="tag green">Backtracking</span></td>
+            </tr>
+            <tr>
+              <td>prefijos / autocomplete / diccionario</td>
+              <td><span class="tag purple">Trie</span></td>
+            </tr>
+            <tr>
+              <td>conectar grupos / componentes / ciclo no dirigido</td>
+              <td><span class="tag">Union-Find</span></td>
+            </tr>
+            <tr>
+              <td>camino más corto con pesos / costo mínimo</td>
+              <td><span class="tag">Dijkstra</span></td>
+            </tr>
+            <tr>
+              <td>rangos [inicio, fin] / solapamientos / calendario</td>
+              <td><span class="tag yellow">Intervals</span></td>
+            </tr>
+            <tr>
+              <td>maximizar-minimizar con elección local / ordenar y tomar</td>
+              <td><span class="tag green">Greedy</span></td>
+            </tr>
+            <tr>
+              <td>único sin par / contar bits / máscara / potencia de dos</td>
+              <td><span class="tag purple">Bit Manipulation</span></td>
             </tr>
           </tbody>
         </table>
