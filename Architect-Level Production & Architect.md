@@ -673,7 +673,7 @@ _The messaging mirror._ Same reasoning, different vocabulary: a consumer-side in
 
 ---
 
-## Group H — Delivery: Containers, CI/CD & the Path to Production (Q27, Q28, Q29, Q30, Q31)
+## Group H — Delivery: Containers, CI/CD & the Path to Production (Q27, Q28, Q29, Q30)
 
 This group covers the path from a commit to a running process, and its organising idea is that **most deployment failures are not code failures** — they live in the packaging, the platform's view of health, the compatibility window during a rollout, or the absence of a signal that would have told you. Group C looked at two specific delivery failures (503s during a rollout, a breaking schema change); this group covers the machinery those failures live inside.
 
@@ -691,7 +691,7 @@ _The part that is specific to the JVM and that people miss._ Modern JVMs are con
 
 _Startup and shutdown, which is where deploys actually break._ `SIGTERM` must reach the JVM: use the exec form of the entrypoint so the JVM is PID 1 (or run a tiny init that forwards signals), because a shell wrapper swallows the signal and your container is then killed by the grace-period timeout instead of shutting down. Then enable Spring Boot's graceful shutdown (`server.shutdown=graceful` with a bounded per-phase timeout) so in-flight requests drain instead of being severed. Without both, **every rolling deploy drops requests** — the mechanism behind Q6.
 
-_Configuration and secrets._ Configuration comes from the environment, so **the same image is promoted through every environment unchanged**. That property is what makes the pipeline in Q29 and the promotion model in Q30 meaningful; an image with an environment baked in has to be rebuilt per environment, and then staging never tested what production runs. Secrets are mounted or injected at runtime, never baked into a layer — and note that a secret added in one layer and deleted in a later one is still sitting in the image history.
+_Configuration and secrets._ Configuration comes from the environment, so **the same image is promoted through every environment unchanged**. That property is what makes the pipeline and the promotion model in Q29 meaningful; an image with an environment baked in has to be rebuilt per environment, and then staging never tested what production runs. Secrets are mounted or injected at runtime, never baked into a layer — and note that a secret added in one layer and deleted in a later one is still sitting in the image history.
 
 _Security hygiene that a reviewer will look for._ A non-root user, a read-only root filesystem where the app tolerates it, no build tooling in the runtime stage, an image scan in CI with an explicit policy about what fails the build, and a generated SBOM if you have supply-chain obligations.
 
@@ -729,11 +729,11 @@ _Configuration._ ConfigMaps and Secrets injected as environment variables or mou
 
 ---
 
-### Q29 — What the pipeline for a Spring Boot microservice contains, and why each gate exists
+### Q29 — The delivery path: what the pipeline contains, and what one commit's journey looks like
 
-**Mental model.** A pipeline is a sequence of **falsifiable claims about one artifact**, ordered so that the cheapest claim that could fail does so first. Every stage exists to answer a specific question, and a stage that cannot fail the build is decoration. The second organising principle, and the one that separates a pipeline from a script: **build once, then promote the same artifact** — anything rebuilt per environment invalidates everything the earlier stages proved.
+**Mental model.** Two views of the same machine, and an interviewer will ask for both — usually the anatomy first and the chronology as the follow-up. **Structurally**, a pipeline is a sequence of _falsifiable claims about one artifact_, ordered so the cheapest claim that could fail does so first; a stage that cannot fail the build is decoration. **Chronologically**, it is a timeline of state transitions in which one commit becomes one image digest, and that digest is promoted unchanged through every environment while only the configuration changes. One principle ties the two views together: **build once, promote the same artifact.** Anything rebuilt per environment invalidates every claim the earlier stages proved, and anything tagged `latest` makes both "what is running?" and "roll back to what?" unanswerable.
 
-**Structured reasoning — the stages, and the question each one answers:**
+**Structured reasoning — part one: the stages, and the question each one answers:**
 
 _Trigger and pre-checks._ On every push and pull request. Compile, formatting and static analysis (Spotless, Checkstyle, Sonar) — the question is "is this even well-formed?", and the answer must arrive in seconds, in parallel, and loudly.
 
@@ -759,27 +759,15 @@ _Post-deploy verification._ Smoke tests, a comparison of error rate and latency 
 
 _The properties that decide whether any of this is worth having._ It must be **reproducible** (the same input produces the same artifact), **fast enough that nobody routes around it** — a forty-minute pull-request pipeline gets bypassed, formally or informally — and above all **trusted**: a suite with flaky tests is worse than no suite, because the team learns to re-run until green, which is behaviourally identical to having no gate at all. Secrets come from a vault or OIDC federation with short-lived credentials, never from long-lived repository variables that eventually print into a log.
 
-> **Trap.** "We run the tests and then we deploy." That is a script, not a pipeline; the substance is which claims are made, in what order, and what happens when one fails. The second trap, and the more expensive one: rebuilding the image per environment. Staging then tested a different artifact than the one production runs, and every guarantee above quietly evaporates.
-
-**Interviewer follow-ups:** _"Your pipeline takes forty minutes — what do you cut?"_ (Parallelise by module, split fast from slow suites so only the fast ones block the pull request, cache dependencies properly, move the full matrix to a nightly run — and measure which tests have ever actually caught a defect, because some of that time is buying nothing.) _"Where do migrations run, and what if one fails halfway?"_ (A dedicated step ahead of the new code, backward compatible, relying on the tool's own locking so two pods cannot migrate concurrently. A failed migration is a stop-the-line event, which is exactly why forward-only and backward-compatible is the discipline rather than a preference.) _"How do you handle a flaky test?"_ (Quarantine it out of the blocking path immediately, then fix or delete it on a deadline. Re-running until green is not a strategy; it is the erosion of the whole pipeline's value.)
-
-**What the interviewer is really testing.** Whether you can justify each stage by the question it answers and the failure it prevents, and whether you volunteer build-once-promote-many and contract testing without prompting. Those two are what distinguish someone who has designed a delivery process from someone who has used one.
-
----
-
-### Q30 — Trace one commit from `git push` to production
-
-**Mental model.** This is not a request to list tools again — it is a test of whether you know where the **state transitions** are, who owns each one, and what identity threads through them. The answer worth giving is a timeline with the artifact as the through-line: one commit becomes one image digest, that digest is deployed to each environment unchanged, and every gate and rollback decision refers to it.
-
-**Structured reasoning — the chronology, with the gates named:**
+**Structured reasoning — part two: the same path as a timeline, from `git push` to production.** The stages above are what the pipeline _is_; this is where the **state transitions** happen, who owns each one, and what identity threads through them.
 
 _1. Push to a branch._ A webhook triggers CI. Branch protection means this commit cannot reach the default branch without review and a green pipeline — a social gate, enforced mechanically.
 
-_2. The pull-request pipeline_ runs the fast claims from Q29. The developer's feedback loop ends here; everything after this point is about an artifact, not about source.
+_2. The pull-request pipeline_ runs the fast claims from part one. The developer's feedback loop ends here; everything after this point is about an artifact, not about source.
 
 _3. Merge._ Squash or rebase produces a **new commit SHA** — worth knowing, because the artifact is tagged from the merged commit, not from the branch head that was reviewed.
 
-_4. The main-branch pipeline builds the artifact once,_ tags it with that SHA, pushes it, and records the digest. From here nothing is rebuilt; promotion is a change of reference, not a change of bytes.
+_4. The main-branch pipeline builds the artifact,_ tags it with that SHA, pushes it, and records the digest. From here nothing is rebuilt: every promotion is a change of reference, not a change of bytes.
 
 _5. Deploy to staging._ Either the pipeline pushes the change (`kubectl`/`helm upgrade` with the new digest), or — in a GitOps model — the pipeline commits the digest to a configuration repository and Argo CD or Flux reconciles the cluster toward it. Naming that distinction is a strong signal, because GitOps turns "what is running in production?" into a git query and makes drift detectable instead of theoretical.
 
@@ -795,15 +783,15 @@ _10. Observability closes the loop._ The deploy is annotated on the dashboards, 
 
 _What the boring version gets wrong, and why each one hurts._ Rebuilding per environment (staging tested something else). Tagging `latest` (nobody can say what is running, and rollback has no target). Configuration baked into the image (promotion requires a rebuild, so the artifact is no longer the thing you tested). Migrations run by hand at deploy time (unrepeatable, unaudited, and the first thing to be forgotten at 2am). No deploy annotation in monitoring, so the cheapest question in every incident — "did something change?" — takes twenty minutes instead of five seconds.
 
-> **Trap.** Answering with the pipeline stages again. Q29 is the anatomy; this question is the chronology and the identity — where the compatibility windows open and close, where a human is in the loop, what exactly is promoted, and what rollback means at each step. The other trap is presenting an idealised pipeline you have never operated; naming the manual step you actually have, and why it exists, is more credible than describing a fully automated fantasy.
+> **Trap.** "We run the tests and then we deploy." That is a script, not a pipeline; the substance is which claims are made, in what order, and what happens when one fails. The more expensive trap is rebuilding the image per environment — staging then tested a different artifact than the one production runs, and every guarantee above quietly evaporates. And a third, specific to the timeline half of the question: presenting an idealised path you have never operated. Naming the manual step you actually have, and why it exists, is more credible than describing a fully automated fantasy.
 
-**Interviewer follow-ups:** _"At which points can you roll back, and what can you never roll back?"_ (Pods, yes. Schema, no — only forward. Published events, consumed messages, sent emails, and third-party side effects, no. That list is the reason expand/contract and idempotency exist.) _"How long does a one-line fix take to reach production, and where does the time actually go?"_ (An honest answer names the dominant queue — usually review latency or a slow test suite, rarely the deploy itself — and that honesty reads as experience.) _"Who can deploy, and how do you know who deployed what?"_ (Pipeline identity rather than personal credentials, an audit trail from commit to digest to rollout, and — the real answer — the ability to reconstruct it during an incident rather than after one.)
+**Interviewer follow-ups:** _"Your pipeline takes forty minutes — what do you cut?"_ (Parallelise by module, split fast from slow suites so only the fast ones block the pull request, cache dependencies properly, move the full matrix to a nightly run — and measure which tests have ever actually caught a defect, because some of that time is buying nothing.) _"Where do migrations run, and what if one fails halfway?"_ (A dedicated step ahead of the new code, backward compatible, relying on the tool's own locking so two pods cannot migrate concurrently. A failed migration is a stop-the-line event, which is exactly why forward-only and backward-compatible is the discipline rather than a preference.) _"At which points can you roll back, and what can you never roll back?"_ (Pods, yes. Schema, no — only forward. Published events, consumed messages, sent emails, and third-party side effects, no. That list is the reason expand/contract and idempotency exist.) _"How long does a one-line fix take to reach production, and where does the time actually go?"_ (An honest answer names the dominant queue — usually review latency or a slow test suite, rarely the deploy itself — and that honesty reads as experience.) _"How do you handle a flaky test?"_ (Quarantine it out of the blocking path immediately, then fix or delete it on a deadline. Re-running until green is not a strategy; it is the erosion of the whole pipeline's value.)
 
-**What the interviewer is really testing.** Whether the delivery path is something you have operated or only heard described. The distinguishing details are build-once-promote-by-digest, the coexistence window during a rolling deploy, the deploy/release split via flags, and a precise account of what rollback does not cover.
+**What the interviewer is really testing.** Whether you can justify each stage by the question it answers _and_ trace the same path as a chronology of state transitions — because the first shows you have designed a delivery process and the second shows you have operated one. The distinguishing details are build-once-promote-by-digest, contract testing volunteered unprompted, the coexistence window during a rolling deploy, the deploy/release split via feature flags, and a precise account of what rollback does not cover.
 
 ---
 
-### Q31 — The deploy is failing right now. How do you find out why, and what do you do?
+### Q30 — The deploy is failing right now. How do you find out why, and what do you do?
 
 **Mental model.** Two decisions, in this order: **stop the bleeding**, then diagnose. If users are being harmed, roll back or halt the rollout first — a diagnosis performed while customers error out is a diagnosis performed on a clock you chose to keep running. And the first diagnostic question is the cheapest one: **did the deploy cause this?** That is answerable in seconds if deploys are annotated on your dashboards, and it costs twenty minutes of an incident if they are not.
 
@@ -843,16 +831,16 @@ These recur across the whole set; if you internalize the models, you can _derive
 
 **4. The dashboard lies about the region under pressure (Q4 CPU, Q11 GC, Q13/Q15 heap).** The obvious metric being "normal" is often the _tell_ that the problem is in a different resource: DB CPU normal → connection hold time; heap normal → native/threads/direct/metaspace/container-limit; CPU normal → STW pauses. Always ask _which specific resource_, and read the _exact_ error string.
 
-**5. Expand/contract for change under load (Q12, Q28, Q30).** You never apply a breaking change; you decompose it into individually-compatible steps with an overlap window where old and new coexist. Same pattern applies to schema, API versioning, and cache-key changes.
+**5. Expand/contract for change under load (Q12, Q28, Q29).** You never apply a breaking change; you decompose it into individually-compatible steps with an overlap window where old and new coexist. Same pattern applies to schema, API versioning, and cache-key changes.
 
 **6. Contain the blast radius (Q6, Q10, Q19, Q23, Q24).** Timeouts, circuit breakers, bulkheads, rate limits, graceful degradation, load shedding — all exist to stop _local_ failure from becoming _global_ failure (cascading failure). Any "one thing is slow/broken, protect the rest" question is a bulkhead/circuit-breaker question.
 
-**7. Systematic > guessing (Q3, Q9, Q13, Q14, Q17, Q31).** State a _method_: USE (Utilization/Saturation/Errors) for saturation, RED (Rate/Errors/Duration) for services, hypothesis→instrument-the-boundary→confirm for silent failures, post-GC-trend for leaks. Interviewers reward the method as much as the answer — it shows you'll solve the _next_ problem too, not just this one.
+**7. Systematic > guessing (Q3, Q9, Q13, Q14, Q17, Q30).** State a _method_: USE (Utilization/Saturation/Errors) for saturation, RED (Rate/Errors/Duration) for services, hypothesis→instrument-the-boundary→confirm for silent failures, post-GC-trend for leaks. Interviewers reward the method as much as the answer — it shows you'll solve the _next_ problem too, not just this one.
 
-**8. One artifact, promoted (Q27, Q29, Q30).** Build the deployable exactly once, tag it by commit, and promote the same digest through every environment with configuration supplied from outside. Anything rebuilt per environment invalidates every test that ran before it, and anything tagged `latest` makes both "what is running?" and "roll back to what?" unanswerable. Whenever a delivery question feels like a tooling question, ask instead: _what is the artifact, and is this still the same one we tested?_
+**8. One artifact, promoted (Q27, Q29).** Build the deployable exactly once, tag it by commit, and promote the same digest through every environment with configuration supplied from outside. Anything rebuilt per environment invalidates every test that ran before it, and anything tagged `latest` makes both "what is running?" and "roll back to what?" unanswerable. Whenever a delivery question feels like a tooling question, ask instead: _what is the artifact, and is this still the same one we tested?_
 
 ---
 
 ## How to drill this for interview readiness
 
-Don't re-read this passively. For each question, cover the answer and force yourself to produce, out loud and in under 90 seconds: **(1) the one-sentence mental model**, **(2) the single most likely root cause**, **(3) the trap you'd avoid**, and **(4) the first thing you'd check in production.** If you can generate those four cold for all thirty-one, you can reason from first principles under pressure — which is the actual bar, not reciting these paragraphs. Then have someone throw the follow-ups at you, because that's where the interview is really decided.
+Don't re-read this passively. For each question, cover the answer and force yourself to produce, out loud and in under 90 seconds: **(1) the one-sentence mental model**, **(2) the single most likely root cause**, **(3) the trap you'd avoid**, and **(4) the first thing you'd check in production.** If you can generate those four cold for all thirty, you can reason from first principles under pressure — which is the actual bar, not reciting these paragraphs. Then have someone throw the follow-ups at you, because that's where the interview is really decided.
