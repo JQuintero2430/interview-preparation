@@ -20,6 +20,10 @@ Your source contained several factual errors and ambiguities. I have **not** sil
 
 5. **Assumption on scope.** The source is a set of backend interview/reference notes (Java + Spring ecosystem). I have organized it as an exam-prep guide for that audience.
 
+6. **`@SpringBootApplication` does not expand to plain `@Configuration`.** The source (and most blog posts) say `@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan`. The first element is actually **`@SpringBootConfiguration`**, which is itself meta-annotated `@Configuration` but exists as a distinct type so that tooling — `@SpringBootTest` in particular — can locate your primary configuration class. Corrected and traced in **§5.3**.
+
+7. **The eight-stage bean lifecycle list is a skeleton, not the exact order.** It is a fine mnemonic, but it implies that "Aware interfaces" is a dedicated phase and that `@PostConstruct` and `afterPropertiesSet` belong to the same step. In reality the `*Aware` callbacks for `ApplicationContext`/`Environment` arrive through a `BeanPostProcessor`, `@PostConstruct` runs **before** `afterPropertiesSet`, and prototype-scoped beans never reach stage 8 at all. The precise ordering is set out in **§4.1**.
+
 ---
 
 # PART I — Web Application Security (OWASP)
@@ -93,7 +97,7 @@ Relationships describe how entity tables reference each other via foreign keys o
 **Concepts you must understand behind these attributes:**
 
 - **`cascade`** — controls whether operations on the parent propagate to children. `CascadeType.PERSIST` means "when I save the parent, save the children too." Others include `MERGE`, `REMOVE`, `REFRESH`, `DETACH`, and `ALL`.
-- **`fetch` (LAZY vs EAGER)** — _when_ related data is loaded. **LAZY** delays loading the association until you actually access it (efficient, the default for `@OneToMany`/`@ManyToMany`). **EAGER** loads it immediately with the parent (the default for `@ManyToOne`/`@OneToOne`). Overusing EAGER causes performance problems and the infamous **N+1 query** issue.
+- **`fetch` (LAZY vs EAGER)** — _when_ related data is loaded. **LAZY** delays loading the association until you actually access it (efficient, the default for `@OneToMany`/`@ManyToMany`). **EAGER** loads it immediately with the parent (the default for `@ManyToOne`/`@OneToOne`). Overusing EAGER causes performance problems and the infamous **N+1 query** issue. The mechanism, the fixes, and why EAGER is _not_ the fix are in §2.4.
 - **`mappedBy`** — marks the **inverse (non-owning) side** of a bidirectional relationship. It names the field on the _other_ entity that owns the foreign key. **Correction to the source:** the source listed `mappedBy` under both `@OneToMany` and `@ManyToOne` with the note "always in one." In practice `mappedBy` belongs on the **one** side of a one-to-many pair (the `@OneToMany` field), because the **many** side (`@ManyToOne`) owns the foreign-key column. You never put `mappedBy` on the owning side.
 
 > **Owning vs inverse side (crucial mental model):** In a bidirectional relationship, exactly one side "owns" the foreign key and controls what gets written to the DB. The other side is the mirror and is marked with `mappedBy`. Forgetting this leads to duplicate join tables or ignored updates.
@@ -219,16 +223,98 @@ List<Producto> productos = productoRepository.findAll(
 
 In short, Specifications give a powerful, flexible way to build dynamic queries, making advanced searches and custom filters easy to implement.
 
+## 2.4 The N+1 Query Problem
+
+**Mental model:** you asked for a list of parents, then touched an association on each one. The ORM did exactly what you told it to — **one query for the N parents, then one more query per parent** to load the association. That is 1 + N round trips, and it is not a bug in Hibernate: it is lazy loading working correctly on a call pattern that never told it you wanted the children. The cost is invisible in the code (`order.getItems()` looks free) and invisible in a unit test with three rows; it appears in production as a page that got slow when the data grew.
+
+### How it actually happens
+
+```java
+@Entity
+public class Order {
+    @Id private Long id;
+
+    @OneToMany(mappedBy = "order")          // LAZY by default
+    private List<OrderItem> items = new ArrayList<>();
+    // getters omitted
+}
+```
+
+```java
+List<Order> orders = orderRepository.findAll();        // 1 query: select * from orders
+for (Order order : orders) {
+    total += order.getItems().size();                  // N queries: one per order
+}
+```
+
+The collection field is not a `List` at runtime — Hibernate replaced it with a **persistent collection wrapper** that holds the owning entity's id and a flag saying "not initialized." The first method call on it (`size()`, `iterator()`, `get(0)`) triggers `select * from order_items where order_id = ?`. Inside an open transaction that works silently, so the only trace is 200 lines in the SQL log. Outside the transaction the same mechanism throws `LazyInitializationException` — **the same cause, a different symptom**, which is why the two are always asked about together.
+
+The mirror case is just as common and gets noticed less: a list of children where each `item.getOrder()` walks a `@ManyToOne` proxy. Note one useful detail — calling `getId()` on an uninitialized proxy does **not** hit the database, because the identifier is already known; any other getter initializes it.
+
+> **The trap: "just make it EAGER."** This is the most common wrong answer and it usually makes things worse. `fetch = EAGER` changes _when_ the association is loaded, not _how many queries_ it takes: for a `findAll()`, Hibernate still issues a separate select per parent, so you keep the N+1 **and** now pay it on every single read of the entity, including the ones that never touch the collection. EAGER also removes your ability to opt out per query. Fetching strategy belongs on the **query**, not on the mapping.
+
+### The fixes, in the order you should reach for them
+
+**1. `JOIN FETCH` — say what you want in the query.**
+
+```java
+@Query("select o from Order o join fetch o.items where o.status = :status")
+List<Order> findWithItems(@Param("status") OrderStatus status);
+```
+
+One query, one round trip. Two caveats worth volunteering because interviewers probe them:
+
+- **Pagination breaks.** Combine a collection `join fetch` with `Pageable` and Hibernate cannot express the limit in SQL (a join multiplies rows, so `LIMIT 20` would cut children, not parents). It warns that it is applying `firstResult`/`maxResults` **in memory** — it fetches the entire result set and paginates in the JVM. The fix is two queries: page the ids first, then `where o.id in :ids` with the fetch.
+- **`MultipleBagFetchException`.** Two `join fetch`es of two `List`-mapped collections in one query fails outright with "cannot simultaneously fetch multiple bags." Map one of them as a `Set`, or fetch the second collection in a separate query — and note that joining two collections produces a cartesian product anyway, so separate queries are usually the better design, not just the workaround.
+- **Duplicate parents** are a version-dependent detail: with older Hibernate you needed `select distinct o` to collapse the repeated parent rows a collection join produces. Hibernate 6 (Spring Boot 3.x) de-duplicates the returned entities automatically, so the `distinct` is no longer required for that purpose. Know which version you are talking about before asserting either.
+
+**2. `@EntityGraph` — the declarative form, and the one that works with derived queries.**
+
+```java
+@EntityGraph(attributePaths = "items")
+List<Order> findByStatus(OrderStatus status);
+```
+
+Same effect as a join fetch, without hand-writing JPQL, and it composes with Spring Data's method-name queries. Use a named entity graph on the entity when several repositories need the same shape.
+
+**3. Batch fetching — the safety net when you cannot restructure the call.** Set `spring.jpa.properties.hibernate.default_batch_fetch_size` (or `@BatchSize` on the association), and Hibernate stops issuing one select per parent: it collects the pending ids and loads them in batches with `where order_id in (?, ?, ?, …)`. N queries become roughly N / batch-size. This does not eliminate the extra round trips, it amortizes them — but it turns a 500-query page into a 5-query page with a one-line config change, which makes it the highest-leverage default in an existing codebase. Set it explicitly rather than relying on a framework default.
+
+**4. Don't load entities at all — project.** If the endpoint returns a summary, select the fields you need and skip the object graph:
+
+```java
+public interface OrderSummary {          // Spring Data interface projection
+    Long getId();
+    long getItemCount();
+}
+
+@Query("select o.id as id, count(i.id) as itemCount from Order o left join o.items i group by o.id")
+List<OrderSummary> findSummaries();
+```
+
+One query, no managed entities, no lazy collections to trip over. For read-heavy endpoints this is usually the correct fix rather than a workaround — the N+1 was a symptom of loading a write-model graph to answer a read question.
+
+**5. Second-level cache** can hide the problem for hot, rarely-changing reference data. It is a mitigation, not a fix, and it adds an invalidation problem you did not have before. Mention it last, and say so.
+
+### How to find it before production
+
+You detect N+1 by **counting queries**, not by reading code. Turn on `logging.level.org.hibernate.SQL=DEBUG` in development to see them, and `spring.jpa.properties.hibernate.generate_statistics=true` to get counters you can assert on. The durable version is a test that fails when the count changes: capture Hibernate's `Statistics.getPrepareStatementCount()` (or use a query-counting datasource proxy) before and after the call, and assert the expected number. That converts a performance regression into a failing build, which is the only mechanism that actually holds over time.
+
+> **Tie-in to Part IV:** the `LazyInitializationException` half of this problem is a transaction-boundary problem, not a JPA problem — the persistence context lives as long as the transaction (§4.5), so an entity that leaves the service layer un-initialized has already lost its ability to load anything. Fetch what the caller needs _inside_ the boundary, or map to a DTO before returning.
+
+> **What the interviewer is really testing:** whether you understand that fetch strategy is a per-query decision and that "make it EAGER" trades one problem for a worse one. The strong answer names the mechanism (lazy collection wrapper, initialized on first access), gives at least two fixes with their trade-offs, and volunteers how you would _detect_ it. **The follow-up that usually comes next:** "your `join fetch` query now needs pagination — what happens?" — the in-memory pagination warning above, and the two-query id-then-fetch pattern.
+
 > **Most-likely-tested (Part II):**
 >
 > - `mappedBy` goes on the **inverse/non-owning** side.
 > - LAZY vs EAGER defaults: `@OneToMany`/`@ManyToMany` = LAZY; `@ManyToOne`/`@OneToOne` = EAGER.
 > - Query Methods derive SQL from method names; `@Query` overrides with hand-written JPQL and `?1` positional params.
 > - Specifications = dynamic queries via the Criteria API; repository must extend `JpaSpecificationExecutor<T>`.
+> - **N+1 queries** come from lazy loading firing once per parent; you fix them per _query_ (`join fetch`, `@EntityGraph`, `hibernate.default_batch_fetch_size`, or a DTO projection), never by changing the mapping to EAGER (§2.4).
+> - A collection `join fetch` combined with `Pageable` paginates **in memory**; two `List`-mapped collections fetched in one query throw `MultipleBagFetchException` (§2.4).
 
 ### Part II summary
 
-JPA maps objects to tables. You declare relationships with `@OneToOne`/`@OneToMany`/`@ManyToOne`/`@ManyToMany` plus `@JoinColumn`/`@JoinTable`, tuning behavior with `cascade`, `fetch`, and `mappedBy`. For queries, three tools scale with complexity: derived **Query Methods** (name-based, static), **`@Query`** (hand-written when names fall short), and **Specifications** (programmatic, dynamic, composable via the Criteria API).
+JPA maps objects to tables. You declare relationships with `@OneToOne`/`@OneToMany`/`@ManyToOne`/`@ManyToMany` plus `@JoinColumn`/`@JoinTable`, tuning behavior with `cascade`, `fetch`, and `mappedBy`. For queries, three tools scale with complexity: derived **Query Methods** (name-based, static), **`@Query`** (hand-written when names fall short), and **Specifications** (programmatic, dynamic, composable via the Criteria API). The performance failure to know cold is the **N+1 query problem** (§2.4): lazy loading issuing one query per parent, fixed per query with `join fetch`, `@EntityGraph`, batch fetching, or a projection — never by making the mapping EAGER.
 
 ---
 
@@ -1077,6 +1163,28 @@ The lifecycle is the sequence a bean passes through from creation to destruction
 
 > **Tie-in to Part III:** stage 6 is literally the **Proxy pattern** at work — this is how `@Transactional` and Spring Security wrap your beans without you writing wrapper code.
 
+### What the eight-stage list glosses over (the mechanically precise order)
+
+The eight stages are the right skeleton, but three details inside them are what interviewers actually probe, and the list as written implies an ordering that isn't quite the real one.
+
+**There is a phase before any instance exists.** The container first builds **`BeanDefinition`** objects — from component scanning, `@Bean` methods, `@Import`, XML — and then runs every **`BeanFactoryPostProcessor`**, which can modify those _definitions_ while no bean has been instantiated yet. `ConfigurationClassPostProcessor` (which parses `@Configuration` classes and performs the scan) and `PropertySourcesPlaceholderConfigurer` (which resolves `${...}`) are both of this kind. The distinction is a standard question: **`BeanFactoryPostProcessor` edits definitions, `BeanPostProcessor` edits instances.** If you need to change what a bean _is_, you are in the first; if you need to wrap or decorate an instance, the second.
+
+**Constructor injection collapses stages 1 and 2.** "Instantiate, then populate properties" describes setter and field injection. With constructor injection the dependencies must be resolved _before_ the object can exist, so the container resolves them first and then calls the constructor once — which is precisely why a constructor-injected field can be `final` and can never be observed null. Field and setter injection happen afterwards, in `populateBean`, performed by `AutowiredAnnotationBeanPostProcessor`. This is the mechanism behind the most common Spring bug there is: **an `@Autowired` field is still `null` inside the constructor** and only set by the time `@PostConstruct` runs.
+
+**"Aware interfaces" is not a single phase, and the three init hooks are not simultaneous.** The real sequence for one bean, once its properties are populated, is:
+
+1. `BeanNameAware`, `BeanClassLoaderAware`, `BeanFactoryAware` — invoked directly by the bean factory.
+2. `postProcessBeforeInitialization` of every `BeanPostProcessor`. Two of those matter by name: `ApplicationContextAwareProcessor` is what supplies `ApplicationContextAware`, `EnvironmentAware`, `ResourceLoaderAware` and friends — so those callbacks arrive _through a post-processor_, not through a hard-coded stage — and `CommonAnnotationBeanPostProcessor` is what invokes **`@PostConstruct`**.
+3. `InitializingBean.afterPropertiesSet()`.
+4. The custom init method (`@Bean(initMethod = ...)` or XML `init-method`).
+5. `postProcessAfterInitialization` of every `BeanPostProcessor` — where **proxies are created** (`AbstractAutoProxyCreator` and friends).
+
+So the three initialization hooks fire in the order **`@PostConstruct` → `afterPropertiesSet` → `init-method`**, and the destruction hooks mirror it: **`@PreDestroy` → `DisposableBean.destroy` → `destroy-method`**. Being able to state that order, and to say that `@PostConstruct` arrives via a `BeanPostProcessor` rather than a dedicated stage, is the difference between having memorized the list and understanding it.
+
+**Two consequences worth carrying forward.** First, because the proxy is created in step 5 — _after_ your object is fully built — the reference your own code holds in `this` is always the **raw target**, never the proxy. That single fact explains every "my `@Transactional`/`@Async`/`@Cacheable` annotation did nothing" bug (§4.5). Second, initialization order across beans is driven by the dependency graph, not by declaration order: singletons are instantiated eagerly during `refresh()` (`preInstantiateSingletons`), each pulling in whatever it depends on, unless marked `@Lazy`.
+
+**And one thing the list is simply wrong about for prototypes.** Stage 8 does not apply to them. The container creates a prototype, hands it over, and **stops tracking it** — so `@PreDestroy`, `DisposableBean`, and `destroy-method` are **never called** on a prototype-scoped bean. If a prototype holds something that must be released, the calling code owns that cleanup.
+
 ## 4.2 Bean Scopes
 
 A bean's **scope** determines its lifecycle and whether/how it's shared among objects that need it.
@@ -1094,6 +1202,22 @@ Choosing the right scope depends on whether state should be shared, the applicat
 
 > **Subtle distinction the source flags:** **Application** scope resembles **Singleton**, but Singleton is one-per-Spring-container while Application is one-per-`ServletContext` — if multiple web apps run on the same server, each has its own application-scoped bean.
 
+### The part that breaks in practice: mixing scopes
+
+The table tells you how many instances exist. What it does not tell you is what happens when a **longer-lived bean depends on a shorter-lived one** — and that is where scope questions actually get asked, because the naive version fails in a way that looks like a scope that "doesn't work."
+
+A singleton is injected **once**, at startup. So injecting a prototype into a singleton gives you exactly one prototype instance, reused forever — the scope is silently defeated, no error. Injecting a request-scoped bean into a singleton is worse: at startup there is no HTTP request, so the container either fails with `Scope 'request' is not active for the current thread` or, if it succeeds, captures one request's instance and serves it to every subsequent request. Three mechanisms fix this:
+
+| Approach                                            | What is injected                                                   | When to use it                                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| **Scoped proxy** — `@RequestScope`, or `@Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)` | A CGLIB proxy injected once; every method call resolves the real instance for the _current_ request | Web scopes injected into singletons — the default choice                        |
+| **`ObjectProvider<T>` / `Provider<T>`**             | A factory; you call `getObject()` when you need one                | Prototypes, and optional or conditional dependencies                            |
+| **`@Lookup` method injection**                      | An abstract/overridable method the container implements to return a fresh bean | Prototypes, when you want the call site to read as a plain method call |
+
+The scoped proxy mechanism is worth being able to describe: the proxy holds no state of its own; on each invocation it asks the scope for the instance bound to the current context, and for request and session scope that context is a **`ThreadLocal`** (`RequestContextHolder`). Two consequences follow directly. Request and session scopes need something to populate that holder — `DispatcherServlet` does it, and outside Spring MVC you need a `RequestContextListener`. And because it is thread-bound, a request-scoped bean **does not follow work handed to another thread**: an `@Async` method, a manually created thread, or a reactive scheduler hop will find nothing bound and fail. That is the same thread-bound reasoning as the transaction context in §4.5, and interviewers like connecting the two.
+
+**Two more details that come up.** Custom scopes are a public extension point (`ConfigurableBeanFactory.registerScope`), and Spring ships `SimpleThreadScope` as an example — documented as _not_ invoking destruction callbacks, so it leaks by design if you put resources in it. And singleton means **one per container, per bean name** — two `ApplicationContext`s in one JVM (a parent/child hierarchy, or a test slice alongside the app context) have independent singletons, which is why a "singleton" counter can appear to reset in integration tests.
+
 ## 4.3 Bean Specializations (stereotype annotations)
 
 These annotations mark and classify beans by role. They organize code _and_ can add role-specific behavior.
@@ -1109,6 +1233,113 @@ These annotations mark and classify beans by role. They organize code _and_ can 
 
 The key insight: these aren't just labels. `@Repository` in particular changes how Spring handles persistence-layer exceptions. `@RestController` changes how return values are handled (serialized to the response body vs resolved to a view).
 
+## 4.4 How Dependency Injection Resolves a Candidate
+
+**Mental model:** injection is not magic and it is not reflection over your whole classpath at call time. It is a **lookup by type against the set of bean definitions**, performed once per injection point while the bean is being created, followed by a recursive `getBean` for whatever it picked. Everything that goes wrong — ambiguity, missing beans, cycles, the wrong instance — is that lookup either finding too many candidates, none, or one that isn't finished being built yet.
+
+### The resolution algorithm, in order
+
+For a constructor parameter or an `@Autowired` field, the container:
+
+1. **Chooses the constructor.** `AutowiredAnnotationBeanPostProcessor` looks for a constructor annotated `@Autowired`; since Spring 4.3, a class with exactly **one** constructor needs no annotation at all, which is why modern Spring code has no `@Autowired` on constructors.
+2. **Resolves each dependency by type.** `DefaultListableBeanFactory.resolveDependency` asks for all bean names matching the required type — and the type includes **generics**: `ResolvableType` lets it distinguish `Repository<Order>` from `Repository<Customer>`, so two beans of the same raw type but different type arguments are not ambiguous.
+3. **Narrows multiple candidates**, in this order: a matching **`@Qualifier`** wins; otherwise a **`@Primary`** bean wins; otherwise the highest **`@Priority`**; otherwise a candidate whose **bean name equals the field or parameter name**. If more than one still survives → `NoUniqueBeanDefinitionException` at startup.
+4. **Handles zero candidates.** If the dependency is required → `NoSuchBeanDefinitionException` at startup. Declare it `Optional<T>`, `@Nullable`, `ObjectProvider<T>`, or `@Autowired(required = false)` if absence is legitimate.
+5. **Instantiates the winner** (recursively, through the full lifecycle of §4.1) and passes it in.
+
+Note that every failure above happens at **startup**, not on first use. That is the single strongest argument for constructor injection: a wiring mistake becomes a boot failure with a message naming the bean, instead of a `NullPointerException` in production three weeks later.
+
+```java
+@Service
+public class OrderService {
+
+    private final OrderRepository orders;      // final: proves it is set exactly once
+    private final PricingPolicy pricing;
+
+    public OrderService(OrderRepository orders, PricingPolicy pricing) {   // no @Autowired needed
+        this.orders = orders;
+        this.pricing = pricing;
+    }
+}
+```
+
+### Collections, maps, and the plug-in pattern
+
+Injecting a collection of an interface type gives you every implementation, which is how you build a registry without writing one:
+
+```java
+public OrderService(List<OrderValidator> validators) { … }        // all beans of the type, ordered
+public OrderService(Map<String, OrderValidator> byName) { … }     // bean name → bean
+```
+
+The `List` is ordered by `@Order`/`Ordered`/`@Priority`, not by declaration or scan order — relying on scan order is a real bug. And an injected `List` with **no** candidates is a failure, not an empty list, unless you mark it optional.
+
+### The three injection styles, and why one is preferred
+
+| Style           | How it is set                                        | Consequences                                                                                                       |
+| --------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Constructor** | Arguments resolved before the instance exists        | Fields can be `final`; the object is never observable half-wired; the class is usable with plain `new` in a unit test; the constructor's arity makes too many dependencies visible |
+| **Setter**      | Called during `populateBean`, after instantiation    | Allows optional and re-configurable dependencies; permits cycles; the object exists in a partially wired state      |
+| **Field**       | Reflection (`Field.setAccessible(true)`) during `populateBean` | Cannot be `final`; hides dependencies from any caller reading the constructor; `new`-ing the class in a test yields nulls |
+
+Field injection is why `@Autowired` fields are null in constructors, and why a class with six hidden field dependencies never looks as bloated as it is.
+
+### Circular dependencies — the mechanism, and the version change
+
+Two beans that need each other **through their constructors** cannot be built: neither can exist first, so you get `BeanCurrentlyInCreationException`. A cycle through **setters or fields** was historically resolved by Spring's three-level singleton cache: while A is being created it is placed in a map of "singleton factories," so when B asks for A it receives an **early reference** to the not-yet-initialized A, and the cycle closes. That is also the hazard — B may hold a reference to A that predates A's proxying, so B ends up with the raw object while everyone else has the proxy.
+
+The version-dependent part matters in interviews: **since Spring Boot 2.6, circular references are disabled by default** (`spring.main.allow-circular-references=false`), so a cycle that "worked" in an older application now fails at startup with an explicit message. The correct response is not to flip the flag back on — it is to break the cycle: extract the shared behavior into a third bean, invert one direction with an event, or inject `@Lazy` (which supplies a proxy that resolves on first use) as a deliberate, documented exception.
+
+### Related annotations you will be asked to distinguish
+
+`@Autowired` is Spring's, resolves **by type** then narrows by qualifier/name. `@Resource` is from JSR-250 and resolves **by name** first, falling back to type. `@Inject` is JSR-330 and behaves essentially like `@Autowired` by type (with `@Named` as its qualifier). `@Value` is not injection of a bean at all — it resolves a property or SpEL expression through the `Environment`.
+
+> **What the interviewer is really testing:** whether "Spring wires it for me" has a mechanism behind it — a type lookup with defined tie-breakers, evaluated at startup — and whether you can explain _why_ constructor injection is the default recommendation instead of quoting the recommendation. **The follow-up that usually comes next:** "you have two beans of the same type; walk me through every way to disambiguate" — `@Primary`, `@Qualifier`, matching the parameter name, `@Profile`/`@ConditionalOnProperty` so only one is registered at all, or injecting the `List`/`Map` and choosing at runtime.
+
+## 4.5 `@Transactional` Through the Proxy
+
+**Mental model:** `@Transactional` is not a language feature and the JVM knows nothing about it. It is **advice wrapped around your bean by a proxy created during bean post-processing** (§4.1, step 5). The transaction is begun and committed _in the proxy_, before and after your method body runs. Everything about the annotation's behavior — including every way it silently does nothing — follows from that one structural fact.
+
+### What happens at startup
+
+1. `@EnableTransactionManagement` — which Spring Boot's `TransactionAutoConfiguration` applies for you when a `PlatformTransactionManager` is on the classpath — registers an **auto-proxy creator** and a transaction **advisor**. The advisor pairs a pointcut (an `AnnotationTransactionAttributeSource`, which knows how to find `@Transactional` on classes and methods) with an interceptor (`TransactionInterceptor`).
+2. During `postProcessAfterInitialization` for each bean, the auto-proxy creator asks the advisor whether any method of that bean matches. If one does, the bean is replaced in the container by a **proxy**: a JDK dynamic proxy if it implements an interface, or a **CGLIB subclass** otherwise. Spring Boot sets `proxyTargetClass = true` by default, so in practice you get CGLIB even when interfaces exist.
+3. Everything that receives that bean by injection receives the **proxy**. The proxy holds a reference to your original object as its target.
+
+### What happens on a call
+
+1. The caller invokes a method on the proxy.
+2. `TransactionInterceptor` looks up the `TransactionAttribute` for that exact method (propagation, isolation, timeout, read-only, rollback rules) — resolved once and cached.
+3. It asks the `PlatformTransactionManager` for a transaction. `DataSourceTransactionManager` **checks out a `Connection` from the pool**, calls `setAutoCommit(false)`, and **binds the connection holder to the current thread** through `TransactionSynchronizationManager` — a `ThreadLocal`. `JpaTransactionManager` does the equivalent with an `EntityManager`.
+4. Your method body runs. When it calls a repository, that repository does **not** open its own connection: it asks `TransactionSynchronizationManager` for the resource bound to this thread and joins the existing transaction. This is the entire reason `@Transactional` on a service method covers every repository call inside it.
+5. On a normal return, the interceptor **commits**. On a `RuntimeException` or `Error` it **rolls back**. On a **checked** exception it **commits** — unless you declared `rollbackFor`.
+6. Either way it unbinds the resource and returns the connection to the pool.
+
+Two consequences fall straight out of step 3. Because the context is **thread-bound**, it does not cross a thread boundary: an `@Async` method, a manually spawned thread, or a reactive scheduler hop starts with no transaction, no matter what annotations are present. And because a transaction **holds a pooled connection for its entire duration**, any slow work inside the boundary — an HTTP call, a large computation — holds that connection too; this is the most common cause of a pool that is exhausted while the database sits idle.
+
+### Propagation, mechanically
+
+`REQUIRED` (the default) joins the transaction already bound to the thread, or starts one if there is none — it does not consume a second connection. `REQUIRES_NEW` **suspends** the current transaction (stashing its resource holder) and acquires **another** connection, so both are held simultaneously — a genuine and frequently overlooked way to exhaust a pool of size N with N/2 concurrent callers. `NESTED` uses a **JDBC savepoint** rather than a new transaction, which is why its support depends on the transaction manager. `SUPPORTS`, `NOT_SUPPORTED`, `MANDATORY`, and `NEVER` are assertions or suspensions around the same machinery. Isolation, where honored, is set on the `Connection`.
+
+With JPA specifically, `readOnly = true` is more than a hint: besides flagging the JDBC connection, it puts Hibernate into a manual flush mode, so **changes made in a read-only transaction are not flushed** — which looks like "my update silently vanished" if you annotate a method read-only and then modify an entity in it.
+
+### Why it silently does nothing
+
+All of these are the same root cause — the call never crossed the proxy boundary, or the advice could not attach:
+
+- **Self-invocation.** `this.otherTransactionalMethod()` calls the raw target, not the proxy. No interceptor, no transaction, no error. This is by far the most common failure.
+- **Non-public methods.** Proxy-based advice applies to `public` methods only.
+- **`final` or `private` methods, and `final` classes,** under CGLIB — they cannot be overridden, so the advice cannot be attached.
+- **A caught exception**, or a checked exception without `rollbackFor` — the proxy sees a normal return and commits.
+
+The production-debugging angle on these — how to prove at runtime whether a transaction is active, what happens with `REQUIRES_NEW` failures, and how the same proxy mechanism defeats `@Async` — is worked through in detail in this repository's `Architect-Level Production & Architect.md` (Q1 and Q20). The one-line diagnostic worth memorizing: `TransactionSynchronizationManager.isActualTransactionActive()` tells you the truth, and `logging.level.org.springframework.transaction=TRACE` shows every begin, join, and commit.
+
+The escape from the proxy limitation, if you genuinely need advice on self-invocation or non-public methods, is to stop using proxies: `@EnableTransactionManagement(mode = AdviceMode.ASPECTJ)` weaves the advice into the bytecode instead. It works, it requires weaving setup, and it is almost never the right trade — restructuring so that the transactional boundary sits at the real entry point is.
+
+> **Tie-in to Part III:** this is the **Proxy pattern** (§3.2) in its most consequential production use, and §4.1 step 5 is where the wrapping happens. `@Async`, `@Cacheable`, `@Retryable`, and Spring Security's method annotations are all the same mechanism with a different interceptor — so every one of them fails in exactly the same ways.
+
+> **What the interviewer is really testing:** whether you can name the mechanism (proxy + interceptor + thread-bound resource) rather than the behavior, and whether you can derive the failure modes from it instead of listing them from memory. **The follow-up that usually comes next:** "so what happens if a `@Transactional` method calls another `@Transactional` method in the same class?" — the answer is that the inner annotation is ignored entirely, and the fix is to move the inner method to another bean or to move the boundary outward.
+
 > **Most-likely-tested (Part IV):**
 >
 > - The 8 lifecycle stages in order; know that `@PostConstruct`/`InitializingBean.afterPropertiesSet`/`init-method` are the three init hooks, and `@PreDestroy`/`DisposableBean.destroy`/`destroy-method` are the three destroy hooks.
@@ -1116,10 +1347,15 @@ The key insight: these aren't just labels. `@Repository` in particular changes h
 > - Default scope is **singleton**; prototype = new instance each request.
 > - Web scopes: request, session, application, websocket.
 > - `@RestController` = `@Controller` + `@ResponseBody`; `@Repository` adds exception translation.
+> - `BeanFactoryPostProcessor` modifies bean _definitions_ before any instance exists; `BeanPostProcessor` modifies _instances_ — and proxies are created in `postProcessAfterInitialization`, which is why `this` is always the raw target (§4.1).
+> - Init hooks fire in the order `@PostConstruct` → `afterPropertiesSet` → `init-method`; destroy hooks mirror it — and **prototype beans never receive destruction callbacks** (§4.1).
+> - Injecting a shorter-lived scope into a singleton needs a scoped proxy, `ObjectProvider`, or `@Lookup`; web scopes are `ThreadLocal`-bound and do not cross a thread hop (§4.2).
+> - Injection resolves **by type**, then narrows `@Qualifier` → `@Primary` → `@Priority` → parameter name, and fails at **startup**; circular references have been disabled by default since Boot 2.6 (§4.4).
+> - `@Transactional` = proxy + `TransactionInterceptor` + a **thread-bound** connection: self-invocation, non-public methods, and caught or checked exceptions defeat it silently (§4.5).
 
 ### Part IV summary
 
-Beans are container-managed objects wired by IoC/DI. Their lifecycle runs from instantiation → property population → aware interfaces → post-processor pre-init → initialization → post-processor post-init → use → destruction, with three init hooks and three destroy hooks. Scope controls sharing (singleton default, prototype, and the web scopes request/session/application/websocket). Stereotype annotations (`@Component` and its specializations) classify beans and sometimes add behavior.
+Beans are container-managed objects wired by IoC/DI. Their lifecycle runs from instantiation → property population → aware interfaces → post-processor pre-init → initialization → post-processor post-init → use → destruction, with three init hooks and three destroy hooks. Scope controls sharing (singleton default, prototype, and the web scopes request/session/application/websocket). Stereotype annotations (`@Component` and its specializations) classify beans and sometimes add behavior. §4.1 gives the mechanically precise ordering, §4.2 the rules for mixing scopes, §4.4 the resolution algorithm behind injection, and §4.5 how `@Transactional` rides the proxy created in stage 6.
 
 ---
 
@@ -1142,7 +1378,7 @@ Spring and Spring Boot provide many annotations that replace boilerplate/XML wit
 
 ## 5.2 Common Spring Boot annotations
 
-1. **`@SpringBootApplication`** — a convenience annotation combining `@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan` for fast, easy Spring Boot app setup.
+1. **`@SpringBootApplication`** — a convenience annotation combining `@Configuration`, `@EnableAutoConfiguration`, and `@ComponentScan` for fast, easy Spring Boot app setup. (Precisely: `@SpringBootConfiguration` + `@EnableAutoConfiguration` + `@ComponentScan` — see §5.3 for the startup sequence this sets in motion.)
 2. **`@RestController`** — combines `@Controller` and `@ResponseBody`; used to build RESTful web services.
 3. **`@RequestMapping` and its derivatives** (`@GetMapping`, `@PostMapping`, `@PutMapping`, etc.) — map web requests to methods in REST controllers, one per HTTP verb.
 4. **`@EnableAutoConfiguration`** — tells Spring Boot to auto-configure based on the dependencies present on the classpath.
@@ -1153,6 +1389,48 @@ Spring and Spring Boot provide many annotations that replace boilerplate/XML wit
 
 These annotations are fundamental to Spring/Spring Boot development because they enable **declarative configuration** that reduces repetitive boilerplate, making robust, efficient applications easier to create and maintain.
 
+## 5.3 What Actually Happens When `@SpringBootApplication` Runs
+
+**Mental model:** the annotation itself does almost nothing — it is three annotations in a trench coat, and one of them (`@EnableAutoConfiguration`) adds an `@Import` that runs late in the container's normal startup. The interesting work is done by `SpringApplication.run`, and the single most important sequencing fact is that **auto-configuration is deliberately evaluated _after_ your own configuration**, which is what makes "define your own bean and Boot backs off" work at all.
+
+### First, the expansion — with one correction
+
+The composed annotation is `@SpringBootConfiguration` + `@EnableAutoConfiguration` + `@ComponentScan`. Note that the first is **`@SpringBootConfiguration`**, not a plain `@Configuration` as the source list says — it is itself annotated `@Configuration`, but the distinct type exists so that tooling (notably `@SpringBootTest`) can _find_ your primary configuration class by searching upward from a test. Two more details from the expansion that have practical consequences:
+
+- The `@ComponentScan` has **no base package**, so it scans the package of the annotated class and everything below it. This is the entire reason the main class must sit at the root of your package structure — move it into `…app.web` and half your beans stop existing, with no error other than "no qualifying bean."
+- The scan carries `excludeFilters` for `TypeExcludeFilter` and `AutoConfigurationExcludeFilter` — the latter prevents an auto-configuration class from also being picked up as a regular `@Configuration` component.
+
+### The startup sequence
+
+**1. Constructing `SpringApplication`.** It deduces the **application type** by probing the classpath (servlet, reactive, or none), deduces the main class from the stack trace, and loads `ApplicationContextInitializer`s and `ApplicationListener`s declared in `META-INF/spring.factories`.
+
+**2. `run()` — environment first.** Run listeners fire a `starting` event; then the `Environment` is created and its `PropertySource`s are layered in a **defined precedence order** — command-line arguments, `SPRING_APPLICATION_JSON`, servlet parameters, JNDI, JVM system properties, OS environment variables, profile-specific `application-{profile}.yml`, plain `application.yml`/`.properties`, `@PropertySource`, then defaults. Profiles are resolved here, `spring.main.*` is bound, and an `environmentPrepared` event fires. Nothing has been instantiated yet — which is why a property that decides _which beans exist_ (`@ConditionalOnProperty`) has to be readable at this stage.
+
+**3. Creating the context.** For a servlet application, an `AnnotationConfigServletWebServerApplicationContext`. Initializers are applied, and your main class is registered as the single primary bean definition.
+
+**4. `refresh()` — where everything actually happens.** This is the standard container lifecycle from §4.1, and auto-configuration rides in on one of its steps:
+
+- `invokeBeanFactoryPostProcessors` runs **`ConfigurationClassPostProcessor`**, which parses `@Configuration` classes, performs the component scan, and processes `@Import`.
+- `@EnableAutoConfiguration` is an `@Import` of **`AutoConfigurationImportSelector`**, and — this is the load-bearing detail — it is a **`DeferredImportSelector`**, so it is processed **after all regular configuration classes have been parsed**. Your beans are known before Boot decides what to add.
+- That selector reads the list of candidate auto-configuration class **names** from `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` in every jar on the classpath. (In Boot 2.6 and earlier this list lived under the `EnableAutoConfiguration` key in `META-INF/spring.factories`; the `.imports` file was introduced in 2.7 and is the only mechanism in Boot 3.)
+- It removes exclusions, then applies `AutoConfigurationImportFilter`s using the precomputed condition metadata in `META-INF/spring-autoconfigure-metadata.properties` — so most candidates are discarded **without their class ever being loaded**, which is what keeps startup fast despite hundreds of candidates.
+- Survivors are ordered by `@AutoConfigureOrder` / `@AutoConfigureBefore` / `@AutoConfigureAfter` and registered as configuration classes.
+- Each is then still gated by its `@Conditional` annotations: `@ConditionalOnClass`, `@ConditionalOnMissingBean`, `@ConditionalOnProperty`, `@ConditionalOnWebApplication`, and so on. **`@ConditionalOnMissingBean` is the back-off mechanism** — and it only works because of the deferred ordering above.
+- Then `registerBeanPostProcessors`, and `finishBeanFactoryInitialization` → `preInstantiateSingletons`, where every non-lazy singleton is built through the full §4.1 lifecycle and the proxies of §4.5 are created.
+- For a web application, `onRefresh` calls `createWebServer`: the **embedded** Tomcat (or Jetty/Undertow) is created and `DispatcherServlet` is registered. The servlet container is a bean inside your application, not a host you deploy into — the inversion that made executable jars possible.
+
+**5. After refresh.** `ApplicationRunner` and `CommandLineRunner` beans are invoked, the `started` and then `ready` events fire, and the stopwatch prints the familiar `Started Application in x.xxx seconds` line.
+
+### The one correction worth making out loud
+
+Auto-configuration does **not** scan your classpath looking for things to turn into beans. It evaluates a **fixed, shipped list** of candidate configuration classes contributed by the starters you depend on, filters them by conditions, and registers what survives. "Boot magically finds my beans" conflates two different mechanisms: `@ComponentScan` finds _your_ components by package; auto-configuration adds _the framework's_ beans by condition.
+
+### How to debug it
+
+When a bean you expected is missing, or one you didn't expect is present, do not guess — run with `--debug` (or `logging.level.org.springframework.boot.autoconfigure=DEBUG`) and read the **`ConditionEvaluationReport`**: it prints positive matches, negative matches with the specific condition that failed, and exclusions. `/actuator/conditions` exposes the same report at runtime. This single tool answers most "why isn't my `DataSource` configured?" questions in seconds, and knowing it exists is a strong practical signal.
+
+> **What the interviewer is really testing:** whether `@SpringBootApplication` is three annotations you memorized or a startup sequence you can trace — and specifically whether you know that auto-configuration runs _after_ user configuration, since that ordering is what makes `@ConditionalOnMissingBean` meaningful. **The follow-up that usually comes next:** "how would you exclude one auto-configuration, and how would you write your own?" — `@SpringBootApplication(exclude = …)` or `spring.autoconfigure.exclude`, and for your own: a configuration class guarded by `@ConditionalOnMissingBean`/`@ConditionalOnClass`, listed in `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` inside your library jar.
+
 > **Concept connections worth remembering:**
 >
 > - `@SpringBootApplication` is three annotations in one — this is why a single `main` class bootstraps the whole app.
@@ -1162,15 +1440,17 @@ These annotations are fundamental to Spring/Spring Boot development because they
 
 > **Most-likely-tested (Part V):**
 >
-> - What `@SpringBootApplication` expands to (`@Configuration` + `@EnableAutoConfiguration` + `@ComponentScan`).
+> - What `@SpringBootApplication` expands to (`@SpringBootConfiguration` — itself meta-annotated `@Configuration` — plus `@EnableAutoConfiguration` and `@ComponentScan`).
 > - `@RestController` = `@Controller` + `@ResponseBody`.
 > - `@Qualifier` resolves ambiguous injection; `@Value` injects properties.
 > - `@Transactional` is proxy-based (relates to bean post-processing).
 > - Test slices (`@WebMvcTest`, `@DataJpaTest`) vs full-context `@SpringBootTest`.
+> - The `@ComponentScan` inside it has no base package, so it scans the annotated class's own package downward — which is why the main class belongs at the root (§5.3).
+> - Auto-configuration is a `DeferredImportSelector` reading `META-INF/spring/…/AutoConfiguration.imports`, evaluated **after** your configuration classes — the ordering that makes `@ConditionalOnMissingBean` back off (§5.3).
 
 ### Part V summary
 
-Spring's annotations turn configuration into declarations on classes and methods. Core injection/config annotations (`@Autowired`, `@Bean`, `@Value`, `@Qualifier`, `@Transactional`), web-mapping annotations (`@RequestMapping` + verb shortcuts), stereotypes (`@Component` family), and Boot's convenience/auto-config/test annotations together minimize boilerplate.
+Spring's annotations turn configuration into declarations on classes and methods. Core injection/config annotations (`@Autowired`, `@Bean`, `@Value`, `@Qualifier`, `@Transactional`), web-mapping annotations (`@RequestMapping` + verb shortcuts), stereotypes (`@Component` family), and Boot's convenience/auto-config/test annotations together minimize boilerplate. §5.3 traces what `@SpringBootApplication` actually sets in motion at startup, and why auto-configuration is evaluated after your own configuration classes.
 
 ---
 
@@ -1189,10 +1469,10 @@ Spring's annotations turn configuration into declarations on classes and methods
 
 **Security:** OWASP Top 10 2021 order; Injection = A03; new categories = Insecure Design (A04) + SSRF (A10); XXE→Misconfiguration, XSS→Injection.
 
-**JPA:** relationship annotations + cascade/fetch/mappedBy (mappedBy on inverse side); LAZY vs EAGER defaults; Query Methods keyword grammar; `@Query` + `?1`; Specifications need `JpaSpecificationExecutor`.
+**JPA:** relationship annotations + cascade/fetch/mappedBy (mappedBy on inverse side); LAZY vs EAGER defaults; Query Methods keyword grammar; `@Query` + `?1`; Specifications need `JpaSpecificationExecutor`. N+1 = lazy loading firing once per parent — fix it per query (`join fetch`, `@EntityGraph`, batch fetch size, projection), never with EAGER; a collection fetch plus `Pageable` paginates in memory.
 
 **Patterns:** 23 patterns in 3 families; memorize the confusable pairs and one-line intent of each.
 
-**Beans:** 8 lifecycle stages; 3 init + 3 destroy hooks; 6 scopes; 6 stereotypes; IoC/DI meaning.
+**Beans:** 8 lifecycle stages; 3 init + 3 destroy hooks; 6 scopes; 6 stereotypes; IoC/DI meaning. Init hooks fire `@PostConstruct` → `afterPropertiesSet` → `init-method`; prototypes get no destroy callbacks; injection resolves by type then `@Qualifier`/`@Primary`/`@Priority`/name and fails at startup; `@Transactional` is proxy advice, so self-invocation defeats it.
 
-**Annotations:** what `@SpringBootApplication` and `@RestController` expand to; injection/config/mapping/test annotations.
+**Annotations:** what `@SpringBootApplication` and `@RestController` expand to; injection/config/mapping/test annotations. Plus what `SpringApplication.run` does in order, and that auto-configuration is deferred until after your own configuration so `@ConditionalOnMissingBean` can back off.
