@@ -1,0 +1,19 @@
+/* position: fixed + inset: 0 covers the viewport ONLY if no ancestor has transform, filter,
+   perspective, contain: paint or will-change: transform. Such an ancestor becomes the
+   containing block for fixed descendants and a stacking context for z-index. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.dialog {
+  max-width: min(32rem, 90vw);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background: Canvas;
+  color: CanvasText;
+}

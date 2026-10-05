@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.vite/
+*.tsbuildinfo
+.next/
+out/
+target/
+.DS_Store
+next-env.d.ts

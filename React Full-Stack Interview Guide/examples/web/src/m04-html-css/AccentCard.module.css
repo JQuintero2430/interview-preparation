@@ -1,0 +1,10 @@
+/* The component reads a custom property; the caller supplies the value at runtime.
+   This is the zero-runtime-library way to do "dynamic styles": no style injection, RSC-safe. */
+.card {
+  border: 2px solid var(--accent, currentColor);
+  padding: 1rem;
+}
+
+.title {
+  color: var(--accent, inherit);
+}

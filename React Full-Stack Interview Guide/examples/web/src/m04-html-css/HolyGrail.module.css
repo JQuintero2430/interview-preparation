@@ -1,0 +1,43 @@
+/* Holy-grail layout with named grid areas. Source order (header, nav, main, aside, footer)
+   is the reading and tab order; the grid only changes where each area is painted. */
+.page {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 12rem minmax(0, 1fr) 14rem; /* minmax(0, 1fr): let main shrink below its content width */
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    'header header header'
+    'nav    main   aside'
+    'footer footer footer';
+  gap: 1rem;
+}
+
+.header { grid-area: header; }
+.nav    { grid-area: nav; }
+.main   { grid-area: main; }
+.aside  { grid-area: aside; }
+.footer { grid-area: footer; }
+
+/* Mobile first would put this block first and widen with min-width; kept as max-width for readability. */
+@media (max-width: 40rem) {
+  .page {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto auto;
+    grid-template-areas:
+      'header'
+      'nav'
+      'main'
+      'aside'
+      'footer';
+  }
+}
+
+/* Skip link: off-screen until it receives keyboard focus (WCAG 2.4.1 Bypass Blocks). */
+.skip {
+  position: absolute;
+  inset-inline-start: 0;
+  transform: translateY(-100%);
+}
+.skip:focus-visible {
+  transform: translateY(0);
+}
