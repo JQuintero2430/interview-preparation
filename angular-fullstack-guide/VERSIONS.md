@@ -30,7 +30,7 @@ Everything in the guide assumes the versions below unless a section says otherwi
 | `@testing-library/angular` | 19.5.0 | `@analogjs/vitest-angular` | 2.8.0 |
 | `@angular-eslint/eslint-plugin` | 22.5.0 | `storybook` | 10.6.1 |
 | `nx` | 23.2.1 | `@angular-architects/native-federation` | 22.2.2 |
-| `@module-federation/enhanced` | 2.9.2 | | |
+| `@module-federation/enhanced` | 2.9.2 | `jsdom` | 30.1.1 (exact devDependency of `labs/ts-js`; the DOM in module 08's labs) |
 
 ## Backend (full-stack modules 41–44)
 

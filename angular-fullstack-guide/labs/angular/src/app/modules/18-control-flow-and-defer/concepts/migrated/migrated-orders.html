@@ -1,0 +1,39 @@
+@if (user()) {
+  <p id="greeting">Hello {{ user() }}</p>
+} @else {
+  <p id="guest">Hello guest</p>
+}
+<ng-template #guest><p id="guest">Hello guest</p></ng-template>
+<ng-container *ngTemplateOutlet="guest"></ng-container>
+@if (state$ | async; as s) {
+  <p id="ready">ready</p>
+} @else {
+  <p id="waiting">waiting</p>
+}
+@if (orders().length) {
+  <ul>
+    @for (order of orders(); track byId(i, order); let i = $index) {
+      <li>
+        {{ i }}: {{ order.label }}
+        <span>
+          @switch (order.status) {
+            @case ('new') {
+              <b>new</b>
+            }
+            @case ('shipped') {
+              <b>shipped</b>
+            }
+            @default {
+              <b>lost</b>
+            }
+          }
+        </span>
+      </li>
+    }
+  </ul>
+}
+<ul>
+  @for (tag of tags(); track tag) {
+    <li>{{ tag }}</li>
+  }
+</ul>

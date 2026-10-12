@@ -64,9 +64,26 @@ Write in English, as clear explanatory prose that defines every term the first t
 - **APIs:** REST design and versioning, gRPC (protobuf, streaming, deadlines, interceptors, Spring integration), GraphQL (schema design, N+1 and DataLoader, Spring for GraphQL), WebSockets/SSE.
 - **Security:** Spring Security (filter chain, authentication, authorization), OAuth2/OIDC, JWT, sessions vs tokens, OWASP Top 10 for APIs, secrets management.
 - **Microservices:** decomposition, API gateway, service discovery, configuration, resilience (Resilience4j: timeouts, retries, circuit breakers, bulkheads), sagas, outbox, CQRS, event sourcing, idempotency, and distributed transactions.
-- **Observability:** logging, Micrometer, OpenTelemetry, tracing, SLOs.
+- **Observability:** structured logging, Micrometer (meters, the Observation API, Micrometer Tracing), metrics and cardinality, SLIs, SLOs and error budgets, alerting.
+- **OpenTelemetry** (its own module, not a section inside a generic observability module):
+  - the signals (traces, metrics, logs) and how they correlate; the API vs SDK split; resources and semantic conventions, each with its verified stability status;
+  - context propagation: W3C Trace Context and Baggage, and keeping context across thread pools, `CompletableFuture`, virtual threads, Reactor, and Kafka message headers;
+  - the instrumentation options and their trade-offs: the Java agent (zero-code), the Spring Boot starter, manual API spans, and Micrometer Tracing bridged to OpenTelemetry;
+  - OTLP export and the Collector (receivers, processors, exporters; agent vs gateway deployment);
+  - sampling (head vs tail, parent-based, ratio) and its cost and blind spots;
+  - correlating logs with trace and span IDs (MDC);
+  - backends as interviewers compare them (Jaeger, Prometheus, Grafana Tempo), without endorsing one;
+  - failure modes and production scenarios: broken propagation across async boundaries, dropped spans under load, exporter back-pressure, agent overhead, high-cardinality attributes.
 - **Testing:** JUnit, Mockito, Testcontainers, contract testing, test pyramid trade-offs.
-- **Delivery:** Maven (and Gradle differences), Docker, Kubernetes basics, CI/CD, and the AWS services a Java backend uses.
+- **Delivery:** Maven (and Gradle differences), Docker, Kubernetes basics, and the AWS services a Java backend uses.
+- **CI/CD**, with Jenkins as the primary tool:
+  - concepts: pipeline stages for a Java service (build, unit and integration tests, static analysis, packaging, image build, deploy), trunk-based development vs Gitflow, versioning and immutable artifacts, environment promotion, deployment strategies (rolling, blue/green, canary) and rollback, and database migrations (Flyway/Liquibase) inside the pipeline;
+  - Jenkins pipeline as code: the `Jenkinsfile`, declarative vs scripted pipelines, `stages`, `steps`, `post`, `when`, `parallel` and `matrix`, `input` for manual approval, and multibranch pipelines with pull-request builds (webhooks vs SCM polling);
+  - Jenkins architecture: controller and agents, executors, Docker agents, and the Kubernetes plugin with pod templates;
+  - reuse and security: shared libraries, credentials and the credentials-binding step (secret masking and how secrets still leak), the Groovy sandbox and script approval, role-based access, and plugin management;
+  - the Java-specific steps: Maven caching, JUnit and JaCoCo reports, SonarQube quality gates, publishing to Nexus or Artifactory, and building and pushing Docker images;
+  - running Jenkins in production: configuration as code (JCasC), backups, the controller as a single point of failure, and failure modes such as executor starvation, flaky tests, workspace bloat and plugin upgrade breakage;
+  - comparisons interviewers ask: GitHub Actions and GitLab CI vs Jenkins.
 - **Design and architecture:** SOLID, design patterns, DDD, hexagonal and clean architecture, system design method and case studies, architect-level production questions.
 - **Interview craft:** behavioral answers (STAR), production stories, questions to ask.
 - Everything in the source material (section 5a) that fits a Java backend interview.
@@ -114,7 +131,7 @@ When you stop for any reason other than a rate-limit error, reply in at most 6 l
 - Exploration suggests `Spring.pdf` is image-based (about 840 words over 24 pages); confirm it.
 - Do not extract question content in this step.
 
-**P2 (M): versions.** Determine the current stable versions from the package registries (Maven Central via `https://search.maven.org` or `mvn help:evaluate`, plus vendor sites) and the official release notes. Write them in `VERSIONS.md`, with the date, the support policy (LTS and end of life), and the status vocabulary each technology uses (preview, incubating, experimental, deprecated, removed). Components to cover: the current Java LTS and latest release, Spring Boot, Spring Framework, Spring Security, Spring Data, Spring for Apache Kafka, Spring for GraphQL, grpc-java and the Spring gRPC integration, Hibernate, PostgreSQL, Redis, MongoDB, Cassandra, Kafka, Resilience4j, Micrometer and OpenTelemetry, JUnit, Mockito, Testcontainers, Maven, MapStruct, spotless-maven-plugin. Never take a version, an API or a default from memory.
+**P2 (M): versions.** Determine the current stable versions from the package registries (Maven Central via `https://search.maven.org` or `mvn help:evaluate`, plus vendor sites) and the official release notes. Write them in `VERSIONS.md`, with the date, the support policy (LTS and end of life), and the status vocabulary each technology uses (preview, incubating, experimental, deprecated, removed). Components to cover: the current Java LTS and latest release, Spring Boot, Spring Framework, Spring Security, Spring Data, Spring for Apache Kafka, Spring for GraphQL, grpc-java and the Spring gRPC integration, Hibernate, PostgreSQL, Redis, MongoDB, Cassandra, Kafka, Resilience4j, Micrometer and Micrometer Tracing, OpenTelemetry (the Java API and SDK, the Java agent from opentelemetry-java-instrumentation, the Spring Boot starter, the Collector, and the stability status of the semantic conventions the guide uses), JUnit, Mockito, Testcontainers, Maven, MapStruct, spotless-maven-plugin, Jenkins (the LTS line, and the Pipeline, Kubernetes, credentials-binding and Configuration as Code plugins). Never take a version, an API or a default from memory.
 
 **P3 (L): syllabus and size projection.** Write `SYLLABUS.md` containing:
 - **§1, the module table**, in exactly the column format `module-stats.mjs` parses (adapt the parser if you change the columns): number, slug, Part, kind (core or supporting), question ceiling, exercise ceiling, prose cap in words, lab folder. Each module gets a two-digit number and a kebab-case slug. Slugs are permanent: later revisions may add modules but never rename or renumber existing ones.
@@ -127,7 +144,7 @@ When you stop for any reason other than a rate-limit error, reply in at most 6 l
 - **The pilot module:** the one that exercises the most of the template (code, output tests, production scenarios, trade-offs). A strong candidate is Spring transactions and persistence, because it touches proxies, JPA, isolation and production incidents. Prefer a pilot whose lab needs only PostgreSQL, so it can be verified wherever Docker runs.
 - **Size projection:** the total of question and exercise ceilings and prose caps; the estimated number of tasks by type and size (including one EXTRACT task per INVENTORY chunk); the estimated cost in usage points using the calibration rows; and the resulting number of sessions at about 70 usable points each. Aim for at most 55 modules. A syllabus above that needs a "Resolved decisions" entry saying why it cannot be merged, and the options to cut or merge are written as open questions for G1.
 - **An initial mapping** of the source inventory to modules, made only from INVENTORY's headings and page headers (P1), never by reading content. It is provisional; SYLLABUS-REVISE completes it after extraction.
-- A "Resolved decisions" section.
+- A "Resolved decisions" section. It records at least: OpenTelemetry as its own module, which modules link to it for propagation (microservices, Kafka, reactive, concurrency), and whether Spring examples default to Micrometer Tracing bridged to OpenTelemetry or to the OpenTelemetry starter, with the reason.
 
 **P4 (M): style and quality bar.**
 - Write `STYLE-GUIDE.md`, adapted from the Angular one. Keep:
@@ -141,6 +158,7 @@ When you stop for any reason other than a rate-limit error, reply in at most 6 l
   - operational concerns (configuration, observability, deployment);
   - security considerations per topic;
   - every ledger row mapped to the module is answered.
+- In STYLE-GUIDE, state how pipeline content is verified: `Jenkinsfile` syntax and step behavior against the official Jenkins documentation and plugin docs, and, where a claim depends on runtime behavior, by running the pipeline in a Jenkins container (`needs: docker`).
 
 **P5 (M): labs skeleton.** Keep this small: each `PLAN-Mxx` task creates its own lab module later (RUN.md §9).
 - Create `labs/pom.xml` as the parent: the current Java LTS and Spring Boot from VERSIONS.md, dependency management for JUnit, Mockito, Testcontainers, MapStruct and the libraries SYLLABUS needs, and `spotless-maven-plugin` (choose the formatter and record why).

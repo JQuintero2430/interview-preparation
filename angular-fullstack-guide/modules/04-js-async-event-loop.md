@@ -77,7 +77,7 @@ There is a second microtask checkpoint that interviewers love: the spec's *clean
 | `setTimeout`, `setInterval`, UI events, `MessageChannel` messages, network and I/O callbacks, `postMessage`, `IntersectionObserver` callbacks | `Promise.prototype.then`/`catch`/`finally` reactions, `await` continuations, `queueMicrotask`, `MutationObserver` callbacks | `requestAnimationFrame`, `ResizeObserver` callbacks |
 
 > [!NOTE]
-> **Framework vs platform.** The *language* gives you promises, `async`/`await` and the job queue. The *host* gives you everything else: `setTimeout`, `queueMicrotask`, events, `fetch`, `AbortController` and the event loop itself (the HTML Standard in browsers, libuv (the C library that runs Node's loop and its I/O) plus Node's own queues on the server). Angular adds nothing to the loop. Before v21, Angular apps used [zone.js](../GLOSSARY.md#zonejs), a library that monkey-patches these host scheduling APIs so the framework learns when a task or microtask finished and can run change detection. Zoneless Angular [Changed in v21: zoneless is the default for new apps] instead relies on signals and explicit notifications. How zone.js patches each API, and why `onMicrotaskEmpty` exists, is taught in [21. Change detection](21-change-detection.md).
+> **Framework vs platform.** The *language* gives you promises, `async`/`await` and the job queue. The *host* gives you everything else: `setTimeout`, `queueMicrotask`, events, `fetch`, `AbortController` and the event loop itself (the HTML Standard in browsers, libuv (the C library that runs Node's loop and its I/O) plus Node's own queues on the server). Angular adds nothing to the loop. Before v21, Angular apps used [zone.js](../GLOSSARY.md#zonejs), a library that monkey-patches these host scheduling APIs so the framework learns when a task or microtask finished and can run change detection. Zoneless Angular [Changed in v21: zoneless is the default for new apps] instead relies on signals and explicit notifications. How zone.js patches each API, and why `onMicrotaskEmpty` exists, is taught in [21. Change detection](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default).
 
 ### Code
 
@@ -147,8 +147,8 @@ The [Node.js event loop guide](https://nodejs.org/en/learn/asynchronous-work/eve
 **Why it matters for SSR.** A server render runs your components, resolvers and services in Node:
 
 1. **CPU-bound work blocks all users.** A 200 ms synchronous loop in a component delays every concurrent request on that process.
-2. **The server must know when the page is "done".** Pending timers, open HTTP calls and long-polling keep the render waiting. Angular tracks this through its stability and pending-task mechanisms ([21. Change detection](21-change-detection.md), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md)). A `setInterval` started during render can keep it from ever completing.
-3. **Browser-only scheduling APIs do not exist there.** `requestAnimationFrame` and `requestIdleCallback` are absent in Node, so code that calls them during render must be guarded or moved to browser-only hooks ([20. Lifecycle and render hooks](20-lifecycle-and-render-hooks.md)).
+2. **The server must know when the page is "done".** Pending timers, open HTTP calls and long-polling keep the render waiting. Angular tracks this through its stability and pending-task mechanisms ([21. Change detection](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md)). A `setInterval` started during render can keep it from ever completing.
+3. **Browser-only scheduling APIs do not exist there.** `requestAnimationFrame` and `requestIdleCallback` are absent in Node, so code that calls them during render must be guarded or moved to browser-only hooks ([20. Lifecycle and render hooks](20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases)).
 
 ### Code
 
@@ -432,7 +432,7 @@ Iterator helpers such as `.take()` exist for *sync* iterators (ES2025), but asyn
 ### Misconceptions and traps
 
 - *"`for await` runs the iterations in parallel."* It is strictly sequential: the next `next()` is not called until the body finishes. The myth comes from `await` inside `Promise.all`, which it resembles but does not do.
-- *"RxJS Observables and async iterators are the same."* Observables *push* values at the producer's pace. Async iterators are *pulled* at the consumer's pace ([22. RxJS foundations](22-rxjs-foundations.md)). The myth comes from both being described as "streams of values".
+- *"RxJS Observables and async iterators are the same."* Observables *push* values at the producer's pace. Async iterators are *pulled* at the consumer's pace ([22. RxJS foundations](22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness)). The myth comes from both being described as "streams of values".
 
 ---
 
@@ -456,7 +456,7 @@ An `AbortController` is a **remote control with one button**. You keep the contr
 - `AbortSignal.timeout(ms)` returns a signal that aborts after `ms` with a `DOMException` named `"TimeoutError"`. `AbortSignal.any([a, b])` (Node 20.3 and 18.17) returns a signal that aborts when any input does, with that input's reason. `AbortSignal.abort(reason)` returns an already-aborted signal. All three are in the TypeScript 6.0 DOM typings and in Node 24.
 - **Cancellation is cooperative.** Aborting only *asks*. Your own async functions must accept a signal, pass it down, and check it.
 
-Angular builds on the same contract. A `resource` loader receives an `abortSignal` and Angular aborts it when the request is superseded ([17. Signals](17-signals.md#6-resources-async-data-as-signals)), and RxJS's `switchMap` unsubscribes from the previous inner request, which `HttpClient` turns into an aborted HTTP call ([23. RxJS in depth](23-rxjs-in-depth.md)).
+Angular builds on the same contract. A `resource` loader receives an `abortSignal` and Angular aborts it when the request is superseded ([17. Signals](17-signals.md#6-resources-async-data-as-signals)), and RxJS's `switchMap` unsubscribes from the previous inner request, which `HttpClient` turns into an aborted HTTP call ([23. RxJS in depth](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)).
 
 ### Code
 
@@ -740,7 +740,7 @@ console.log('after dispatch');
 
 **Follow-ups an interviewer will ask.**
 - *Why not animate with `setTimeout(fn, 16)`?* Timers are not aligned to frames. They drift, fire twice in one frame or miss frames, and keep running in background tabs.
-- *What does Angular use for post-render DOM work?* `afterNextRender` and `afterEveryRender`, with read/write phases ([20. Lifecycle and render hooks](20-lifecycle-and-render-hooks.md)).
+- *What does Angular use for post-render DOM work?* `afterNextRender` and `afterEveryRender`, with read/write phases ([20. Lifecycle and render hooks](20-lifecycle-and-render-hooks.md#q20-10)).
 
 **Trap to avoid.** Doing heavy computation inside rAF. It runs inside the frame budget, so it delays the very paint it was meant to prepare.
 
@@ -1124,7 +1124,7 @@ async function saveAllConcurrently() {
 
 **Short answer (30 seconds).** Sequential awaits when each step needs the previous result or the operations must not overlap. `Promise.all` (or `allSettled`) when they are independent. Avoid "start now, await later" with two separate `await`s, because an early rejection of the second promise is unhandled while you wait for the first.
 
-**Full explanation.** Sequential code is simplest and gives natural back-pressure, but latency adds up: three independent 200 ms calls take 600 ms. `Promise.all` takes as long as the slowest call and fails fast, but it starts everything at once, which can overload a server or hit browser connection limits. Then you need a pool ([Exercise 04.2](#ex04-2)). The pattern `const a = fa(); const b = fb(); await a; await b;` is concurrent, but an early rejection of `b` is reported as unhandled ([section 5](#5-async-and-await) shows why). `Promise.all` attaches both handlers immediately. In Angular, combining HTTP calls is often written with RxJS `forkJoin` instead ([22. RxJS foundations](22-rxjs-foundations.md)).
+**Full explanation.** Sequential code is simplest and gives natural back-pressure, but latency adds up: three independent 200 ms calls take 600 ms. `Promise.all` takes as long as the slowest call and fails fast, but it starts everything at once, which can overload a server or hit browser connection limits. Then you need a pool ([Exercise 04.2](#ex04-2)). The pattern `const a = fa(); const b = fb(); await a; await b;` is concurrent, but an early rejection of `b` is reported as unhandled ([section 5](#5-async-and-await) shows why). `Promise.all` attaches both handlers immediately. In Angular, combining HTTP calls is often written with RxJS `forkJoin` instead ([22. RxJS foundations](22-rxjs-foundations.md#7-combining-streams-combinelatest-withlatestfrom-forkjoin-zip-merge-and-concat)).
 
 **Follow-ups an interviewer will ask.**
 - *When must operations stay sequential even if independent?* When they share a resource that cannot be used concurrently (one database transaction, rate-limited API), or order matters for side effects.
@@ -1145,7 +1145,7 @@ async function saveAllConcurrently() {
 **Full explanation.** Module evaluation is a graph walk. When a module awaits at the top level, the spec marks it as async, and its importers are evaluated only after its promise settles, so they can safely use its exports (a loaded configuration, a WASM instance, a dynamically chosen implementation). The cost is that the whole subgraph above it waits: a slow top-level `fetch` delays application start-up, and an `await` on something that never settles blocks every importer forever. Bundlers must also preserve the async ordering, which can affect chunking ([05. Modules](05-js-modules-memory-modern-features.md)). Background: [section 5](#5-async-and-await).
 
 **Follow-ups an interviewer will ask.**
-- *Would you use it in an Angular app?* Rarely. Configuration that must load before bootstrap is usually fetched in `main.ts` before `bootstrapApplication`, or in an app initializer ([16. Dependency injection](16-dependency-injection.md)).
+- *Would you use it in an Angular app?* Rarely. Configuration that must load before bootstrap is usually fetched in `main.ts` before `bootstrapApplication`, or in an app initializer ([Q12.17](12-angular-how-it-works.md#q12-17)).
 - *Does it work in Node?* Yes, in ES modules (`.mjs`, or `"type": "module"`), not in CommonJS files.
 
 **Trap to avoid.** Thinking top-level `await` blocks the thread. It delays dependent module evaluation, and the event loop keeps running.
@@ -1213,7 +1213,7 @@ console.log('after loop');
 
 **Short answer (30 seconds).** Separate the *result* (a promise) from the *control* (an `AbortSignal`). Every async function that does I/O or waits takes an optional `signal`, passes it to `fetch` and to nested calls, checks `signal.throwIfAborted()` between steps, removes its listeners when done, and rejects with `signal.reason` when aborted.
 
-**Full explanation.** A promise is shared by every consumer, so letting one consumer cancel it would break the others. The platform's answer is a capability: whoever owns the `AbortController` decides, and whoever receives the signal cooperates. Conventions that make this work: put the signal in an options object (`{ signal }`), reject with `signal.reason` (so callers can tell `AbortError` from `TimeoutError` from their own reason), combine scopes with `AbortSignal.any` (component lifetime plus request timeout), and treat abort as an expected outcome. Angular follows the same split. `resource` passes an `abortSignal` to its loader, and Observables model cancellation as unsubscription, which `HttpClient` maps to aborting the request ([23. RxJS in depth](23-rxjs-in-depth.md)).
+**Full explanation.** A promise is shared by every consumer, so letting one consumer cancel it would break the others. The platform's answer is a capability: whoever owns the `AbortController` decides, and whoever receives the signal cooperates. Conventions that make this work: put the signal in an options object (`{ signal }`), reject with `signal.reason` (so callers can tell `AbortError` from `TimeoutError` from their own reason), combine scopes with `AbortSignal.any` (component lifetime plus request timeout), and treat abort as an expected outcome. Angular follows the same split. `resource` passes an `abortSignal` to its loader, and Observables model cancellation as unsubscription, which `HttpClient` maps to aborting the request ([23. RxJS in depth](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)).
 
 **Code.**
 
@@ -1374,7 +1374,7 @@ console.log('sync end', count);
 **Full explanation.** A microtask checkpoint runs until the queue is empty, and each `spin` adds one more before finishing. The loop cannot reach the next task, or a rendering step, until the chain stops. This is the starvation the HTML Standard warns about ([section 8](#8-unhandled-rejections-queuemicrotask-and-starvation)). The same happens with `while (busy) await Promise.resolve()` and with recursive `process.nextTick` in Node. Rescheduling with `setTimeout` (or `MessageChannel`, or `scheduler.yield()` where supported) yields a task boundary on every step. Verified: `Q04.28` in [`event-loop.test.ts`](../labs/ts-js/src/outputs/04-js-async-event-loop/event-loop.test.ts).
 
 **Follow-ups an interviewer will ask.**
-- *Why can a zone.js-based app hit this harder?* Change detection hooked to "microtask queue empty" waits for the queue to drain. The details are in [21. Change detection](21-change-detection.md).
+- *Why can a zone.js-based app hit this harder?* Change detection hooked to "microtask queue empty" waits for the queue to drain. The details are in [21. Change detection](21-change-detection.md#q21-35).
 - *How do you process a big array without freezing the UI?* Chunk it and yield to a task between chunks, or move it to a Web Worker.
 
 **Trap to avoid.** Believing `await` in a loop automatically "lets the browser breathe".
@@ -1512,7 +1512,7 @@ export async function mapWithConcurrency<T, R>(
 **Interviewer follow-ups.**
 - *"Why does `nextIndex++` need no lock with several workers?"* Workers interleave only at `await`. A statement runs to completion on the one thread, so no two workers can read the same index ([section 1](#1-the-event-loop-tasks-microtasks-and-rendering)).
 - *"Collect every result, failures included, instead of failing fast."* Catch inside each call and store `{ status: 'fulfilled', value }` or `{ status: 'rejected', reason }`, the shape `Promise.allSettled` uses ([Q04.14](#q04-14)); the pool then always resolves.
-- *"How would you do this in Angular?"* For Observables, RxJS `mergeMap(fn, concurrency)` is the same pool, and unsubscribing cancels the calls in flight ([22. RxJS foundations](22-rxjs-foundations.md)).
+- *"How would you do this in Angular?"* For Observables, RxJS `mergeMap(fn, concurrency)` is the same pool, and unsubscribing cancels the calls in flight ([23. RxJS in depth](23-rxjs-in-depth.md#1-higher-order-observables-switchmap-mergemap-concatmap-and-exhaustmap)).
 
 **Tests:** [`promise-pool.test.ts`](../labs/ts-js/src/modules/04-js-async-event-loop/promise-pool.test.ts)
 
@@ -1554,7 +1554,7 @@ export function backoffDelay(attempt: number, baseDelayMs: number, factor: numbe
 
 **How each criterion is met.** In `retry.test.ts` (`describe('E04.3 retry with backoff')`), each `it` is titled with its criterion, from "fulfils with the first successful result after transient failures" to "passes the attempt number and the signal to the operation". The tests use `vi.useFakeTimers()` and `vi.advanceTimersByTimeAsync`, which runs pending microtasks between timers. Success: an operation failing twice, with 300 ms advanced. Waits: call counts checked at 99 ms, 100 ms, 399 ms and 400 ms with `factor: 3`. Cap: `backoffDelay` on attempts 0 to 3 with a 250 ms maximum. Exhaustion: `retries: 2` gives three calls and the third error. `shouldRetry`: one call, no timer. Abort: the reason propagates through `delay`, and no further calls happen even after advancing 10 s. Pre-aborted: `throwIfAborted` throws before the first call. Arguments: the recorded `(attempt, signal)` pairs.
 
-**Alternative approach:** add *jitter* (randomize each wait, for example uniformly between 0 and the computed delay), so that many clients failing together do not retry in lockstep. **Trade-offs:** jitter makes the waits non-deterministic, so inject the random source to keep tests exact. In Angular, the RxJS `retry({ count, delay })` operator does the same for Observables ([23. RxJS in depth](23-rxjs-in-depth.md)).
+**Alternative approach:** add *jitter* (randomize each wait, for example uniformly between 0 and the computed delay), so that many clients failing together do not retry in lockstep. **Trade-offs:** jitter makes the waits non-deterministic, so inject the random source to keep tests exact. In Angular, the RxJS `retry({ count, delay })` operator does the same for Observables ([23. RxJS in depth](23-rxjs-in-depth.md#4-retrying-and-repeating-retry-with-backoff-and-repeat)).
 
 **Interviewer follow-ups.**
 - *"Which errors should `shouldRetry` accept for HTTP?"* Network failures, `429` and most `5xx` responses are transient; other `4xx` responses will fail the same way again. Retry a non-idempotent request such as `POST` only when the server supports an idempotency key, because the first attempt may have succeeded ([section 7](#7-cancellation-with-abortcontroller)).
@@ -1612,11 +1612,11 @@ export function latestOnly<A extends unknown[], R>(
 
 **How each criterion is met.** In `latest-only.test.ts` (`describe('E04.4 latestOnly')`), each `it` is titled with its criterion, from "forwards the arguments and gives every call a fresh, unaborted signal" to "settles the latest call with its own value or its own error". The tests use a fake search controlled with `Promise.withResolvers`. Arguments and fresh signals: the recorded queries and signal identities. Abort reason: the first call's signal is aborted with a `DOMException` named `AbortError`. No stale result: the first promise rejects before its slow response is resolved, and the late `resolve` changes nothing. Latest: the last call fulfils or rejects with its own outcome.
 
-**Alternative approach:** a sequence number. Each call captures `++seq` and drops results whose number is no longer current. **Trade-offs:** sequence numbers prevent stale UI updates but do not cancel the network request. The `AbortSignal` version does both, provided `fn` forwards the signal to `fetch`. In Angular you would usually reach for `switchMap` or a `resource`, which both cancel the previous request ([17. Signals](17-signals.md#6-resources-async-data-as-signals), [23. RxJS in depth](23-rxjs-in-depth.md)).
+**Alternative approach:** a sequence number. Each call captures `++seq` and drops results whose number is no longer current. **Trade-offs:** sequence numbers prevent stale UI updates but do not cancel the network request. The `AbortSignal` version does both, provided `fn` forwards the signal to `fetch`. In Angular you would usually reach for `switchMap` or a `resource`, which both cancel the previous request ([17. Signals](17-signals.md#6-resources-async-data-as-signals), [23. RxJS in depth](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)).
 
 **Interviewer follow-ups.**
 - *"Why reject a superseded call instead of leaving it pending?"* A promise that never settles leaves its caller's `await` suspended forever, along with everything that function's closure holds. Rejecting with an `AbortError` lets callers ignore it by name.
-- *"What if you want the first call to win, or every call to run in order?"* Those are the other flattening strategies: ignore new calls while one is running (RxJS `exhaustMap`, good for a submit button) or queue them (`concatMap`). `latestOnly` is `switchMap` ([22. RxJS foundations](22-rxjs-foundations.md)).
+- *"What if you want the first call to win, or every call to run in order?"* Those are the other flattening strategies: ignore new calls while one is running (RxJS `exhaustMap`, good for a submit button) or queue them (`concatMap`). `latestOnly` is `switchMap` ([23. RxJS in depth](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)).
 - *"Add debouncing."* Put the debounce in front of `latestOnly`, so fewer calls start, and keep `latestOnly` for the responses that still arrive out of order ([Module 02](02-js-scope-closures-this.md#6-higher-order-functions-currying-partial-application-debounce-and-throttle)).
 
 **Tests:** [`latest-only.test.ts`](../labs/ts-js/src/modules/04-js-async-event-loop/latest-only.test.ts)

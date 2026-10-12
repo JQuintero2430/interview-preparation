@@ -133,7 +133,7 @@ What to notice: each direction hands back a different shape (`module.exports` be
 - **Values, not bindings.** `module.exports = { count }` copies the current value of `count`. Later changes inside the module are invisible to importers.
 - **ESM importing CommonJS.** Node builds a namespace before the CommonJS file runs: `default` is `module.exports`, plus the named exports a "heuristic static analysis" finds in the source, plus a `'module.exports'` key [Changed in Node 23.0: the `'module.exports'` key was added] ([Node.js ESM, CommonJS namespaces](https://nodejs.org/api/esm.html#commonjs-namespaces)). An export assigned through a computed key is not found.
 - **CommonJS requiring ESM.** `require(esm)` returns the module namespace object (the object that holds all of a module's exports). It is unflagged since Node 22.12.0 and 20.19.0 and "no longer experimental" since 24.15.0. A graph with top-level `await` cannot be loaded synchronously and throws `ERR_REQUIRE_ASYNC_MODULE` ([Node.js modules](https://nodejs.org/api/modules.html#loading-ecmascript-modules-using-require)).
-- **`import()`** [Added in ES2020] works in both systems and returns a promise of the namespace. It goes through the same module map, so a second call gets the same object and does not run the module again. Bundlers treat it as a split point: Angular's lazy routes and `@defer` blocks compile to `import()` ([module 24](24-routing.md), [module 18](18-control-flow-and-defer.md)).
+- **`import()`** [Added in ES2020] works in both systems and returns a promise of the namespace. It goes through the same module map, so a second call gets the same object and does not run the module again. Bundlers treat it as a split point: Angular's lazy routes and `@defer` blocks compile to `import()` ([module 24](24-routing.md#4-lazy-loading-in-depth-loaders-canmatch-and-route-injectors), [module 18](18-control-flow-and-defer.md#7-what-lands-in-a-chunk-testing-deferred-blocks-and-the-ssr-pointer)).
 - **Tree shaking**, the bundler's dead-code elimination, "relies on the static structure of ES2015 module syntax" ([webpack guide](https://webpack.js.org/guides/tree-shaking/)). It also needs to know that dropping a module is safe. The `"sideEffects"` field in `package.json` declares which files have top-level side effects, and a `/* @__PURE__ */` comment marks a call whose result can be dropped if unused ([esbuild](https://esbuild.github.io/api/#tree-shaking)).
 
 ### Code
@@ -163,7 +163,7 @@ console.log('after', counter.count);
 Node 24 prints `before 0` and `after 0`. The ES module version printed `after 1`. Verified: the `Section 2:` tests in [`section-2-commonjs-interop.test.ts`](../labs/ts-js/src/modules/05-js-modules-memory-modern-features/section-2-commonjs-interop.test.ts), which also run the wrapper, the cycle, both interop directions and `import()` with `node`. Drill it with [Q05.05](#q05-05) (ESM versus CommonJS), [Q05.06](#q05-06) (interop output), [Q05.07](#q05-07) (tree shaking) and [Q05.08](#q05-08) (lazy loading).
 
 > [!NOTE]
-> **Framework vs platform.** `import()` is the platform. `@defer` is Angular template syntax: the compiler turns each deferrable dependency into an `import(path).then(…)` call (read in `@angular/compiler` 22.2.1, `compileDeferResolverFunction`), so the load itself is this section's `import()`. What `@defer` adds on top are the placeholder, loading and error blocks ([module 18](18-control-flow-and-defer.md)).
+> **Framework vs platform.** `import()` is the platform. `@defer` is Angular template syntax: the compiler turns each deferrable dependency into an `import(path).then(…)` call (read in `@angular/compiler` 22.2.1, `compileDeferResolverFunction`), so the load itself is this section's `import()`. What `@defer` adds on top are the placeholder, loading and error blocks ([module 18](18-control-flow-and-defer.md#5-defer-blocks-and-states-placeholder-loading-error-minimum-and-after)).
 
 #### Legacy
 
@@ -850,7 +850,7 @@ console.log(typeof modern, modern.default, modern.named);
 
 **Follow-ups an interviewer will ask.**
 - *Why can a Babel or TypeScript setting break tree shaking?* Compiling `import`/`export` to CommonJS removes the static structure. Webpack's guide warns about exactly that.
-- *How does Angular benefit?* Standalone components and `providedIn: 'root'` services are referenced through imports, so unused ones drop out ([module 16](16-dependency-injection.md)).
+- *How does Angular benefit?* Standalone components and `providedIn: 'root'` services are referenced through imports, so unused ones can drop out, though one scratch build kept unused services re-exported through an index ([16 §3](16-dependency-injection.md#3-providedin-service-scopes-and-tree-shaking)).
 
 **Trap to avoid.** Marking a package `"sideEffects": false` while it imports CSS or polyfills. The bundler will remove them.
 

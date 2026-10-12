@@ -1017,7 +1017,7 @@ const shippingLabel = (costCents) =>
 
 **Follow-ups an interviewer will ask.**
 - *Is there a falsy object?* `document.all`, a legacy browser object that the specification special-cases so that old feature detection keeps working (the `[[IsHTMLDDA]]` slot, [Exercise 01.2](#ex01-2)).
-- *Where does this bite in Angular templates?* `@if (items)` is true for an empty array. Write `@if (items.length)` when you mean "non-empty" ([Module 18](18-control-flow-and-defer.md)).
+- *Where does this bite in Angular templates?* `@if (items)` is true for an empty array. Write `@if (items.length)` when you mean "non-empty" ([Module 18](18-control-flow-and-defer.md#q18-02)).
 - *What does `filter(Boolean)` remove?* Every falsy element, which includes `0` and `''`. That is right for dropping `null`s from a list of objects and wrong for a list of quantities.
 
 **Trap to avoid.** Treating `'0'` as falsy, as PHP does, or "fixing" the shipping check with `costCents || 0`, which still cannot tell "free" from "not loaded".

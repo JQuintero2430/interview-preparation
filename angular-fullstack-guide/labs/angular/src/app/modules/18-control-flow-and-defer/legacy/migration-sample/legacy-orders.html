@@ -1,0 +1,21 @@
+<p id="greeting" *ngIf="user(); else guest">Hello {{ user() }}</p>
+<ng-template #guest><p id="guest">Hello guest</p></ng-template>
+<ng-container *ngTemplateOutlet="guest"></ng-container>
+<ng-container *ngIf="state$ | async as s; then ready; else waiting"></ng-container>
+<ng-template #ready><p id="ready">ready</p></ng-template>
+<ng-template #waiting><p id="waiting">waiting</p></ng-template>
+<ng-container *ngIf="orders().length">
+  <ul>
+    <li *ngFor="let order of orders(); trackBy: byId; let i = index">
+      {{ i }}: {{ order.label }}
+      <span [ngSwitch]="order.status">
+        <b *ngSwitchCase="'new'">new</b>
+        <b *ngSwitchCase="'shipped'">shipped</b>
+        <b *ngSwitchDefault>lost</b>
+      </span>
+    </li>
+  </ul>
+</ng-container>
+<ul>
+  <li *ngFor="let tag of tags()">{{ tag }}</li>
+</ul>

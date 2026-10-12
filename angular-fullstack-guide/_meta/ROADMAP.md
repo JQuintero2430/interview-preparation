@@ -18,23 +18,23 @@ Source: SYLLABUS §6. The parallel batches are dissolved: one module at a time, 
 | 3 | 07 `ts-advanced-types-and-decorators` | B | — | done (CLOSE-M07, REVIEW-M07, FIX-M07 all done 2026-10-06) |
 | 4 | 08 `browser-rendering-dom-events` | C | — | done (CLOSE-M08, REVIEW-M08, FIX-M08 all done 2026-10-06) |
 | 5 | 09 `web-networking-storage-security` | C | — | done (CLOSE-M09, REVIEW-M09, FIX-M09 all done 2026-10-06) |
-| 6 | 10 `css-essentials` | C | — | not started |
-| 7 | 11 `accessibility` | C | — | not started |
-| 8 | 12 `angular-how-it-works` | D | NG | not started |
-| 9 | 13 `components-and-templates` | D | NG | not started |
-| 10 | 14 `directives-and-pipes` | D | NG | not started |
-| 11 | 16 `dependency-injection` | D | NG | not started |
-| 12 | 15 `standalone-and-ngmodules` | D | NG | not started |
-| 13 | 18 `control-flow-and-defer` | D | NG | not started |
-| 14 | 19 `component-communication-and-projection` | D | NG | not started |
-| 15 | 20 `lifecycle-and-render-hooks` | D | NG | not started |
-| 16 | 21 `change-detection` | D | NG | not started |
-| 17 | 22 `rxjs-foundations` | D | NG | not started |
-| 18 | 23 `rxjs-in-depth` | D | NG | not started |
-| 19 | 24 `routing` | D | NG | not started |
-| 20 | 25 `forms-reactive-and-template-driven` | D | NG | not started |
-| 21 | 26 `signal-forms` | D | NG | not started |
-| 22 | 27 `http-client` | D | NG | not started |
+| 6 | 10 `css-essentials` | C | — | done (CLOSE-M10, REVIEW-M10, FIX-M10 all done 2026-10-07) |
+| 7 | 11 `accessibility` | C | — | done (CLOSE-M11, REVIEW-M11, FIX-M11 all done 2026-10-07) |
+| 8 | 12 `angular-how-it-works` | D | NG | done (CLOSE-M12, REVIEW-M12, FIX-M12 all done 2026-10-07; 16,690 prose words) |
+| 9 | 13 `components-and-templates` | D | NG | done (CLOSE-M13, REVIEW-M13, FIX-M13 all done 2026-10-07; 18,319 prose words) |
+| 10 | 14 `directives-and-pipes` | D | NG | done (CLOSE-M14, REVIEW-M14, FIX-M14 all done 2026-10-08; 17,751 prose words) |
+| 11 | 16 `dependency-injection` | D | NG | done (CLOSE-M16, REVIEW-M16, FIX-M16 all done 2026-10-08; 20,787 prose words) |
+| 12 | 15 `standalone-and-ngmodules` | D | NG | done (CLOSE-M15, REVIEW-M15, FIX-M15 all done 2026-10-08; 16,432 prose words) |
+| 13 | 18 `control-flow-and-defer` | D | NG | done (CLOSE-M18, REVIEW-M18, FIX-M18 all done 2026-10-08; 17,391 prose words) |
+| 14 | 19 `component-communication-and-projection` | D | NG | done (CLOSE-M19 2026-10-08, REVIEW-M19, FIX-M19 all done 2026-10-09; 17,845 prose words) |
+| 15 | 20 `lifecycle-and-render-hooks` | D | NG | done (CLOSE-M20, REVIEW-M20, FIX-M20 all done 2026-10-09; 16,182 prose words) |
+| 16 | 21 `change-detection` | D | NG | done (CLOSE-M21, REVIEW-M21, FIX-M21 all done 2026-10-09; 20,525 prose words) |
+| 17 | 22 `rxjs-foundations` | D | NG | done (CLOSE-M22, REVIEW-M22, FIX-M22 all done 2026-10-09; 20,068 prose words) |
+| 18 | 23 `rxjs-in-depth` | D | NG | done (CLOSE-M23, REVIEW-M23, FIX-M23 all done 2026-10-10; 22,124 prose words) |
+| 19 | 24 `routing` | D | NG | done (CLOSE-M24, REVIEW-M24, FIX-M24 all done 2026-10-10; 21,780 prose words) |
+| 20 | 25 `forms-reactive-and-template-driven` | D | NG | done (CLOSE-M25, REVIEW-M25, FIX-M25 all done 2026-10-11; 21,894 prose words) |
+| 21 | 26 `signal-forms` | D | NG | done (CLOSE-M26, REVIEW-M26, FIX-M26-01..04 all done 2026-10-11; 19,011 prose words, 28 Q, 5 Ex) |
+| 22 | 27 `http-client` | D | NG | planned (PLAN-M27 done 2026-10-11; 11 sections, 34 Q, 6 Ex; CLOSE limit 22,470) |
 | 23 | 28 `state-management` | D | NG | not started |
 | 24 | 29 `testing-angular` | D | NG | not started |
 | 25 | 30 `e2e-and-testing-strategy` | D | — | not started (Playwright: Chromium only) |

@@ -418,7 +418,7 @@ navigation.addEventListener('navigate', (event) => {
 The History API claims run in jsdom in `section-7-history.test.ts`. jsdom has no Navigation API, so that part is from MDN.
 
 > [!NOTE]
-> **Framework vs platform.** In `@angular/common` 22.2.1, the browser `PlatformLocation` calls `history.pushState` and listens to `popstate`. The Router's `withExperimentalPlatformNavigation()` `[Experimental since v21.1]` uses the Navigation API instead; its documentation calls it "_highly_ experimental" ([module 24](24-routing.md)).
+> **Framework vs platform.** In `@angular/common` 22.2.1, the browser `PlatformLocation` calls `history.pushState` and listens to `popstate`. The Router's `withExperimentalPlatformNavigation()` `[Experimental since v21.1]` uses the Navigation API instead; its documentation calls it "_highly_ experimental" ([module 24](24-routing.md#10-the-router-and-the-platform-history-api-navigation-api-and-location-strategies)).
 
 ### Best practices and anti-patterns
 
@@ -1156,4 +1156,4 @@ The host element.
 
 - **Builds on:** [01. Values, types and coercion](01-js-values-types-coercion.md) (DOM values are strings, [§3](#3-dom-apis-and-observers)), [04. The event loop](04-js-async-event-loop.md#1-the-event-loop-tasks-microtasks-and-rendering) (the rendering opportunity, microtasks after listeners) and [03. Classes](03-js-objects-prototypes-classes.md#3-classes-the-sugar-and-what-is-not-sugar) (what a custom element extends).
 - **Read next:** [09. Networking, storage and security](09-web-networking-storage-security.md).
-- **Uses these ideas later:** [10. CSS essentials](10-css-essentials.md) (containment), [11. Accessibility](11-accessibility.md) (focus events and shadow DOM), [13. Components and templates](13-components-and-templates.md) (view encapsulation and host listeners), [17. Signals](17-signals.md#4-effects) (`afterRenderEffect` phases against layout thrashing), [24. Routing](24-routing.md) (the History and Navigation APIs under the Router), [31. Performance](31-performance.md) (Core Web Vitals work) and [37. Elements, PWA and errors](37-elements-pwa-errors-ecosystem.md) (Angular Elements as custom elements).
+- **Uses these ideas later:** [10. CSS essentials](10-css-essentials.md#5-responsive-css-media-queries-container-queries-and-fluid-type) (containment), [11. Accessibility](11-accessibility.md) (focus events and shadow DOM), [13. Components and templates](13-components-and-templates.md) (view encapsulation and host listeners), [17. Signals](17-signals.md#4-effects) (`afterRenderEffect` phases against layout thrashing), [24. Routing](24-routing.md) (the History and Navigation APIs under the Router), [31. Performance](31-performance.md) (Core Web Vitals work) and [37. Elements, PWA and errors](37-elements-pwa-errors-ecosystem.md) (Angular Elements as custom elements).

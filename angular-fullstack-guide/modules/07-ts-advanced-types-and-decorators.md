@@ -442,7 +442,7 @@ Angular's public APIs carry type parameters end to end. You supply the type once
 - **Tokens.** The API docs: "`InjectionToken` is parameterized on `T` which is the type of object which will be returned by the `Injector`" ([InjectionToken](https://angular.dev/api/core/InjectionToken)). `new InjectionToken<ApiConfig>('api config', { factory })` makes `inject(API_CONFIG)` an `ApiConfig`; without the parameter the token is `InjectionToken<unknown>` and `inject` returns `unknown` (lab; providers: [module 16](16-dependency-injection.md)).
 - **Typed forms** [Added in Angular 14] ([guide](https://angular.dev/guide/forms/typed-forms)). `new FormControl('a@b.c')` is `FormControl<string | null>`, because "the control can become `null` at any time, by calling reset"; in the lab `reset()` gives `null`, while `{ nonNullable: true }` resets to the initial value and gives `FormControl<string>`. A group's `value` is `Partial<…>` because disabled controls are left out (a disabled `plan` is missing at run time); `getRawValue()` returns every field. `FormBuilder.nonNullable.group({...})` builds non-nullable controls.
 - **Signal inputs.** `input()` and `output()` [Stable since v19.0] (status owned by [module 17](17-signals.md)). `input<number>()` is `InputSignal<number | undefined>`, because an unset input is `undefined` ([inputs guide](https://angular.dev/guide/components/inputs)); `input.required<string>()` is `InputSignal<string>`; with `{ transform: booleanAttribute }` it is `InputSignalWithTransform<boolean, unknown>` ([Q17.27](17-signals.md#q17-27)).
-- **Route data.** `ResolveFn<User>` checks a resolver's return value (`MaybeAsync<T | RedirectCommand>` in its `.d.ts`); returning `{ id }` alone is `TS2322`. The consumer side is untyped: `Route['data']` and the `data` of `ActivatedRoute` and its snapshot are `{ [key: string | symbol]: any }` (router typings), so `const n: number = route.snapshot.data['user']` compiles. Narrow with a type guard or a schema ([section 8](#8-runtime-validation-with-zod-4-schema-first-types)); binding data to inputs is [module 24](24-routing.md)'s.
+- **Route data.** `ResolveFn<User>` checks a resolver's return value (`MaybeAsync<T | RedirectCommand>` in its `.d.ts`); returning `{ id }` alone is `TS2322`. The consumer side is untyped: `Route['data']` and the `data` of `ActivatedRoute` and its snapshot are `{ [key: string | symbol]: any }` (router typings), so `const n: number = route.snapshot.data['user']` compiles. Narrow with a type guard or a schema ([section 8](#8-runtime-validation-with-zod-4-schema-first-types)); binding data to inputs is [module 24](24-routing.md#2-route-parameters-path-matrix-query-and-fragment-inheritance-and-component-input-binding)'s.
 - **Generic components.** `Picker<T>` takes a type parameter, with `items = input.required<T[]>()`, `label = input.required<(item: T) => string>()` and `picked = output<T>()`. Under `strictTemplates` (Angular's strictest template type-checking mode, [docs](https://angular.dev/tools/cli/template-typecheck)), the compiler infers `T` from the host's bindings, so `(picked)` delivers a `User` as `$event`; a `label` of `(count: number) => string` next to `[items]="users"` fails the build in the lab with `TS2322: Type 'User[]' is not assignable to type 'number[]'`.
 
 ### Code
@@ -995,7 +995,7 @@ export const lines = [JSON.stringify(a), b.success ? 'ok' : b.error.issues[0]?.m
 
 **Follow-ups an interviewer will ask.**
 - *Which do you submit?* `getRawValue()` when disabled fields must be sent.
-- *Where are forms covered in depth?* In [module 25](25-forms-reactive-and-template-driven.md).
+- *Where are forms covered in depth?* In [module 25](25-forms-reactive-and-template-driven.md#3-typed-forms-formbuilder-and-nonnullableformbuilder).
 
 **Trap to avoid.** Adding `!` to silence `Partial`. The field may really be missing.
 
@@ -1122,7 +1122,7 @@ export function createEventBus<Events extends Record<string, unknown>>(): EventB
 
 **How each criterion is met.** In `event-bus.test.ts` (`describe('E07.1 createEventBus')`), each `it` is titled with its criterion. Registration order uses two `login` handlers; unsubscribing uses a handler that removes itself during `emit` (it runs once and the next handler still runs). A consumer compiled against the real file gets `TS2345` for an unknown event name, `TS2322`, `TS2353` or `TS2345` for wrong payloads, and `TS2554` for a missing or extra argument; a `void` event emits bare and its handler receives `undefined`.
 
-**Alternative approach:** RxJS `Subject`s, one per event, typed `Subject<Payload>` ([module 22](22-rxjs-foundations.md)). **Trade-offs:** operators, completion and `takeUntilDestroyed` come for free, against a dependency and one subject per event instead of one typed map.
+**Alternative approach:** RxJS `Subject`s, one per event, typed `Subject<Payload>` ([module 22](22-rxjs-foundations.md#4-subjects-subject-behaviorsubject-replaysubject-and-asyncsubject)). **Trade-offs:** operators, completion and `takeUntilDestroyed` come for free, against a dependency and one subject per event instead of one typed map.
 
 **Interviewer follow-ups.**
 - *"Why does `createEventBus<AppEvents>()` fail when `AppEvents` is an interface?"* An interface has no implicit index signature, so it does not satisfy `Record<string, unknown>` (`TS2344` in the lab). Use a type alias.

@@ -477,7 +477,7 @@ const draft = structuredClone({ lines: [{ sku: 'a', qty: 1 }], savedAt: new Date
 
 ### The problem it solves
 
-Modern UI state management relies on a cheap question: "did this value change?" With immutable updates the answer is a reference comparison, `old !== new`. Angular signals compare with `Object.is` ([Q17.04](17-signals.md#q17-04)), OnPush components (which Angular re-checks only when an input changes by reference, an event fires inside them, or they are marked for check) compare inputs by reference ([Module 21](21-change-detection.md)), and NgRx reducers must return new objects ([Module 28](28-state-management.md)). Mutating in place defeats all of them: the reference stays the same, so nothing is notified. Historically the array API made this easy to get wrong, because `sort`, `reverse` and `splice` mutate.
+Modern UI state management relies on a cheap question: "did this value change?" With immutable updates the answer is a reference comparison, `old !== new`. Angular signals compare with `Object.is` ([Q17.04](17-signals.md#q17-04)), OnPush components (which Angular re-checks only when an input changes by reference, an event fires inside them, or they are marked for check) compare inputs by reference ([Module 21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)), and NgRx reducers must return new objects ([Module 28](28-state-management.md)). Mutating in place defeats all of them: the reference stays the same, so nothing is notified. Historically the array API made this easy to get wrong, because `sort`, `reverse` and `splice` mutate.
 
 ### Mental model
 
@@ -1167,7 +1167,7 @@ function reactive<T extends object>(target: T): T {
 
 **Follow-ups an interviewer will ask.**
 - *Which approach makes "did it change?" cheaper?* Signals: one `Object.is` per write. Proxies need no comparison of whole objects either, because writes are intercepted per key, but each read and write costs a trap call.
-- *Could Angular adopt proxies?* Angular's templates, OnPush and zoneless scheduling are built on explicit signal reads ([Module 21](21-change-detection.md)). Libraries can still layer proxies on top, but that is not Angular's model.
+- *Could Angular adopt proxies?* Angular's templates, OnPush and zoneless scheduling are built on explicit signal reads ([Module 21](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks)). Libraries can still layer proxies on top, but that is not Angular's model.
 
 **Trap to avoid.** Saying Vue "uses getters/setters like Vue 2". Vue 2 used `Object.defineProperty`, which could not detect added or deleted keys or array index writes. Vue 3's `reactive` uses Proxy precisely to fix that, and only its `ref()` uses a getter/setter pair.
 
@@ -1387,7 +1387,7 @@ console.log([...nums].join());
 
 **Follow-ups an interviewer will ask.**
 - *How do you make an iterator reusable?* You cannot. Keep the iterable (the array, or an object whose `[Symbol.iterator]` is a generator method) and ask it for a new iterator.
-- *How do these compare with RxJS operators?* Iterators are *pull* (the consumer asks for the next value), Observables are *push* (the producer emits) ([Module 22](22-rxjs-foundations.md)).
+- *How do these compare with RxJS operators?* Iterators are *pull* (the consumer asks for the next value), Observables are *push* (the producer emits) ([Module 22](22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness)).
 
 **Trap to avoid.** Expecting all four `check` lines before `2`, as `Array.prototype.filter` would print.
 

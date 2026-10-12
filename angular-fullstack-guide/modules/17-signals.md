@@ -41,7 +41,7 @@ Dirty checking works, but it has three costs that grow with the application:
 2. **Coarse notifications.** zone.js says "an event happened", not "the cart total changed". Code that runs outside the zone (a third-party widget, a WebSocket library) does not refresh the view at all, which forces workarounds such as `NgZone.run`.
 3. **Hidden machinery.** Patching every async API adds weight to the bundle, makes stack traces harder to read, and couples the framework to how the browser schedules work.
 
-A **signal** fixes the root cause. It is a value that knows who reads it. When it changes, it notifies exactly the code (and the templates) that depend on it. Angular no longer needs to guess. It can refresh only the views that actually read the changed value. This is called *fine-grained reactivity*, and it is what makes zoneless Angular (the default for new projects since v21) and OnPush-by-default (since v22) practical. Both are covered in [Module 21](21-change-detection.md).
+A **signal** fixes the root cause. It is a value that knows who reads it. When it changes, it notifies exactly the code (and the templates) that depend on it. Angular no longer needs to guess. It can refresh only the views that actually read the changed value. This is called *fine-grained reactivity*, and it is what makes zoneless Angular (the default for new projects since v21) and OnPush-by-default (since v22) practical. Both are covered in [Module 21](21-change-detection.md#1-the-synchronization-problem-dirty-checking-and-fine-grained-reactivity).
 
 ### Mental model
 
@@ -106,7 +106,7 @@ There is no `markForCheck()`, no zone and no subscription. The template reads `c
 ### Misconceptions and traps
 
 - *"Signals were invented by Angular."* No. Knockout.js had observables in 2010, and SolidJS, Preact Signals, Vue's `ref` and MobX use the same idea. Angular adopted it in v16 (developer preview) and made `signal` and `computed` stable in v17.
-- *"Signals replace RxJS."* Only for **state**. Signals always hold a current value and are synchronous to read. RxJS models **events over time**, with operators for time (debounce, retry, cancellation). [Section 8](#8-interop-with-rxjs) summarizes when to use each, and [Module 23](23-rxjs-in-depth.md) gives the full decision rules.
+- *"Signals replace RxJS."* Only for **state**. Signals always hold a current value and are synchronous to read. RxJS models **events over time**, with operators for time (debounce, retry, cancellation). [Section 8](#8-interop-with-rxjs) summarizes when to use each, and [Module 23](23-rxjs-in-depth.md#7-rxjs-and-signals-decision-rules-tosignal-toobservable-and-rxresource) gives the full decision rules.
 - *"Using signals makes an app fast automatically."* Signals make updates *precise*. A slow `computed` or a huge list without `track` is still slow. Measure first ([Module 31](31-performance.md)).
 
 ---
@@ -150,7 +150,7 @@ export class CartStore {
 }
 ```
 
-`@Service()` `[Stable since v22.0]` is the decorator added in Angular 22 for application-wide services. For the common case it is equivalent to `@Injectable({ providedIn: 'root' })`. [Module 16](16-dependency-injection.md) compares them.
+`@Service()` [Added in v22.0] is the decorator added in Angular 22 for application-wide services. For the common case it is equivalent to `@Injectable({ providedIn: 'root' })`. [Module 16](16-dependency-injection.md) compares them.
 
 #### Legacy
 
@@ -285,7 +285,7 @@ What to notice: writes only *mark* the effect. It runs later, once, with the fin
 - **Cleanup.** The function receives `onCleanup`. A registered cleanup runs before the next run and when the effect is destroyed ([Q17.17](#q17-17)). Use it to cancel timers, unsubscribe, or abort requests the previous run started.
 - **Writing signals from an effect** is allowed, and the effect re-runs if it wrote something it reads. It keeps re-running until the values settle, so a write that never converges is an infinite loop ([Q17.18](#q17-18)).
 
-**`afterRenderEffect`** is a variant for DOM work that must happen *after* Angular renders. You split the work into phases that run in the order `earlyRead` → `write` → `mixedReadWrite` → `read`. Each phase receives the previous phase's return value as a signal, and phases run only when their dependencies changed. Separating DOM reads from DOM writes avoids *layout thrashing*: forcing the browser to recalculate layout repeatedly ([Module 08](08-browser-rendering-dom-events.md)). It runs on the browser only, never during server-side rendering. Lifecycle timing is covered in [Module 20](20-lifecycle-and-render-hooks.md).
+**`afterRenderEffect`** is a variant for DOM work that must happen *after* Angular renders. You split the work into phases that run in the order `earlyRead` → `write` → `mixedReadWrite` → `read`. Each phase receives the previous phase's return value as a signal, and phases run only when their dependencies changed. Separating DOM reads from DOM writes avoids *layout thrashing*: forcing the browser to recalculate layout repeatedly ([Module 08](08-browser-rendering-dom-events.md)). It runs on the browser only, never during server-side rendering. Lifecycle timing is covered in [Module 20](20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases).
 
 ### Code
 
@@ -622,7 +622,7 @@ The schematics `ng generate @angular/core:signal-input-migration`, `output-migra
 ### Misconceptions and traps
 
 - *"`output()` returns an Observable."* Once true for decorator outputs: `@Output() x = new EventEmitter()` is an RxJS `Subject` (in the 22.2.1 typings, `interface EventEmitter<T> extends Subject<T>, OutputRef<T>`), so code could `pipe` or `subscribe` to it. Now: `output()` returns an `OutputEmitterRef`. Use `outputToObservable()` if you need an RxJS stream, and `outputFromObservable()` to expose an existing stream as an output.
-- *"Signal inputs need OnPush to be efficient."* They notify their consumers regardless. OnPush (the default since v22) is about *when views are checked* ([Module 21](21-change-detection.md)).
+- *"Signal inputs need OnPush to be efficient."* They notify their consumers regardless. OnPush (the default since v22) is about *when views are checked* ([Module 21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)).
 - *"`model()` updates the parent asynchronously."* The parent's signal is written synchronously, inside the child's `set()` call. Verified in [Q17.29](#q17-29).
 
 ---
@@ -639,7 +639,7 @@ Real applications have both: RxJS streams from `HttpClient`, the router, forms a
 
 ### How it actually works
 
-These functions live in `@angular/core/rxjs-interop`. [Module 23](23-rxjs-in-depth.md) covers them in depth. The essentials:
+These functions live in `@angular/core/rxjs-interop`. [Module 23](23-rxjs-in-depth.md#7-rxjs-and-signals-decision-rules-tosignal-toobservable-and-rxresource) covers them in depth. The essentials:
 
 - `toSignal(obs$, { initialValue?, requireSync?, manualCleanup?, equal? })` `[Stable since v20.0]` subscribes **immediately** and, by default, unsubscribes when its injection context is destroyed. `manualCleanup: true` keeps the subscription until the Observable completes, and `equal` sets the signal's equality function. Before the first emission its value is `undefined`, unless you pass `initialValue`. `requireSync: true` asserts that the observable emits synchronously (true of a `BehaviorSubject`), which removes `undefined` from the type. If the observable **errors**, reading the signal rethrows the error ([Q17.37](#q17-37)). It must be called in an injection context.
 - `toObservable(signal)` feeds a `ReplaySubject(1)` from an internal `effect`. It therefore emits **asynchronously**, only the last value of a batch of writes, and a subscriber receives the last value *the effect has seen*. Before the effect's first run (which is itself asynchronous), there is nothing to replay. `[Stable since v20.0]`
@@ -655,7 +655,7 @@ private readonly route = inject(ActivatedRoute);
 readonly productId = toSignal(this.route.paramMap.pipe(map((p) => p.get('id'))), { initialValue: null });
 ```
 
-With [component input binding](24-routing.md) the same value can arrive as a signal input instead, which is simpler still.
+With [component input binding](24-routing.md#2-route-parameters-path-matrix-query-and-fragment-inheritance-and-component-input-binding) the same value can arrive as a signal input instead, which is simpler still.
 
 ### Best practices and anti-patterns
 
@@ -665,7 +665,7 @@ With [component input binding](24-routing.md) the same value can arrive as a sig
 
 ### Signals or RxJS, in one paragraph
 
-Signals model **state** (a value now). Observables model **events over time**. Use signals for UI state and derived values. Use RxJS for timing (debounce, throttle), coordinating async work (`switchMap`, `exhaustMap`), and event streams that have no current value. The usual architecture is RxJS at the edges (I/O, events) and signals in the middle (state), with `toSignal`, `rxResource` and `toObservable` at the seams. RxJS is not deprecated: `HttpClient`, the router and reactive forms expose Observables, and RxJS is a peer dependency of Angular 22 (`^6.5.3 || ^7.4.0`). The full decision rules, and the typeahead case that combines both, are in [Module 23](23-rxjs-in-depth.md).
+Signals model **state** (a value now). Observables model **events over time**. Use signals for UI state and derived values. Use RxJS for timing (debounce, throttle), coordinating async work (`switchMap`, `exhaustMap`), and event streams that have no current value. The usual architecture is RxJS at the edges (I/O, events) and signals in the middle (state), with `toSignal`, `rxResource` and `toObservable` at the seams. RxJS is not deprecated: `HttpClient`, the router and reactive forms expose Observables, and RxJS is a peer dependency of Angular 22 (`^6.5.3 || ^7.4.0`). The full decision rules, and the typeahead case that combines both, are in [Module 23](23-rxjs-in-depth.md#7-rxjs-and-signals-decision-rules-tosignal-toobservable-and-rxresource).
 
 ### Misconceptions and traps
 
@@ -774,7 +774,7 @@ The questions run from the basic idea to the internals. Every *Output* answer an
 
 **Follow-ups an interviewer will ask.**
 - *Is a signal synchronous?* Reading and writing the value are synchronous. Reactions (effects, view refreshes) are scheduled and batched.
-- *Do signals replace RxJS?* For state, largely yes. For event streams and time-based logic, no ([section 8](#8-interop-with-rxjs), and [Module 23](23-rxjs-in-depth.md) for the decision rules).
+- *Do signals replace RxJS?* For state, largely yes. For event streams and time-based logic, no ([section 8](#8-interop-with-rxjs), and [Module 23](23-rxjs-in-depth.md#7-rxjs-and-signals-decision-rules-tosignal-toobservable-and-rxresource) for the decision rules).
 
 **Trap to avoid.** Saying "signals make Angular faster". They make updates *targeted*. Performance still depends on what your code does.
 
@@ -786,9 +786,9 @@ The questions run from the basic idea to the internals. Every *Output* answer an
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** The plain field stays stale on screen. The signal updates. Changing a field notifies nobody, and an OnPush view is only refreshed when it is marked dirty. In the lab, even an explicit `ApplicationRef.tick()` left the field stale. Writing a signal that the template reads marks that view dirty *and* schedules rendering, so it updates without any help. (With `Eager` change detection, a tick *would* refresh the field: OnPush is what makes the tick useless.)
+**Short answer (30 seconds).** The plain field stays stale on screen. The signal updates. Changing a field notifies nobody, and an OnPush view is only refreshed when it is marked dirty. In the lab, even an explicit `ApplicationRef.tick()` left the field stale. Writing a signal that the template reads marks that view dirty *and* schedules rendering, so it updates without any help. (With `Eager`, an idle tick refreshes nothing either; the development check then throws `NG0100`, see [Q21.23](21-change-detection.md#q21-23).)
 
-**Full explanation.** Two mechanisms combine here. *Zoneless* means nothing schedules rendering after a plain `setTimeout`. *OnPush* (`[Changed in v22: default for components without a changeDetection property]`) means that even when rendering runs, this view is skipped unless something marked it dirty. A signal read in the template is a live dependency of the view, so its write does both: it marks the view and notifies the scheduler. The full list of what marks a view dirty, and the zone.js comparison, are owned by [Module 21](21-change-detection.md).
+**Full explanation.** Two mechanisms combine here. *Zoneless* means nothing schedules rendering after a plain `setTimeout`. *OnPush* (`[Changed in v22: default for components without a changeDetection property]`) means that even when rendering runs, this view is skipped unless something marked it dirty. A signal read in the template is a live dependency of the view, so its write does both: it marks the view and notifies the scheduler. The full list of what marks a view dirty, and the zone.js comparison, are owned by [Module 21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty).
 
 **Code.**
 ```ts
@@ -1347,7 +1347,7 @@ console.log(selected());
 
 **Short answer (30 seconds).** Model the draft as `linkedSignal(() => structuredClone(this.selectedCustomer()))`. Edits update the draft. Selecting another customer changes the source, which resets the draft automatically. Saving sends the draft and then updates the source of truth.
 
-**Full explanation.** The draft is *derived by default* (a copy of the selection) and *locally writable* (the user edits it), and it must reset when the context changes. That is the exact contract of `linkedSignal`. The alternatives are worse. A plain signal plus an effect that copies the selection is stale and loop-prone. Copying in the selection handler spreads the reset logic across every place that can change the selection, including route changes and deletions. Use the explicit form if you want to *keep* unsaved edits when the same customer is re-selected (compare `previous.source.id` with the new ID). To guard against losing work, add a `canDeactivate` guard ([Module 24](24-routing.md)) that checks an `isDirty` computed comparing the draft with the selection.
+**Full explanation.** The draft is *derived by default* (a copy of the selection) and *locally writable* (the user edits it), and it must reset when the context changes. That is the exact contract of `linkedSignal`. The alternatives are worse. A plain signal plus an effect that copies the selection is stale and loop-prone. Copying in the selection handler spreads the reset logic across every place that can change the selection, including route changes and deletions. Use the explicit form if you want to *keep* unsaved edits when the same customer is re-selected (compare `previous.source.id` with the new ID). To guard against losing work, add a `canDeactivate` guard ([Module 24](24-routing.md#q24-20)) that checks an `isDirty` computed comparing the draft with the selection.
 
 **Code.**
 ```ts
@@ -1363,7 +1363,7 @@ rename(name: string): void {
 
 **Follow-ups an interviewer will ask.**
 - *Why `structuredClone`?* So that edits to nested objects in the draft cannot mutate the selected customer ([Module 03](03-js-objects-prototypes-classes.md)).
-- *Would Signal Forms change this?* Signal forms build the form from a model signal, and that model can be this same `linkedSignal` ([Module 26](26-signal-forms.md)).
+- *Would Signal Forms change this?* Signal forms build the form from a model signal, and that model can be this same `linkedSignal` ([Module 26](26-signal-forms.md#2-form-the-field-tree-and-field-state)).
 
 **Trap to avoid.** Comparing with `JSON.stringify` on objects whose key order can vary. Fine for a sketch, fragile in production, so use a field-wise comparison.
 
@@ -1496,7 +1496,7 @@ save(order: Order): void { this.toSave.set(order); }
 
 **Short answer (30 seconds).** `resource` is for *reads*. If `save` is called again before the first POST finishes, the first request is aborted. It may or may not have reached the server, so you can end up with a lost order or a duplicate. Saving the same order object twice does nothing at all, because the params did not change. Call the API imperatively from `save()`, then update or `reload()` the read resources.
 
-**Full explanation.** The `resource` API comment itself warns that it "is intended for read operations, not operations which perform mutations", because it cancels in-flight loads when the params change. Aborting a request on the client does not roll anything back on the server. Mutations need explicit control: disable the button while saving, use an idempotency key so retries are safe ([Module 46 case study](46-system-design-case-studies.md)), handle the error, and then refresh the data. With RxJS, `exhaustMap` (ignore clicks while saving) or `concatMap` (queue them) express that intent ([Module 23](23-rxjs-in-depth.md)).
+**Full explanation.** The `resource` API comment itself warns that it "is intended for read operations, not operations which perform mutations", because it cancels in-flight loads when the params change. Aborting a request on the client does not roll anything back on the server. Mutations need explicit control: disable the button while saving, use an idempotency key so retries are safe ([Module 46 case study](46-system-design-case-studies.md)), handle the error, and then refresh the data. With RxJS, `exhaustMap` (ignore clicks while saving) or `concatMap` (queue them) express that intent ([Module 23](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)).
 
 **Code.**
 ```ts
@@ -1805,7 +1805,7 @@ latest();
 
 **Short answer (30 seconds).** `undefined -1`, then `1 1`, then the last line **throws** `stream failed`. Before the first emission a `toSignal` signal holds `undefined`, or the `initialValue`. After the source errors, every read rethrows the error.
 
-**Full explanation.** `toSignal` subscribes immediately (in the injection context) and stores each emission synchronously, which is why `1` is visible right after `next(1)`. Its type is `number | undefined` without `initialValue`. With `requireSync: true` (valid only for sources that emit synchronously on subscription, such as `BehaviorSubject`) the `undefined` disappears from the type. An error is stored like a computed error, so a template reading the signal throws on each check. Handle errors inside the pipe (`catchError`) before converting. Verified: `Q17.37`. Deeper interop questions are in [Module 23](23-rxjs-in-depth.md).
+**Full explanation.** `toSignal` subscribes immediately (in the injection context) and stores each emission synchronously, which is why `1` is visible right after `next(1)`. Its type is `number | undefined` without `initialValue`. With `requireSync: true` (valid only for sources that emit synchronously on subscription, such as `BehaviorSubject`) the `undefined` disappears from the type. An error is stored like a computed error, so a template reading the signal throws on each check. Handle errors inside the pipe (`catchError`) before converting. Verified: `Q17.37`. Deeper interop questions are in [Module 23](23-rxjs-in-depth.md#7-rxjs-and-signals-decision-rules-tosignal-toobservable-and-rxresource).
 
 **Follow-ups an interviewer will ask.**
 - *When does it unsubscribe?* When the injection context (component or service) is destroyed, not when readers stop reading.
@@ -1823,7 +1823,7 @@ latest();
 
 **Short answer (30 seconds).** Angular signals are a library feature of `@angular/core`. JavaScript has no signals today. TC39 has a [Signals proposal](https://github.com/tc39/proposal-signals) that was at **Stage 1** on 2026-10-03, meaning the committee is exploring the problem space with no committed API. Angular's team contributed to it, and the designs share the push-dirty/pull-value model, but Angular does not depend on it.
 
-**Full explanation.** This is a *framework vs platform* distinction. Platform features (ECMAScript from TC39, browser APIs from WHATWG and W3C) work without any library, and their stage tells you how stable they are: Stage 1 is "worth exploring", Stage 4 is "in the next edition". Angular signals ship in your bundle and evolve with Angular's own release cycle and deprecation policy. If the proposal ever reaches Stage 4, frameworks could build on a shared primitive and interoperate (one library's computed reading another's signal). Until then, interoperability goes through adapters. The same distinction applies to RxJS Observables versus the WICG Observable proposal ([Module 22](22-rxjs-foundations.md)).
+**Full explanation.** This is a *framework vs platform* distinction. Platform features (ECMAScript from TC39, browser APIs from WHATWG and W3C) work without any library, and their stage tells you how stable they are: Stage 1 is "worth exploring", Stage 4 is "in the next edition". Angular signals ship in your bundle and evolve with Angular's own release cycle and deprecation policy. If the proposal ever reaches Stage 4, frameworks could build on a shared primitive and interoperate (one library's computed reading another's signal). Until then, interoperability goes through adapters. The same distinction applies to RxJS Observables versus the WICG Observable proposal ([Module 22](22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness)).
 
 **Follow-ups an interviewer will ask.**
 - *Which other frameworks use signals?* SolidJS, Preact Signals, Vue (`ref`/`computed`), Svelte 5 runes and Qwik, each with its own implementation ([Module 40](40-framework-comparisons.md)).
@@ -1864,7 +1864,7 @@ export class ResponsiveGrid {
 
 **Follow-ups an interviewer will ask.**
 - *Why does `earlyRead` not re-run when the container is resized?* It reads no signals, so nothing marks it dirty. Layout changes are not signals. To react to resizes, feed a signal from a `ResizeObserver` (or use the CDK's layout tools), and read it in `earlyRead`.
-- *`afterNextRender` vs `afterRenderEffect`?* `afterNextRender` runs once, after the next render (one-time setup such as initializing a third-party widget). `afterRenderEffect` is reactive and re-runs when its signals change. Render hooks in general are in [Module 20](20-lifecycle-and-render-hooks.md).
+- *`afterNextRender` vs `afterRenderEffect`?* `afterNextRender` runs once, after the next render (one-time setup such as initializing a third-party widget). `afterRenderEffect` is reactive and re-runs when its signals change. Render hooks in general are in [Module 20](20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases).
 - *Could CSS do this instead?* Often, yes. `grid-template-columns: repeat(auto-fill, minmax(160px, 1fr))` needs no JavaScript ([Module 10](10-css-essentials.md)). Reach for `afterRenderEffect` when the decision needs data that CSS cannot see.
 
 **Trap to avoid.** Using the callback form (`afterRenderEffect(() => …)`) for everything. It runs in the `mixedReadWrite` phase, which the Angular docs warn can degrade performance. Split reads and writes into explicit phases.
@@ -2207,7 +2207,7 @@ export class StarRating {
 
 **How each criterion is met.** Four buttons: `numberAttribute` turns `max="4"` into `4`, and `stars` derives from it (test "renders one button per star…"). Reflecting the parent: `[(value)]` binds the parent signal into the model, and `aria-pressed` reads `value()` ("reflects the parent value", "updates the stars when the parent changes…"). Two-way write: `value.set()` emits `valueChange` ("writes the clicked star back…"). Read-only: `[disabled]` plus the guard in `rate()` ("ignores clicks and disables…"). Keys: host `keydown` bindings call `step()`, which clamps ("supports arrow keys…"). Name: host `role` and `aria-label` ("exposes an accessible group name").
 
-**Alternative approach:** implement `ControlValueAccessor`, so the rating works with `formControlName` and `ngModel` ([Module 25](25-forms-reactive-and-template-driven.md)), or the signal-forms custom-control contract ([Module 26](26-signal-forms.md)). **Trade-offs:** more code, but the rating then joins form validation and touched/dirty tracking. `model()` alone suits standalone widgets.
+**Alternative approach:** implement `ControlValueAccessor`, so the rating works with `formControlName` and `ngModel` ([Module 25](25-forms-reactive-and-template-driven.md#10-controlvalueaccessor-and-the-validator-interface-custom-controls-under-the-hood)), or the signal-forms custom-control contract ([Module 26](26-signal-forms.md#8-custom-controls-formvaluecontrol-formcheckboxcontrol-and-how-formfield-picks-a-control)). **Trade-offs:** more code, but the rating then joins form validation and touched/dirty tracking. `model()` alone suits standalone widgets.
 
 **Interviewer follow-ups.**
 - *"Show a preview of the rating while the pointer hovers a star."* Keep a local `hovered = signal<number | null>(null)` set on `pointerenter` and cleared on `pointerleave`, and render from `displayed = computed(() => this.hovered() ?? this.value())`. The model is written only on click, so the parent never sees preview values.
@@ -2269,7 +2269,7 @@ retry(): void {
 
 **How each criterion is met.** Idle for short queries: `toSearchTerm` returns `undefined` (tests "maps short queries…" and "stays idle…"). Loading then resolved: the resource lifecycle ("loads and then exposes results"). Abort: a params change aborts the previous `abortSignal` ("aborts the stale request…"). Late responses: the resource discards results from superseded loads ("ignores a late response…"). Errors: the `hasValue()` guard and `errorMessage` ("reports errors without throwing…"). Retry: `reload()` ("retries with reload()").
 
-**Alternative approach:** an RxJS pipeline, `toObservable(query).pipe(debounceTime(300), map(toSearchTerm), filter(Boolean), switchMap((t) => api.search$(t)))`, converted with `toSignal`. It adds a debounce, which this solution lacks, but status tracking (loading, error) must be built by hand. **Trade-offs:** the signals-versus-RxJS decision for typeaheads is covered in [Module 23](23-rxjs-in-depth.md). With `httpResource` the adapter disappears entirely ([Module 27](27-http-client.md)).
+**Alternative approach:** an RxJS pipeline, `toObservable(query).pipe(debounceTime(300), map(toSearchTerm), filter(Boolean), switchMap((t) => api.search$(t)))`, converted with `toSignal`. It adds a debounce, which this solution lacks, but status tracking (loading, error) must be built by hand. **Trade-offs:** the signals-versus-RxJS decision for typeaheads is covered in [Module 23](23-rxjs-in-depth.md#q23-28). With `httpResource` the adapter disappears entirely ([Module 27](27-http-client.md)).
 
 **Interviewer follow-ups.**
 - *"Add the missing debounce without RxJS."* `debounced(() => this.query(), 300)` `[Experimental since v22.0]` returns a `Resource` whose value follows the query after the wait; use `params: () => toSearchTerm(this.#debouncedQuery.value())`. In the 22.2.1 source its value starts as the query's current value and keeps the previous value until the wait elapses (a `linkedSignal` whose computation keeps the previous state), so the search resource does not see every keystroke. It is experimental, so pin the version and expect API changes.

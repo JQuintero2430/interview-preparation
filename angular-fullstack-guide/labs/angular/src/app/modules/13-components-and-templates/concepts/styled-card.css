@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+.card-title {
+  color: var(--card-tone, teal);
+}

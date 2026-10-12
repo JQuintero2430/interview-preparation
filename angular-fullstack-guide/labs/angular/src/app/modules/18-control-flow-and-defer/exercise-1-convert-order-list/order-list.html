@@ -1,0 +1,20 @@
+@if (orders(); as list) {
+  <ul>
+    @for (order of list; track order.id) {
+      <li [attr.data-id]="order.id">
+        {{ order.label }}
+        @switch (order.status) {
+          @case ('new') { <b class="badge">New</b> }
+          @case ('paid') { <b class="badge">Paid</b> }
+          @case ('shipped') { <b class="badge">Shipped</b> }
+          @case ('lost') { <b class="badge">Lost</b> }
+          @default never;
+        }
+      </li>
+    } @empty {
+      <li class="empty">No orders yet</li>
+    }
+  </ul>
+} @else {
+  <p>Loading orders</p>
+}
