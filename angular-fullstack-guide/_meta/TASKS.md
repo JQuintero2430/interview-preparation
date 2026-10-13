@@ -749,7 +749,7 @@ Module 27 (PLAN-M27; plan in `_meta/modules/M27.md`). Run in this order (**SEC, 
 | QB-M27-05 | M | done | QB-M27-04 | S20261012-1139-claudecode, claude-fable-5-1 (main session, no subagents) |
 | QB-M27-06 | M | done | QB-M27-05 | S20261012-1139-claudecode, claude-fable-5-1 (main session, no subagents) |
 | QB-M27-07 | M | done | QB-M27-06 | S20261012-1139-claudecode, claude-fable-5-1 (main session, no subagents) |
-| CLOSE-M27 | M | todo | QB-M27-07 | |
+| CLOSE-M27 | M | done | QB-M27-07 | S20261013-0021-claudecloud (closer subagent, claude-sonnet-5-5) |
 | REVIEW-M27 | L | todo | CLOSE-M27 | |
 
 ## Task details

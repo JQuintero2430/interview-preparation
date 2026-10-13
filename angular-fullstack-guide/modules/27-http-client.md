@@ -5,8 +5,8 @@
 > **Leads to:** [28. State management](28-state-management.md), [29. Testing Angular](29-testing-angular.md), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md), [33. Security](33-security.md), [41. Full-stack API contracts](41-fullstack-api-contracts.md), [42. Full-stack authentication](42-fullstack-authentication.md)
 > **Applies to:** Angular 22.2 (`@angular/common` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
 > **Study time:** ~7 hours reading + ~5 hours exercises
-> **Short on time:** <!-- PLACEHOLDER: CLOSE-M27 writes the Short on time line (2-4 sections, 3-6 question IDs, then the Summary link) -->
-> **Labs:** `labs/angular/src/app/modules/27-http-client/` <!-- relink: CLOSE-M27 turns this path into a link once the folder exists --> (section specs, *Output* questions, Exercises 27.1-27.6; `TestBed` specs in jsdom; no `labs/ts-js` files). Run (Node 24): from `labs/angular`, `npx ng test --watch=false --include='src/app/modules/27-http-client/**/*.spec.ts'`.
+> **Short on time:** read [1. `HttpClient` versus `fetch`](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform), [4. Interceptors](#4-interceptors-the-functional-chain-order-and-next-and-class-interceptors-through-withinterceptorsfromdi), [5. Errors](#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter) and [7. Authentication](#7-authentication-attaching-tokens-refreshing-on-401-with-a-request-queue-and-avoiding-refresh-loops), then drill [Q27.01](#q27-01), [Q27.11](#q27-11), [Q27.17](#q27-17), [Q27.23](#q27-23), [Q27.30](#q27-30) and [Q27.33](#q27-33), try [Exercise 27.2](#ex27-2), and finish with the [Summary](#summary).
+> **Labs:** [`labs/angular/src/app/modules/27-http-client/`](../labs/angular/src/app/modules/27-http-client/) (section specs, *Output* questions, Exercises 27.1-27.6; `TestBed` specs in jsdom; no `labs/ts-js` files). Run (Node 24): from `labs/angular`, `npx ng test --watch=false --include='src/app/modules/27-http-client/**/*.spec.ts'`.
 
 ## Contents
 
@@ -268,7 +268,7 @@ What to notice: a change is always a new object, and the original request stays 
 
 **Options choose the type.** `observe: 'response'` delivered status 200, the `ETag` header and the body (`Section 3: observe response exposes status and headers`); `'events'` delivered `Sent` then `Response` (`Section 3: observe events emits Sent then Response`); `responseType: 'text'` delivered the raw string (`Section 3: responseType text returns the raw string`). They select the overload, so the docs require "a literal type and not a `string` type". An options variable widens `observe` to `string`: `tsc` 6.0.3 reported `TS2769` (no overload matches) for `{ observe: 'events' }` and nothing for `{ observe: 'events' as const }` (a scratch compile; `Section 3: observe events from an untyped options object is a type error` pins it).
 
-**The type is an assertion.** The docs (`making-requests.md`, branch `main`, read 2026-10-11): "The generic type of request methods is a type **assertion** about the data returned by the server. `HttpClient` does not verify that the actual return data matches this type." [Section 1](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform) runs it. A hand-written guard turned `{ nope: true }` into a `TypeError` (`Section 3: a hand-written guard at the boundary turns a wrong shape into an error`); [07 §8](07-ts-advanced-types-and-decorators.md#8-runtime-validation-with-zod-4-schema-first-types) owns schema-first parsing.
+**The type is an assertion.** The docs call the generic a type **assertion** (quoted in [section 1](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform), which runs it). A hand-written guard turned `{ nope: true }` into a `TypeError` (`Section 3: a hand-written guard at the boundary turns a wrong shape into an error`); [07 §8](07-ts-advanced-types-and-decorators.md#8-runtime-validation-with-zod-4-schema-first-types) owns schema-first parsing.
 
 **Context.** `HttpContext` is a `Map`: `set` returns the same instance, `get` falls back to the token's default; the typings call it "Shared and mutable". An interceptor read `ctx=false` for a plain call and `ctx=true` for a flagged one, and the stubbed `fetch` received only the default `Accept` header (`Section 3: a context token reaches the interceptor and not the server`), because `FetchBackend.createRequestInit` builds the init from the method, headers and fetch options, never the context.
 
@@ -1142,7 +1142,11 @@ Drilled in [Q27.33](#q27-33) and [Q27.34](#q27-34); modelled in [Exercise 27.6](
 
 ## Summary
 
-<!-- TASK: CLOSE-M27 -->
+`HttpClient` is a pipeline in front of the platform: a request passes the interceptors to a backend, unsubscribing aborts the call, a non-2xx status arrives on the error channel, and `get<User>()` only asserts the body's type ([1](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform)). A v22 app injects `HttpClient` without `provideHttpClient()` and gets the fetch backend; `HttpClientModule` brings the XHR backend, and a feature-level `provideHttpClient` is an independent client unless `withRequestsMadeViaParent()` is added ([2](#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default)). `params.set()` returns a copy, and `HttpContext` never reaches the server ([3](#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)).
+
+Interceptors run first to last on the way out and must clone; class interceptors run only under `withInterceptorsFromDi()` ([4](#4-interceptors-the-functional-chain-order-and-next-and-class-interceptors-through-withinterceptorsfromdi)). Status 0 covers network failures, timeouts and aborts, a 200 can fail to parse, and a retry needs an idempotent method, a retryable status and jitter ([5](#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter)). Unsubscribing aborts on the fetch backend, `timeout` covers the backend request only, and a URL-keyed cache without sharing or a per-user key sends two requests and serves one user's body to another ([6](#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)). Concurrent 401s share one refresh, each request retries once, and the refresh request skips the interceptor ([7](#7-authentication-attaching-tokens-refreshing-on-401-with-a-request-queue-and-avoiding-refresh-loops)).
+
+Angular only sends the XSRF header, on requests other than GET and HEAD to the page's own origin; the server must check it ([8](#8-xsrf-protection-how-httpclient-reads-the-cookie-and-sets-the-header-and-when-it-does-not)). `reportUploadProgress` on the fetch backend throws `NG02824`, and only `observe: 'events'` shows progress ([9](#9-progress-events-reportuploadprogress-reportdownloadprogress-and-why-upload-progress-needs-xhr)). `httpResource` requests eagerly and suits reads: a params change resets `value()` and only `reload()` keeps it ([10](#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)). `provideHttpClientTesting()` replaces only the backend, so interceptors run, the last `HttpBackend` provider wins, and the test backend reads no `timeout` ([11](#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace)).
 
 ## Question bank
 
@@ -1471,7 +1475,7 @@ request.flush('ok');
 
 **Short answer (30 seconds).** Registration: a function listed in `withInterceptors([...])`, versus a class under the `HTTP_INTERCEPTORS` multi provider that runs only with `withInterceptorsFromDi()`. Order: the list, versus provider registration order, all classes as one block at the feature's position. Injection: `inject()` in the body, versus the constructor. Migration: `intercept(req, next)` becomes `(req, next)`, `next.handle(req)` becomes `next(req)`, the provider becomes a list element, and the feature goes when no class remains.
 
-**Full explanation.** The runs: with `[withInterceptors([A]), withInterceptorsFromDi()]` A ran first; reversed, the class ran first and A saw its `X-Lab` header (`Section 4: class interceptors run at the position of withInterceptorsFromDi`); without the feature the class never ran (`Section 4: class interceptors run only with withInterceptorsFromDi`). The order run is [Q27.11](#q27-11). The docs call DI order "very hard to predict" (`interceptors.md`, branch `main`, read 2026-10-11). Multi providers are [Q16.06](16-dependency-injection.md#q16-06)'s. See [section 4](#4-interceptors-the-functional-chain-order-and-next-and-class-interceptors-through-withinterceptorsfromdi).
+**Full explanation.** The runs are in [section 4](#4-interceptors-the-functional-chain-order-and-next-and-class-interceptors-through-withinterceptorsfromdi) (`Section 4: class interceptors run at the position of withInterceptorsFromDi`, `Section 4: class interceptors run only with withInterceptorsFromDi`); the order run is [Q27.11](#q27-11). The docs call DI order "very hard to predict" (`interceptors.md`, branch `main`, read 2026-10-11). Multi providers are [Q16.06](16-dependency-injection.md#q16-06)'s.
 
 **Follow-ups an interviewer will ask.**
 - *A library ships a class interceptor; can the app stay functional?* Yes: keep `withInterceptorsFromDi()` for it and list yours in `withInterceptors`; feature order decides.
@@ -2078,7 +2082,7 @@ vi.advanceTimersByTime(500); // failure is still undefined
 
 **Short answer (30 seconds).** Both provide `HttpBackend` and the later provider wins: with the testing providers first, `provideHttpClient` re-provides the fetch backend, so the request goes to `fetch` and `expectOne` finds nothing. The second test waits on the testing backend, which never reads `timeout`: the request stays open.
 
-**Full explanation.** The runs ([section 11](#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace)): reversed, the backend was a `FetchBackend`, the stubbed `fetch` was called once and the controller held no request; in the right order the interceptor's header was on the held request. Read from the source: `provideHttpClientTesting()` is a plain `Provider[]` pointing `HttpBackend` at the testing backend, and `provideHttpClient()` provides `HttpBackend` from `FetchBackend` ([Q27.04](#q27-04)); same token, last wins, as the docs' IMPORTANT note says. The timeout: after 500 ms of fake time the request was still open, not errored, not cancelled; the aborting timer lives in `FetchBackend.handle` ([Q27.19](#q27-19)), and the testing backend's `handle` only records the request and marks it cancelled on unsubscribe. Fix: assert `request.request.timeout`, or test the timeout against a stubbed `fetch` ([section 6](#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)).
+**Full explanation.** The runs are in [section 11](#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace). Read from the source: `provideHttpClientTesting()` is a plain `Provider[]` pointing `HttpBackend` at the testing backend, and `provideHttpClient()` provides `HttpBackend` from `FetchBackend` ([Q27.04](#q27-04)); same token, last wins, as the docs' IMPORTANT note says. The timeout: after 500 ms of fake time the request was still open, not errored, not cancelled; the aborting timer lives in `FetchBackend.handle` ([Q27.19](#q27-19)), and the testing backend's `handle` only records the request and marks it cancelled on unsubscribe. Fix: assert `request.request.timeout`, or test the timeout against a stubbed `fetch` ([section 6](#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)).
 
 **Follow-ups an interviewer will ask.**
 - *Does `provideHttpClientTesting()` alone work?* Yes: the client is provided in root, so the testing backend is the only `HttpBackend` provider.
@@ -2505,8 +2509,47 @@ The approach: the resource owns the request lifecycle, the template reads its si
 
 ## Check your understanding
 
-<!-- PLACEHOLDER: CLOSE-M27 writes Explain it back (3-6 prompts) and Flashcards (5-10) here -->
+**Explain it back.**
+1. Explain to a backend developer why a 404 reaches `error` in `HttpClient` but resolves in `fetch`.
+2. Explain to a teammate why two simultaneous 401s should start one refresh call.
+3. Explain to a security reviewer why the XSRF header is only half of the defense.
+4. Explain to a tester why `provideHttpClientTesting()` does not stop interceptors from running.
+
+**Flashcards.**
+
+<details><summary>Which backend does a v22 app use with no provider?</summary>
+
+`FetchBackend`; `withXhr()` or `HttpClientModule` switches to the XHR backend.
+
+</details>
+
+<details><summary>Which interceptor sees the response last?</summary>
+
+The first in the list: it runs first on the way out, so it wraps the rest.
+
+</details>
+
+<details><summary>What does status 0 cover?</summary>
+
+Network failures, timeouts and aborts, not only CORS.
+
+</details>
+
+<details><summary>What does `reportUploadProgress` do on the fetch backend?</summary>
+
+It throws `NG02824`; upload progress needs the XHR backend.
+
+</details>
+
+<details><summary>When does an `httpResource` keep its old value?</summary>
+
+Only on `reload()`; a params change resets `value()`.
+
+</details>
 
 ## Connections
 
-<!-- PLACEHOLDER: CLOSE-M27 writes Builds on, Read next, Uses these ideas later and Comparisons here -->
+- **Builds on:** [09 §2](09-web-networking-storage-security.md#2-fetch-xhr-and-the-request-lifecycle) (`fetch`, which the browser still runs), [16 §7](16-dependency-injection.md#7-injectiontoken-multi-providers-environment-providers-and-initializers) (multi providers behind the interceptor chain), [22 §3](22-rxjs-foundations.md#3-cold-and-hot-unicast-and-multicast) (cold Observables), [23 §4](23-rxjs-in-depth.md#4-retrying-and-repeating-retry-with-backoff-and-repeat) (retry with backoff) and [17 §6](17-signals.md#6-resources-async-data-as-signals) (`resource`, behind `httpResource`).
+- **Read next:** [28. State management](28-state-management.md) (response data), [29. Testing Angular](29-testing-angular.md) (the testing seam), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md) (the transfer cache), [33. Security](33-security.md) (token storage), [41. Full-stack API contracts](41-fullstack-api-contracts.md) (error bodies) and [42. Full-stack authentication](42-fullstack-authentication.md) (issuing tokens).
+- **Uses these ideas later:** [28](28-state-management.md), [29](29-testing-angular.md), [32](32-ssr-ssg-hydration.md), [33](33-security.md), [41](41-fullstack-api-contracts.md) and [42](42-fullstack-authentication.md), all file-level and not yet written.
+- **Comparisons:** [17 §6](17-signals.md#6-resources-async-data-as-signals) sets `resource` beside `httpResource`, and [section 1](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform) sets `HttpClient` beside `fetch`.
