@@ -59,7 +59,7 @@ What to notice: everything left of the backend is Angular code that a spec can r
 
 **The documented contract.** The Angular docs (`adev/src/content/guide/http/making-requests.md`, branch `main`, read 2026-10-11) say: "Once subscribed, unsubscribing will abort the in-progress request." They also say: "The generic type of request methods is a type **assertion** about the data returned by the server. `HttpClient` does not verify that the actual return data matches this type." In the lab a response `{ nope: true }` read as `get<LabM27User>` reaches the subscriber unchanged (`Section 1: the type argument does not check the response`).
 
-**Errors.** Against the testing backend a 404 never reaches `next`: the subscriber gets an `HttpErrorResponse` with `status` 404, `ok` `false`, the body in `error` and the message `Http failure response for /missing: 404 Not Found` (`Section 1: a 404 reaches the error channel as an HttpErrorResponse`). A stubbed `fetch` that resolves a 404 `Response` leaves the caller with `ok` `false` and no rejection (`Section 1: a 404 from plain fetch resolves with ok false`); real `fetch` behavior is [09 §2](09-web-networking-storage-security.md#2-fetch-xhr-and-the-request-lifecycle)'s.
+**Errors.** Against the testing backend (the in-memory `HttpBackend` of `provideHttpClientTesting()`, answered through `HttpTestingController`; [section 11](#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace)) a 404 never reaches `next`: the subscriber gets an `HttpErrorResponse` with `status` 404, `ok` `false`, the body in `error` and the message `Http failure response for /missing: 404 Not Found` (`Section 1: a 404 reaches the error channel as an HttpErrorResponse`). A stubbed `fetch` that resolves a 404 `Response` leaves the caller with `ok` `false` and no rejection (`Section 1: a 404 from plain fetch resolves with ok false`); real `fetch` behavior is [09 §2](09-web-networking-storage-security.md#2-fetch-xhr-and-the-request-lifecycle)'s.
 
 **Status and history.** In `@angular/common` 21.2.25 (`npm pack`, read 2026-10-11) `HttpBackend` is `providedIn: 'root'` with `useExisting: HttpXhrBackend` (`fesm2022/_module-chunk.mjs`). The Angular `CHANGELOG.md` on `main` lists, under 22.0.0 (2026-06-03), the `http` feature "Use `FetchBackend` as default for the `HttpBackend` implementation". In 22.2.1 the injected backend is a `FetchBackend` (`Section 1: the default HttpBackend is the FetchBackend`). [Section 2](#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default) owns setup and the switch back.
 
@@ -164,7 +164,7 @@ classDiagram
   withRequestsMadeViaParent --> provideHttpClient : providers appended
 ```
 
-What to notice: every feature is only more providers, and the backend is one token several features compete for.
+What to notice: every feature is only more providers (`HttpInterceptorHandler` is internal), and the backend is one token several features compete for.
 
 ### How it actually works
 
@@ -172,9 +172,9 @@ What to notice: every feature is only more providers, and the backend is one tok
 
 **The recipe.** Read from the `@angular/common` 22.2.1 source: `provideHttpClient` (`fesm2022/_module-chunk.mjs`) returns `makeEnvironmentProviders` of the client, `FetchBackend`, the interceptor handler (with `HttpHandler` as its alias), `HttpBackend` resolved to `inject(FetchBackend)` and the XSRF interceptor, then pushes each feature's providers. In development mode it throws on contradictory features (`Section 2: contradictory features throw in dev mode`). `HttpClient`, `HttpHandler`, the handler and `HttpXhrBackend` are `providedIn: 'root'` and the root `HttpBackend` points at `FetchBackend`, so no call is needed (`CHANGELOG.md`, 21.0.0, 2025-11-19: "Provide http services in root"; `setup.md`, branch `main`, read 2026-10-11: "`HttpClient` is available for injection by default in Angular v21 and later.").
 
-**Nested clients.** `withRequestsMadeViaParent` provides `HttpBackend` from `inject(HttpHandler, { skipSelf: true, optional: true })`: the child's chain ends in the parent's handler. In the lab a child with only `provideHttpClient` ran its own interceptor, called the stubbed `fetch` and left the root's controller with none (`Section 2: a child provideHttpClient ignores the parent's interceptors`); with the feature the log was child, parent and the controller matched one (`Section 2: withRequestsMadeViaParent runs the child's then the parent's interceptors`).
+**Nested clients.** `withRequestsMadeViaParent` provides `HttpBackend` from `inject(HttpHandler, { skipSelf: true, optional: true })`: the child's chain ends in the parent's handler. In the lab a child with only `provideHttpClient` ran its own interceptor, called the stubbed `fetch` and left the root's `HttpTestingController` with none (`Section 2: a child provideHttpClient ignores the parent's interceptors`); with the feature the log was child, parent and the controller matched one (`Section 2: withRequestsMadeViaParent runs the child's then the parent's interceptors`).
 
-**Updated apps keep XHR.** The 22.2.1 migration `http-xhr-backend` (`@angular/core` `schematics/migrations.json`, 22.0.0; `bundles/http-xhr-backend.cjs`) adds `withXhr()` to every `provideHttpClient()` call with neither `withFetch()` nor `withXhr()`, so a migrated app keeps XHR and a new one uses fetch (read, not run; [12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update) owns `ng update`). `FetchBackend.createRequestInit` throws `NG02824` for the `reportUploadProgress` option [Added in v22.0] ([section 9](#9-progress-events-reportuploadprogress-reportdownloadprogress-and-why-upload-progress-needs-xhr)). Under SSR a non-fetch backend gets an `NG02801` warning (read, not run; SSR is [module 32](32-ssr-ssg-hydration.md)'s).
+**Updated apps keep XHR.** The 22.2.1 migration `http-xhr-backend` (`@angular/core` `schematics/migrations.json`, 22.0.0; `bundles/http-xhr-backend.cjs`) adds `withXhr()` to every `provideHttpClient()` call with neither `withFetch()` nor `withXhr()`, so a migrated app keeps XHR and a new one uses fetch (read, not run; [12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update) owns `ng update`). `FetchBackend.createRequestInit` (private) throws `NG02824` for the `reportUploadProgress` option [Added in v22.0] ([section 9](#9-progress-events-reportuploadprogress-reportdownloadprogress-and-why-upload-progress-needs-xhr)). Under SSR a non-fetch backend gets an `NG02801` warning (read, not run; SSR is [module 32](32-ssr-ssg-hydration.md)'s).
 
 ### Code
 
@@ -270,7 +270,7 @@ What to notice: a change is always a new object, and the original request stays 
 
 **The type is an assertion.** The docs call the generic a type **assertion** (quoted in [section 1](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform), which runs it). A hand-written guard turned `{ nope: true }` into a `TypeError` (`Section 3: a hand-written guard at the boundary turns a wrong shape into an error`); [07 §8](07-ts-advanced-types-and-decorators.md#8-runtime-validation-with-zod-4-schema-first-types) owns schema-first parsing.
 
-**Context.** `HttpContext` is a `Map`: `set` returns the same instance, `get` falls back to the token's default; the typings call it "Shared and mutable". An interceptor read `ctx=false` for a plain call and `ctx=true` for a flagged one, and the stubbed `fetch` received only the default `Accept` header (`Section 3: a context token reaches the interceptor and not the server`), because `FetchBackend.createRequestInit` builds the init from the method, headers and fetch options, never the context.
+**Context.** `HttpContext` is a `Map`: `set` returns the same instance, `get` falls back to the token's default; the typings call it "Shared and mutable". An interceptor read `ctx=false` for a plain call and `ctx=true` for a flagged one, and the stubbed `fetch` received only the default `Accept` header (`Section 3: a context token reaches the interceptor and not the server`), because `FetchBackend.createRequestInit` (private) builds the init from the method, headers and fetch options, never the context.
 
 **`timeout` and fetch options.** `timeout` rides on the request (`Section 3: the timeout option is carried on the request`; CHANGELOG 20.1.0); [section 6](#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache) owns its behavior. `createRequestInit` copies `credentials`, `cache`, `keepalive` and six more into the `fetch` init; three arrived (`Section 3: fetch options are forwarded to fetch`), and [09 §2](09-web-networking-storage-security.md#2-fetch-xhr-and-the-request-lifecycle) owns their meaning.
 
@@ -349,7 +349,7 @@ Drilled in [Q27.07](#q27-07), [Q27.08](#q27-08), [Q27.09](#q27-09) and [Q27.10](
 
 ### The problem it solves
 
-Every service adds the auth header by hand, and one forgets. A logger listed before the auth interceptor logs requests without the header. A migrated app silently stops running its class interceptors. A cache must answer without calling the server. Each is about the chain before the backend ([Q27.11](#q27-11), [Q27.12](#q27-12), [Q27.13](#q27-13), [Q27.14](#q27-14)).
+Every service adds the auth header by hand, and one forgets. Nobody can say whether the logger records a request before or after the auth header is added. A migrated app silently stops running its class interceptors. A cache must answer without calling the server. Each is about the chain before the backend ([Q27.11](#q27-11), [Q27.12](#q27-12), [Q27.13](#q27-13), [Q27.14](#q27-14)).
 
 ### Mental model
 
@@ -500,7 +500,7 @@ Drilled in [Q27.11](#q27-11), [Q27.12](#q27-12), [Q27.13](#q27-13) and [Q27.14](
 
 ### The problem it solves
 
-Components check `err.status === 0`, `err.error.message` and `err.statusText` in ten places, each differently. A 200 with broken JSON shows "Unknown error". Retries hit a recovering server in lockstep. A POST that timed out is retried and charges the customer twice ([Q27.15](#q27-15), [Q27.16](#q27-16), [Q27.17](#q27-17), [Q27.18](#q27-18)).
+Components check `err.status === 0`, `err.error.message` and `err.statusText` [Deprecated since v21.0 — read status] in ten places, each differently. A 200 with broken JSON shows "Unknown error". Retries hit a recovering server in lockstep. A POST that timed out is retried and charges the customer twice ([Q27.15](#q27-15), [Q27.16](#q27-16), [Q27.17](#q27-17), [Q27.18](#q27-18)).
 
 ### Mental model
 
@@ -532,9 +532,9 @@ What to notice: retry is decided by status and method, not by the bare fact of f
 | 500 with JSON | 500 | the body | `Http failure response for /x: 500 Internal Server Error` |
 | invalid JSON on a 200 | 200 | the parse failure | `Http failure during parsing for /x` |
 
-The `statusText` [Deprecated since v21.0 — read status] was `'Not Found'` and `'Unknown Error'` in the first two rows; no code here branches on it. The CHANGELOG lists it under the 21.0.0 deprecations.
+The `statusText` was `'Not Found'` and `'Unknown Error'` in the first two rows; no code here branches on it. The CHANGELOG lists it under the 21.0.0 deprecations.
 
-**Why a 200 can be an error.** Read from the `@angular/common` 22.2.1 source (`fesm2022/_module-chunk.mjs`): the `HttpErrorResponse` constructor sets "Http failure during parsing" when `status` is 2xx and "Http failure response for" otherwise, and `ok` is always `false`. `FetchBackend.parseBody` rethrows a `JSON.parse` failure only for a 2xx; a non-2xx keeps the text. A rejected `fetch` becomes `new HttpErrorResponse({ error })`, where `status` takes its default, 0 (`Section 5: invalid JSON on a 200 is a parsing failure with status 200`, `Section 5: a rejected fetch has status 0 and the thrown error`). `parseBody` also removes the XSSI prefix (`XSSI_PREFIX`, internal, may change in any release): `)]}',` and a newline before the JSON (`Section 5: the XSSI prefix is stripped before parsing`).
+**Why a 200 can be an error.** Read from the `@angular/common` 22.2.1 source (`fesm2022/_module-chunk.mjs`): the `HttpErrorResponse` constructor sets "Http failure during parsing" when `status` is 2xx and "Http failure response for" otherwise, and `ok` is always `false`. `FetchBackend.parseBody` (private) rethrows a `JSON.parse` failure only for a 2xx; a non-2xx keeps the text. A rejected `fetch` becomes `new HttpErrorResponse({ error })`, where `status` takes its default, 0 (`Section 5: invalid JSON on a 200 is a parsing failure with status 200`, `Section 5: a rejected fetch has status 0 and the thrown error`). `parseBody` also removes the XSSI (cross-site script inclusion, [33](33-security.md)) prefix (`XSSI_PREFIX`, internal, may change in any release): `)]}',` and a newline before the JSON (`Section 5: the XSSI prefix is stripped before parsing`).
 
 **Mapping.** A pure function turned eight failures into eight domain errors (`Section 5: a mapping function turns each failure into one domain error`).
 
@@ -594,15 +594,15 @@ The cap held: `backoffMs(10, 0.5)` was 2000, and `backoffMs(1, 0)` and `backoffM
 
 - **Map once, at the edge**, because ten components then agree on what offline looks like.
 - **Key on `status`, never on `statusText` or message text**, because HTTP/2 and later keep `statusText` at `OK` (the typings' deprecation note).
-- **Retry only idempotent methods**; for a POST send an **idempotency key** (a client-chosen unique value the server uses to apply the request once).
+- **Retry only idempotent methods**, because a repeated POST can apply twice; for a POST send an **idempotency key** (a client-chosen unique value the server uses to apply the request once).
 - **Cap attempts and delay**, because an unbounded policy turns an outage into a storm.
 
 ### Misconceptions and traps
 
 - *"Status 0 is a CORS error."* It covers network failures, timeouts and aborts alike; the console shows CORS, so it is blamed first ([Q09.14](09-web-networking-storage-security.md#q09-14)).
-- *"A 200 cannot be an error."* A parse failure on a 2xx is an `HttpErrorResponse` with status 200, because the body parse can fail after a success status.
+- *"A 200 cannot be an error."* A parse failure on a 2xx is an `HttpErrorResponse` with status 200, because a 2xx status reads as success while the body parse can fail after it.
 - *"Retry everything three times."* A POST and a 400 are not retried here; a copied `retry(3)` ignores method and status.
-- *"Exponential backoff is enough."* Clients that fail together retry together; jitter spreads them (the delays are the function's numbers, not timing observations).
+- *"Exponential backoff is enough."* Clients that fail together retry together, because backoff alone looks like it spreads load; jitter spreads them (the delays are the function's numbers, not timing observations).
 
 Drilled in [Q27.15](#q27-15), [Q27.16](#q27-16), [Q27.17](#q27-17) and [Q27.18](#q27-18); modelled in [Exercise 27.1](#ex27-1) and [Exercise 27.2](#ex27-2).
 
@@ -638,7 +638,7 @@ What to notice: cancellation flows from the subscriber down to the platform, and
 
 **Abort.** [Section 1](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform) read the teardown of `FetchBackend.handle`. After the abort the subscriber got nothing and the signal's reason was an `AbortError` (`Section 6: unsubscribing aborts the fetch request`). The teardown aborts only while a `done` flag is false, so an answered request is left alone (`Section 6: a completed request is not aborted by its teardown`). `switchMap` ([Q23.07](23-rxjs-in-depth.md#q23-07)), `takeUntilDestroyed` and the `async` pipe unsubscribe for you; the platform API is [04 §7](04-js-async-event-loop.md#7-cancellation-with-abortcontroller)'s. An abort stops the client; the server is not observed here.
 
-**Timeout.** Read from the `@angular/common` 22.2.1 source (`FetchBackend.handle`, `fesm2022/_module-chunk.mjs`): when the request has a `timeout`, the subscriber function starts a `setTimeout` outside the zone that calls `aborter.abort(new DOMException('signal timed out', 'TimeoutError'))`, and the teardown clears it. The timer starts inside the backend, so interceptor time is not counted. With fake timers, a pending `fetch` and `{ timeout: 100 }`, 150 ms later the signal was aborted and the error had `status` 0 and `error.name` `'TimeoutError'` (`Section 6: a timeout aborts the fetch with a TimeoutError and status 0`).
+**Timeout.** Read from the `@angular/common` 22.2.1 source (`FetchBackend.handle`, `fesm2022/_module-chunk.mjs`): when the request has a `timeout`, the subscriber function starts a `setTimeout` outside the zone (`NgZone.runOutsideAngular`, which matters only under zone.js, [21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)) that calls `aborter.abort(new DOMException('signal timed out', 'TimeoutError'))`, and the teardown clears it. The timer starts inside the backend, so interceptor time is not counted. With fake timers, a pending `fetch` and `{ timeout: 100 }`, 150 ms later the signal was aborted and the error had `status` 0 and `error.name` `'TimeoutError'` (`Section 6: a timeout aborts the fetch with a TimeoutError and status 0`).
 
 **Testing backend.** An unsubscribed request has `cancelled` `true` (`Section 6: the testing backend marks an unsubscribed request cancelled`). A `timeout` is not simulated: after 500 ms of fake time the request was still open (`Section 6: the testing backend does not simulate a timeout`).
 
@@ -743,7 +743,7 @@ What to notice: two failures, one refresh, and the refresh call outside the inte
 
 **The two bugs of [Q27.24](#q27-24)** (a guard counter ends the loop). Without the skip check, each refresh flushed with 401 left another refresh pending: after five, a sixth was open and the original request had not settled (`Section 7: without the skip check a failing refresh refreshes itself until a guard stops the spec`). Without single flight, three concurrent 401s started three refreshes (`Section 7: without single flight each concurrent 401 starts its own refresh`).
 
-**Cookies and storage (documented).** A cookie session needs the cookie sent: `withCredentials: true` makes the fetch backend set `credentials: 'include'` (read, not run: `FetchBackend.createRequestInit`); cookies are [09 §6](09-web-networking-storage-security.md#6-cookies)'s.
+**Cookies and storage (documented).** A cookie session needs the cookie sent: `withCredentials: true` makes the fetch backend set `credentials: 'include'` (read, not run: `FetchBackend.createRequestInit`, private); cookies are [09 §6](09-web-networking-storage-security.md#6-cookies)'s.
 
 ### Code
 
@@ -794,7 +794,7 @@ const authInterceptor: HttpInterceptorFn = (req, next) => {
 
 ### Misconceptions and traps
 
-- *"Each failed request should refresh."* One refresh serves all, because per-request thinking misses that the requests failed for the same expired token; the probe started three.
+- *"Each failed request should refresh."* One refresh serves all, because per-request thinking misses that the requests failed for the same expired token; the test started three.
 - *"Excluding the refresh URL by string match is enough."* It works until the URL changes, because the match lives apart from the request.
 - *"Retry the original request until it succeeds."* One retry follows a refresh, because the habit comes from network retries ([section 5](#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter)); a second 401 ends it.
 - *"Store the token in `localStorage` for the interceptor."* Storage is [33](33-security.md)'s trade-off, because convenience hides it; the interceptor reads from a service.
@@ -869,7 +869,7 @@ The interceptor sent `abc` to `api.example.test` and nothing to `other.example` 
 - *"Angular protects against CSRF by itself."* It only sends the header and the server must check it, because the feature's name suggests a whole defense.
 - *"The header goes on every request."* GET, HEAD and other origins are skipped, because interceptors usually apply to everything.
 - *"An absolute URL never gets the header."* Once true: the 21.0.2 source skipped absolute URLs until the 21.0.3 entry, because the old check was a URL pattern, not an origin comparison.
-- *"A token in a cookie is itself protection."* The browser sends the cookie automatically, which is the CSRF problem, because cookie authentication habit hides it.
+- *"A token in a cookie is itself protection."* The browser sends the cookie automatically, which is the CSRF problem, because cookie sessions make the browser's automatic sending feel normal.
 
 Drilled in [Q27.25](#q27-25), [Q27.26](#q27-26) and [Q27.27](#q27-27).
 
@@ -881,7 +881,7 @@ A new v22 app's upload progress bar throws `NG02824`, while an upgraded app's ba
 
 ### Mental model
 
-A **progress event** is a request event that says how many bytes have moved. With `observe: 'events'` ([section 3](#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)) and the matching option, the stream emits `Sent`, then `UploadProgress` for the request body, then `ResponseHeader` and `DownloadProgress` for the response body, then `Response`. `reportUploadProgress` [Added in v22.0] switches on the first, `reportDownloadProgress` [Added in v22.0] the second; their events are `HttpUploadProgressEvent` and `HttpDownloadProgressEvent`. Download progress works on both backends. Upload progress needs `withXhr()` ([section 2](#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default)), because `FetchBackend` refuses the option. [Q09.04](09-web-networking-storage-security.md#q09-04) owns the platform comparison.
+A **progress event** is a request event that says how many bytes have moved. With `observe: 'events'` ([section 3](#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)) and the matching option, the stream emits `Sent`, then `UploadProgress` for the request body, then `ResponseHeader` and `DownloadProgress` for the response body, then `Response`. `reportUploadProgress` switches on the first, `reportDownloadProgress` [Added in v22.0] the second; their events are `HttpUploadProgressEvent` and `HttpDownloadProgressEvent`. Download progress works on both backends. Upload progress needs `withXhr()` ([section 2](#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default)), because `FetchBackend` refuses the option. [Q09.04](09-web-networking-storage-security.md#q09-04) owns the platform comparison.
 
 A parcel tracker: "dispatched", kilometres travelled, "delivered"; the fetch courier tracks only the return trip.
 
@@ -906,9 +906,9 @@ What to notice: the upload state exists only on the XHR path, and both progress 
 
 **The runs.** On the default backend with a stubbed `fetch`, a POST with `reportUploadProgress: true` failed with an `HttpErrorResponse` of status 0 whose `error.message` starts `NG02824: The FetchBackend does not support upload progress reporting.`, and `fetch` was never called (`Section 9: reportUploadProgress on the fetch backend fails with NG02824`). A GET with `reportDownloadProgress: true` and an 11-byte body with `content-length: 11` emitted `Sent`, `ResponseHeader`, `DownloadProgress` (`loaded` 11, `total` 11) and `Response` (`Section 9: the fetch backend reports download progress`); the deprecated `reportProgress` also produced a `DownloadProgress` (`Section 9: the deprecated reportProgress still reports download progress on the fetch backend`). With `observe: 'response'` one `HttpResponse` arrived (`Section 9: observe 'response' delivers no progress events`). On the testing backend with `withXhr()`, an upload event of 5 of 10 bytes reached the subscriber between `Sent` and `Response` (`Section 9: an upload progress event reaches an events subscriber`); the test supplied that event.
 
-**Why fetch refuses upload progress.** Read from the `@angular/common` 22.2.1 source (`FetchBackend.createRequestInit`, `fesm2022/_module-chunk.mjs`): it throws a runtime error with code 2824 when `req.reportUploadProgress` is true, before `fetch` is called. It tests only the new flag, so `reportProgress` does not throw there. Read, not run: `HttpXhrBackend` adds an `xhr.upload` `progress` listener when `reportProgress || reportUploadProgress` is set and the body is not null.
+**Why fetch refuses upload progress.** Read from the `@angular/common` 22.2.1 source (`FetchBackend.createRequestInit`, private, `fesm2022/_module-chunk.mjs`): it throws a runtime error with code 2824 when `req.reportUploadProgress` is true, before `fetch` is called. It tests only the new flag, so `reportProgress` does not throw there. Read, not run: `HttpXhrBackend` adds an `xhr.upload` `progress` listener when `reportProgress || reportUploadProgress` is set and the body is not null.
 
-**`httpResource`.** `normalizeRequest` (`fesm2022/http.mjs`) forwards a resource request's `reportProgress` as `reportDownloadProgress`; the `CHANGELOG.md` (branch `main`, read 2026-10-11) lists that fix under 22.2.1. On the testing backend `progress()` was `undefined` until an event of 3 of 11 bytes arrived, then equal to it (`Section 9: httpResource exposes download progress`; the resource is [section 10](#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)).
+**`httpResource`.** `normalizeRequest` (internal, `fesm2022/http.mjs`) forwards a resource request's `reportProgress` as `reportDownloadProgress`; the `CHANGELOG.md` (branch `main`, read 2026-10-11) lists that fix under 22.2.1. On the testing backend `progress()` was `undefined` until an event of 3 of 11 bytes arrived, then equal to it (`Section 9: httpResource exposes download progress`; the resource is [section 10](#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)).
 
 **History.** `CHANGELOG.md` under 22.0.0, Deprecations: "The `reportProgress` option is deprecated please use `reportUploadProgress` & `reportDownloadProgress` instead."; Breaking Changes: "Use the `HttpXhrBackend` with `provideHttpClient(withXhr)` if you want to keep supporting upload progress reports."
 
@@ -956,7 +956,7 @@ providers: [provideHttpClient(withXhr())]
 
 ### Best practices and anti-patterns
 
-- **Request only the direction you display**, because each event runs change detection (the `HttpRequest.reportProgress` typings).
+- **Request only the direction you display**, because the `HttpRequest.reportProgress` typings call progress events expensive ("change detection runs on each event"), which holds where zone.js patches XHR ([21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)).
 - **Use `withXhr()` where uploads show progress**, because the fetch backend throws `NG02824`.
 - **Guard `total` before dividing**, because it is optional.
 - **Map events to one state value in a service**, because components then read one result.
@@ -967,7 +967,7 @@ providers: [provideHttpClient(withXhr())]
 - *"`reportProgress` still covers both."* It is deprecated and on fetch reports download only, because one flag once stood for two directions.
 - *"Progress needs `observe: 'response'`."* Only `'events'` exposes it, because the response object is the habit and it arrives last.
 - *"Upload progress is only a browser limit."* Angular's `FetchBackend` also throws on the option, because the docs' fetch note hides that the refusal is Angular's.
-- *"Progress events are cheap."* Each one runs change detection, because they look like log lines.
+- *"Progress events are cheap."* Under zone.js each one runs change detection ([21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)), because they look like log lines.
 
 Drilled in [Q27.28](#q27-28) and [Q27.29](#q27-29); modelled in [Exercise 27.5](#ex27-5).
 
@@ -1002,7 +1002,7 @@ What to notice: a params change goes back to `loading` without the old value, wh
 
 ### How it actually works
 
-**The runs.** A request function returning `undefined` left `status()` `'idle'` with no request (`Section 10: an undefined request leaves the resource idle with no request`). Changing `/users/1` to `/users/2` marked the first request `cancelled` and sent the second (`Section 10: a URL change cancels the previous request`). A flushed 200 with an `ETag` header gave `'resolved'`, the body, `statusCode()` 200 and that header after `whenStable()` (`Section 10: a resolved resource exposes value, statusCode and headers`); with only `TestBed.tick()` the planning probe still read `'loading'`. A 404 gave `'error'`, an `HttpErrorResponse` of status 404 and `hasValue()` false, and `value()` threw "Resource is currently in an error state (see Error.cause for details): Http failure response for /users/3: 404 Not Found" (`Section 10: a 404 puts the resource in error and value throws`). `reload()` then gave `'reloading'` and a new request (`Section 10: reload after an error is reloading`). From a resolved value, `reload()` kept it and a params change reset it (`Section 10: a params change resets value while reload keeps it`); `set()` gave `'local'` (`Section 10: set puts the resource in local with the written value`).
+**The runs.** A request function returning `undefined` left `status()` `'idle'` with no request (`Section 10: an undefined request leaves the resource idle with no request`). Changing `/users/1` to `/users/2` marked the first request `cancelled` and sent the second (`Section 10: a URL change cancels the previous request`). A flushed 200 with an `ETag` header gave `'resolved'`, the body, `statusCode()` 200 and that header after `whenStable()` (`Section 10: a resolved resource exposes value, statusCode and headers`); with only `TestBed.tick()` it was still `'loading'` (`Section 11: an httpResource value lands after whenStable, not after tick`). A 404 gave `'error'`, an `HttpErrorResponse` of status 404 and `hasValue()` false, and `value()` threw "Resource is currently in an error state (see Error.cause for details): Http failure response for /users/3: 404 Not Found" (`Section 10: a 404 puts the resource in error and value throws`). `reload()` then gave `'reloading'` and a new request (`Section 10: reload after an error is reloading`). From a resolved value, `reload()` kept it and a params change reset it (`Section 10: a params change resets value while reload keeps it`); `set()` gave `'local'` (`Section 10: set puts the resource in local with the written value`).
 
 **Options.** A request object sent `GET /search?q=ab` and its header (`Section 10: a request object sends params and headers`). `defaultValue` was the value while loading (`Section 10: defaultValue is the value while loading`). A `parse` that threw put the resource in `'error'` with that message (`Section 10: a throwing parse puts the resource in error`). An interceptor saw `/me` and set the header the backend received (`Section 10: httpResource requests pass through interceptors`). Outside an injection context the call threw `NG0203` (`Section 10: httpResource outside an injection context throws NG0203`).
 
@@ -1082,7 +1082,7 @@ flowchart LR
   B -.-> E["FetchBackend (if provideHttpClient comes last)"]
 ```
 
-What to notice: the seam is one token, so provider order and backend-only features are the traps.
+What to notice: the seam is one token (`HttpClientTestingBackend` is internal), so provider order and backend-only features are the traps.
 
 ### How it actually works
 
@@ -1115,7 +1115,7 @@ request.flush({ ok: 1 });
 
 #### Legacy
 
-`HttpClientTestingModule` (typings tag `@deprecated`: "Add provideHttpClientTesting() to your providers instead.") appears in older specs' `imports`.
+`HttpClientTestingModule` (typings tag `@deprecated`: "Add `provideHttpClientTesting()` to your providers instead.") appears in older specs' `imports`.
 
 ```ts
 // Partial: the legacy setup and its replacement
@@ -1134,7 +1134,7 @@ TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpCli
 ### Misconceptions and traps
 
 - *"`provideHttpClientTesting()` replaces `HttpClient`."* It replaces only the backend, so interceptors run, because the name suggests the whole client.
-- *"Provider order does not matter in `providers`."* The last `HttpBackend` provider wins, because DI usually merges providers and the docs carry an IMPORTANT note.
+- *"Provider order does not matter in `providers`."* The last `HttpBackend` provider wins, because DI usually merges providers.
 - *"The test backend simulates timeouts and aborts."* It stands in for the network and reads no `timeout`, because those options belong to the fetch backend.
 - *"`TestBed.tick()` is enough after a flush."* It runs effects, but an `httpResource` value lands after `whenStable()`, because the status settles asynchronously.
 
@@ -1250,10 +1250,10 @@ for (const providers of configurations) {
 
 **Short answer (30 seconds).** Upload progress: only XHR reports it; on fetch, `reportUploadProgress: true` fails with `NG02824`. Timeouts: both honor `timeout` with a `TimeoutError`. SSR: fetch is the server backend; the `withXhr` typings call server XHR deprecated. `ng update` adds `withXhr()` to every `provideHttpClient()` call naming no backend: an updated app keeps XHR, a new one uses fetch.
 
-**Full explanation.** Source reads are from `@angular/common` 22.2.1, `fesm2022/_module-chunk.mjs`. Progress: `FetchBackend.createRequestInit` throws `NG02824` (`Section 9: reportUploadProgress on the fetch backend fails with NG02824`); `HttpXhrBackend` registers an `xhr.upload` `progress` listener (read, not run). Timeouts: `FetchBackend.handle` aborts its controller with a `DOMException` named `TimeoutError` (`Section 6: a timeout aborts the fetch with a TimeoutError and status 0`); `HttpXhrBackend.handle` sets `xhr.timeout` and errors on the `timeout` event with a `DOMException('Request timed out', 'TimeoutError')` (read, not run). SSR: the handler warns `NG02801` for a non-fetch, non-testing backend (read, not run), and the `withXhr` typings state "XHR support on the server is **deprecated**"; the server is [module 32](32-ssr-ssg-hydration.md)'s. The migration is [Q27.03](#q27-03)'s `http-xhr-backend` (read, not run); [section 2](#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default) states the rules.
+**Full explanation.** Source reads are from `@angular/common` 22.2.1, `fesm2022/_module-chunk.mjs`. Progress: `FetchBackend.createRequestInit` (private) throws `NG02824` (`Section 9: reportUploadProgress on the fetch backend fails with NG02824`); `HttpXhrBackend` registers an `xhr.upload` `progress` listener (read, not run). Timeouts: `FetchBackend.handle` aborts its controller with a `DOMException` named `TimeoutError` (`Section 6: a timeout aborts the fetch with a TimeoutError and status 0`); `HttpXhrBackend.handle` sets `xhr.timeout` and errors on the `timeout` event with a `DOMException('Request timed out', 'TimeoutError')` (read, not run). SSR: the handler warns `NG02801` for a non-fetch, non-testing backend (read, not run), and the `withXhr` typings state "XHR support on the server is **deprecated**"; the server is [module 32](32-ssr-ssg-hydration.md)'s. The migration is [Q27.03](#q27-03)'s `http-xhr-backend` (read, not run); [section 2](#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default) states the rules.
 
 **Follow-ups an interviewer will ask.**
-- *Which backend for a new v22 app?* The default; add `withXhr()` only where uploads show progress ([Exercise 27.5](#ex27-5)).
+- *Which backend for a new v22 app?* The default; add `withXhr()` only where uploads show progress ([Exercise 27.5](#ex27-5)), in a child client that repeats the root interceptors ([Q27.29](#q27-29)).
 - *Does the testing backend care?* No: `provideHttpClientTesting()` replaces whichever backend precedes it (`Section 2: provideHttpClientTesting after provideHttpClient swaps in the testing backend`) and simulates no `timeout` (`Section 6: the testing backend does not simulate a timeout`).
 
 **Trap to avoid.** Reading `NG02824` as a bug in your service: it is the default backend asking for `withXhr()`.
@@ -1531,7 +1531,7 @@ await firstValueFrom(TestBed.inject(HttpClient).get('/x')).catch(describeError);
 
 **Short answer (30 seconds).** `404 | {"code":"NF"} | Http failure response for /missing: 404 Not Found`, then `0 | ProgressEvent | Http failure response for /net: 0 ` (with a trailing space), then `200 | SyntaxError | Http failure during parsing for /x`. The message is built from the status and the `statusText` given at construction, which `TestRequest.error` leaves empty; a 2xx whose body fails `JSON.parse` is a parsing failure carrying the `SyntaxError`.
 
-**Full explanation.** Asserted by `Q27.15 a 404 with JSON, a network failure and invalid JSON on a 200: status, error and message`. Read from the `@angular/common` 22.2.1 source (`fesm2022/_module-chunk.mjs`): the `HttpErrorResponse` constructor writes "Http failure during parsing for …" for a 2xx and otherwise "Http failure response for …: ${init.status} ${init.statusText}"; `TestRequest.error` (`fesm2022/http-testing.mjs`) passes `statusText: opts.statusText || ''`. `FetchBackend.parseBody` rethrows the `JSON.parse` error only for a 2xx; `handle` wraps it with the response's status. See [section 5](#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter).
+**Full explanation.** Asserted by `Q27.15 a 404 with JSON, a network failure and invalid JSON on a 200: status, error and message`. Read from the `@angular/common` 22.2.1 source (`fesm2022/_module-chunk.mjs`): the `HttpErrorResponse` constructor writes "Http failure during parsing for …" for a 2xx and otherwise "Http failure response for …: ${init.status} ${init.statusText}"; `TestRequest.error` (`fesm2022/http-testing.mjs`) passes `statusText: opts.statusText || ''`. `FetchBackend.parseBody` (private) rethrows the `JSON.parse` error only for a 2xx; `handle` wraps it with the response's status. See [section 5](#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter).
 
 **Follow-ups an interviewer will ask.**
 - *What does a rejected `fetch` give?* Status 0 and the thrown `TypeError` in `error` (`Section 5: a rejected fetch has status 0 and the thrown error`).
@@ -1552,7 +1552,7 @@ await firstValueFrom(TestBed.inject(HttpClient).get('/x')).catch(describeError);
 **Full explanation.** The run maps eight failures to eight domain errors (`Section 5: a mapping function turns each failure into one domain error`); [Exercise 27.1](#ex27-1) uses the shape in a service. Key on `status` and `error`, never on `statusText` (deprecated) or message text ([Q27.15](#q27-15)). Status 0 covers network failure, timeout (a `DOMException` named `TimeoutError`) and abort, so that branch reads `error`. A 2xx with a broken body keeps its status, so check the 2xx range first. The server's error body is [41](41-fullstack-api-contracts.md)'s contract: parse `fields` with a guard ([section 3](#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)). See [section 5](#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter).
 
 **Follow-ups an interviewer will ask.**
-- *Interceptor or service?* An interceptor maps once for all but hides the status from retry inside it ([Q27.14](#q27-14)); a service keeps the raw error. Pick one.
+- *Interceptor or service?* An interceptor maps once for all but hides the raw status from the services above it, so retry must sit inside it ([Q27.14](#q27-14)); a service keeps the raw error. Pick one.
 - *What does the UI do with `unknown`?* A generic message plus a log with the status; a recurring `unknown` is a missing branch.
 
 **Trap to avoid.** Mapping 401 straight to "log out": the refresh ([section 7](#7-authentication-attaching-tokens-refreshing-on-401-with-a-request-queue-and-avoiding-refresh-loops)) runs before the mapping sees the error.
@@ -1655,7 +1655,7 @@ console.log(`timeout signal: aborted=${calls[1].signal?.aborted}`);
 
 **Follow-ups an interviewer will ask.**
 - *Same test on the testing backend?* The unsubscribed request shows `cancelled` `true`, and the `timeout` never fires (`Section 6: the testing backend does not simulate a timeout`).
-- *Does `timeout` cover a slow interceptor?* No: the timer starts inside the backend ("only to the backend HTTP request itself", the docs).
+- *Does `timeout` cover a slow interceptor?* No: the timer starts inside the backend ("only apply to the backend HTTP request itself", the docs).
 
 **Trap to avoid.** Expecting the server to stop: the abort ends the client's call; the server is not observed here.
 
@@ -1687,7 +1687,7 @@ console.log(`timeout signal: aborted=${calls[1].signal?.aborted}`);
 
 **Short answer (30 seconds).** Reference data read by many callers: `shareReplay(1)` in a service. Many GET endpoints with one freshness rule: a cache interceptor keyed by `urlWithParams` with a time to live. Data that follows a signal: `httpResource`, which is not a cache. Assets and anything the server can version: the browser cache through `Cache-Control` and `ETag`. The first render after SSR: the transfer cache, on by default.
 
-**Full explanation.** `shareReplay` dedupes subscribers to one stream ([Q23.19](23-rxjs-in-depth.md#q23-19) has the reset rules): one value for one URL. The interceptor sees every GET, so it dedupes by URL across services, must skip `Authorization` and credentialed requests, and needs invalidation on writes ([Q27.20](#q27-20), [Exercise 27.3](#ex27-3)). `httpResource` re-requests when its params change back ([section 10](#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)), so a cache sits in front of it, not inside. The browser cache needs no code and survives reloads, within what headers allow ([09 §4](09-web-networking-storage-security.md#4-http-caching)). The transfer cache skips `Authorization`, `Cookie` and credentialed requests and is [32](32-ssr-ssg-hydration.md)'s. See [section 6](#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache).
+**Full explanation.** `shareReplay` dedupes subscribers to one stream ([Q23.19](23-rxjs-in-depth.md#q23-19) has the reset rules): one value for one URL. The interceptor sees every GET, so it dedupes by URL across services, must skip `Authorization` and credentialed requests, and needs invalidation on writes ([Q27.20](#q27-20), [Exercise 27.3](#ex27-3)). `httpResource` re-requests when its params change back ([17 §6](17-signals.md#6-resources-async-data-as-signals)), so a cache sits in front of it, not inside. The browser cache needs no code and survives reloads, within what headers allow ([09 §4](09-web-networking-storage-security.md#4-http-caching)). The transfer cache skips `Authorization`, `Cookie` and credentialed requests and is [32](32-ssr-ssg-hydration.md)'s. See [section 6](#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache).
 
 **Follow-ups an interviewer will ask.**
 - *Two layers at once?* Browser cache below, one in-memory layer above; two in-memory layers hide which one answered.
@@ -1813,7 +1813,7 @@ const refreshesItself: HttpInterceptorFn = (req, next) => {
 
 **Short answer (30 seconds).** Bug 1: the refresh POST goes through the same interceptor, so its own 401 triggers another refresh, without end. Bug 2: the refresh is built inside `catchError`, so every failed request starts its own. Fix: a context token the interceptor skips on the refresh request, and one shared refresh in a service.
 
-**Full explanation.** The probe (`Section 7: without the skip check a failing refresh refreshes itself until a guard stops the spec`): each `/auth/refresh` flushed with 401 left another open; after five rounds a sixth was pending and the original request had not settled. The second interceptor had the skip check and still ran three refreshes for three 401s (`Section 7: without single flight each concurrent 401 starts its own refresh`). A URL match is weaker than the context token: it lives apart from the request. With both fixes a failing refresh errored the waiting requests with `status` 401 and `url` `/auth/refresh`, logged out once and left nothing open (`Section 7: a failed refresh ends the session without a loop`). See [section 7](#7-authentication-attaching-tokens-refreshing-on-401-with-a-request-queue-and-avoiding-refresh-loops) and [Exercise 27.4](#ex27-4).
+**Full explanation.** The test (`Section 7: without the skip check a failing refresh refreshes itself until a guard stops the spec`): each `/auth/refresh` flushed with 401 left another open; after five rounds a sixth was pending and the original request had not settled. The second interceptor had the skip check and still ran three refreshes for three 401s (`Section 7: without single flight each concurrent 401 starts its own refresh`). A URL match is weaker than the context token: it lives apart from the request. With both fixes a failing refresh errored the waiting requests with `status` 401 and `url` `/auth/refresh`, logged out once and left nothing open (`Section 7: a failed refresh ends the session without a loop`). See [section 7](#7-authentication-attaching-tokens-refreshing-on-401-with-a-request-queue-and-avoiding-refresh-loops) and [Exercise 27.4](#ex27-4).
 
 **Follow-ups an interviewer will ask.**
 - *How do you prove the loop without a hanging test?* Flush the pending refresh in a bounded loop and assert the count.
@@ -1850,15 +1850,15 @@ for (const url of sent) {
 
 **Short answer (30 seconds).**
 
-| Request | Header |
-|---|---|
-| `POST /api/a` | `abc` |
-| `GET /api/b` | none |
-| `HEAD /api/h` | none |
-| `PUT` to `other.example` (absolute) | none |
-| `POST` to `_empty_/api/d` (page origin, absolute) | `abc` |
-| `DELETE //other.example/api/e` | none |
-| `POST /api/f` with its own header | `mine` |
+```text
+POST /api/a -> abc
+GET /api/b -> none
+HEAD /api/h -> none
+PUT https://other.example/api/c -> none
+POST http://_empty_/api/d -> abc
+DELETE //other.example/api/e -> none
+POST /api/f -> mine
+```
 
 Three gates: not GET or HEAD, same origin as the page, header absent.
 
@@ -1943,7 +1943,7 @@ console.log(`testing backend: ${events.join(', ')}`);
 
 **Short answer (30 seconds).** `fetch backend: status=0, error=NG02824: The FetchBackend does not support upload progress reporting., fetch calls=0` and `testing backend: Sent, UploadProgress 5/10, Response`. The fetch backend refuses the option before calling `fetch`; the testing backend forwards the events the test emits.
 
-**Full explanation.** Asserted by `Q27.28 reportUploadProgress on the fetch backend and on a testing backend with withXhr`. `FetchBackend.createRequestInit` throws a runtime error with code 2824 when `reportUploadProgress` is set ([section 9](#9-progress-events-reportuploadprogress-reportdownloadprogress-and-why-upload-progress-needs-xhr)); the throw lands in the request's Observable, so the subscriber gets an `HttpErrorResponse` with `status` 0 and that error as `error` (its `message`, `Http failure response for (unknown url): undefined undefined`, is the constructor's text for a response without a URL, [Q27.15](#q27-15)). The second half proves the event pipeline, not XHR: `provideHttpClientTesting()` replaces the backend `withXhr()` chose, and `TestRequest.event` pushes the event to the subscriber. Read, not run: `HttpXhrBackend` registers `xhr.upload`'s `progress` listener when the option is set and the body is not null.
+**Full explanation.** Asserted by `Q27.28 reportUploadProgress on the fetch backend and on a testing backend with withXhr`. `FetchBackend.createRequestInit` (private) throws a runtime error with code 2824 when `reportUploadProgress` is set ([section 9](#9-progress-events-reportuploadprogress-reportdownloadprogress-and-why-upload-progress-needs-xhr)); the throw lands in the request's Observable, so the subscriber gets an `HttpErrorResponse` with `status` 0 and that error as `error` (its `message`, `Http failure response for (unknown url): undefined undefined`, is the constructor's text for a response without a URL, [Q27.15](#q27-15)). The second half proves the event pipeline, not XHR: `provideHttpClientTesting()` replaces the backend `withXhr()` chose, and `TestRequest.event` pushes the event to the subscriber. Read, not run: `HttpXhrBackend` registers `xhr.upload`'s `progress` listener when the option is set and the body is not null.
 
 **Follow-ups an interviewer will ask.**
 - *And `reportProgress: true` on fetch?* No throw: the check tests only the new flag; it reports download progress only.
@@ -1973,9 +1973,9 @@ The split came with the fetch default: one flag could no longer promise both dir
 
 **Follow-ups an interviewer will ask.**
 - *Why not emit upload progress from fetch?* The platform API has no upload progress event; the framework refuses rather than fake it.
-- *Cost of asking for both?* Each event runs change detection; request only the direction you show.
+- *Cost of asking for both?* Under zone.js each event runs change detection (the typings, [21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)); request only the direction you show.
 
-**Trap to avoid.** Switching the whole app to `withXhr()` for one upload: use XHR where uploads with progress live, or accept no bar.
+**Trap to avoid.** Switching the whole app to `withXhr()` for one upload: give the upload route a child `provideHttpClient(withXhr(), withInterceptors([...]))` that lists the root interceptors again, because `withRequestsMadeViaParent()` cannot be combined with `withXhr()` (`Section 2: contradictory features throw in dev mode`) and a child ignores the parent's interceptors (`Section 2: a child provideHttpClient ignores the parent's interceptors`). Or accept no bar.
 
 </details>
 
@@ -2045,7 +2045,7 @@ console.log(`flushed: ${user.status()}, value=${JSON.stringify(user.value())}`);
 - *Is the generic type checked?* No, it is an assertion ([Q27.09](#q27-09)); `parse` is where the check goes.
 - *And `rxResource`?* Same shape, a loader returning an Observable ([Q27.32](#q27-32)).
 
-**Trap to avoid.** Expecting `httpResource` to cache by params: a change back to old params loads again; caching is [Q27.21](#q27-21)'s.
+**Trap to avoid.** Expecting `httpResource` to cache by params: a change back to old params loads again ([17 §6](17-signals.md#6-resources-async-data-as-signals)); caching is [Q27.21](#q27-21)'s.
 
 </details>
 
@@ -2100,7 +2100,7 @@ vi.advanceTimersByTime(500); // failure is still undefined
 
 **Short answer (30 seconds).** It replaces one token, `HttpBackend`, with an in-memory backend that holds each request open for the controller; the client, interceptors, XSRF and `httpResource` run for real. `expectOne` (URL, `{ method, url }` or a predicate) finds a request; `flush(body, { status, headers })`, `error(ProgressEvent, { status })` or `event(...)` answers it. `verify()` throws for every request still open; `whenStable()` is what an `httpResource` test awaits after a flush.
 
-**Full explanation.** The backend's `handle` records the request and marks it `cancelled` on unsubscribe ([section 11](#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace)). `expectOne` throws when the count is not one, naming the criteria and the requests received; `match` returns the matching requests and removes them from the open list ([Q27.30](#q27-30)); `expectNone` asserts absence ([Q27.11](#q27-11)). `verify({ ignoreCancelled: true })` skips cancelled ones. The testing providers set the internal stability flag to `false`, so an open test request does not hold `whenStable()`; the resource still settles asynchronously, so its value lands after `whenStable()`, not after `TestBed.tick()` (`Section 11: an httpResource value lands after whenStable, not after tick`). Component tests over this seam are [29](29-testing-angular.md)'s.
+**Full explanation.** The backend's `handle` records the request and marks it `cancelled` on unsubscribe ([section 11](#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace)). `expectOne` throws when the count is not one, naming the criteria and the requests received; `match` returns the matching requests and removes them from the open list ([Q27.30](#q27-30)); `expectNone` asserts absence (`Section 4: an interceptor can answer without reaching the backend`). `verify({ ignoreCancelled: true })` skips cancelled ones. The testing providers set the internal stability flag to `false`, so an open test request does not hold `whenStable()`; the resource still settles asynchronously, so its value lands after `whenStable()`, not after `TestBed.tick()` (`Section 11: an httpResource value lands after whenStable, not after tick`). Component tests over this seam are [29](29-testing-angular.md)'s.
 
 **Follow-ups an interviewer will ask.**
 - *Where does `verify()` go?* In `afterEach`, so an unanswered request fails its test.
@@ -2243,7 +2243,7 @@ return next(req).pipe(
 
 **Interviewer follow-ups.**
 - *"What about `Retry-After`?"* Use the header of the `HttpErrorResponse` as the delay when present; the lab does not test it (design, not run).
-- *"Where does this sit among the interceptors?"* Inside auth, so a retried request carries the current token ([Q27.14](#q27-14)).
+- *"Where does this sit among the interceptors?"* Outside auth, listed before it, so each attempt passes through auth again and carries the current token ([Q27.14](#q27-14)).
 - *"Why is a PUT retried but not a POST?"* A repeated PUT leaves the same state; a repeated POST can create twice, unless an idempotency key guards it ([Q27.18](#q27-18)).
 
 **Tests:** [retry.spec.ts](../labs/angular/src/app/modules/27-http-client/exercise-2-retry/retry.spec.ts); the code is [retry-config.ts](../labs/angular/src/app/modules/27-http-client/exercise-2-retry/retry-config.ts) and [retry.interceptor.ts](../labs/angular/src/app/modules/27-http-client/exercise-2-retry/retry.interceptor.ts).
@@ -2298,7 +2298,7 @@ const entry: Entry = {
 this.entries.set(key, entry);
 ```
 
-**How each criterion is met.** Each criterion titles one `it` in `describe('E27.3 …')`; the test sets `CACHE_CLOCK`.
+**How each criterion is met.** Each criterion titles one `it` in `describe.each` named `E27.3 …`; the test sets `CACHE_CLOCK`.
 - Within the time to live: at clock 999 with a TTL of 1000 `expectNone` passed and both subscribers received `{ v: 1 }`.
 - After expiry: at clock 1000 a second request existed and the bodies were `{ v: 1 }` then `{ v: 2 }`.
 - Concurrent: `expectOne` found one request and both subscribers received `{ v: 1 }`.
@@ -2306,7 +2306,7 @@ this.entries.set(key, entry);
 - `Authorization`: two GETs with different tokens each reached the backend.
 - `NO_CACHE`: two flagged GETs each reached the backend.
 
-**Alternative approach:** store only responses and track in-flight calls in a second `Map` of pending Observables. **Trade-offs:** two maps must be cleaned together on error and on invalidation, which the single entry avoids; the spec runs only the single entry.
+**Alternative approach:** `TwoMapHttpCache` stores only responses and tracks in-flight calls in a second `Map` of pending Observables. **Trade-offs:** the spec runs every criterion against both caches; both pass. Two maps must be cleaned together on error and on invalidation, which the single entry avoids.
 
 **Interviewer follow-ups.**
 - *"What if every subscriber leaves before the response?"* With `refCount: false` the request continues and its response is cached; `refCount: true` would abort it and needs a `finalize` (design, not run).
@@ -2314,6 +2314,9 @@ this.entries.set(key, entry);
 - *"How would you serve stale data while refetching?"* Return the expired entry and refetch behind it (design, not run).
 
 **Tests:** [cache.spec.ts](../labs/angular/src/app/modules/27-http-client/exercise-3-cache/cache.spec.ts); the code is [http-cache.ts](../labs/angular/src/app/modules/27-http-client/exercise-3-cache/http-cache.ts) and [cache.interceptor.ts](../labs/angular/src/app/modules/27-http-client/exercise-3-cache/cache.interceptor.ts).
+
+</details>
+
 
 <a id="ex27-4"></a>
 ### Exercise 27.4 · Refresh on 401: one refresh for many requests and no refresh loop
@@ -2415,11 +2418,17 @@ The approach: the service owns the event-to-state mapping; the panel owns the su
 
 ```ts
 // Excerpt of labs/angular/src/app/modules/27-http-client/exercise-5-upload/upload.service.ts
-  return Math.floor((loaded * 100) / total);
+  protected send(file: Blob): Observable<HttpEvent<{ id: string }>> {
     return this.http.post<{ id: string }>(UPLOAD_URL, file, { reportUploadProgress: true, observe: 'events' });
+  }
+
+  private toState(event: HttpEvent<{ id: string }>): UploadState | null {
     if (event.type === HttpEventType.UploadProgress && event.total) {
       return { kind: 'progress', percent: percentOf(event.loaded, event.total) };
     }
+    if (event.type === HttpEventType.Response && event.body) return { kind: 'done', id: event.body.id };
+    return null;
+  }
 ```
 
 **How each criterion is met.** Each criterion titles one `it` in `describe.each` named `E27.5 …`. Three probes were run and restored: `Math.round` failed the percentage test, dropping `reportUploadProgress` failed the request and percentage tests, and a `cancel()` without `unsubscribe` failed the cancel test.
@@ -2479,17 +2488,33 @@ The approach: the resource owns the request lifecycle, the template reads its si
 
 ```ts
 // Excerpt of labs/angular/src/app/modules/27-http-client/exercise-6-search-page/search-page.ts
-    } @else if (results.isLoading()) {
-      <p class="loading">Searching…</p>
-    } @else if (results.status() === 'error') {
-      <p class="error">{{ errorMessage() }}</p>
+  /** Eager: every change of `query` re-runs the request function; a pending request is cancelled first. */
   readonly results = httpResource<SearchResult[]>(
     () => (this.tooShort() ? undefined : { url: SEARCH_URL, params: { q: this.query().trim() } }),
     { defaultValue: [], parse: parseSearchResults },
   );
 ```
 
-**How each criterion is met.** Each criterion titles one `it` in `describe.each` named `E27.6 …`, run against both templates. After typing, the spec calls `TestBed.tick()`; it awaits `whenStable()` only after a `flush`, because a loading resource holds a `PendingTasks` task (`ResourceImpl`, `fesm2022/_resource-chunk.mjs`, `@angular/core` 22.2.1; read, not run). Two probes were restored: a request function that never returns `undefined` failed every test; a template printing `error().message` failed the error test.
+```ts
+// Excerpt of labs/angular/src/app/modules/27-http-client/exercise-6-search-page/search-page.ts
+    @if (tooShort()) {
+      <p class="hint">Type at least {{ minLength }} characters</p>
+    } @else if (results.isLoading()) {
+      <p class="loading">Searching…</p>
+    } @else if (results.status() === 'error') {
+      <p class="error">{{ errorMessage() }}</p>
+    } @else if (results.value().length === 0) {
+      <p class="empty">No results for "{{ query() }}"</p>
+    } @else {
+      <ul class="results">
+        @for (result of results.value(); track result.id) {
+          <li>{{ result.title }}</li>
+        }
+      </ul>
+    }
+```
+
+**How each criterion is met.** Each criterion titles one `it` in `describe.each` named `E27.6 …`, run against both templates. After typing, the spec calls `TestBed.tick()`; it awaits `whenStable()` only after a `flush`, because a loading resource holds a `PendingTasks` task (`ResourceImpl`, internal, `fesm2022/_resource-chunk.mjs`, `@angular/core` 22.2.1; read, not run). Two probes were restored: a request function that never returns `undefined` failed every test; a template printing `error().message` failed the error test.
 - Hint: before typing and after `n`, "Type at least 2 characters" and no request.
 - One request: `ng` left one `GET`, `urlWithParams` `/api/search?q=ng`.
 - Loading: "Searching…" while open; gone after the flush and `whenStable()`.
@@ -2551,5 +2576,5 @@ Only on `reload()`; a params change resets `value()`.
 
 - **Builds on:** [09 §2](09-web-networking-storage-security.md#2-fetch-xhr-and-the-request-lifecycle) (`fetch`, which the browser still runs), [16 §7](16-dependency-injection.md#7-injectiontoken-multi-providers-environment-providers-and-initializers) (multi providers behind the interceptor chain), [22 §3](22-rxjs-foundations.md#3-cold-and-hot-unicast-and-multicast) (cold Observables), [23 §4](23-rxjs-in-depth.md#4-retrying-and-repeating-retry-with-backoff-and-repeat) (retry with backoff) and [17 §6](17-signals.md#6-resources-async-data-as-signals) (`resource`, behind `httpResource`).
 - **Read next:** [28. State management](28-state-management.md) (response data), [29. Testing Angular](29-testing-angular.md) (the testing seam), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md) (the transfer cache), [33. Security](33-security.md) (token storage), [41. Full-stack API contracts](41-fullstack-api-contracts.md) (error bodies) and [42. Full-stack authentication](42-fullstack-authentication.md) (issuing tokens).
-- **Uses these ideas later:** [28](28-state-management.md), [29](29-testing-angular.md), [32](32-ssr-ssg-hydration.md), [33](33-security.md), [41](41-fullstack-api-contracts.md) and [42](42-fullstack-authentication.md), all file-level and not yet written.
+- **Uses these ideas later:** [28](28-state-management.md) (server data as state), [29](29-testing-angular.md) (HTTP specs), [32](32-ssr-ssg-hydration.md) (the transfer cache), [33](33-security.md) (CSRF and tokens), [37](37-elements-pwa-errors-ecosystem.md) (global error handling), [41](41-fullstack-api-contracts.md) (error bodies), [42](42-fullstack-authentication.md) (issuing tokens) and [43](43-fullstack-realtime.md) (realtime beside HTTP), all file-level and not yet written.
 - **Comparisons:** [17 §6](17-signals.md#6-resources-async-data-as-signals) sets `resource` beside `httpResource`, and [section 1](#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform) sets `HttpClient` beside `fetch`.

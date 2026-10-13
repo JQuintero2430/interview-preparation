@@ -1233,7 +1233,7 @@ try {
 
 **Follow-ups an interviewer will ask.**
 - *How do you send a class instance to a Web Worker?* Send plain data (a DTO, a data transfer object: plain fields, no methods), and rebuild the instance on the other side with a factory such as `Money.fromJSON(data)`.
-- *Does the same apply to Angular's `TransferState` or to HTTP responses?* Yes in spirit: data crosses as JSON, so what arrives are plain objects, never class instances ([Module 27](27-http-client.md)).
+- *Does the same apply to Angular's `TransferState` or to HTTP responses?* Yes in spirit: data crosses as JSON, so what arrives are plain objects, never class instances ([Module 27](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)).
 
 **Trap to avoid.** Trusting `copy.cents` because TypeScript accepts it.
 

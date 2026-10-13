@@ -1,6 +1,6 @@
 import { HttpEvent, HttpResponse } from '@angular/common/http';
 import { Injectable, InjectionToken, inject } from '@angular/core';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { Observable, finalize, of, shareReplay, tap } from 'rxjs';
 
 /** The clock the cache reads, in milliseconds; a test replaces it, so no test waits for real time. */
 export const CACHE_CLOCK = new InjectionToken<() => number>('CACHE_CLOCK', {
@@ -52,5 +52,52 @@ export class HttpCache {
 
   private drop(key: string, entry: Entry): void {
     if (this.entries.get(key) === entry) this.entries.delete(key);
+  }
+}
+
+interface Stored {
+  readonly response: HttpResponse<unknown>;
+  readonly expiresAt: number;
+}
+
+/** The alternative: responses and in-flight calls live in two maps, which every path must keep in step. */
+@Injectable({ providedIn: 'root' })
+export class TwoMapHttpCache implements Pick<HttpCache, keyof HttpCache> {
+  private readonly clock = inject(CACHE_CLOCK);
+  private readonly responses = new Map<string, Stored>();
+  private readonly pending = new Map<string, Observable<HttpEvent<unknown>>>();
+
+  lookup(key: string, load: () => Observable<HttpEvent<unknown>>, ttlMs: number): Observable<HttpEvent<unknown>> {
+    const stored = this.responses.get(key);
+    if (stored && this.clock() < stored.expiresAt) return of(stored.response);
+    const inFlight = this.pending.get(key);
+    if (inFlight) return inFlight;
+
+    const request$: Observable<HttpEvent<unknown>> = load().pipe(
+      tap((event) => {
+        // A call that `invalidate` dropped while in flight must not store its response.
+        if (event instanceof HttpResponse && event.status === 200 && this.pending.get(key) === request$) {
+          this.responses.set(key, { response: event, expiresAt: this.clock() + ttlMs });
+        }
+      }),
+      finalize(() => {
+        if (this.pending.get(key) === request$) this.pending.delete(key);
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+    this.pending.set(key, request$);
+    return request$;
+  }
+
+  /** Drops the stored responses and the in-flight calls whose key starts with `prefix`. */
+  invalidate(prefix: string): void {
+    dropByPrefix(this.responses, prefix);
+    dropByPrefix(this.pending, prefix);
+  }
+}
+
+function dropByPrefix(map: Map<string, unknown>, prefix: string): void {
+  for (const key of [...map.keys()]) {
+    if (key.startsWith(prefix)) map.delete(key);
   }
 }

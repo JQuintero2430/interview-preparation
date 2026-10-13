@@ -477,7 +477,7 @@ A username check fires a request per keystroke, even for `'a'`, which `minLength
 
 ### Mental model
 
-An **async rule** is a validation whose verdict arrives later. `validateAsync(path, options)` attaches a `resource` ([17 §6](17-signals.md#6-resources-async-data-as-signals)) to a field: `params` read the field, `factory` builds the resource from them, `onSuccess` maps its result to errors and `onError` maps a failure. While the resource loads the field is **pending**: `pending()` is `true` and both `valid()` and `invalid()` are `false`. `validateHttp` is the same rule with `httpResource` as the factory; its `request` returns a URL or a request object (`HttpClient` is [module 27](27-http-client.md)'s).
+An **async rule** is a validation whose verdict arrives later. `validateAsync(path, options)` attaches a `resource` ([17 §6](17-signals.md#6-resources-async-data-as-signals)) to a field: `params` read the field, `factory` builds the resource from them, `onSuccess` maps its result to errors and `onError` maps a failure. While the resource loads the field is **pending**: `pending()` is `true` and both `valid()` and `invalid()` are `false`. `validateHttp` is the same rule with `httpResource` as the factory; its `request` returns a URL or a request object (`HttpClient` is [module 27](27-http-client.md#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)'s).
 
 The `debounce(path, config)` rule delays **model writes from the UI**. `config` is a number of milliseconds, `'blur'` or a **`Debouncer`**, a function `(context, abortSignal)` that returns a promise to hold the write or nothing to apply it at once. The `debounce` option of `validateAsync` delays **the params** of that one validator instead.
 
@@ -1208,7 +1208,7 @@ form(signal({ s: '5', n: 5 as number | null }), (p) => {
 
 **Follow-ups an interviewer will ask.**
 - *Where do the issues land?* As errors of kind `standardSchema` on the field each `path` names (`Section 4: validateStandardSchema maps issues to field errors`).
-- *Can the client check replace the server?* No: the server validates again and returns its errors through submission ([27](27-http-client.md), [section 7](#7-submission-submit-formroot-submitting-and-server-errors)).
+- *Can the client check replace the server?* No: the server validates again and returns its errors through submission ([27](27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter), [section 7](#7-submission-submit-formroot-submitting-and-server-errors)).
 
 **Trap to avoid.** Duplicating one rule in both places: two messages for one failure.
 
@@ -1461,7 +1461,7 @@ validateAsync(p.user, {
 
 **Short answer (30 seconds).** Put `required` and `minLength` first: no request runs while they fail. Add `validateAsync` with the `debounce` option for one request per pause. Show `pending()` in the template, since `invalid()` is `false` meanwhile. Give `onError` its own kind, `unavailable`, so a failed request ends pending without looking "taken".
 
-**Full explanation.** Each part is a test of the exercise (`E26.3 …`): no request under three characters, one request for three quick changes, "checking…" while pending, `taken` and `unavailable` errors ([Exercise 26.3](#ex26-3)); the mechanism is [Q26.18](#q26-18). `validateHttp` fits a plain request: with `provideHttpClient()` and `provideHttpClientTesting()` the field stayed pending until the controller flushed `{ taken: true }`, then held one `taken` error (`Section 6: validateHttp maps the response to an error`; `HttpClient` is [module 27](27-http-client.md)'s). The reactive pause lives inside the validator ([Q25.18](25-forms-reactive-and-template-driven.md#q25-18)). By the docs (read, not run) `submit()` does not wait for a pending field, so gate the button on `pending()` or set `ignoreValidators` ([Q26.23](#q26-23)). See [section 6](#6-async-validation-and-debounce-validateasync-validatehttp-pending-and-cancellation).
+**Full explanation.** Each part is a test of the exercise (`E26.3 …`): no request under three characters, one request for three quick changes, "checking…" while pending, `taken` and `unavailable` errors ([Exercise 26.3](#ex26-3)); the mechanism is [Q26.18](#q26-18). `validateHttp` fits a plain request: with `provideHttpClient()` and `provideHttpClientTesting()` the field stayed pending until the controller flushed `{ taken: true }`, then held one `taken` error (`Section 6: validateHttp maps the response to an error`; `HttpClient` is [module 27](27-http-client.md#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)'s). The reactive pause lives inside the validator ([Q25.18](25-forms-reactive-and-template-driven.md#q25-18)). By the docs (read, not run) `submit()` does not wait for a pending field, so gate the button on `pending()` or set `ignoreValidators` ([Q26.23](#q26-23)). See [section 6](#6-async-validation-and-debounce-validateasync-validatehttp-pending-and-cancellation).
 
 **Follow-ups an interviewer will ask.**
 - *Taken between check and submit?* The action returns a targeted error (`Section 7: an action's error lands on the targeted field`).
@@ -1865,7 +1865,7 @@ applyWhen(
 
 **Problem.** A sign-up page checks whether a username is free. A request per keystroke is wasteful, and it makes no sense for `'a'`. Keep the fake service in `UsernameApi` (`username-api.ts`: a call log and a promise-based `isTaken`), the rules in an exported `usernameSchema` (`username-schema.ts`) and build `lab-m26-username-form` ([section 6](#6-async-validation-and-debounce-validateasync-validatehttp-pending-and-cancellation)).
 
-**Constraints.** `required` and `minLength(3)` come first. `validateAsync` runs a `resource` whose loader calls `UsernameApi`, with its `debounce` option. A "checking…" text shows while the field is pending. A failing API becomes a `unavailable` error. No `HttpClient` ([module 27](27-http-client.md)). Not covered: submission ([Exercise 26.4](#ex26-4)).
+**Constraints.** `required` and `minLength(3)` come first. `validateAsync` runs a `resource` whose loader calls `UsernameApi`, with its `debounce` option. A "checking…" text shows while the field is pending. A failing API becomes a `unavailable` error. No `HttpClient` ([module 27](27-http-client.md#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)). Not covered: submission ([Exercise 26.4](#ex26-4)).
 
 **Acceptance criteria.**
 - [ ] no request runs while the username is shorter than 3 characters

@@ -47,6 +47,6 @@ export class RequestUploadService extends UploadService {
   protected override send(file: Blob): Observable<HttpEvent<{ id: string }>> {
     return this.http.request<{ id: string }>(
       new HttpRequest('POST', UPLOAD_URL, file, { reportUploadProgress: true }),
-    ) as Observable<HttpEvent<{ id: string }>>;
+    );
   }
 }

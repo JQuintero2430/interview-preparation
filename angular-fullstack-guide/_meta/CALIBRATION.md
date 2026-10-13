@@ -5,6 +5,7 @@ Measured usage cost per task size, in percentage points of the rate-limit window
 | Harness | Model | S | M | L | Samples (sessions) | Last updated |
 |---|---|---|---|---|---|---|
 | Claude Code CLI | claude-opus-5-5 | 0.55 | 1.36 | 2.73 | 37 | 2026-10-12 |
+| Claude Code (cloud) | claude-opus-5-5 | 0.75 | 1.88 | 3.75 | 2 | 2026-10-13 |
 
 ## Raw samples
 
@@ -51,3 +52,5 @@ Measured usage cost per task size, in percentage points of the rate-limit window
 | S20261011-2000-claudecode | S20261011-2218-claudecode | 22:50 (same window) | 17% → 22% (5 points) | 4 M = 20 default points (Opus main dispatching, Sonnet writer subagents) | 5 / 20 = 0.250 × default: S 0.50, M 1.25, L 2.50 (row kept at 0.55 / 1.36 / 2.73: within noise, conservative) |
 | S20261012-1040-claudecode | S20261012-1123-claudecode | 15:20 (same window) | 2% → 3% (1 point) | 2 M = 10 default points (Opus main dispatching, Sonnet writer subagents) | 1 / 10 = 0.100 × default: S 0.20, M 0.50, L 1.00 (row kept at 0.55 / 1.36 / 2.73: 1-point resolution, conservative) |
 | S20261012-1123-claudecode | S20261012-1139-claudecode | 15:20 (same window) | 3% → 5% (2 points) | 4 M = 20 default points (Opus main dispatching, Sonnet writer subagents) | 2 / 20 = 0.100 × default: S 0.20, M 0.50, L 1.00 (row kept at 0.55 / 1.36 / 2.73: 1-point resolution, conservative; U read from the all-models window while the next session ran on the Fable bucket) |
+| S20261013-0021-claudecloud | S20261013-0112-claudecloud | 23:50 (same window) | 0% → 7% (7 points) | 1 M = 5 default points (Opus main dispatching, Sonnet closer subagent; fresh container: nvm Node 24 install, two `npm ci`, full `ng test` twice, mermaid install) | 7 / 5 = 1.400 × default: S 2.80, M 7.00, L 14.00 (new cloud row seeded with this one sample; likely inflated by container setup and 1-point resolution, so it is conservative) |
+| S20261013-0115-claudecloud | S20261013-0229-claudecloud | 23:50 → 00:00 (same window, 10-minute drift as on 2026-10-10) | 7% → 18% (11 points) | 4 S + 5 M + 1 L = 43 default points (Opus main dispatching; Sonnet writers/fixers, Opus reviewer, planner and one fixer) | 11 / 43 = 0.256 × default: S 0.51, M 1.28, L 2.56 (cloud row set to the pooled two-sample ratio (7 + 11) / (5 + 43) = 0.375: S 0.75, M 1.88, L 3.75; conservative, the first sample was inflated by container setup) |

@@ -456,7 +456,7 @@ What to notice: `reloading` keeps the old value visible, while `loading` (new pa
 - **`defaultValue` is shown during `loading`** for new params, so a list can flash empty between searches. `reloading` keeps the previous value.
 - `set`/`update` write a local value (status `local`). `reload()` re-runs the loader with the same params and returns `true`. It is a no-op that returns `false` while the resource is `idle` or already `loading` (verified: Q17.22's test). `destroy()` aborts and returns to `idle`. `snapshot()` gives `{ status, value | error }` as one object.
 - `rxResource({ params, stream })` (from `@angular/core/rxjs-interop`) uses an Observable-returning `stream`. Unsubscribing replaces the abort signal.
-- `httpResource` builds the request from signals on top of `HttpClient`. It is taught in [Module 27](27-http-client.md).
+- `httpResource` builds the request from signals on top of `HttpClient`. It is taught in [Module 27](27-http-client.md#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient).
 
 `resource` is designed for **reads**. Its own documentation warns against using it for mutations: a param change aborts the in-flight request, and an aborted `POST` may or may not have reached the server ([Q17.25](#q17-25)).
 
@@ -532,7 +532,7 @@ readonly users$ = this.query$.pipe(
 
 - *"`defaultValue` means `value()` never throws."* It throws in the `error` state regardless.
 - *"`reload()` and changing params are the same."* `reload()` keeps the value (status `reloading`). New params clear it to the default (status `loading`).
-- *"A resource caches results per params."* It does not. Changing back to old params loads again. Caching is a separate concern ([Module 27](27-http-client.md)).
+- *"A resource caches results per params."* It does not. Changing back to old params loads again. Caching is a separate concern ([Module 27](27-http-client.md#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)).
 
 ---
 
@@ -1530,7 +1530,7 @@ async save(order: Order): Promise<void> {
 
 **Short answer (30 seconds).** They expose the same `Resource` interface (`value`, `status`, `error`, `reload`…) and differ in where the data comes from. `resource` takes a Promise-returning `loader` (or a signal `stream`). `rxResource` takes an Observable-returning `stream`, and cancellation means unsubscribing. `httpResource` builds an HTTP GET (or other request) from signals on top of `HttpClient`, so interceptors, the testing utilities and SSR transfer cache all apply. All three are stable since v22.0.
 
-**Full explanation.** Choose by the source. `fetch` or any Promise API: `resource`, and pass the `abortSignal`. An existing Observable service, or a stream with several values: `rxResource`. Plain HTTP reads in an `HttpClient` app: `httpResource`, which has the least code and benefits from interceptors such as auth and retry. It is covered in [Module 27](27-http-client.md). All of them are for reads.
+**Full explanation.** Choose by the source. `fetch` or any Promise API: `resource`, and pass the `abortSignal`. An existing Observable service, or a stream with several values: `rxResource`. Plain HTTP reads in an `HttpClient` app: `httpResource`, which has the least code and benefits from interceptors such as auth and retry. It is covered in [Module 27](27-http-client.md#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient). All of them are for reads.
 
 **Follow-ups an interviewer will ask.**
 - *Can a resource emit several values?* Yes, with `stream` (a signal of `{ value } | { error }` items), or `rxResource` with an Observable that emits more than once.
@@ -2269,7 +2269,7 @@ retry(): void {
 
 **How each criterion is met.** Idle for short queries: `toSearchTerm` returns `undefined` (tests "maps short queries…" and "stays idle…"). Loading then resolved: the resource lifecycle ("loads and then exposes results"). Abort: a params change aborts the previous `abortSignal` ("aborts the stale request…"). Late responses: the resource discards results from superseded loads ("ignores a late response…"). Errors: the `hasValue()` guard and `errorMessage` ("reports errors without throwing…"). Retry: `reload()` ("retries with reload()").
 
-**Alternative approach:** an RxJS pipeline, `toObservable(query).pipe(debounceTime(300), map(toSearchTerm), filter(Boolean), switchMap((t) => api.search$(t)))`, converted with `toSignal`. It adds a debounce, which this solution lacks, but status tracking (loading, error) must be built by hand. **Trade-offs:** the signals-versus-RxJS decision for typeaheads is covered in [Module 23](23-rxjs-in-depth.md#q23-28). With `httpResource` the adapter disappears entirely ([Module 27](27-http-client.md)).
+**Alternative approach:** an RxJS pipeline, `toObservable(query).pipe(debounceTime(300), map(toSearchTerm), filter(Boolean), switchMap((t) => api.search$(t)))`, converted with `toSignal`. It adds a debounce, which this solution lacks, but status tracking (loading, error) must be built by hand. **Trade-offs:** the signals-versus-RxJS decision for typeaheads is covered in [Module 23](23-rxjs-in-depth.md#q23-28). With `httpResource` the adapter disappears entirely ([Module 27](27-http-client.md#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient)).
 
 **Interviewer follow-ups.**
 - *"Add the missing debounce without RxJS."* `debounced(() => this.query(), 300)` `[Experimental since v22.0]` returns a `Resource` whose value follows the query after the wait; use `params: () => toSearchTerm(this.#debouncedQuery.value())`. In the 22.2.1 source its value starts as the query's current value and keeps the previous value until the wait elapses (a `linkedSignal` whose computation keeps the previous state), so the search resource does not see every keystroke. It is experimental, so pin the version and expect API changes.
