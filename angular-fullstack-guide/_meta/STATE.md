@@ -4,7 +4,7 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 
 - **Phase:** ROADMAP Phase B: modules 05–26 written, closed, reviewed and fixed (05–09 on 2026-10-06, 10–13 on 2026-10-07, 14–16 and 18 on 2026-10-08, 19–22 on 2026-10-09, 23–24 on 2026-10-10, 25–26 on 2026-10-11). Phase A done (01–04 and 17 reviewed and fixed).
 - **Current module:** 27 (`http-client`, ROADMAP row 22) planned by PLAN-M27 (2026-10-11): 11 sections, 34 questions, 6 exercises; plan in `_meta/modules/M27.md`, skeleton `modules/27-http-client.md` (1,973 words); CLOSE limit 22,470, ceiling 23,370. Module 26 done (19,011 prose words, reviewed and fixed).
-- **In progress:** CLOSE-M27 (S20261012-1139-claudecode, 2026-10-12 12:28)
+- **In progress:** none
 - **Last finished task:** QB-M27-07 (S20261012-1139-claudecode, claude-fable-5-1, main session): Q27.31-Q27.34 (no Output; bank complete at 34, D3 mix Output 12, Concept 8, Trade-off 4, Bug hunt 4, Difference 3, Design 3); module at 22,064 prose words (+912 against 904, within 5%); module-27 `ng test` 178/178 (18 files, unchanged)
 - **Next task:** CLOSE-M27 (then REVIEW-M27 in another session); HOUSE-13 awaits Jorge
 - **Modules done:** 26 / 47 reviewed and fixed (01–26).
