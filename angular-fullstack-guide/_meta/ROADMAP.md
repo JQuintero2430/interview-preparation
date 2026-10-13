@@ -34,8 +34,8 @@ Source: SYLLABUS §6. The parallel batches are dissolved: one module at a time, 
 | 19 | 24 `routing` | D | NG | done (CLOSE-M24, REVIEW-M24, FIX-M24 all done 2026-10-10; 21,780 prose words) |
 | 20 | 25 `forms-reactive-and-template-driven` | D | NG | done (CLOSE-M25, REVIEW-M25, FIX-M25 all done 2026-10-11; 21,894 prose words) |
 | 21 | 26 `signal-forms` | D | NG | done (CLOSE-M26, REVIEW-M26, FIX-M26-01..04 all done 2026-10-11; 19,011 prose words, 28 Q, 5 Ex) |
-| 22 | 27 `http-client` | D | NG | planned (PLAN-M27 done 2026-10-11; 11 sections, 34 Q, 6 Ex; CLOSE limit 22,470) |
-| 23 | 28 `state-management` | D | NG | not started |
+| 22 | 27 `http-client` | D | NG | done (CLOSE-M27, REVIEW-M27, FIX-M27-01..04 all done 2026-10-13; 22,599 prose words, 34 Q, 6 Ex) |
+| 23 | 28 `state-management` | D | NG | closed (CLOSE-M28 done 2026-10-13; 22,438 prose words, 34 Q, 5 Ex; REVIEW-M28 pending) |
 | 24 | 29 `testing-angular` | D | NG | not started |
 | 25 | 30 `e2e-and-testing-strategy` | D | — | not started (Playwright: Chromium only) |
 | 26 | 31 `performance` | D | NG | not started |

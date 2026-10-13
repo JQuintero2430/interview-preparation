@@ -129,7 +129,7 @@ What to notice: two settle points, and a `Response` in hand does not mean the bo
 - **Cancellation** is [04 §7](04-js-async-event-loop.md#7-cancellation-with-abortcontroller). The rejection is `signal.reason`, also mid-body (`Section 2: fetch resolves with the head…`).
 
 > [!NOTE]
-> **Framework vs platform.** These rules are the platform's. `HttpClient` (owner: [27](27-http-client.md)) wraps them and uses `fetch` by default in v22 ([VERSIONS.md](../VERSIONS.md)).
+> **Framework vs platform.** These rules are the platform's. `HttpClient` (owner: [27](27-http-client.md#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform)) wraps them and uses `fetch` by default in v22 ([VERSIONS.md](../VERSIONS.md)).
 
 ### Code
 
@@ -263,7 +263,7 @@ What to notice: freshness decides whether the network is touched, a validator ho
 - **Hashed assets.** A content hash in the file name allows a year-long `max-age` with `immutable`; the HTML naming the files stays `no-cache`.
 
 > [!NOTE]
-> **Framework vs platform.** `ng build` emits hashed file names (observed for the stylesheet in [08 §1](08-browser-rendering-dom-events.md#1-the-critical-rendering-path-from-bytes-to-pixels)); headers come from your server or CDN ([44](44-fullstack-delivery-and-operations.md)), and `HttpClient` has no cache ([27](27-http-client.md)). Caching shapes LCP ([Q08.16](08-browser-rendering-dom-events.md#q08-16)).
+> **Framework vs platform.** `ng build` emits hashed file names (observed for the stylesheet in [08 §1](08-browser-rendering-dom-events.md#1-the-critical-rendering-path-from-bytes-to-pixels)); headers come from your server or CDN ([44](44-fullstack-delivery-and-operations.md)), and `HttpClient` has no cache ([27](27-http-client.md#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)). Caching shapes LCP ([Q08.16](08-browser-rendering-dom-events.md#q08-16)).
 
 ### Code
 
@@ -1385,7 +1385,7 @@ export const fetchJson = async <T = unknown>(url: string, options: FetchJsonOpti
 
 **How each criterion is met.** In `resilient-fetch.test.ts` (local server): a 404 resolves in plain `fetch` and rejects with `HttpError` here. A hung server gives `TimeoutError` after one hit despite `retries: 2`, and a retry after a 503 gets its own timeout. Aborting mid-request rejects with the same reason object, one hit, no sleep. `GET` and `PUT` retry on 503, `POST` and 404 never do, and a refused connection retries. Waits are `[100, 200, 400]` with jitter 1 and `[50, 100]` with 0.5, and an abort inside `sleep` (injected and default) stops the loop.
 
-**Alternative approach:** Angular's `HttpClient` with a `retry` operator in an interceptor ([module 27](27-http-client.md)). **Trade-offs:** less code and a shared policy, against the same need to restrict retries to idempotent calls.
+**Alternative approach:** Angular's `HttpClient` with a `retry` operator in an interceptor ([module 27](27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter)). **Trade-offs:** less code and a shared policy, against the same need to restrict retries to idempotent calls.
 
 **Interviewer follow-ups.**
 - *"How would a `POST` become retryable?"* Send an idempotency key the server deduplicates, because a lost response may hide a request that already ran ([section 1](#1-http-semantics-methods-status-codes-and-headers)).

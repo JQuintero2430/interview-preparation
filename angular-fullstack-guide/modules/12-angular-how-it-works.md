@@ -1633,7 +1633,7 @@ function loadConfig(source: () => Promise<unknown>, fallback?: AppConfig): Promi
 **Alternative approach:** a `ConfigService` that loads in an initializer and holds a `signal<AppConfig | undefined>`. **Trade-offs:** consumers can react to a later reload, but every read must handle `undefined`; the token gives plain, always-loaded values to code that only runs after bootstrap.
 
 **Interviewer follow-ups.**
-- *"Load it over HTTP."* `source()` is called synchronously inside the initializer, so it may call `inject`: `() => firstValueFrom(inject(HttpClient).get('/config.json'))`, with `provideHttpClient()` registered ([module 27](27-http-client.md)).
+- *"Load it over HTTP."* `source()` is called synchronously inside the initializer, so it may call `inject`: `() => firstValueFrom(inject(HttpClient).get('/config.json'))`, with `provideHttpClient()` registered ([module 27](27-http-client.md#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default)).
 - *"Who writes `config.json` per environment?"* The deployment, not the build: a container entrypoint or the web server ([module 44](44-fullstack-delivery-and-operations.md)).
 - *"Two initializers depend on each other."* `runInitializers` starts every initializer, then waits on `Promise.all`, so none waits for another unless it is given the other's promise; chaining both inside one function is simpler ([module 16](16-dependency-injection.md) for multi providers).
 

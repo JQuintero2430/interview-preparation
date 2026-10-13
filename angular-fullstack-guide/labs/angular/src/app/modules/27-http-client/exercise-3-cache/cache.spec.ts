@@ -1,10 +1,16 @@
 import { HttpClient, HttpContext, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { cacheInterceptor, CACHE_TTL_MS, NO_CACHE } from './cache.interceptor';
-import { CACHE_CLOCK } from './http-cache';
+import { CACHE_CLOCK, HttpCache, TwoMapHttpCache } from './http-cache';
 
-describe('E27.3 cache interceptor', () => {
+const variants: [string, Type<Pick<HttpCache, keyof HttpCache>>][] = [
+  ['single entry', HttpCache],
+  ['two maps', TwoMapHttpCache],
+];
+
+describe.each(variants)('E27.3 cache interceptor (%s)', (_name, cacheType) => {
   let http: HttpClient;
   let controller: HttpTestingController;
   let now: number;
@@ -17,6 +23,7 @@ describe('E27.3 cache interceptor', () => {
         provideHttpClient(withInterceptors([cacheInterceptor])),
         provideHttpClientTesting(),
         { provide: CACHE_CLOCK, useValue: () => now },
+        { provide: HttpCache, useClass: cacheType },
       ],
     });
     http = TestBed.inject(HttpClient);

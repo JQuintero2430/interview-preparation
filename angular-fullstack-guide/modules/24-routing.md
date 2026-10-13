@@ -2649,7 +2649,7 @@ export const confirmLeave: CanDeactivateFn<LabM24HasUnsavedChanges> = (component
 
 **Problem.** A product page needs its product before it renders. Write a resolver that loads it, sends an unknown id to the not-found page while the address bar keeps the requested URL, and sends an API failure to an error page. Then serve the same page from a router resource ([section 6](#6-resolvers-and-route-data-resolvefn-failures-and-router-resources)). The router resource variant is [Developer preview since v22.2].
 
-**Constraints.** No `subscribe` in the resolver or the page; the API is injected and returns Observables; the page takes the product as a signal input. Not covered: `HttpClient` ([27](27-http-client.md)).
+**Constraints.** No `subscribe` in the resolver or the page; the API is injected and returns Observables; the page takes the product as a signal input. Not covered: `HttpClient` ([27](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)).
 
 **Acceptance criteria.**
 - [ ] the product page renders with the resolved product as its input on first paint

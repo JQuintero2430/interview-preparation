@@ -179,7 +179,7 @@ switchMap   B@3 C@4          a's request unsubscribed at 2
 
 **The lost write.** `Section 2: switchMap unsubscribes an in-flight save`: with edits two frames apart and a three-frame save, `switchMap` unsubscribed save `a` at frame 2 (subscription marble `^-!`) and only `saved:b` arrived; `concatMap` saved both, in order (`saved:a@3`, `saved:b@7`).
 
-**Cancellation.** `Section 2: switchMap over HttpClient cancels the previous request` uses `HttpTestingController`, Angular's test double for the HTTP backend ([27](27-http-client.md)): two terms made two requests, `/s?q=a` and `/s?q=ab`; before the flush `cancelled` was `true` for the first and `false` for the second, and only `R-ab` arrived ([Q23.07](#q23-07)). That flag is the testing backend's report: read from `@angular/common` 22.2.1 (`fesm2022/http-testing.mjs`, `HttpClientTestingBackend.handle`), its teardown sets `_cancelled = true`. The real backends **abort** the request (stop it on the client) in their teardown, as the callout shows; whether the server stops working is not observed here. A Promise has no unsubscribe: cancelling `fetch` takes an `AbortController` ([04 §7](04-js-async-event-loop.md#7-cancellation-with-abortcontroller), [Q04.24](04-js-async-event-loop.md#q04-24)).
+**Cancellation.** `Section 2: switchMap over HttpClient cancels the previous request` uses `HttpTestingController`, Angular's test double for the HTTP backend ([27](27-http-client.md#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace)): two terms made two requests, `/s?q=a` and `/s?q=ab`; before the flush `cancelled` was `true` for the first and `false` for the second, and only `R-ab` arrived ([Q23.07](#q23-07)). That flag is the testing backend's report: read from `@angular/common` 22.2.1 (`fesm2022/http-testing.mjs`, `HttpClientTestingBackend.handle`), its teardown sets `_cancelled = true`. The real backends **abort** the request (stop it on the client) in their teardown, as the callout shows; whether the server stops working is not observed here. A Promise has no unsubscribe: cancelling `fetch` takes an `AbortController` ([04 §7](04-js-async-event-loop.md#7-cancellation-with-abortcontroller), [Q04.24](04-js-async-event-loop.md#q04-24)).
 
 **Recursion and accumulation.** Read from the `rxjs` 7.8.2 source (`operators/expand.js`): `expand` is `mergeInternals` (internal) with its `expand` flag set, so every output value is also fed back into the project function. `Section 2: expand fetches pages until the last one`: page 1 at frame 1 asked for page 2, page 3 had `next: null`, mapped to `EMPTY`, and the stream completed at 4. With synchronous inners the whole recursion runs in one frame (`Section 2: expand with synchronous inners recurses within one frame`: 1, 2, 4, 8 at frame 0). `mergeScan` and `switchScan` hand the accumulator to each inner. `switchScan.js` updates it only when an inner emits, so a switched-away inner never counts: on 1 then 2, `switchScan` emitted 2, not 3 (`Section 2: mergeScan and switchScan accumulate across inner streams`, [Q23.09](#q23-09)).
 
@@ -364,7 +364,7 @@ retry({ count: 3, delay }) on #        E@14               subscribed at 0, 2, 6,
 
 **Read from the `rxjs` 7.8.2 source** (`operators/retry.js`, `retry`): `count` defaults to `Infinity`; a number `delay` becomes `timer(delay)`, a function's result goes through `innerFrom` (internal); the notifier's complete calls `subscriber.complete()` (`Section 4: a delay notifier that completes ends the stream without the error`: complete at 1, two subscriptions). The delay function runs inside the source subscriber's error callback, which `createOperatorSubscriber` (internal, `OperatorSubscriber.js`) wraps in a `try` that forwards a throw to the result: `Section 4: a delay function that throws gives up at once` (a 400 errored at 0 after one subscription, thrown or returned as `throwError(() => err)`; a 503 was retried three times).
 
-**HTTP.** `Section 4: retry re-sends an HttpClient request`: `retry(2)` against three 500 responses made three requests, then delivered the 500 error. Retry interceptors are [27](27-http-client.md)'s; the promise version is [Exercise 04.3](04-js-async-event-loop.md#ex04-3), whose alternative adds **jitter**, a random part in each wait so that clients do not retry in step.
+**HTTP.** `Section 4: retry re-sends an HttpClient request`: `retry(2)` against three 500 responses made three requests, then delivered the 500 error. Retry interceptors are [27](27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter)'s; the promise version is [Exercise 04.3](04-js-async-event-loop.md#ex04-3), whose alternative adds **jitter**, a random part in each wait so that clients do not retry in step.
 
 **`repeat`** re-subscribes on complete and lets errors through (`Section 4: repeat with a delay re-subscribes after each complete and an error stops it`): `-a|` with `repeat(3)` gave `a@1 a@3 a@5 C@6`; with `{ count: 3, delay: 4 }` (`delay` [Added in v7.5]) `a@1 a@7 a@13 C@14`; `-a#` stopped at `E@2`.
 
@@ -1194,7 +1194,7 @@ console.log(results);
 
 **Short answer (30 seconds).** It prints `[ '/s?q=a', '/s?q=ab' ]`, `[ true, false ]` and `[ 'R-ab' ]`. Both terms made a request. When `ab` arrived, `switchMap` unsubscribed the first inner, and the testing backend's teardown marks that request `cancelled`. Only the second response reaches the subscriber. `cancelled` is the testing backend's report, not a network observation.
 
-**Full explanation.** Read from `@angular/common` 22.2.1: `HttpClientTestingBackend.handle` returns a teardown that sets `_cancelled = true` (`fesm2022/http-testing.mjs`). The real backends turn the same unsubscription into an abort: `FetchBackend` calls `aborter.abort()` and `HttpXhrBackend` calls `xhr.abort()` (read, not run in a browser; the callout in [section 2](#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)). Whether the server stopped is not observed. `Q23.07` asserts the three lines; `HttpClient` itself is [27](27-http-client.md)'s.
+**Full explanation.** Read from `@angular/common` 22.2.1: `HttpClientTestingBackend.handle` returns a teardown that sets `_cancelled = true` (`fesm2022/http-testing.mjs`). The real backends turn the same unsubscription into an abort: `FetchBackend` calls `aborter.abort()` and `HttpXhrBackend` calls `xhr.abort()` (read, not run in a browser; the callout in [section 2](#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)). Whether the server stopped is not observed. `Q23.07` asserts the three lines; `HttpClient` itself is [27](27-http-client.md#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)'s.
 
 **Follow-ups an interviewer will ask.**
 - *Can the test still answer the cancelled request?* No: `flush` throws `Cannot flush a cancelled request.` (asserted by `Q23.07`).
@@ -1483,7 +1483,7 @@ http.get<Quote[]>('/quotes').pipe(retry(policy));
 
 **Follow-ups an interviewer will ask.**
 - *How do you add jitter?* Multiply the wait by a random factor in the delay function (advice, not asserted), so clients do not retry in step.
-- *Interceptor or call site?* An interceptor applies one policy to every request ([27](27-http-client.md)); a call site fits a call that is safe to repeat.
+- *Interceptor or call site?* An interceptor applies one policy to every request ([27](27-http-client.md#q27-18)); a call site fits a call that is safe to repeat.
 
 **Trap to avoid.** `retry()` without a count: it never gives up.
 
@@ -2315,7 +2315,7 @@ export const thumbnailFlow: Flow = (outer, request) => outer.pipe(mergeMap(reque
 
 **Problem.** Write `ResilientLoader` in `resilient-loader.ts`: `load(id, fallback)` retries fixable failures with a growing wait, then gives the fallback, and a `loading` signal drives the spinner ([section 3](#3-errors-catcherror-placement-finalize-and-error-versus-complete), [section 4](#4-retrying-and-repeating-retry-with-backoff-and-repeat)).
 
-**Constraints.** `retry({ count, delay })` only, no `retryWhen`; at most 3 injected dependencies; waits and count from constants. Not covered: interceptors ([module 27](27-http-client.md)).
+**Constraints.** `retry({ count, delay })` only, no `retryWhen`; at most 3 injected dependencies; waits and count from constants. Not covered: interceptors ([module 27](27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter)).
 
 **Acceptance criteria.**
 - [ ] a 500 or a status 0 failure is retried with delays of 1, 2 and 4 seconds, then the error is replaced by the fallback

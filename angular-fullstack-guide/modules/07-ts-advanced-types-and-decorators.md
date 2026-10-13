@@ -419,7 +419,7 @@ Verified: the `Section 8:` tests in [`section-8-zod.test.ts`](../labs/ts-js/src/
 
 ### Best practices and anti-patterns
 
-- **Do parse where data enters the app**, such as the service that calls the API ([module 27](27-http-client.md)), because everything past that point can trust the type.
+- **Do parse where data enters the app**, such as the service that calls the API ([module 27](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)), because everything past that point can trust the type.
 - **Avoid declaring an interface next to a schema for the same data**, because that recreates the drift the schema removes; derive the type with `z.infer`.
 
 ### Misconceptions and traps
@@ -1200,7 +1200,7 @@ export function addMoney(a: Money, b: Money): Money {
 
 **Interviewer follow-ups.**
 - *"Why not `value as Money`?"* Parsing keeps one rule for `Money`; an `as` is an unchecked claim.
-- *"Where does this run in Angular?"* In the service that calls the API, right after the response arrives ([module 27](27-http-client.md)).
+- *"Where does this run in Angular?"* In the service that calls the API, right after the response arrives ([module 27](27-http-client.md#q27-09)).
 
 **Tests:** [`order-schema.test.ts`](../labs/ts-js/src/modules/07-ts-advanced-types-and-decorators/order-schema.test.ts)
 

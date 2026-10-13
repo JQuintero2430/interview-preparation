@@ -672,7 +672,7 @@ What to notice: a sync failure skips the async step (`Section 6: async validator
 
 **Completion: the docs against the run.** The same file, line 282: "At this point the control is marked as `pending` and remains in this state until the observable chain returned from the `validate()` method completes." A single validator passed as a function settled on its first emission although it never completed (`Section 6: one async validator settles on its first emission`), because `coerceToAsyncValidator` (internal) returns a function unchanged and composes only an array. `composeAsync` (internal) wraps the results in `forkJoin` ([22 §7](22-rxjs-foundations.md#7-combining-streams-combinelatest-withlatestfrom-forkjoin-zip-merge-and-concat)), which emits when every Observable has completed, and merges the maps with `mergeErrors`. So a second validator that emits and stays open leaves the control `PENDING`, and its last emission counts at completion (`Section 6: two async validators wait for both to complete`). An array of one waits too (`Section 6: an array of one async validator also waits for completion`). The docs sentence is no rule for one bare function; make every validator complete.
 
-A directive implements `AsyncValidator` and registers on `NG_ASYNC_VALIDATORS` (typings). The fake server stands in for `HttpClient`, [module 27](27-http-client.md)'s.
+A directive implements `AsyncValidator` and registers on `NG_ASYNC_VALIDATORS` (typings). The fake server stands in for `HttpClient`, [module 27](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)'s.
 
 ### Code
 
@@ -1941,7 +1941,7 @@ control.status; // after 150 ms
 
 **Follow-ups an interviewer will ask.**
 - *Why did the empty field cost no call?* The sync status was `INVALID`, so the async step was skipped (`Section 6: async validators wait for the sync validators to pass`).
-- *Does cancelling save a request?* Here it stops the timer; aborting a real request depends on the Observable, [27's](27-http-client.md) topic for HTTP.
+- *Does cancelling save a request?* Here it stops the timer; aborting a real request depends on the Observable, [27's](27-http-client.md#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache) topic for HTTP.
 
 **Trap to avoid.** Calling this a debounce: a cancelled run still started, so a real server saw `a` and `an` ([Q25.18](#q25-18)).
 
@@ -2709,7 +2709,7 @@ readonly form = inject(NonNullableFormBuilder).group(
 
 **Problem.** A registration form checks that a username is free while the user types. Build `usernameTaken(api, debounceMs)` in `username-taken.validator.ts` over the fake `LabM25UserApi` in `user-api.ts`, and `LabM25RegisterForm` in `register-form.ts`, which shows "Checking…" while pending ([section 6](#6-async-validators-pending-status-cancellation-and-debouncing)).
 
-**Constraints.** No `HttpClient` ([module 27](27-http-client.md)). The validator completes. At most two injected dependencies. Not covered: a real network.
+**Constraints.** No `HttpClient` ([module 27](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)). The validator completes. At most two injected dependencies. Not covered: a real network.
 
 **Acceptance criteria.**
 - [ ] typing three characters quickly calls the API once, with the last value
@@ -2769,7 +2769,7 @@ function usernameControl(asyncValidator: AsyncValidatorFn): FormControl<string> 
 
 **Interviewer follow-ups.**
 - *"Check on blur instead."* `updateOn: 'blur'` runs the validators once on leaving the field, so the `timer` can go ([section 7](#7-status-updateon-valuechanges-and-the-unified-events-stream)).
-- *"Use the real endpoint."* Swap in an `HttpClient` call, which completes by itself ([module 27](27-http-client.md)).
+- *"Use the real endpoint."* Swap in an `HttpClient` call, which completes by itself ([module 27](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext)).
 - *"Is the check enough?"* No: it is a hint, so the server still rejects a duplicate at submit.
 
 **Tests:** [username.spec.ts](../labs/angular/src/app/modules/25-forms-reactive-and-template-driven/exercise-3-username/username.spec.ts); the code is [register-form.ts](../labs/angular/src/app/modules/25-forms-reactive-and-template-driven/exercise-3-username/register-form.ts) and its neighbours.

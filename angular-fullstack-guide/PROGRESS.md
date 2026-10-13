@@ -13,7 +13,7 @@ Human-facing dashboard, one row per module. Updated by `CLOSE` tasks (and by boo
 - [ ] Phase 4: reviews (one per module, inside each module's lifecycle)
 - [ ] Phase 5: finish line (root files, cross-module review, repo README link)
 
-**Modules done:** 25 / 47 reviewed (01–25); module 26 closed, REVIEW-M26 next. Questions written: 703 (guide floor 600). Exercises: 117. Module 25 stops at 34 of 35 questions: testing forms is module 29's. Module 26 is at its 28-question ceiling.
+**Modules done:** 27 / 47 reviewed (01–27); module 28 closed, REVIEW-M28 next. Questions written: 771 (guide floor 600). Exercises: 128. Module 25 stops at 34 of 35 questions: testing forms is module 29's. Module 26 is at its 28-question ceiling. Module 27 stops at 34 of 35 questions: a stand-alone "what is the SSR transfer cache" question belongs to module 32, so §6 covers it in prose and Q27.21 weighs it against the other caches. Module 28 stops at 34 of 35 questions: a second `BehaviorSubject` question would repeat Q17.40 and Q22.18.
 
 ## Modules
 
@@ -47,8 +47,8 @@ Q and Ex show `written / ceiling` (SYLLABUS §1 ceilings are upper limits, not q
 | [24 routing](modules/24-routing.md) | D | NG | done | 34 / 35 | 6 / 6 | yes (angular) | yes (CLOSE-M24, 2026-10-10; 21,780 prose words after FIX) | yes (REVIEW-M24 and FIX-M24-01..03, 2026-10-10) |
 | [25 forms-reactive-and-template-driven](modules/25-forms-reactive-and-template-driven.md) | D | NG | done | 34 / 35 | 6 / 6 | yes (angular) | yes (CLOSE-M25, 2026-10-11; 21,894 prose words after FIX) | yes (REVIEW-M25 and FIX-M25-01..03, 2026-10-11) |
 | [26 signal-forms](modules/26-signal-forms.md) | D | NG | done | 28 / 28 | 5 / 5 | yes (angular) | yes (CLOSE-M26, 2026-10-11; 19,011 prose words after FIX) | yes (REVIEW-M26 and FIX-M26-01..04, 2026-10-11) |
-| 27 `http-client` | D | NG | not started | 0 / 35 | 0 / 6 | — | no | — |
-| 28 `state-management` | D | NG | not started | 0 / 35 | 0 / 5 | — | no | — |
+| [27 http-client](modules/27-http-client.md) | D | NG | done | 34 / 35 | 6 / 6 | yes (angular) | yes (CLOSE-M27, 2026-10-13; 22,599 prose words after FIX) | yes (REVIEW-M27 and FIX-M27-01..04, 2026-10-13) |
+| [28 state-management](modules/28-state-management.md) | D | NG | done | 34 / 35 | 5 / 5 | yes (angular) | yes (CLOSE-M28, 2026-10-13; 22,438 prose words) | no |
 | 29 `testing-angular` | D | NG | not started | 0 / 35 | 0 / 6 | — | no | — |
 | 30 `e2e-and-testing-strategy` | D | — | not started | 0 / 18 | 0 / 3 | — | no | — |
 | 31 `performance` | D | NG | not started | 0 / 30 | 0 / 5 | — | no | — |
