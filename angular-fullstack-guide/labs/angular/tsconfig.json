@@ -13,7 +13,11 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "paths": {
+      "ui-lib": ["./dist/ui-lib"],
+      "ui-lib/*": ["./dist/ui-lib/*"]
+    }
   },
   "angularCompilerOptions": {
     "strictTemplates": true,
@@ -28,6 +32,27 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/ssr-lab/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/security-lab/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/i18n-lab/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/animations-lab/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/elements-lab/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/ui-lib/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/ui-lib/tsconfig.spec.json"
     }
   ]
 }

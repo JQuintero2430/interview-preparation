@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="m34.home.title" datatype="html">
+        <source>Module 34 i18n lab</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/home/home.ts</context>
+          <context context-type="linenumber">5,7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.builds.title" datatype="html">
+        <source>Order details</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/builds/builds.ts</context>
+          <context context-type="linenumber">10,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.builds.url" datatype="html">
+        <source>Router URL</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/builds/builds.ts</context>
+          <context context-type="linenumber">12,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.builds.locale" datatype="html">
+        <source>Locale ID</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/builds/builds.ts</context>
+          <context context-type="linenumber">14,15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.heading" datatype="html">
+        <source>Order summary</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/a/checkout-a.ts</context>
+          <context context-type="linenumber">9,11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.items" datatype="html">
+        <source>{VAR_PLURAL, plural, one {<x id="INTERPOLATION"/> item} other {<x id="INTERPOLATION"/> items}}</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/a/checkout-a.ts</context>
+          <context context-type="linenumber">16,18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.total" datatype="html">
+        <source>Total</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/a/checkout-a.ts</context>
+          <context context-type="linenumber">18,19</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.zero" datatype="html">
+        <source>No items</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">6</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.one" datatype="html">
+        <source><x id="count" equiv-text="count"/> item</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.two" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.few" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.many" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.other" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.heading" datatype="html">
+        <source>Order summary</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">19,21</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.total" datatype="html">
+        <source>Total</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-2-checkout/b/checkout-b.ts</context>
+          <context context-type="linenumber">27,28</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.back" datatype="html">
+        <source>Back</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/a/rtl-card-a.ts</context>
+          <context context-type="linenumber">19,21</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.title" datatype="html">
+        <source>Account</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/a/rtl-card-a.ts</context>
+          <context context-type="linenumber">29,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.greeting" datatype="html">
+        <source>Welcome back, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/a/rtl-card-a.ts</context>
+          <context context-type="linenumber">38,39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.phone" datatype="html">
+        <source>Phone</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/a/rtl-card-a.ts</context>
+          <context context-type="linenumber">40,42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.balance" datatype="html">
+        <source>Balance</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/a/rtl-card-a.ts</context>
+          <context context-type="linenumber">44,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.back" datatype="html">
+        <source>Back</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/b/rtl-card-b.ts</context>
+          <context context-type="linenumber">19,21</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.title" datatype="html">
+        <source>Account</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/b/rtl-card-b.ts</context>
+          <context context-type="linenumber">29,30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.greeting" datatype="html">
+        <source>Welcome back, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/b/rtl-card-b.ts</context>
+          <context context-type="linenumber">38,39</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.phone" datatype="html">
+        <source>Phone</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/b/rtl-card-b.ts</context>
+          <context context-type="linenumber">40,42</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.balance" datatype="html">
+        <source>Balance</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/exercise-4-rtl-card/b/rtl-card-b.ts</context>
+          <context context-type="linenumber">44,46</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.extract.title" datatype="html">
+        <source>Extraction lab</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/extract/extract.ts</context>
+          <context context-type="linenumber">8,9</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.extract.hint" datatype="html">
+        <source>Review your answers</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/extract/extract.ts</context>
+          <context context-type="linenumber">9,11</context>
+        </context-group>
+        <note priority="1" from="description">Shown above the save button</note>
+        <note priority="1" from="meaning">Describes the form</note>
+      </trans-unit>
+      <trans-unit id="4200317694838753109" datatype="html">
+        <source>Welcome back</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/extract/extract.ts</context>
+          <context context-type="linenumber">10,11</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2522557153388325485" datatype="html">
+        <source>Close</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/extract/extract.ts</context>
+          <context context-type="linenumber">11,12</context>
+        </context-group>
+        <note priority="1" from="description">Closes a physical door</note>
+        <note priority="1" from="meaning">door</note>
+      </trans-unit>
+      <trans-unit id="1426216042718898919" datatype="html">
+        <source>Close</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/extract/extract.ts</context>
+          <context context-type="linenumber">12,15</context>
+        </context-group>
+        <note priority="1" from="description">Dismisses a dialog</note>
+        <note priority="1" from="meaning">dialog</note>
+      </trans-unit>
+      <trans-unit id="m34.icu.group" datatype="html">
+        <source>Item count</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/icu/icu.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.icu.items" datatype="html">
+        <source>{VAR_PLURAL, plural, =0 {No items} one {One item} other {<x id="INTERPOLATION"/> items}}</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/icu/icu.ts</context>
+          <context context-type="linenumber">12,15</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.rtl.start" datatype="html">
+        <source>Aligned to the start</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/rtl/rtl.ts</context>
+          <context context-type="linenumber">11,12</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.rtl.arrived" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ name }}"/> just arrived</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/rtl/rtl.ts</context>
+          <context context-type="linenumber">12,13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.rtl.arrivedIsolated" datatype="html">
+        <source><x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/> just arrived</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/rtl/rtl.ts</context>
+          <context context-type="linenumber">13,14</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.runtime.title" datatype="html">
+        <source>Runtime translation</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/runtime/runtime.ts</context>
+          <context context-type="linenumber">9,10</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="m34.runtime.greeting" datatype="html">
+        <source>Hello <x id="INTERPOLATION" equiv-text="{{ name }}"/>, you have <x id="START_BOLD_TEXT" ctype="x-b" equiv-text="&lt;b&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ count }}"/><x id="CLOSE_BOLD_TEXT" ctype="x-b" equiv-text="&lt;/b&gt;"/> new messages</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">projects/i18n-lab/src/app/m34/runtime/runtime.ts</context>
+          <context context-type="linenumber">10,11</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

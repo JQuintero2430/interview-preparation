@@ -1,0 +1,22 @@
+{
+  "name": "labs-e2e",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "scripts": {
+    "test": "PLAYWRIGHT_BROWSERS_PATH=0 playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "install-browser": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.19.2",
+    "lighthouse": "13.5.0",
+    "typescript": "6.0.3",
+    "web-vitals": "6.2.3"
+  },
+  "overrides": {
+    "playwright-core": "1.63.0"
+  }
+}

@@ -28,7 +28,7 @@
 - [Check your understanding](#check-your-understanding)
 - [Connections](#connections)
 
-**How the claims here are verified.** An observed behavior cites a spec in `labs/angular/src/app/modules/28-state-management/`, run by `ng test` in jsdom with Angular 22.2.1 (zoneless `TestBed`, `HttpTestingController` for HTTP). NgRx was not installed in the labs when sections 4-9 and 12 and the NgRx questions were written, so each of their NgRx 22.0.1 claims is dated as observed in a throwaway harness (the package from `npm pack`, deleted afterwards); Exercise 28.5 runs against the installed NgRx 22.0.1. "Read from the source" names the file and function in the published `@ngrx/*` 22.0.1 or `@angular/*` 22.2.1 package; internal names are marked. Markers come from typings tags and CHANGELOGs. DevTools in a browser, NGXS, Elf and TanStack Query are documented only.
+**How the claims here are verified.** An observed behavior cites a spec in `labs/angular/src/app/modules/28-state-management/`, run by `ng test` in jsdom with Angular 22.2.1 and NgRx 22.0.1 (zoneless `TestBed`, `HttpTestingController` for HTTP). "Read from the source" names the file and function in the published `@ngrx/*` 22.0.1 or `@angular/*` 22.2.1 package; internal names are marked. Markers come from typings tags and CHANGELOGs. DevTools in a browser, NGXS, Elf and TanStack Query are documented only.
 
 ## 1. Kinds of state: server cache, UI, form, URL and session state, and where each belongs
 
@@ -58,7 +58,7 @@ What to notice: a store library appears nowhere in the diagram; it holds some of
 
 ### How it actually works
 
-**URL state.** `withComponentInputBinding` [Added in v16.0] writes route data into the routed component's inputs, so `?q=pen` reaches an `input<string>()` named `q`. Read from the `@angular/router` 22.2.1 source: `RoutedComponentInputBinder.subscribeToRouteData` (`fesm2022/_router-chunk.mjs`; internal, may change in any release) spreads `queryParams`, `params` and `data` into one object in that order, so a path parameter beats a query parameter of the same name ([Q24.06](24-routing.md#q24-06) runs it), then calls `setInput` for each declared input; query parameters bind by default (`options.queryParams ??= true`). In the lab, writing the filter with `router.navigate([], { queryParams })` gives `/list?q=pen`, and a new injector and router that open that URL get the filter back (`Section 1: a query parameter restores the filter when the same URL is opened again`); the new injector stands in for a reload.
+**URL state.** `withComponentInputBinding` [Added in v16.0] writes route data into the routed component's inputs, so `?q=pen` reaches an `input<string>()` named `q`. Read from the `@angular/router` 22.2.1 source: `RoutedComponentInputBinder.subscribeToRouteData` (`fesm2022/_router-chunk.mjs`; internal, may change in any release) spreads `queryParams`, `params`, `data` and then the route's `resources` ([24](24-routing.md)) into one object in that order, so a path parameter beats a query parameter of the same name ([Q24.06](24-routing.md#q24-06) runs it), then calls `setInput` for each declared input; query parameters bind by default (`options.queryParams ??= true`). In the lab, writing the filter with `router.navigate([], { queryParams })` gives `/list?q=pen`, and a new injector and router that open that URL get the filter back (`Section 1: a query parameter restores the filter when the same URL is opened again`); the new injector stands in for a reload.
 
 **Lifetime follows the provider.** A root service lives as long as its injector, so its state starts over when the injector is rebuilt (`Section 1: state in a root service starts over when the injector is rebuilt`). A service in a component's `providers` is created with the component and destroyed with it ([16 §6](16-dependency-injection.md#6-providers-versus-viewproviders-and-per-instance-state)): in the lab its `ngOnDestroy` ran and the next component got an empty draft (`Section 1: a draft provided by a component is gone after the component is destroyed`).
 
@@ -295,7 +295,7 @@ What to notice: a selector emits only when its slice's reference changes, so an 
 
 **Why a mutation vanishes.** Read from the `rxjs` 7.8.2 source (`dist/esm/internal/operators/distinctUntilChanged.js`): without a comparator, `defaultCompare` returns `a === b`. For an array that compares references. In the lab, after `setItems(['a', 'b'])`, a `push('c')` into the snapshot's array and a `setLoading(false)` left the items subscriber with `['a']` and `['a', 'b']` only, while the array it held contained `'c'` (`Section 3: an in-place mutation followed by next is swallowed by distinctUntilChanged`). A repeated `setLoading(true)` emitted nothing either (`Section 3: select emits only when the selected slice changes`).
 
-**Why `getValue()` is a trap in a view.** It reads and notifies nobody. In a zoneless component with the v22 `OnPush` default, a template reading `store.snapshot.loading` stayed `false` after the emission, and `loading$ | async` showed `true` (`Section 3: a view that reads the snapshot is not refreshed by an emission, a view with the async pipe is`). Read from `@angular/common` 22.2.1 (`fesm2022/_common_module-chunk.mjs`, `AsyncPipe._updateLatestValue`, internal): each value calls `markForCheck()`.
+**Why `getValue()` is a trap in a view.** It reads and notifies nobody. In a zoneless component with the v22 `OnPush` default, a template reading `store.snapshot.loading` stayed `false` after the emission, and `loading$ | async` showed `true` (`Section 3: a view that reads the snapshot is not refreshed by an emission, a view with the async pipe is`). Read from `@angular/common` 22.2.1 (`fesm2022/_common_module-chunk.mjs`, `AsyncPipe.transform` and `_updateLatestValue`, internal): each value that arrives after the subscription calls `markForCheck()`; one emitted during the first subscribe (a `BehaviorSubject`'s current value) is just returned.
 
 **Who pays for a selector.** Two subscribers to one `select` ran its function twice per emission (`Section 3: every subscriber to select runs the selector itself`); [23 §5](23-rxjs-in-depth.md#5-multicasting-in-depth-share-configuration-sharereplay-and-connect) owns `shareReplay`.
 
@@ -433,11 +433,11 @@ What to notice: the only way state changes is an action through a reducer; effec
 
 ### How it actually works
 
-**Actions.** `props<{ title: string }>()` declares a payload and `emptyProps()` none; an **action group**, `createActionGroup({ source, events })`, builds one creator per event of one source. The NgRx docs (`store/action-groups.md`, branch `main`, read 2026-10-13) say the action type "is created using the "[Source] Event Name" pattern" and the creator name "by camel-casing the event name". Read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`), `createActionGroup` calls `createAction(toActionType(source, eventName), …)` once per event (`toActionName` and `toActionType` are internal). Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): `Add Todo`, `Clear All`, `Load` and `Loaded` gave `addTodo`, `clearAll`, `load` and `loaded`, with types such as `[Todos Page] Add Todo` (`Section 4: createActionGroup derives camelCase creators and bracketed types`).
+**Actions.** `props<{ title: string }>()` declares a payload and `emptyProps()` none; an **action group**, `createActionGroup({ source, events })`, builds one creator per event of one source. The NgRx docs (`store/action-groups.md`, branch `main`, read 2026-10-13) say the action type "is created using the "[Source] Event Name" pattern" and the creator name "by camel-casing the event name". Read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`), `createActionGroup` calls `createAction(toActionType(source, eventName), …)` once per event (`toActionName` and `toActionType` are internal). In the lab, `Add Todo`, `Clear All`, `Load` and `Loaded` gave `addTodo`, `clearAll`, `load` and `loaded`, with types such as `[Todos Page] Add Todo` (`Section 4: createActionGroup derives camelCase creators and bracketed types`).
 
 **Reducers and features.** `on(creator, handler)` pairs an action with a handler. Read from the same file, `createReducer` keeps handlers in a `Map` keyed by type and returns the given state for an unknown type. `addTodo` returned a new object and left the old `items` empty, and an unknown type returned the same reference (`Section 4: a reducer handles an action and returns a new state`). `createFeature({ name, reducer })` bundles a **feature**, one named slice of the state tree, and returned `name`, `reducer`, `selectTodosState`, `selectItems` and `selectN`, one selector per state key (`Section 4: createFeature returns the reducer and one selector per state key`). `provideStore()` registers the root store and `provideState(feature)` a feature's reducer under its name; both are standalone provider functions ([15 §3](15-standalone-and-ngmodules.md#3-bootstrapping-and-providers-without-modules-bootstrapapplication-provide-functions-and-importprovidersfrom)). With an effect mapping `load` to `loaded({ n: 7 })`, `n` was `7` as soon as `dispatch(load())` returned (`Section 4: an effect's action is reduced before dispatch returns`).
 
-**Runtime checks** are guards around every reducer, built as **meta-reducers** (functions that take a reducer and return a wrapped one). Read from the `@ngrx/store` 22.0.1 source, `createActiveRuntimeChecks` (internal, may change in any release) returns, when `isDevMode()` is true, `strictStateSerializability: false`, `strictActionSerializability: false`, `strictStateImmutability: true`, `strictActionImmutability: true`, `strictActionWithinNgZone: false` and `strictActionTypeUniqueness: false`, then spreads your `runtimeChecks` over them; outside development all six are `false`. `immutabilityCheckMetaReducer` calls `freeze` (internal), a recursive `Object.freeze`, on the action and the next state, which confirms [03 §7](03-js-objects-prototypes-classes.md#7-immutability-and-change-by-copy-array-methods). The state after `addTodo({ title: 'a' })` was `{"items":["a"],"n":0}`, frozen like `items`, and `push` threw `TypeError` (`Section 4: in development the store state is frozen and a push throws`).
+**Runtime checks** are guards around every reducer, built as **meta-reducers** (functions that take a reducer and return a wrapped one). Read from the `@ngrx/store` 22.0.1 source, `createActiveRuntimeChecks` (internal, may change in any release) returns, when `isDevMode()` is true, `strictStateSerializability: false`, `strictActionSerializability: false`, `strictStateImmutability: true`, `strictActionImmutability: true`, `strictActionWithinNgZone: false` and `strictActionTypeUniqueness: false`, then spreads your `runtimeChecks` over them; outside development all six are `false`. `immutabilityCheckMetaReducer` (internal) calls `freeze` (internal), a recursive `Object.freeze`, on the action and the next state, which confirms [03 §7](03-js-objects-prototypes-classes.md#7-immutability-and-change-by-copy-array-methods). The state after `addTodo({ title: 'a' })` was `{"items":["a"],"n":0}`, frozen like `items`, and `push` threw `TypeError` (`Section 4: in development the store state is frozen and a push throws`).
 
 **A reducer that mutates.** With the defaults, `items.push` inside a reducer failed with "Cannot add property 0, object is not extensible", reported to RxJS's unhandled-error hook, not thrown to the caller of `dispatch` (`Section 4: in development a reducer that mutates the state fails inside dispatch, not in the caller`). With both immutability checks off, the state became `{"items":["b","c"]}` while the subscriber saw only the initial value: `select` ends with `distinctUntilChanged` and the reference never changed (`Section 4: with the immutability checks off, an in-place reducer changes the state but notifies nobody`).
 
@@ -451,7 +451,7 @@ The approach: name the events once, handle them in a pure reducer, bundle it as 
 4. Provide the store and feature, dispatch, read.
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; NgRx is not installed in the labs
+// Partial: the fixture of concepts/section-4-ngrx-store.spec.ts, imports omitted
 interface TodosState { items: string[]; n: number }
 
 export const TodosPage = createActionGroup({
@@ -473,7 +473,7 @@ export const todosFeature = createFeature({
 ```
 
 ```ts
-// Partial: inside a TestBed test of the harness spec
+// Partial: inside a TestBed test of the same spec
 TestBed.configureTestingModule({ providers: [provideStore(), provideState(todosFeature)] });
 const store = TestBed.inject(Store);
 store.dispatch(TodosPage.addTodo({ title: 'a' }));
@@ -482,15 +482,34 @@ const items = store.selectSignal(todosFeature.selectItems); // ['a']
 
 #### Legacy
 
-Before the provider functions, the store was registered in an `NgModule` with one hand-written `createAction` per action, the call `createActionGroup` makes for you. Neither carries a `@deprecated` tag in the 22.0.1 typings.
+Before the provider functions, the store was registered in an `NgModule` with one hand-written `createAction` per action, the call `createActionGroup` makes for you. Neither carries a `@deprecated` tag in the 22.0.1 typings. Migrate by replacing `StoreModule.forRoot` and `forFeature` with `provideStore()` and `provideState(feature)`, and a file of `createAction` calls with one action group.
 
 ```ts
-// Partial: legacy NgModule setup, not compiled in the repository; todosFeature is the feature above
-export const addTodo = createAction('[Todos Page] Add Todo', props<{ title: string }>());
+// LEGACY: the NgModule registration of NgRx Store, module 28 §4. Before the provider functions, a module imported
+// StoreModule and each action was a hand-written createAction; new code uses provideStore, provideState and an action group.
+import { NgModule } from '@angular/core';
+import { StoreModule, createAction, createFeature, createReducer, on, props } from '@ngrx/store';
 
-@NgModule({ imports: [StoreModule.forRoot({}), StoreModule.forFeature(todosFeature)] })
-export class TodosModule {}
+export interface LabM28LegacyTodosState {
+  items: string[];
+  n: number;
+}
+
+export const labM28LegacyAddTodo = createAction('[Todos Page] Add Todo', props<{ title: string }>());
+
+export const labM28LegacyTodosFeature = createFeature({
+  name: 'todos',
+  reducer: createReducer<LabM28LegacyTodosState>(
+    { items: [], n: 0 },
+    on(labM28LegacyAddTodo, (state, { title }) => ({ ...state, items: [...state.items, title] })),
+  ),
+});
+
+@NgModule({ imports: [StoreModule.forRoot({}), StoreModule.forFeature(labM28LegacyTodosFeature)] })
+export class LabM28LegacyTodosModule {}
 ```
+
+<sub>Source: [labs/angular/src/app/modules/28-state-management/legacy/ngmodule-store.ts](../labs/angular/src/app/modules/28-state-management/legacy/ngmodule-store.ts)</sub>
 
 ### Best practices and anti-patterns
 
@@ -533,7 +552,7 @@ What to notice: each selector keeps one cached result, so `selectVisible` is unt
 
 ### How it actually works
 
-**One entry, compared by reference.** Read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`), `defaultMemoize` (public) keeps `lastArguments` and `lastResult`, one entry, and compares each argument with `isEqualCheck` (internal, may change in any release), which is `a === b`. `createSelector` is `createSelectorFactory(defaultMemoize)`, which runs the projector only when an input's result changed. Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): called with a state, the same state, a new root with the same `items` array and a new root with a new equal array, a projector over `items` ran twice (first call, equal array) (`Section 5: the projector re-runs only when an input selector's result changes`). The docs (`store/selectors.md`, `main`, read 2026-10-13) describe the same cache.
+**One entry, compared by reference.** Read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`), `defaultMemoize` (public) keeps `lastArguments` and `lastResult`, one entry, and compares each argument with `isEqualCheck` (internal, may change in any release), which is `a === b`. `createSelector` is `createSelectorFactory(defaultMemoize)`, which runs the projector only when an input's result changed. In the lab, called with a state, the same state, a new root with the same `items` array and a new root with a new equal array, a projector over `items` ran twice (first call, equal array) (`Section 5: the projector re-runs only when an input selector's result changes`). The docs (`store/selectors.md`, `main`, read 2026-10-13) describe the same cache.
 
 **Props and factories.** A selector with props `[Deprecated since NgRx v12.0 — use a selector factory]` receives `(state, props)`, and `props` joins the projector's arguments. The v12 migration guide says "Selectors with props are deprecated in favor of "normal" factory selectors"; the 22.0.1 typings add "will be removed in v23", the typings' statement, not a forecast here. With one props object the projector ran once for two calls; `{ id: 2 }`, the first object again, and a new object with equal contents each ran it again: one cache shared across ids (`Section 5: a selector with props shares one cache across props`). A factory such as `(id) => createSelector(...)` gives each id its own memo. Created once, it ran once over three calls, one after an unrelated change; created inside a method each call, it ran three times (`Section 5: a factory selector created once per id keeps its memo`).
 
@@ -553,7 +572,7 @@ The approach: compose, build the by-id selector once, read as signals.
 4. Expose both with `selectSignal`.
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; todosFeature as in section 4, with items, filter and n
+// Partial: concepts/section-5-selectors.spec.ts, imports omitted; todosFeature as in section 4, with items, filter and n
 export const selectVisible = createSelector(
   todosFeature.selectItems,
   todosFeature.selectFilter,
@@ -565,7 +584,7 @@ export const selectById = (id: number) =>
 ```
 
 ```ts
-// Partial: a component over the selectors above, not run in the harness; imports omitted
+// Partial: a component over the selectors above, not run in a spec; imports omitted
 @Component({
   selector: 'lab-m28-todo-list',
   template: `@for (todo of visible(); track todo.id) { <p>{{ todo.title }}</p> }`,
@@ -622,7 +641,7 @@ What to notice: the effect never writes state; it answers with actions.
 
 **Defaults.** Read from the `@ngrx/effects` 22.0.1 source (`fesm2022/ngrx-effects.mjs`), `createEffect` merges `{ dispatch: true, functional: false, useEffectsErrorHandler: true }` under your config; with `functional: true` it returns the function itself, and `provideEffects` is a standalone provider function ([15 §3](15-standalone-and-ngmodules.md#3-bootstrapping-and-providers-without-modules-bootstrapapplication-provide-functions-and-importprovidersfrom)). `mergeEffects` ends a `dispatch: false` effect with `ignoreElements()`. The reducer runs first: `State` in `@ngrx/store` calls `this.next(state)`, then `scannedActions.next(action)`, and `Actions` wraps that `ScannedActionsSubject` (read, not run).
 
-**The error handler.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): a `dispatch: false` effect that threw on its second of three actions still logged `fx 1`, `fx 2`, `fx 3`, and a recording `{ handleError }` value in place of `ErrorHandler` received `Error: boom` once (`Section 6: an effect that throws is resubscribed and the error reaches ErrorHandler`). `defaultEffectsErrorHandler` (public) is a `catchError` that reports to that handler and subscribes again, counting down from `MAX_NUMBER_OF_RETRY_ATTEMPTS = 10` (internal, may change in any release). An effect that threw on every action ran 11 times over 14 dispatches, the handler recorded 10 errors, and the eleventh escaped unhandled (`Section 6: the handler reports ten errors and then stops catching`).
+**The error handler.** A `dispatch: false` effect that threw on its second of three actions still logged `fx 1`, `fx 2`, `fx 3`, and a recording `{ handleError }` value in place of `ErrorHandler` received `Error: boom` once (`Section 6: an effect that throws is resubscribed and the error reaches ErrorHandler`). `defaultEffectsErrorHandler` (public) is a `catchError` that reports to that handler and subscribes again, counting down from `MAX_NUMBER_OF_RETRY_ATTEMPTS = 10` (internal, may change in any release). An effect that threw on every action ran 11 times over 14 dispatches, the handler recorded 10 errors, and the eleventh escaped unhandled (`Section 6: the handler reports ten errors and then stops catching`).
 
 **`catchError` placement.** An error reaching the outer stream ends it, and a completion is not resubscribed ([23 §3](23-rxjs-in-depth.md#3-errors-catcherror-placement-finalize-and-error-versus-complete), [Q23.11](23-rxjs-in-depth.md#q23-11)). With `load` for `1, 2, 3` and a request failing for `2`, `catchError` after `switchMap` logged `Load`, `Loaded`, `Load`, `Failed`, `Load` and no answer to the third (`Section 6: catchError outside switchMap completes the effect after the first failure`). Inside the inner pipe the third was answered with `Loaded` (`Section 6: catchError inside switchMap keeps the effect alive`).
 
@@ -639,7 +658,7 @@ The approach: one effect answers with actions, one only observes.
 3. Register both with `provideEffects`.
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; load, loaded and failed as in section 4, api() returns an Observable<number>, LAB_LOG is a token holding a string array
+// Partial: adapted from concepts/section-6-effects.spec.ts, imports omitted; load, loaded and failed are createAction creators, api() returns an Observable<number>, LAB_LOG is a token holding a string array
 export const loadEffect = createEffect(
   (actions$ = inject(Actions)) =>
     actions$.pipe(
@@ -661,7 +680,7 @@ export const logEffect = createEffect(
 ```
 
 ```ts
-// Partial: inside a TestBed test of the harness spec
+// Partial: inside a TestBed test, as in concepts/section-6-effects.spec.ts
 TestBed.configureTestingModule({
   providers: [provideStore(), provideEffects({ loadEffect, logEffect })],
 });
@@ -670,21 +689,36 @@ TestBed.inject(Store).dispatch(load({ n: 1 }));
 
 #### Legacy
 
-Before functional effects, an effect was a field of an `@Injectable()` class registered in an `NgModule`. It still runs under `provideEffects(LabM28Effects)` (`Section 6: a class effect with createEffect runs under provideEffects`); the 22.0.1 typings carry no `@deprecated` tag.
+Before functional effects, an effect was a field of an `@Injectable()` class registered in an `NgModule`. It still runs under `provideEffects(LabM28Effects)` (`Section 6: a class effect with createEffect runs under provideEffects`); the 22.0.1 typings carry no `@deprecated` tag. Migrate each field to a `createEffect(…, { functional: true })` constant, or keep the class and register it with `provideEffects(LabM28Effects)`.
 
 ```ts
-// Partial: legacy class-based effect, not compiled in the repository; load, loaded as above
+// LEGACY: the class-based NgRx effect and its NgModule registration, module 28 §6. Before functional effects, an effect was a
+// field of an @Injectable() class registered with EffectsModule; new code uses a createEffect(..., { functional: true }) constant.
+import { Injectable, NgModule, inject } from '@angular/core';
+import { Actions, EffectsModule, createEffect, ofType } from '@ngrx/effects';
+import { createAction, props } from '@ngrx/store';
+import { map } from 'rxjs';
+
+export const labM28LegacyLoad = createAction('[Legacy Effects] Load', props<{ n: number }>());
+export const labM28LegacyLoaded = createAction('[Legacy Effects] Loaded', props<{ n: number }>());
+
 @Injectable()
 export class LabM28Effects {
   private readonly actions$ = inject(Actions);
+
   readonly load$ = createEffect(() =>
-    this.actions$.pipe(ofType(load), map(({ n }) => loaded({ n }))),
+    this.actions$.pipe(
+      ofType(labM28LegacyLoad),
+      map(({ n }) => labM28LegacyLoaded({ n })),
+    ),
   );
 }
 
 @NgModule({ imports: [EffectsModule.forRoot([LabM28Effects])] })
-export class AppModule {}
+export class LabM28LegacyEffectsModule {}
 ```
+
+<sub>Source: [labs/angular/src/app/modules/28-state-management/legacy/class-effects.ts](../labs/angular/src/app/modules/28-state-management/legacy/class-effects.ts)</sub>
 
 ### Best practices and anti-patterns
 
@@ -734,11 +768,11 @@ What to notice: the adapter is pure functions over a plain object; nothing is st
 
 ### How it actually works
 
-**The adapter.** Read from the `@ngrx/entity` 22.0.1 source (`fesm2022/ngrx-entity.mjs`), `createEntityAdapter` uses `createSortedStateAdapter` when `sortComparer` is set and `createUnsortedStateAdapter` otherwise. `createStateOperator` (internal, may change in any release) copies `ids` and `entities` shallowly, lets the operation change the copies, and returns the old state when nothing changed; entities are not cloned. Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): `addMany` of ids 2 (`'b'`) then 1 (`'a'`) gave `ids` `[1, 2]` with a comparer on `t`, and `[2, 1]` without one (`Section 7: the adapter keeps ids sorted and entities keyed by id`). After `updateOne({ id: 2, changes: { t: 'c' } })`, entity 1 was the same reference, entity 2 a new object; changing entity 1 to `'z'` re-sorted `ids` (`Section 7: updateOne keeps the references of untouched entities`). Normalization makes a lookup a property read, not a scan ([§10](#10-optimistic-updates-normalization-and-undo)).
+**The adapter.** Read from the `@ngrx/entity` 22.0.1 source (`fesm2022/ngrx-entity.mjs`), `createEntityAdapter` uses `createSortedStateAdapter` (internal) when `sortComparer` is set and `createUnsortedStateAdapter` (internal) otherwise. `createStateOperator` (internal, may change in any release) copies `ids` and `entities` shallowly, lets the operation change the copies, and returns the old state when nothing changed; entities are not cloned. `addMany` of ids 2 (`'b'`) then 1 (`'a'`) gave `ids` `[1, 2]` with a comparer on `t`, and `[2, 1]` without one (`Section 7: the adapter keeps ids sorted and entities keyed by id`). After `updateOne({ id: 2, changes: { t: 'c' } })`, entity 1 was the same reference, entity 2 a new object; changing entity 1 to `'z'` re-sorted `ids` (`Section 7: updateOne keeps the references of untouched entities`). Normalization makes a lookup a property read, not a scan ([§10](#10-optimistic-updates-normalization-and-undo)).
 
-**Router Store.** With `routerReducer` under `router` and `provideRouterStore()`, navigating a `RouterTestingHarness` to `/orders?q=abc` and then `?q=def` made `getRouterSelectors().selectQueryParam('q')` emit `undefined`, `'abc'`, `'def'` (`Section 7: router store selectors read the current query parameter`). The default serializer is `MinimalRouterStateSerializer` (read, `_createRouterConfig`). The `@ngrx/router-store/data-persistence` helpers `[Deprecated since NgRx v22.0]` carry a `@deprecated` tag: use core RxJS operators.
+**Router Store.** With `routerReducer` under `router` and `provideRouterStore()`, navigating a `RouterTestingHarness` to `/orders?q=abc` and then `?q=def` made `getRouterSelectors().selectQueryParam('q')` emit `undefined`, `'abc'`, `'def'` (`Section 7: router store selectors read the current query parameter`). The default serializer is `MinimalRouterStateSerializer` (read, `_createRouterConfig`, internal). The `@ngrx/router-store/data-persistence` helpers `[Deprecated since NgRx v22.0]` carry a `@deprecated` tag: use core RxJS operators.
 
-**DevTools.** jsdom has no extension: `createReduxDevtoolsExtension` (internal) finds no `window.__REDUX_DEVTOOLS_EXTENSION__`, so the `REDUX_DEVTOOLS_EXTENSION` token was `null`. `provideStoreDevtools({ maxAge: 3 })` still provided, the store emitted 7 times, and the recorded list held `@ngrx/store/init`, `x4` and `x5` (`Section 7: provideStoreDevtools provides without the browser extension`). `maxAge: 1` threw "Devtools 'maxAge' cannot be less than 2, got 1" (`Section 7: provideStoreDevtools rejects a maxAge below two`). Read from `@ngrx/store-devtools` 22.0.1, `createConfig` (internal) turns `logOnly` into the features `pause`, `export` and `test` only, and `recomputeStates` (internal) replays the recorded actions through the reducer. Time travel therefore needs reducers that return the same result for the same input ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)), The docs say `maxAge` defaults to `false`, infinite. The extension, time travel and `connectInZone` are documented only.
+**DevTools.** jsdom has no extension: `createReduxDevtoolsExtension` (internal) finds no `window.__REDUX_DEVTOOLS_EXTENSION__`, so the `REDUX_DEVTOOLS_EXTENSION` token was `null`. `provideStoreDevtools({ maxAge: 3 })` still provided, the store emitted 6 times (the initial value and one per dispatch of `x1` to `x5`), and the recorded list held `@ngrx/store/init`, `x4` and `x5` (`Section 7: provideStoreDevtools provides without the browser extension`). `maxAge: 1` threw "Devtools 'maxAge' cannot be less than 2, got 1" (`Section 7: provideStoreDevtools rejects a maxAge below two`). Read from `@ngrx/store-devtools` 22.0.1, `createConfig` (internal) turns `logOnly` into the features `pause`, `export` and `test` only, and `recomputeStates` (internal) replays the recorded actions through the reducer. Time travel therefore needs reducers that return the same result for the same input ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). `maxAge` defaults to `false`, no limit (read, the `createConfig` defaults). The extension, time travel and `connectInZone` are documented only.
 
 ### Code
 
@@ -749,7 +783,7 @@ The approach: build the adapter once and register the two tools.
 3. Provide the router reducer, `provideRouterStore()` and `provideStoreDevtools`.
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted
+// Partial: adapted from concepts/section-7-entity-router-devtools.spec.ts, imports omitted
 interface LabM28Order { id: number; title: string }
 
 const adapter = createEntityAdapter<LabM28Order>({
@@ -814,7 +848,7 @@ What to notice: each feature receives the members of the features before it, nev
 
 Read from the `@ngrx/signals` 22.0.1 source (`fesm2022/ngrx-signals.mjs`), `signalStore` declares an `@Injectable` class whose constructor folds the features over an initial inner store (`getInitialInnerStore`, internal, may change in any release). Each feature takes the store so far and returns a bigger one, so `withMethods` hands its factory only the state signals, props and earlier methods. Naming a later one is a compile error, `TS2339` (`Section 8: a feature sees only the members of the features before it`). The constructor then copies the members onto `this`, runs `onInit`, and registers `onDestroy` with `inject(DestroyRef)`. The store dies with the injector that provides it.
 
-Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): the grid store below had exactly the keys `load, next, page, pageRows, pageSize, paging, rows`, and `inject` returned one shared instance (`Section 8: a signal store exposes state, computed and methods as one object`). `paging.total()` read through the deep signal, and `signalState` returned a function (`Section 8: nested state is exposed as deep signals`).
+The grid store below had exactly the keys `load, next, page, pageRows, pageSize, paging, rows`, and `inject` returned one shared instance (`Section 8: a signal store exposes state, computed and methods as one object`). `paging.total()` read through the deep signal, and `signalState` returned a function (`Section 8: nested state is exposed as deep signals`).
 
 **Protection is a type, not a lock.** `patchState` accepts a `WritableStateSource`, which the instance is not: calling it outside the store fails with `TS2345`, and `signalStore({ protectedState: false }, …)` compiles. At runtime the write still happened, and a cast passed (`Section 8: patchState from outside does not compile unless protectedState is false`). The cause is in the source: the constructor stores the same writable state object (`STATE_SOURCE`, internal) on the instance, and the option changes only the type. `unprotected()` from `@ngrx/signals/testing` is the test helper.
 
@@ -834,7 +868,7 @@ The approach: declare the grid store once and let consumers read it and call its
 4. A consumer injects the store and calls `load` and `next`.
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted
+// Partial: section-8-signal-store.spec.ts, imports omitted
 const LabM28GridStore = signalStore(
   { providedIn: 'root' },
   withState<LabM28GridState>({ rows: [], page: 0, pageSize: 2, paging: { total: 0 } }),
@@ -862,18 +896,34 @@ store.pageRows(); // [{ id: 3, … }]
 The same state as a ComponentStore subclass, still supported (docs quoted above) and provided on a component:
 
 ```ts
-// Partial: compiled in the throwaway harness, not in the repository; imports omitted
-interface LabM28GridCsState { rows: readonly LabM28Row[]; page: number }
+// LEGACY: the ComponentStore subclass of module 28 §8. Before @ngrx/signals, a component-local store extended ComponentStore and
+// was written through updater() and read through select()/selectSignal(); it is still supported, new code uses signalStore().
+import { Injectable } from '@angular/core';
+import { ComponentStore } from '@ngrx/component-store';
+
+export interface LabM28Row {
+  readonly id: number;
+  readonly name: string;
+}
+
+interface LabM28GridCsState {
+  readonly rows: readonly LabM28Row[];
+  readonly page: number;
+}
 
 @Injectable()
 export class LabM28GridComponentStore extends ComponentStore<LabM28GridCsState> {
-  constructor() { super({ rows: [], page: 0 }); }
+  constructor() {
+    super({ rows: [], page: 0 });
+  }
 
   readonly page = this.selectSignal((s) => s.page);
   readonly next = this.updater((s) => ({ ...s, page: s.page + 1 }));
   readonly load = this.updater((s, rows: readonly LabM28Row[]) => ({ ...s, rows }));
 }
 ```
+
+<sub>Source: [labs/angular/src/app/modules/28-state-management/legacy/grid-component-store.ts](../labs/angular/src/app/modules/28-state-management/legacy/grid-component-store.ts)</sub>
 
 Migration maps each `updater` to a `withMethods` method and each `selectSignal` to a `withComputed` entry.
 
@@ -902,7 +952,7 @@ A search box must cancel superseded requests and accept a signal as input. Three
 
 **`rxMethod`** (`@ngrx/signals/rxjs-interop`) turns an RxJS pipeline into a method: call it with a value, a signal or an Observable, and the operators decide timing and cancellation ([23 §2](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)). **`signalMethod`** `[Added in NgRx v19.0]` is the signal-only sibling: a plain function runs on each value. **`withEntities<T>()`** (`@ngrx/signals/entities`) adds a collection: **`ids`** keeps the order, **`entityMap`** looks up by id, and `entities` is computed. An **entity updater** such as `addEntity` is a pure function you pass to `patchState`. A **custom feature**, made with **`signalStoreFeature`**, bundles store features for reuse; **`type<>()`** declares which members the host store must already have.
 
-The **Events plugin** `[Stable since NgRx v21.0]` (`@ngrx/signals/events`) adds Flux-style dispatching. The docs open: "The Events plugin extends SignalStore with an event-based state management layer." An **event** is a `{ type, payload }` object, **`eventGroup`** creates events typed `[Source] name`, and the **dispatcher** delivers them. **`injectDispatch`** returns functions that dispatch, **`withReducer`** turns events into state changes, and **`withEventHandlers`** `[Changed in NgRx v21.0: renamed from withEffects]` runs side effects. Like kitchen appliances, a feature plugs into any kitchen whose sockets match its `type<>()`.
+The **Events plugin** `[Stable since NgRx v21.0]` (`@ngrx/signals/events`) adds Flux-style (one-way action → dispatcher → store, the pattern behind Redux) dispatching. The docs open: "The Events plugin extends SignalStore with an event-based state management layer." An **event** is a `{ type, payload }` object, **`eventGroup`** creates events typed `[Source] name`, and the **dispatcher** delivers them. **`injectDispatch`** returns functions that dispatch, **`withReducer`** turns events into state changes, and **`withEventHandlers`** `[Changed in NgRx v21.0: renamed from withEffects]` runs side effects. Like kitchen appliances, a feature plugs into any kitchen whose sockets match its `type<>()`.
 
 ```mermaid
 flowchart TD
@@ -919,7 +969,7 @@ What to notice: a custom feature is the unit of reuse, and events decouple who a
 
 Read from the `@ngrx/signals` 22.0.1 source (`fesm2022/ngrx-signals-rxjs-interop.mjs`, `rxMethod`): the pipeline is built once, on a `Subject`, and unsubscribed through the injector's `DestroyRef`; development builds call `assertInInjectionContext` without an `injector` option. The returned function is not an Observable: a value enters the subject, a signal gets an `effect`, an Observable is subscribed.
 
-Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): the value 1, a signal at 5 and 6 (after `TestBed.tick()`), and an Observable emitting 7 and 8 reached the pipeline in that order (`Section 9: rxMethod accepts a value, a signal and an Observable`). Created in a test body, it threw `NG0203` (`Section 9: rxMethod created outside an injection context throws NG0203`). With `switchMap`, a late answer for a superseded id was dropped (`Section 9: rxMethod with switchMap keeps only the latest inner request`). Calling the method with a signal or an Observable outside an injection context warned once each, which the source calls deprecated: `[Deprecated since NgRx v21.1 — call it in an injection context or pass an injector]`. A static value never warns.
+The value 1, a signal at 5 and 6 (after `TestBed.tick()`), and an Observable emitting 7 and 8 reached the pipeline in that order (`Section 9: rxMethod accepts a value, a signal and an Observable`). Created in a test body, it threw `NG0203` (`Section 9: rxMethod created outside an injection context throws NG0203`). With `switchMap`, a late answer for a superseded id was dropped (`Section 9: rxMethod with switchMap keeps only the latest inner request`). Calling the method with a signal or an Observable outside an injection context warned once each, which the source calls deprecated: `[Deprecated since NgRx v21.1 — call it in an injection context or pass an injector]`. A static value never warns.
 
 `withEntities` is itself `signalStoreFeature(withState({ entityMap: {}, ids: [] }), withComputed(...))` (`fesm2022/ngrx-signals-entities.mjs`), and `signalStoreFeature` is a fold over its arguments (`fesm2022/ngrx-signals.mjs`); `type()` returns `undefined`, so a requirement exists only for the compiler. After two adds, a duplicate add and a toggle, `ids` was `[1, 2]` and `entities` followed them (`Section 9: withEntities keeps ids, entityMap and entities in step`); the duplicate changed nothing. One feature gave two unrelated stores the same `status` and `isLoading` (`Section 9: a custom feature adds state and computed to any store`).
 
@@ -938,7 +988,7 @@ The approach: one reusable feature, a collection and an `rxMethod` in one store,
 3. `load` is an `rxMethod`; `addEntity` takes a typed value.
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted
+// Partial: section-9-signal-store-in-depth.spec.ts, imports omitted
 function withRequestStatus() {
   return signalStoreFeature(
     withState<{ status: 'idle' | 'loading' | 'loaded' }>({ status: 'idle' }),
@@ -964,7 +1014,7 @@ const TodoStore = signalStore(
 The events version declares, reduces, handles and dispatches.
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted
+// Partial: section-9-signal-store-in-depth.spec.ts, imports omitted
 const counter = eventGroup({ source: 'Counter Page', events: { increment: type<void>(), set: type<number>() } });
 
 const CounterStore = signalStore(
@@ -1027,7 +1077,7 @@ What to notice: rollback restores the one change that failed, not a whole snapsh
 
 **Rollback.** The lab store (`LabM28TodoStore`) answers a failure by writing the item's earlier `done` onto the item's current entity. The tempting alternative remembers the whole state before the request and sets it back. Observed in the lab: two toggles were in flight, the second request failed after the first succeeded, and the snapshot version ended with every flag `false`, which erases the confirmed change; the per-item version kept it (`Section 10: a rollback restores only the failed item`). A snapshot is correct only when nothing else can change in between.
 
-**Reference behavior.** After `toggle(2)`, entities 1 and 3 were the same objects as before, entity 2 was a new object, and `ids` was the same array (`Section 10: a normalized update replaces one entity and keeps the others' references`). Read from the `@ngrx/entity` 22.0.1 source (`fesm2022/ngrx-entity.mjs`, the unsorted adapter's `updateManyMutably` and `takeNewKey`, internal): the update builds `Object.assign({}, original, update.changes)` for the changed id only and writes it into a copy of the state; read, not run. F9, observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`), recorded the same for the sorted adapter's `updateOne`.
+**Reference behavior.** After `toggle(2)`, entities 1 and 3 were the same objects as before, entity 2 was a new object, and `ids` was the same array (`Section 10: a normalized update replaces one entity and keeps the others' references`). Read from the `@ngrx/entity` 22.0.1 source (`fesm2022/ngrx-entity.mjs`, the unsorted adapter's `updateManyMutably` and `takeNewKey`, internal): the update builds `Object.assign({}, original, update.changes)` for the changed id only and writes it into a copy of the state; read, not run. [Q28.18](#q28-18) asserts the same for the sorted adapter's `updateOne`.
 
 **History.** Edit, edit, undo, edit left `past` `[0, 1]`, `present` `3` and `future` `[]`; `redo` after an `undo` brought the undone value back (`Section 10: undo and redo move the present between the stacks`).
 
@@ -1132,7 +1182,7 @@ What to notice: most branches end without a store library.
 
 **Elf.** An **Elf store** (`@ngneat/elf` 2.5.1, peer `rxjs` only) comes from `createStore`; `src/lib/store.d.ts` declares `Store … extends BehaviorSubject<State>` with `update(...reducers)`: [§3](#3-the-service-with-behaviorsubject-store-the-legacy-but-common-pattern-and-its-migration)'s pattern, packaged. No release since 2.5.1 on 2024-02-03 and no deprecation notice (npm registry, read 2026-10-13); GitHub was not readable here, so nothing more is claimed.
 
-**The table.** Every cell cites its basis; speed at scale is [module 31](31-performance.md)'s, where stores live [module 38](38-architecture-and-production-structure.md)'s.
+**The table.** Every cell cites its basis; speed at scale is [module 31](31-performance.md#3-runtime-cost-of-a-change-onpush-zoneless-signals-and-per-check-template-work)'s, where stores live [module 38](38-architecture-and-production-structure.md)'s.
 
 | | Signal service | SignalStore | NgRx Store | NGXS | TanStack Query |
 |---|---|---|---|---|---|
@@ -1264,9 +1314,9 @@ const stateAndAction$ = withLatestReducer$.pipe(scan(reduceState, seed));
 
 Its subscriber runs `this.next(state); scannedActions.next(action);`: the state is published before the action reaches `ScannedActionsSubject`, which `Actions` reads (§6). `Store.select` ends in `distinctUntilChanged()`.
 
-**Why `dispatch` is synchronous.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`), `dispatch(add({ n: 2 }))` logged `state`, `a=2` before returning, one emission each (`Section 12: one dispatch produces one state emission and one selector emission`). An `other()` dispatch logged `state` only: the reducer kept `a` and `distinctUntilChanged` dropped the repeat. The queue delays only a nested dispatch, made inside a state subscriber, which logged `inner dispatch returned` before its own `state a=1 b=1` (`Section 12: a dispatch from inside a state subscriber is reduced after the current emission finishes`).
+**Why `dispatch` is synchronous.** In the lab, `dispatch(add({ n: 2 }))` logged `state`, `a=2` before returning, one emission each (`Section 12: one dispatch produces one state emission and one selector emission`). An `other()` dispatch logged `state` only: the reducer kept `a` and `distinctUntilChanged` dropped the repeat. The queue delays only a nested dispatch, made inside a state subscriber, which logged `inner dispatch returned` before its own `state a=1 b=1` (`Section 12: a dispatch from inside a state subscriber is reduced after the current emission finishes`).
 
-**Why `patchState` skips work.** Read from the `@ngrx/signals` 22.0.1 source (`fesm2022/ngrx-signals.mjs`): `patchState` merges the updaters over `getState` and calls `signals[key].set` only when `currentState[key] !== newState[key]`. A key absent from `STATE_SOURCE` triggers a development-mode `console.warn` and is skipped. Then `notifyWatchers` (internal) runs every watcher unconditionally. In the harness, `{ a: 1 }` re-ran no computed and `{ b: 3 }` only the one over `b` (`Section 12: patchState sets only the keys whose values changed`); `{ zz: 1 }` logged "@ngrx/signals: patchState was called with an unknown state slice 'zz'." and changed nothing (`Section 12: patchState warns about an unknown key and ignores it`); a watcher saw both an unchanged and a changed patch (`Section 12: state watchers run on every patchState call, changed or not`).
+**Why `patchState` skips work.** Read from the `@ngrx/signals` 22.0.1 source (`fesm2022/ngrx-signals.mjs`): `patchState` merges the updaters over `getState` and calls `signals[key].set` only when `currentState[key] !== newState[key]`. A key absent from `STATE_SOURCE` triggers a development-mode `console.warn` and is skipped. Then `notifyWatchers` (internal) runs every watcher unconditionally. In the lab, `{ a: 1 }` re-ran no computed and `{ b: 3 }` only the one over `b` (`Section 12: patchState sets only the keys whose values changed`); `{ zz: 1 }` logged "@ngrx/signals: patchState was called with an unknown state slice 'zz'." and changed nothing (`Section 12: patchState warns about an unknown key and ignores it`); a watcher saw both an unchanged and a changed patch (`Section 12: state watchers run on every patchState call, changed or not`).
 
 Once true: one `WritableSignal` held the whole state until NgRx 20.0.0 (CHANGELOG, breaking). Drilled in [Q28.33](#q28-33) and [Q28.34](#q28-34).
 
@@ -1278,8 +1328,8 @@ The approach: drive a real `Store` and a `signalState`, recording into arrays.
 2. Patch an unchanged and a changed key of a `signalState` and record the `computed` runs.
 
 ```ts
-// Partial: imports, the `add` action and the `feature` (state { a, b }) omitted; harness spec, not a lab file
-const { store, state } = setup(); // provideStore() + provideState(feature)
+// Partial: concepts/section-12-under-the-hood.spec.ts, names shortened; imports, the `add` action and the `feature` (state { a, b }) omitted
+const { store, state } = setup(); // provideStore() + provideState(feature), then inject Store and State
 const log: string[] = [];
 state.subscribe(() => log.push('state'));
 store.select(feature.selectA).subscribe((v) => log.push('a=' + v));
@@ -1290,11 +1340,17 @@ log.push('returned a=' + store.selectSignal(feature.selectA)());
 ```
 
 ```ts
-// Partial: imports omitted; harness spec, not a lab file
+// Partial: concepts/section-12-under-the-hood.spec.ts, imports omitted
 const runs: string[] = [];
 const base = signalState({ a: 1, b: 2 });
-const doubledA = computed(() => (runs.push('a'), base.a() * 2));
-const doubledB = computed(() => (runs.push('b'), base.b() * 2));
+const doubledA = computed(() => {
+  runs.push('a');
+  return base.a() * 2;
+});
+const doubledB = computed(() => {
+  runs.push('b');
+  return base.b() * 2;
+});
 doubledA();
 doubledB();
 runs.length = 0;
@@ -1328,7 +1384,7 @@ ComponentStore is not deprecated, SignalStore state is not frozen, and protected
 
 ## Question bank
 
-Each answer is five parts; Output answers state the run asserted in `q28-outputs.spec.ts`. In harness mode (NgRx not installed) the NgRx Output questions are tagged Concept and give harness observations.
+Each answer is five parts; Output answers state the run asserted in `q28-outputs.spec.ts`.
 
 <a id="q28-01"></a>
 ### Q28.01 · Concept · Server cache, UI, form, URL and session state: what is each, and where does each belong in an Angular app?
@@ -1520,7 +1576,7 @@ console.log(received);
 
 **Short answer (30 seconds).** The click handler dispatches an action, a plain object that says what happened. The store passes it to the reducer, a pure function from the old state and the action to the next state. Selectors read the new state, and effects, which also see the action, run side effects and dispatch further actions. The reducer is pure so that the same actions always give the same state.
 
-**Full explanation.** [§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks) draws the loop. The docs name an action with the `[Source] Event` pattern (`store/action-groups.md`, read 2026-10-13), so it records a fact that several reducers and effects may react to. Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): with an effect mapping `load` to `loaded({ n: 7 })`, the selected `n` was `7` as soon as `dispatch(load())` returned, so the effect's action was reduced before `dispatch` returned. Purity buys replay: DevTools time travel and tests rebuild a state by running the same actions again ([§7](#7-ngrx-entity-router-store-and-store-devtools)). A reducer that calls a service or reads the clock gives a different state on replay, and one that mutates breaks the reference comparison selectors rely on ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)).
+**Full explanation.** [§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks) draws the loop. The docs name an action with the `[Source] Event` pattern (`store/action-groups.md`, read 2026-10-13), so it records a fact that several reducers and effects may react to. With an effect mapping `load` to `loaded({ n: 7 })`, the selected `n` was `7` as soon as `dispatch(load())` returned, so the effect's action was reduced before `dispatch` returned (`Section 4: an effect's action is reduced before dispatch returns`). Purity buys replay: DevTools time travel and tests rebuild a state by running the same actions again ([§7](#7-ngrx-entity-router-store-and-store-devtools)). A reducer that calls a service or reads the clock gives a different state on replay, and one that mutates breaks the reference comparison selectors rely on ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)).
 
 **Follow-ups an interviewer will ask.**
 - *Where does the HTTP call go?* In an effect ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)); the reducer only records the result.
@@ -1531,10 +1587,10 @@ console.log(received);
 </details>
 
 <a id="q28-09"></a>
-### Q28.09 · Concept · `createActionGroup` with source `Todos Page` and events `Add Todo` and `Clear All`: which creator names and type strings does it produce?
+### Q28.09 · Output · `createActionGroup` with source `Todos Page` and events `Add Todo` and `Clear All`: which creator names and type strings does it produce?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; NgRx is not installed in the labs
+// Complete: runs in a spec (`it('Q28.09 …')`); imports createActionGroup, emptyProps and props from @ngrx/store
 const TodosPage = createActionGroup({
   source: 'Todos Page',
   events: {
@@ -1542,15 +1598,16 @@ const TodosPage = createActionGroup({
     'Clear All': emptyProps(),
   },
 });
-console.log(Object.keys(TodosPage), TodosPage.addTodo({ title: 'a' }).type, TodosPage.clearAll().type);
+
+console.log([Object.keys(TodosPage), TodosPage.addTodo({ title: 'a' }), TodosPage.clearAll().type]);
 ```
 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** The creators are `addTodo` and `clearAll`, and the types are `'[Todos Page] Add Todo'` and `'[Todos Page] Clear All'`. The group camel-cases each event name for the creator and joins source and event as `[Source] Event` for the type string.
+**Short answer (30 seconds).** `[['addTodo', 'clearAll'], { title: 'a', type: '[Todos Page] Add Todo' }, '[Todos Page] Clear All']`, because the group camel-cases each event name for the creator and joins source and event as `[Source] Event` for the type string.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 4: createActionGroup derives camelCase creators and bracketed types`); a group that also had `Load` and `Loaded` gave `load` and `loaded`. Read from the `@ngrx/store` 22.0.1 source ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)), `createActionGroup` calls `createAction(toActionType(source, eventName), …)` once per event; `toActionName` and `toActionType` are internal. `props<{ title: string }>()` types the payload, so `addTodo({ title: 'a' })` returns `{ title: 'a', type: '[Todos Page] Add Todo' }`, and `emptyProps()` gives a creator that takes no argument.
+**Full explanation.** Asserted by `Q28.09 createActionGroup gives camelCase creators and bracketed types`. A group that also had `Load` and `Loaded` gave `load` and `loaded` (`Section 4: createActionGroup derives camelCase creators and bracketed types`). Read from the `@ngrx/store` 22.0.1 source ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)), `createActionGroup` calls `createAction(toActionType(source, eventName), …)` once per event; `toActionName` and `toActionType` are internal. `props<{ title: string }>()` types the payload, and `emptyProps()` gives a creator that takes no argument.
 
 **Follow-ups an interviewer will ask.**
 - *Do two groups share a type?* The type string must be unique per action; `strictActionTypeUniqueness` is a check, off by default ([Q28.10](#q28-10)).
@@ -1568,7 +1625,7 @@ console.log(Object.keys(TodosPage), TodosPage.addTodo({ title: 'a' }).type, Todo
 
 **Short answer (30 seconds).** Six checks exist. Two are on in development: `strictStateImmutability` and `strictActionImmutability` freeze the state and the action, so a mutation throws. The other four are off unless you set them: serializability of state and of actions, dispatch inside the Angular zone, and unique action types. In production all six are `false`, because they exist to catch mistakes while writing code.
 
-**Full explanation.** Re-read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`, `createActiveRuntimeChecks`, internal): when `isDevMode()` is true it returns `strictStateSerializability: false`, `strictActionSerializability: false`, `strictStateImmutability: true`, `strictActionImmutability: true`, `strictActionWithinNgZone: false`, `strictActionTypeUniqueness: false`, then your `runtimeChecks`; otherwise all six are `false`. The immutability meta-reducer applies a recursive `Object.freeze` to the action and the next state ([Q03.18](03-js-objects-prototypes-classes.md#q03-18) owns immutability). Observed in the same harness: `items.push('x')` on the state threw `TypeError` "Cannot add property 1, object is not extensible" (`Section 4: in development the store state is frozen and a push throws`). Read, not run: the serialization check throws for a value that is not plain data, such as a class instance, the zone check for a dispatch outside `NgZone`, and the uniqueness check for a type registered twice.
+**Full explanation.** Re-read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`, `createActiveRuntimeChecks`, internal): when `isDevMode()` is true it returns `strictStateSerializability: false`, `strictActionSerializability: false`, `strictStateImmutability: true`, `strictActionImmutability: true`, `strictActionWithinNgZone: false`, `strictActionTypeUniqueness: false`, then your `runtimeChecks`; otherwise all six are `false`. The immutability meta-reducer applies a recursive `Object.freeze` to the action and the next state ([Q03.18](03-js-objects-prototypes-classes.md#q03-18) owns immutability). In the lab, `items.push('x')` on the state threw `TypeError` "Cannot add property 1, object is not extensible" (`Section 4: in development the store state is frozen and a push throws`). Read, not run: the serialization check throws for a value that is not plain data, such as a class instance, the zone check for a dispatch outside `NgZone`, and the uniqueness check for a type registered twice.
 
 **Follow-ups an interviewer will ask.**
 - *Does production still protect the state?* No; the freeze is gone, so a mutation passes silently ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)).
@@ -1579,10 +1636,10 @@ console.log(Object.keys(TodosPage), TodosPage.addTodo({ title: 'a' }).type, Todo
 </details>
 
 <a id="q28-11"></a>
-### Q28.11 · Concept · `createFeature` named `todos` with a reducer over `items` and `n`: which members does it return?
+### Q28.11 · Output · `createFeature` named `todos` with a reducer over `items` and `n`: which members does it return?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; NgRx is not installed in the labs
+// Complete: runs in a spec (`it('Q28.11 …')`); imports createFeature and createReducer from @ngrx/store
 interface TodosState {
   items: string[];
   n: number;
@@ -1597,9 +1654,9 @@ console.log(Object.keys(feature));
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** `['name', 'reducer', 'selectTodosState', 'selectItems', 'selectN']`. The feature returns its name, its reducer, a feature selector named from the feature, and one selector per top-level state key.
+**Short answer (30 seconds).** `['name', 'reducer', 'selectTodosState', 'selectItems', 'selectN']`, because the feature adds to its name and reducer a feature selector named from the feature and one selector per top-level state key.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 4: createFeature returns the reducer and one selector per state key`). `selectTodosState` is `select` plus the capitalized feature name plus `State`, and `selectItems` and `selectN` come from the keys of the reducer's initial state ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals) reads how `createFeature` finds them). Passing `feature` to `provideState` registers `reducer` under `name`.
+**Full explanation.** Asserted by `Q28.11 createFeature returns its name, its reducer, a feature selector and one selector per key`. `selectTodosState` is `select` plus the capitalized feature name plus `State`, and `selectItems` and `selectN` come from the keys of the reducer's initial state ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals) reads how `createFeature` finds them). Passing `feature` to `provideState` registers `reducer` under `name`.
 
 **Follow-ups an interviewer will ask.**
 - *Where do the keys come from?* From the initial state the reducer returns, so a key missing there gets no selector.
@@ -1610,10 +1667,18 @@ console.log(Object.keys(feature));
 </details>
 
 <a id="q28-12"></a>
-### Q28.12 · Concept · A `createSelector` projector called with the same state, a new root with the same slice and a new slice with equal contents: how many times does it run?
+### Q28.12 · Output · A `createSelector` projector called with the same state, a new root with the same slice and a new slice with equal contents: how many times does it run?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; feature as in section 4, with items and n
+// Complete: runs in a spec (`it('Q28.12 …')`); imports createFeature, createReducer and createSelector from @ngrx/store
+interface TodosState {
+  items: string[];
+  n: number;
+}
+const feature = createFeature({
+  name: 'todos',
+  reducer: createReducer<TodosState>({ items: [], n: 0 }),
+});
 let runs = 0;
 const selectCount = createSelector(feature.selectItems, (items) => {
   runs += 1;
@@ -1630,9 +1695,9 @@ console.log(runs);
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** `2`. The projector runs for the first call and for the call with a new, equal array. The other two reach the same `items` reference, so the stored result is returned.
+**Short answer (30 seconds).** `2`: the first call and the call with a new, equal array, because the projector runs only when its input's reference changes. The other two reach the same `items` reference, so the stored result is returned.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 5: the projector re-runs only when an input selector's result changes`). A new root object does not matter: the input selector `selectItems` still returns the old array. The fourth call hands over a different array, and equal contents do not count. Read from the `@ngrx/store` 22.0.1 source, `defaultMemoize` keeps one entry and compares each argument with `===` (`isEqualCheck`, internal), so the cache holds the last call only ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)).
+**Full explanation.** Asserted by `Q28.12 the projector runs twice over four calls`. A new root object does not matter: the input selector `selectItems` still returns the old array. The fourth call hands over a different array, and equal contents do not count. Read from the `@ngrx/store` 22.0.1 source, `defaultMemoize` keeps one entry and compares each argument with `===` (`isEqualCheck`, internal), so the cache holds the last call only ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)).
 
 **Follow-ups an interviewer will ask.**
 - *Does an unrelated key change run it?* No; the input selector's result is unchanged.
@@ -1674,7 +1739,7 @@ export class LabM28TodoRow {
 
 **Short answer (30 seconds).** The props selector has one cache shared by every `id`, so alternating ids recompute each time, and its API is deprecated. The factory is correct but not when it is called per render, because every call builds a selector with an empty memo. Build the factory result once per id and keep it in a field.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)): with props, one props object ran the projector once for two calls, while `{ id: 2 }`, the first object again, and a new equal object each ran it again, because `props` is one more argument compared with `===` against a single stored entry (`Section 5: a selector with props shares one cache across props`). A factory created once ran the projector once over three calls, one after an unrelated change; created inside a method on each call it ran three times (`Section 5: a factory selector created once per id keeps its memo`). The 22.0.1 typings tag selectors with props and the string-key `select` overloads `@deprecated Selectors with props are deprecated and will be removed in v23`, the typings' statement, not a forecast here. Replace both with `readonly first = this.store.selectSignal(selectByIdFactory(1))` as a field, or a collection selector plus a `computed` that picks the id.
+**Full explanation.** In the lab ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)), with props, one props object ran the projector once for two calls, while `{ id: 2 }`, the first object again, and a new equal object each ran it again, because `props` is one more argument compared with `===` against a single stored entry (`Section 5: a selector with props shares one cache across props`). A factory created once ran the projector once over three calls, one after an unrelated change; created inside a method on each call it ran three times (`Section 5: a factory selector created once per id keeps its memo`). The 22.0.1 typings tag selectors with props and the string-key `select` overloads `@deprecated Selectors with props are deprecated and will be removed in v23`, the typings' statement, not a forecast here. Replace both with `readonly first = this.store.selectSignal(selectByIdFactory(1))` as a field, or a collection selector plus a `computed` that picks the id.
 
 **Follow-ups an interviewer will ask.**
 - *Since when is props deprecated?* Since NgRx v12.0, whose migration guide recommends factory selectors.
@@ -1710,7 +1775,7 @@ export class LabM28TodoRow {
 
 **Short answer (30 seconds).** A functional effect is a plain constant made with `createEffect(fn, { functional: true })`, where `fn` injects `Actions` as a default parameter and returns a stream. `provideEffects({ loadEffect })` registers it. `dispatch: false` stops the stream from dispatching its output. The error handler resubscribes after an error, up to ten times, and reports each one to `ErrorHandler`.
 
-**Full explanation.** Read from the `@ngrx/effects` 22.0.1 source ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)), `createEffect` merges `{ dispatch: true, functional: false, useEffectsErrorHandler: true }` under your config, and `mergeEffects` ends a `dispatch: false` effect with `ignoreElements()`. The handler is `defaultEffectsErrorHandler`, with `MAX_NUMBER_OF_RETRY_ATTEMPTS = 10` (internal). Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): a `dispatch: false` effect that threw on the second of three actions logged `fx 1`, `fx 2`, `handled boom`, `fx 3`, so the third reached the resubscribed stream. A `catchError` after `switchMap` is different: the stream completed after the first failure, and completion is not resubscribed ([Q28.17](#q28-17)).
+**Full explanation.** Read from the `@ngrx/effects` 22.0.1 source ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)), `createEffect` merges `{ dispatch: true, functional: false, useEffectsErrorHandler: true }` under your config, and `mergeEffects` ends a `dispatch: false` effect with `ignoreElements()`. The handler is `defaultEffectsErrorHandler`, with `MAX_NUMBER_OF_RETRY_ATTEMPTS = 10` (internal). A `dispatch: false` effect that threw on the second of three actions logged `fx 1`, `fx 2`, `handled boom`, `fx 3`, so the third reached the resubscribed stream (`Section 6: an effect that throws is resubscribed and the error reaches ErrorHandler`). A `catchError` after `switchMap` is different: the stream completed after the first failure, and completion is not resubscribed ([Q28.17](#q28-17)).
 
 **Follow-ups an interviewer will ask.**
 - *Does the effect see the action before the reducer?* After: the state is emitted first.
@@ -1721,10 +1786,12 @@ export class LabM28TodoRow {
 </details>
 
 <a id="q28-16"></a>
-### Q28.16 · Concept · A non-dispatching effect throws on the second of three actions and has no `catchError`: which actions reach it, and what is logged?
+### Q28.16 · Output · A non-dispatching effect throws on the second of three actions and has no `catchError`: which actions reach it, and what is logged?
 
 ```ts
-// Partial: the shape of the harness spec of 2026-10-13, imports omitted; the effect is registered as in section 6, log is a string array, and a recording { handleError } value replaces ErrorHandler
+// Complete: runs in a spec (`it('Q28.16 …')`); imports ErrorHandler and inject from @angular/core, TestBed from @angular/core/testing, Actions, createEffect, ofType and provideEffects from @ngrx/effects, Store, createAction, props and provideStore from @ngrx/store, and tap from rxjs
+const load = createAction('Load', props<{ n: number }>());
+const log: string[] = [];
 const throwOnSecond = createEffect(
   (actions$ = inject(Actions)) =>
     actions$.pipe(
@@ -1736,21 +1803,30 @@ const throwOnSecond = createEffect(
     ),
   { functional: true, dispatch: false },
 );
-// dispatch load({ n: 1 }), load({ n: 2 }), load({ n: 3 })
+const recordingHandler = { handleError: (error: Error) => log.push(`handled ${error.message}`) };
+TestBed.configureTestingModule({
+  providers: [provideStore(), provideEffects({ throwOnSecond }), { provide: ErrorHandler, useValue: recordingHandler }],
+});
+const store = TestBed.inject(Store);
+store.dispatch(load({ n: 1 }));
+store.dispatch(load({ n: 2 }));
+store.dispatch(load({ n: 3 }));
+
+console.log(log);
 ```
 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** All three actions reach the effect. The log reads `fx 1`, `fx 2`, `handled boom`, `fx 3`. The second action throws, NgRx's handler reports the error and subscribes again, and the third action arrives at the new subscription.
+**Short answer (30 seconds).** `['fx 1', 'fx 2', 'handled boom', 'fx 3']`: all three actions reach the effect, because NgRx's handler reports the second action's error and subscribes again before the third arrives.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 6: an effect that throws is resubscribed and the error reaches ErrorHandler`). The effect has no `catchError`, but `createEffect` defaults `useEffectsErrorHandler` to `true`, so `defaultEffectsErrorHandler` wraps the stream: it is a `catchError` that reports to `ErrorHandler` and resubscribes ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false) reads it). The recording handler received `Error: boom` once, which is the `handled boom` entry. The resubscription is bounded: an effect that threw on every action ran 11 times over 14 dispatches, and the eleventh error escaped (`Section 6: the handler reports ten errors and then stops catching`).
+**Full explanation.** Asserted by `Q28.16 the effect is resubscribed after the error and still sees the third action`. The effect has no `catchError`, but `createEffect` defaults `useEffectsErrorHandler` to `true`, so `defaultEffectsErrorHandler` wraps the stream: it is a `catchError` that reports to `ErrorHandler` and resubscribes ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false) reads it). The recording handler received `Error: boom` once, the `handled boom` entry. The resubscription is bounded: an effect that threw on every action ran 11 times over 14 dispatches, and the eleventh error escaped (`Section 6: the handler reports ten errors and then stops catching`).
 
 **Follow-ups an interviewer will ask.**
 - *Would `fx 2` be logged twice?* No; the action is not retried, only the subscription.
 - *Is a missing `catchError` then fine?* Only as a safety net ([Q28.17](#q28-17) shows what it cannot catch).
 
-**Trap to avoid.** Expecting the effect to die at the first error, as plain RxJS would: the handler hides that until the tenth.
+**Trap to avoid.** Expecting the effect to die at the first error, as plain RxJS would: the handler hides that until the eleventh error.
 
 </details>
 
@@ -1758,7 +1834,7 @@ const throwOnSecond = createEffect(
 ### Q28.17 · Bug hunt · A loading effect with `catchError` outside `switchMap` handles the first failure and then ignores every later action: why does the error handler not save it?
 
 ```ts
-// Partial: the shape of the harness spec of 2026-10-13, imports omitted; api(n) fails for n === 2
+// Partial: the shape of concepts/section-6-effects.spec.ts, imports omitted; api(n) fails for n === 2
 const loadEffect = createEffect(
   (actions$ = inject(Actions)) =>
     actions$.pipe(
@@ -1776,41 +1852,50 @@ const loadEffect = createEffect(
 
 **Short answer (30 seconds).** The outer `catchError` replaces the error with `failed` and then lets the stream complete, and a completion is not an error, so the effects error handler never resubscribes. Move `catchError` inside the `switchMap` projection, or use `mapResponse` or `tapResponse` there.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): for `load` of `1, 2, 3` with the request failing for `2`, the action log was `Load`, `Loaded`, `Load`, `Failed`, `Load`, and the third `Load` got no answer (`Section 6: catchError outside switchMap completes the effect after the first failure`). The handler of [Q28.16](#q28-16) is a `catchError` of its own and acts only on errors; by the time the stream ends, `catchError` has already turned the error into a normal completion, and [Q23.11](23-rxjs-in-depth.md#q23-11) owns that placement rule. The fixed version, with `catchError` inside the inner pipe, answered the third action with `Loaded` (`Section 6: catchError inside switchMap keeps the effect alive`). `mapResponse({ next, error })` from `@ngrx/operators` does the same by mapping both outcomes to actions ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)).
+**Full explanation.** For `load` of `1, 2, 3` with the request failing for `2`, the action log was `Load`, `Loaded`, `Load`, `Failed`, `Load`, and the third `Load` got no answer (`Section 6: catchError outside switchMap completes the effect after the first failure`). The handler of [Q28.16](#q28-16) is a `catchError` of its own and acts only on errors; by the time the stream ends, `catchError` has already turned the error into a normal completion, and [Q23.11](23-rxjs-in-depth.md#q23-11) owns that placement rule. The fixed version, with `catchError` inside the inner pipe, answered the third action with `Loaded` (`Section 6: catchError inside switchMap keeps the effect alive`). `mapResponse({ next, error })` from `@ngrx/operators` does the same by mapping both outcomes to actions ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)).
 
 **Follow-ups an interviewer will ask.**
 - *Why did the first failure look handled?* The `Failed` action did appear; the damage shows on the next action.
+- *What does `tapResponse` change here?* In the inner pipe it runs `next`, then `error` and `EMPTY` on failure, so the outer stream never sees the error ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)).
 
 **Trap to avoid.** Counting on the safety net: it resubscribes after an error, never after a completion.
 
 </details>
 
 <a id="q28-18"></a>
-### Q28.18 · Concept · An entity adapter with a `sortComparer`: what are `ids` and `entities` after `addMany`, and does `updateOne` keep the untouched entity's reference?
+### Q28.18 · Output · An entity adapter with a `sortComparer`: what are `ids` and `entities` after `addMany`, and does `updateOne` keep the untouched entity's reference?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; the adapter's comparer orders by title
-interface LabM28Order { id: number; title: string }
-const adapter = createEntityAdapter<LabM28Order>({
+// Complete: runs in a spec (`it('Q28.18 …')`); imports createEntityAdapter from @ngrx/entity
+interface Order {
+  id: number;
+  title: string;
+}
+const adapter = createEntityAdapter<Order>({
   sortComparer: (a, b) => a.title.localeCompare(b.title),
 });
 const s1 = adapter.addMany(
-  [{ id: 2, title: 'b' }, { id: 1, title: 'a' }],
+  [
+    { id: 2, title: 'b' },
+    { id: 1, title: 'a' },
+  ],
   adapter.getInitialState(),
 );
 const s2 = adapter.updateOne({ id: 2, changes: { title: 'c' } }, s1);
-console.log(s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1]);
+
+console.log([s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1]]);
 ```
 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** `[1, 2]`, `['1', '2']` and `true`. The ids are sorted by the comparer although entity 2 was added first, the entities are keyed by id, and the entity that was not updated is the same object in both states.
+**Short answer (30 seconds).** `[[1, 2], ['1', '2'], true]`: the comparer sorts `ids` although entity 2 was added first, the entities are keyed by id, and `updateOne` replaces only the entity it changes.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 7: the adapter keeps ids sorted and entities keyed by id`; `Section 7: updateOne keeps the references of untouched entities`). Without a `sortComparer` the same call gave `[2, 1]`, insertion order. Read from the `@ngrx/entity` 22.0.1 source, `createStateOperator` (internal) copies `ids` and `entities` shallowly and does not clone the entities, so only the entity named in the update is a new object and `s2` itself is new ([§7](#7-ngrx-entity-router-store-and-store-devtools)). Changing entity 1 to `'z'` re-sorted `ids`, so the order follows the data.
+**Full explanation.** Asserted by `Q28.18 the comparer sorts ids and updateOne keeps the untouched entity`. Without a `sortComparer` the same call gave `[2, 1]`, insertion order (`Section 7: the adapter keeps ids sorted and entities keyed by id`). Read from the `@ngrx/entity` 22.0.1 source, `createStateOperator` (internal) copies `ids` and `entities` shallowly and does not clone the entities, so only the entity named in the update is a new object and `s2` itself is new ([§7](#7-ngrx-entity-router-store-and-store-devtools)). Changing entity 1 to `'z'` re-sorted `ids`, so the order follows the data (`Section 7: updateOne keeps the references of untouched entities`).
 
 **Follow-ups an interviewer will ask.**
 - *Is a sorted adapter slower?* The docs call the unsorted one "more performant during CRUD operations"; no measurement was taken here.
+- *How do you read the collection back?* Through `getSelectors()`, for example `selectAll` in `ids` order and `selectTotal` ([§7](#7-ngrx-entity-router-store-and-store-devtools)).
 
 **Trap to avoid.** Assuming `ids` keep insertion order: with a comparer the adapter sorts, and `entities` is an object, so it has no order of its own.
 
@@ -1824,10 +1909,11 @@ console.log(s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1])
 
 **Short answer (30 seconds).** Mirror it when selectors must combine URL data with other state, or when actions for navigation belong in the DevTools history. Read the router directly when only a component or one effect needs the parameter. Router Store adds a reducer, a serializer and a second copy of the route.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): with `routerReducer` under `router` and `provideRouterStore()`, navigating to `/orders?q=abc` and then `?q=def` made `getRouterSelectors().selectQueryParam('q')` emit `undefined`, `'abc'`, `'def'` (`Section 7: router store selectors read the current query parameter`). The value is then an ordinary selector input, so `createSelector(selectQueryParam('q'), selectOrders, …)` filters without a component in between ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)). The first `undefined` precedes the first navigation. The alternative needs no store: `withComponentInputBinding()` hands the parameter to a component input ([24 §2](24-routing.md#2-route-parameters-path-matrix-query-and-fragment-inheritance-and-component-input-binding)), and `inject(Router)` serves an effect. By reasoning from [§1](#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs), the URL stays the owner, so the mirror is only read.
+**Full explanation.** With `routerReducer` under `router` and `provideRouterStore()`, navigating to `/orders?q=abc` and then `?q=def` made `getRouterSelectors().selectQueryParam('q')` emit `undefined`, `'abc'`, `'def'` (`Section 7: router store selectors read the current query parameter`). The value is then an ordinary selector input, so `createSelector(selectQueryParam('q'), selectOrders, …)` filters without a component in between ([§5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)). The first `undefined` precedes the first navigation. The alternative needs no store: `withComponentInputBinding()` hands the parameter to a component input ([24 §2](24-routing.md#2-route-parameters-path-matrix-query-and-fragment-inheritance-and-component-input-binding)), and `inject(Router)` serves an effect. By reasoning from [§1](#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs), the URL stays the owner, so the mirror is only read.
 
 **Follow-ups an interviewer will ask.**
 - *What does the default serializer keep?* `MinimalRouterStateSerializer`, a reduced plain object (read, [§7](#7-ngrx-entity-router-store-and-store-devtools)).
+- *Can a component write the route through the store?* No: the URL stays the owner ([§1](#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs)), so it navigates and the mirror follows.
 
 **Trap to avoid.** Adding Router Store to read one parameter: input binding does that without a reducer.
 
@@ -1841,10 +1927,11 @@ console.log(s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1])
 
 **Short answer (30 seconds).** Time travel needs pure reducers, because the tools replay the recorded actions through them, and actions and state the extension can serialize to show and export. `maxAge` caps how many recorded actions are kept, with at least 2. `logOnly` limits the extension to a few features and leaves out jumping.
 
-**Full explanation.** Read from the `@ngrx/store-devtools` 22.0.1 source, `recomputeStates` (internal) replays the recorded actions through the reducer, so a reducer that reads the clock or a random number gives a different state on replay ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). Read from `@ngrx/store` 22.0.1, the serializability checks are off by default even in development, so a class instance in an action is not reported unless `strictStateSerializability` or `strictActionSerializability` is set; whether the extension then displays it correctly is documented only. Observed in a throwaway harness on 2026-10-13: `provideStoreDevtools({ maxAge: 3 })` kept `@ngrx/store/init`, `x4` and `x5` after seven emissions, and `maxAge: 1` threw "Devtools 'maxAge' cannot be less than 2, got 1" (`Section 7: provideStoreDevtools provides without the browser extension`; `Section 7: provideStoreDevtools rejects a maxAge below two`). Read, `createConfig` (internal) turns `logOnly` into the features `pause`, `export` and `test` only, so `jump`, `skip` and `dispatch` are absent. The docs default `maxAge` to `false`, infinite, and pass `logOnly: !isDevMode()`. The extension and a jump in a browser were not run.
+**Full explanation.** Read from the `@ngrx/store-devtools` 22.0.1 source, `recomputeStates` (internal) replays the recorded actions through the reducer, so a reducer that reads the clock or a random number gives a different state on replay ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). Read from `@ngrx/store` 22.0.1, the serializability checks are off by default even in development, so a class instance in an action is not reported unless `strictStateSerializability` or `strictActionSerializability` is set; whether the extension then displays it correctly is documented only. `provideStoreDevtools({ maxAge: 3 })` kept `@ngrx/store/init`, `x4` and `x5` after seven emissions, and `maxAge: 1` threw "Devtools 'maxAge' cannot be less than 2, got 1" (`Section 7: provideStoreDevtools provides without the browser extension`; `Section 7: provideStoreDevtools rejects a maxAge below two`). Read, `createConfig` (internal) turns `logOnly` into the features `pause`, `export` and `test` only, so `jump`, `skip` and `dispatch` are absent. The docs default `maxAge` to `false`, infinite, and pass `logOnly: !isDevMode()`. The extension and a jump in a browser were not run.
 
 **Follow-ups an interviewer will ask.**
 - *Does time travel undo side effects?* By reasoning, no: it recomputes state from actions, and an HTTP call already sent stays sent.
+- *What should production use?* A `maxAge` and `logOnly: !isDevMode()`, as the docs' setup does.
 
 **Trap to avoid.** Treating `logOnly` as a performance switch: it changes which extension features are available.
 
@@ -1858,7 +1945,7 @@ console.log(s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1])
 
 **Short answer (30 seconds).** ComponentStore is a class you extend, written through `updater` and `setState` and read through an Observable `select` (or `selectSignal`). SignalStore is assembled from features, keeps every top-level key as a signal and writes with `patchState` inside its methods. Both are supported in NgRx 22; the docs steer new code to SignalStore.
 
-**Full explanation.** ComponentStore puts its logic in a subclass; SignalStore puts it in `withState`, `withComputed` and `withMethods` ([§8](#8-componentstore-and-signalstore-signalstate-signalstore-withstate-withcomputed-withmethods-and-protected-state)). ComponentStore reads are Observable-first, with `selectSignal` as a bridge; SignalStore state is signals, deep signals for nested objects. Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`), a `select` subscriber saw 1, 2 and 7 and `selectSignal` gave 7 (`Section 8: ComponentStore updater and selectSignal agree`). Outside the class, `get()` fails with `TS2445`. The docs alert: "While ComponentStore remains supported, we encourage using `@ngrx/signals` for new projects and considering migration for existing ones", and the 22.0.1 typings carry no `@deprecated` tag. By reasoning, migration is a cost decision, not a deadline: each `updater` becomes a method, each `selectSignal` a computed. [Q28.22](#q28-22) gives the write-protection run.
+**Full explanation.** ComponentStore puts its logic in a subclass; SignalStore puts it in `withState`, `withComputed` and `withMethods` ([§8](#8-componentstore-and-signalstore-signalstate-signalstore-withstate-withcomputed-withmethods-and-protected-state)). ComponentStore reads are Observable-first, with `selectSignal` as a bridge; SignalStore state is signals, deep signals for nested objects. A `select` subscriber saw 1, 2 and 7 and `selectSignal` gave 7 (`Section 8: ComponentStore updater and selectSignal agree`). Outside the class, `get()` fails with `TS2445`. The docs alert: "While ComponentStore remains supported, we encourage using `@ngrx/signals` for new projects and considering migration for existing ones", and the 22.0.1 typings carry no `@deprecated` tag. By reasoning, migration is a cost decision, not a deadline: each `updater` becomes a method, each `selectSignal` a computed. [Q28.22](#q28-22) gives the write-protection run.
 
 **Follow-ups an interviewer will ask.**
 - *Where do you meet ComponentStore?* In code written before SignalStore, typically provided on a component as in §8's legacy example.
@@ -1869,25 +1956,41 @@ console.log(s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1])
 </details>
 
 <a id="q28-22"></a>
-### Q28.22 · Concept · Mutating state read from NgRx Store and from a SignalStore in development, and calling `patchState` from outside a store: which throw, and which fail to compile?
+### Q28.22 · Output · Mutating state read from NgRx Store and from a SignalStore in development, and calling `patchState` from outside a store: which throw, and which fail to compile?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; `feature` is the createFeature of Q28.11
-// after dispatching addTodo({ title: 'a' })
-const items = TestBed.inject(Store).selectSignal(feature.selectItems)();
-items.push('x');
-
-const store = TestBed.inject(signalStore({ providedIn: 'root' }, withState({ a: 1, user: { name: 'a' } })));
+// Complete: runs in a spec (`it('Q28.22 …')`); imports TestBed from @angular/core/testing, Store, createAction, createFeature, createReducer, on, props, provideState and provideStore from @ngrx/store, and getState, patchState, signalStore and withState from @ngrx/signals
+const addTodo = createAction('[Todos Page] Add Todo', props<{ title: string }>());
+const feature = createFeature({
+  name: 'todos',
+  reducer: createReducer<{ items: string[] }>(
+    { items: [] },
+    on(addTodo, (state, { title }) => ({ items: [...state.items, title] })),
+  ),
+});
+const UserStore = signalStore({ providedIn: 'root' }, withState({ a: 1, user: { name: 'a' } }));
+TestBed.configureTestingModule({ providers: [provideStore(), provideState(feature)] });
+const ngrxStore = TestBed.inject(Store);
+ngrxStore.dispatch(addTodo({ title: 'a' }));
+const items = ngrxStore.selectSignal(feature.selectItems)();
+try {
+  items.push('x');
+} catch (error) {
+  console.log(String(error));
+}
+const store = TestBed.inject(UserStore);
 getState(store).user.name = 'b';
+// @ts-expect-error a store's state is protected outside it (TS2345)
 patchState(store, { a: 2 });
+console.log(JSON.stringify(getState(store)));
 ```
 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** Only the push onto NgRx Store state throws, a `TypeError`, because that state is frozen in development. The SignalStore assignment runs: its state is not frozen. `patchState(store, …)` from outside fails to compile with `TS2345`, yet nothing blocks the write at runtime.
+**Short answer (30 seconds).** `TypeError: Cannot add property 1, object is not extensible`, then `{"a":2,"user":{"name":"b"}}`. Only the NgRx push throws, because NgRx Store freezes its state in development and SignalStore does not; the outside `patchState` fails to compile with `TS2345`, yet runs.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): `items.push('x')` threw "Cannot add property 1, object is not extensible"; the Store freezes only when `isDevMode()` is true ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). On the SignalStore, `Object.isFrozen` was `false` for `getState(store)` and `user`, and the assignment succeeded (`Section 8: SignalStore state is not frozen in development`). The `patchState` line failed with `TS2345`. With `protectedState: false` it compiled and wrote, and a cast let the default store write too (`Section 8: patchState from outside does not compile unless protectedState is false`). So protection is a type check ([§8](#8-componentstore-and-signalstore-signalstate-signalstore-withstate-withcomputed-withmethods-and-protected-state)).
+**Full explanation.** Asserted by `Q28.22 only the frozen NgRx state throws, and patchState from outside writes despite its type error`. The Store freezes only when `isDevMode()` is true ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). On the SignalStore, `Object.isFrozen` was `false` for `getState(store)` and `user` (`Section 8: SignalStore state is not frozen in development`). The `@ts-expect-error` line holds the `TS2345`. With `protectedState: false` the call compiled and wrote, and a cast let the default store write too (`Section 8: patchState from outside does not compile unless protectedState is false`). So protection is a type check ([§8](#8-componentstore-and-signalstore-signalstate-signalstore-withstate-withcomputed-withmethods-and-protected-state)).
 
 **Follow-ups an interviewer will ask.**
 - *What does a test use to write state?* `unprotected(store)` from `@ngrx/signals/testing`, which allows `patchState` without a cast.
@@ -1905,7 +2008,7 @@ patchState(store, { a: 2 });
 
 **Short answer (30 seconds).** Root gives one app-wide instance, created on first injection and destroyed with the root injector. Component `providers` give one instance per host, destroyed with it. Route `providers` tie it to the route's injector, by the standard DI rules. Choose by who shares the state and when it resets; `onInit` and `onDestroy` follow the provider.
 
-**Full explanation.** Design from the state's owner. Cart or session state: root. A grid's paging belongs to one grid: a component provider ([Q16.21](16-dependency-injection.md#q16-21)). Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): a component-provided store gave two hosts two instances, with `onDestroy` as each fixture was destroyed; a root store ran `onInit` on the first `TestBed.inject` and `onDestroy` at injector teardown (`Section 8: withHooks runs onInit on creation and onDestroy with its injector`; `Section 8: a root store runs onDestroy at injector teardown, not with a component`). So a load in `onInit` runs once for root and once per host for a component. Read from the `@ngrx/signals` 22.0.1 source, an `rxMethod` ends through the injector's `DestroyRef`, so a component-scoped store cancels its pipeline with the host ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)). Route providers were not run; [16 §6](16-dependency-injection.md#6-providers-versus-viewproviders-and-per-instance-state) has the rules.
+**Full explanation.** Design from the state's owner. Cart or session state: root. A grid's paging belongs to one grid: a component provider ([Q16.21](16-dependency-injection.md#q16-21)). A component-provided store gave two hosts two instances, with `onDestroy` as each fixture was destroyed; a root store ran `onInit` on its first injection and `onDestroy` at injector teardown (`Section 8: withHooks runs onInit on creation and onDestroy with its injector`; `Section 8: a root store runs onDestroy at injector teardown, not with a component`). So a load in `onInit` runs once for root and once per host for a component. Read from the `@ngrx/signals` 22.0.1 source, an `rxMethod` ends through the injector's `DestroyRef`, so a component-scoped store cancels its pipeline with the host ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)). Route providers were not run; [16 §6](16-dependency-injection.md#6-providers-versus-viewproviders-and-per-instance-state) has the rules.
 
 **Follow-ups an interviewer will ask.**
 - *Can a root store be shadowed?* By reasoning from DI, yes: listing it in a component's `providers` creates a separate instance there.
@@ -1916,10 +2019,12 @@ patchState(store, { a: 2 });
 </details>
 
 <a id="q28-24"></a>
-### Q28.24 · Concept · An `rxMethod` called with a value, a signal and an Observable, and one created outside an injection context: what reaches the pipeline, and what is reported?
+### Q28.24 · Output · An `rxMethod` called with a value, a signal and an Observable, and one created outside an injection context: what reaches the pipeline, and what is reported?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted; `got` records each value
+// Complete: runs in a spec (`it('Q28.24 …')`); imports signal from @angular/core, TestBed from @angular/core/testing, signalStore and withMethods from @ngrx/signals, rxMethod from @ngrx/signals/rxjs-interop, and Subject and tap from rxjs
+const got: number[] = [];
+const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 const RunStore = signalStore(
   { providedIn: 'root' },
   withMethods(() => ({ run: rxMethod<number>(tap((v) => got.push(v))) })),
@@ -1927,6 +2032,7 @@ const RunStore = signalStore(
 const store = TestBed.inject(RunStore);
 const level = signal(5);
 store.run(1);
+const warningsAfterValue = warn.mock.calls.length;
 store.run(level);
 TestBed.tick();
 level.set(6);
@@ -1935,53 +2041,67 @@ const feed = new Subject<number>();
 store.run(feed);
 feed.next(7);
 feed.next(8);
-// got: [1, 5, 6, 7, 8]
+
+console.log([got, warningsAfterValue, warn.mock.calls.length]);
+rxMethod<number>(tap(() => undefined)); // the test body is not an injection context
 ```
 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** The pipeline receives 1, 5, 6 (after `set(6)` and a second tick), 7 and 8. A value enters at once, a signal is followed through an effect, an Observable is subscribed. Creating the `rxMethod` outside an injection context throws `NG0203`.
+**Short answer (30 seconds).** `[[1, 5, 6, 7, 8], 0, 2]`, then the last line throws `NG0203`. Each input reaches the pipeline (a signal through an effect, so after each tick), and only the signal and the Observable warn, because passing them outside an injection context is deprecated.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 9: rxMethod accepts a value, a signal and an Observable`; `Section 9: rxMethod created outside an injection context throws NG0203`). The harness ran `TestBed.tick()` before each signal read; read from the source, a signal argument is followed by an effect. The creation error begins "NG0203: rxMethod() can only be used within an injection context…" (abridged); the source asserts it only when no `injector` option is passed. Calling with a signal and with an Observable from outside an injection context logged one `console.warn` each, calling this "deprecated". A static value never warned ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
+**Full explanation.** Asserted by `Q28.24 a value, a signal and an Observable reach the pipeline, and creation outside a context throws NG0203`. Read from the source, a signal argument is followed by an effect, an Observable is subscribed. The creation error begins "NG0203: rxMethod() can only be used within an injection context…" (abridged); the source asserts it only when no `injector` option is passed. Each warning calls that use "deprecated" ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
 
 **Follow-ups an interviewer will ask.**
 - *How is the creation error avoided?* Create it in a field initializer, or pass an `injector` option, which the source accepts in place of the assertion.
 - *What ends the subscription?* The injector's `DestroyRef` (source).
 
-**Trap to avoid.** Expecting a signal argument to reach the pipeline in the same statement: the harness ticked first, because an effect carries it.
+**Trap to avoid.** Expecting a signal argument to reach the pipeline in the same statement: the test ticked first, because an effect carries it.
 
 </details>
 
 <a id="q28-25"></a>
-### Q28.25 · Concept · `withEntities` after two adds and a toggle: what do `ids`, `entityMap` and `entities` hold, and why does `addEntity` with a literal `done: false` fail to compile?
+### Q28.25 · Output · `withEntities` after two adds and a toggle: what do `ids`, `entityMap` and `entities` hold, and why does `addEntity` with a literal `done: false` fail to compile?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted
-interface LabM28Todo { id: number; title: string; done: boolean }
-
+// Complete: runs in a spec (`it('Q28.25 …')`); imports TestBed from @angular/core/testing, patchState, signalStore and withMethods from @ngrx/signals, and addEntity, updateEntity and withEntities from @ngrx/signals/entities
+interface Todo {
+  id: number;
+  title: string;
+  done: boolean;
+}
 const TodoStore = signalStore(
   { providedIn: 'root' },
-  withEntities<LabM28Todo>(),
+  withEntities<Todo>(),
   withMethods((store) => ({
     add(id: number, title: string): void {
-      const todo: LabM28Todo = { id, title, done: false };
+      const todo: Todo = { id, title, done: false };
       patchState(store, addEntity(todo));
     },
     addLiteral(id: number): void {
-      // TS2345: the literal infers `done: false`
+      // @ts-expect-error the literal infers `done: false`, which is not the store's `done: boolean` (TS2345)
       patchState(store, addEntity({ id, title: 'x', done: false }));
+    },
+    toggle(id: number): void {
+      patchState(store, updateEntity<Todo>({ id, changes: (todo) => ({ done: !todo.done }) }));
     },
   })),
 );
+const store = TestBed.inject(TodoStore);
+store.add(1, 'x');
+store.add(2, 'y');
+store.toggle(2);
+
+console.log([store.ids(), JSON.stringify(store.entityMap()), store.entities()]);
 ```
 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** After `add(1, 'x')`, `add(2, 'y')` and a toggle of 2: `ids` is `[1, 2]`, `entityMap` is `{"1":{"id":1,"title":"x","done":false},"2":{"id":2,"title":"y","done":true}}`, and `entities` is the two objects in id order. The literal fails because `addEntity` infers its entity type from the argument.
+**Short answer (30 seconds).** `[1, 2]`, `{"1":{"id":1,"title":"x","done":false},"2":{"id":2,"title":"y","done":true}}`, and the two objects in id order, because `entities` is computed from `ids` and `entityMap`. The literal fails because `addEntity` infers its entity type from the argument.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 9: withEntities keeps ids, entityMap and entities in step`): `ids` fixes the order, `entityMap` finds by id, `entities` is the computed list following `ids`. The `addLiteral` line failed with `TS2345` ("Type 'boolean' is not assignable to type 'false'"). By reasoning, the literal narrows the generic to `{ id: number; title: string; done: false }`, which no longer matches the store's `done: boolean`. A typed variable, as in `add`, or `addEntity<LabM28Todo>(…)` compiles ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
+**Full explanation.** Asserted by `Q28.25 two adds and a toggle leave ids, entityMap and entities in step`. `ids` fixes the order, `entityMap` finds by id, `entities` is the computed list following `ids`. The `addLiteral` line failed with `TS2345` ("Type 'boolean' is not assignable to type 'false'"). By reasoning, the literal narrows the generic to `{ id: number; title: string; done: false }`, which no longer matches the store's `done: boolean`. A typed variable, as in `add`, or `addEntity<LabM28Todo>(…)` compiles ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
 
 **Follow-ups an interviewer will ask.**
 - *Why keep both `ids` and `entityMap`?* Order and lookup are separate jobs; [Q28.29](#q28-29) covers the cost.
@@ -1995,7 +2115,7 @@ const TodoStore = signalStore(
 ### Q28.26 · Design · Write a reusable `withRequestStatus()` feature and use it in two stores: what does `signalStoreFeature` compose, and what does `type<>()` add?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted
+// Partial: section-9-signal-store-in-depth.spec.ts, imports omitted
 type Status = 'idle' | 'loading' | 'loaded';
 
 function withRequestStatus() {
@@ -2030,10 +2150,11 @@ const AuthorsStore = signalStore({ providedIn: 'root' }, withRequestStatus(), wi
 
 **Short answer (30 seconds).** `signalStoreFeature` folds the features you list, in order, into one reusable feature: `withRequestStatus()` is `withState` plus `withComputed`, so any store listing it gets `status` and `isLoading`. `type<>()` adds nothing at runtime: it declares which state the host must already have, and the compiler rejects a host without it.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): `BooksStore` exposed `books`, `isLoading`, `retry` and `status`, and `AuthorsStore` exposed `isLoading`, `retry` and `status`. `retry()` on the books store made `status()` `'loading'` and `isLoading()` `true` while the authors store stayed `'idle'` and `false`: the code is shared, the state is per instance. Listing `withRetry()` after `withState({ count: 0 })`, or before `withRequestStatus()`, failed with `TS2769` ("Property 'status' is missing", abridged). Read from the `@ngrx/signals` 22.0.1 typings (`types/ngrx-signals.d.ts`): each feature is typed as receiving what the features before it provide (`SignalStoreFeature<F1 & F2, F3>`), so order is part of the contract ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
+**Full explanation.** (`Section 9: a custom feature adds state and computed to any store`.) `BooksStore` exposed `books`, `isLoading`, `retry` and `status`, and `AuthorsStore` exposed `isLoading`, `retry` and `status`. `retry()` on the books store made `status()` `'loading'` and `isLoading()` `true` while the authors store stayed `'idle'` and `false`: the code is shared, the state is per instance. Listing `withRetry()` after `withState({ count: 0 })`, or before `withRequestStatus()`, failed with `TS2769` ("Property 'status' is missing", abridged). Read from the `@ngrx/signals` 22.0.1 typings (`types/ngrx-signals.d.ts`): each feature is typed as receiving what the features before it provide (`SignalStoreFeature<F1 & F2, F3>`), so order is part of the contract ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
 
 **Follow-ups an interviewer will ask.**
 - *Is it checked at runtime?* No: `type()` returns `undefined` ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)), so a gap shows only at compile time.
+- *Can a feature add methods?* Yes: `withRetry()` above wraps `withMethods` in `signalStoreFeature`.
 
 **Trap to avoid.** Putting the requiring feature first: `type<>()` is satisfied only by features listed before it.
 
@@ -2047,7 +2168,7 @@ const AuthorsStore = signalStore({ providedIn: 'root' }, withRequestStatus(), wi
 
 **Short answer (30 seconds).** Use `withMethods` by default: a component calls a typed method. The Events plugin pays off when several stores must react to one named occurrence, or a team wants every change as a readable `[Source] name` event. The price is indirection and three more declarations.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`) (`Section 9: events reduce state and reach event handlers`): with an `eventGroup` named `Counter Page`, a `withReducer` and a `withEventHandlers` handler, `increment()` twice and `set(10)` left `count()` at 10, `increment.type` was `'[Counter Page] increment'`, and the handler logged `[Counter Page] set 10`. With `withMethods` the same store needs one method. By reasoning, the gain is decoupling: a second store can handle the event without changing the first. The loss is that the path to a state change runs through the dispatcher, which is `providedIn: 'platform'`: events are global unless `provideDispatcher()` scopes them (read, [§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)). Status: the 22.0.1 typings carry no `@experimental` tag; the 20.0.1 typings did.
+**Full explanation.** (`Section 9: events reduce state and reach event handlers`.) With an `eventGroup` named `Counter Page`, a `withReducer` and a `withEventHandlers` handler, `increment()` twice and `set(10)` left `count()` at 10, `increment.type` was `'[Counter Page] increment'`, and the handler logged `[Counter Page] set 10`. With `withMethods` the same store needs one method. By reasoning, the gain is decoupling: a second store can handle the event without changing the first. The loss is that the path to a state change runs through the dispatcher, which is `providedIn: 'platform'`: events are global unless `provideDispatcher()` scopes them (read, [§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)). Status: the 22.0.1 typings carry no `@experimental` tag; the 20.0.1 typings did.
 
 **Follow-ups an interviewer will ask.**
 - *Does it replace NgRx Store?* The docs say it "takes inspiration from the original Flux architecture"; whether a project moves is [§11](#11-alternatives-and-the-decision-framework-ngxs-elf-tanstack-query-and-when-a-store-library-is-justified)'s decision.
@@ -2069,6 +2190,7 @@ const AuthorsStore = signalStore({ providedIn: 'root' }, withRequestStatus(), wi
 
 **Follow-ups an interviewer will ask.**
 - *Is a snapshot ever right?* Only when nothing else can change in between ([§10](#10-optimistic-updates-normalization-and-undo)).
+- *When should an update wait for the server?* Payments and irreversible actions, because a shown confirmation cannot be withdrawn ([§10](#10-optimistic-updates-normalization-and-undo)).
 
 **Trap to avoid.** Restoring the state captured before the request: it overwrites changes that the server accepted meanwhile.
 
@@ -2082,7 +2204,7 @@ const AuthorsStore = signalStore({ providedIn: 'root' }, withRequestStatus(), wi
 
 **Short answer (30 seconds).** Normalizing keeps the order in `ids` and the data in an id-keyed map, so an update replaces one entry, every other entity keeps its reference, and a lookup reads one key. The cost is two structures to keep in step and a join to display the list.
 
-**Full explanation.** Observed in the lab: after `toggle(2)`, entities 1 and 3 were the same objects, entity 2 was new, and `ids` was the same array (`Section 10: a normalized update replaces one entity and keeps the others' references`). Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): the sorted adapter's `addMany` of ids 2 and 1 gave `ids` `[1, 2]`, and `updateOne` on entity 2 kept entity 1's reference ([§7](#7-ngrx-entity-router-store-and-store-devtools)). The costs: an add or a remove must touch both structures, and display needs `ids.map((id) => entities[id])` in a `computed`, the denormalization of [§10](#10-optimistic-updates-normalization-and-undo). `withEntities` ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)) hides this. The [alternative approach of Exercise 17.1](17-signals.md#ex17-1) calls the same shape worth it "for hundreds of lines or frequent single-line updates" and overkill for a typical cart.
+**Full explanation.** Observed in the lab: after `toggle(2)`, entities 1 and 3 were the same objects, entity 2 was new, and `ids` was the same array (`Section 10: a normalized update replaces one entity and keeps the others' references`). The sorted adapter's `addMany` of ids 2 and 1 gave `ids` `[1, 2]`, and `updateOne` on entity 2 kept entity 1's reference ([Q28.18](#q28-18)). The costs: an add or a remove must touch both structures, and display needs `ids.map((id) => entities[id])` in a `computed`, the denormalization of [§10](#10-optimistic-updates-normalization-and-undo). `withEntities` ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)) hides this. The [alternative approach of Exercise 17.1](17-signals.md#ex17-1) calls the same shape worth it "for hundreds of lines or frequent single-line updates" and overkill for a typical cart.
 
 **Follow-ups an interviewer will ask.**
 - *Where does the order live when a `sortComparer` is set?* In `ids`, kept sorted by the adapter ([Q28.18](#q28-18)).
@@ -2186,7 +2308,7 @@ const branched = edit(undone, 3);
 
 **Short answer (30 seconds).** `dispatch` calls `next` on `ActionsSubject`. `State` observes it on a queue scheduler, pairs each action with the latest reducer from `ReducerManager`, and `scan` applies it. The new state is published, then the action goes on to `ScannedActionsSubject`. A selector emits only when `distinctUntilChanged` sees a new selected value.
 
-**Full explanation.** Read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`, `State`): `actions$.pipe(observeOn(queueScheduler))`, then `withLatestFrom(reducer$)`, then `scan(reduceState, seed)` ([§12](#12-under-the-hood-how-ngrx-store-reduces-actions-and-how-signalstore-keeps-state-in-signals) shows the three lines). The queue runs a task at once unless another is running. Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): `dispatch(add({ n: 2 }))` logged `state`, `a=2` before returning, one emission each (`Section 12: one dispatch produces one state emission and one selector emission`). An `other()` dispatch logged `state` only. A dispatch made inside a state subscriber logged `inner dispatch returned` before its own `state a=1 b=1` (`Section 12: a dispatch from inside a state subscriber is reduced after the current emission finishes`). Because the state is published first, effects reading `Actions` see the state the reducer produced ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)).
+**Full explanation.** Read from the `@ngrx/store` 22.0.1 source (`fesm2022/ngrx-store.mjs`, `State`): `actions$.pipe(observeOn(queueScheduler))`, then `withLatestFrom(reducer$)`, then `scan(reduceState, seed)` ([§12](#12-under-the-hood-how-ngrx-store-reduces-actions-and-how-signalstore-keeps-state-in-signals) shows the three lines). The queue runs a task at once unless another is running. In the lab, `dispatch(add({ n: 2 }))` logged `state`, `a=2` before returning, one emission each (`Section 12: one dispatch produces one state emission and one selector emission`). An `other()` dispatch logged `state` only. A dispatch made inside a state subscriber logged `inner dispatch returned` before its own `state a=1 b=1` (`Section 12: a dispatch from inside a state subscriber is reduced after the current emission finishes`). Because the state is published first, effects reading `Actions` see the state the reducer produced ([§6](#6-effects-functional-effects-flattening-error-handling-and-dispatch-false)).
 
 **Follow-ups an interviewer will ask.**
 - *What does `ActionsSubject` reject?* An action without `type`: `next` throws a `TypeError`.
@@ -2197,31 +2319,35 @@ const branched = edit(undone, 3);
 </details>
 
 <a id="q28-34"></a>
-### Q28.34 · Concept · `patchState` with an unchanged value and with an unknown key: which computeds re-run, and what is logged?
+### Q28.34 · Output · `patchState` with an unchanged value and with an unknown key: which computeds re-run, and what is logged?
 
 ```ts
-// Partial: the harness spec of 2026-10-13, imports omitted
+// Complete: runs in a spec (`it('Q28.34 …')`); imports computed from @angular/core, TestBed from @angular/core/testing, and getState, patchState, signalState and watchState from @ngrx/signals
 const runs: string[] = [];
 const seen: string[] = [];
-const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 const state = signalState({ a: 1, b: 2 });
-const doubledA = computed(() => (runs.push('a'), state.a() * 2));
-watchState(state, () => seen.push('watcher')); // inside an injection context
+const doubledA = computed(() => {
+  runs.push('a');
+  return state.a() * 2;
+});
+TestBed.runInInjectionContext(() => watchState(state, () => seen.push('watcher')));
 doubledA();
 runs.length = 0;
 seen.length = 0;
 patchState(state, { a: 1 }); // unchanged
-patchState(state, { zz: 1 } as unknown as { a: number }); // unknown key; the cast is the probe's
+patchState(state, { zz: 1 } as unknown as { a: number }); // unknown key; the cast gets it past the compiler
 doubledA();
-// runs: []   seen: ['watcher', 'watcher']   warn: one call
+
+console.log([runs, seen, warn.mock.calls.map((call) => call[0]), getState(state)]);
 ```
 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** No computed re-runs: `runs` stays empty. The unknown key logs one warning, "@ngrx/signals: patchState was called with an unknown state slice 'zz'.", and changes nothing. The watcher runs for both calls, because the comparison guards signal writes, not the watcher loop.
+**Short answer (30 seconds).** `[[], ['watcher', 'watcher'], ["@ngrx/signals: patchState was called with an unknown state slice 'zz'."], { a: 1, b: 2 }]`: no computed re-runs and the unknown key changes nothing, but the watcher runs for both calls, because the comparison guards signal writes, not the watcher loop.
 
-**Full explanation.** Observed in a throwaway harness on 2026-10-13 (Angular 22.2.1, NgRx 22.0.1 from `npm pack`): after the two patches `runs` was `[]`, `seen` was `['watcher', 'watcher']`, `warn` held that one message, and the state was still `{ a: 1, b: 2 }`. Read from the `@ngrx/signals` 22.0.1 source (`patchState`): each key of the merged state is compared with `!==` and `set` only if it differs, so `{ a: 1 }` writes no signal. An unknown key warns in development mode and is skipped; then `notifyWatchers` (internal) runs every watcher ([§12](#12-under-the-hood-how-ngrx-store-reduces-actions-and-how-signalstore-keeps-state-in-signals)). A changed `{ b: 3 }` re-ran only the computed over `b` (`Section 12: patchState sets only the keys whose values changed`); `Section 12: state watchers run on every patchState call, changed or not` asserts the watcher side.
+**Full explanation.** Asserted by `Q28.34 an unchanged and an unknown key re-run no computed, but the watcher runs for both`. Read from the `@ngrx/signals` 22.0.1 source (`patchState`): each key of the merged state is compared with `!==` and `set` only if it differs, so `{ a: 1 }` writes no signal. An unknown key warns in development mode and is skipped; then `notifyWatchers` (internal) runs every watcher ([§12](#12-under-the-hood-how-ngrx-store-reduces-actions-and-how-signalstore-keeps-state-in-signals)). A changed `{ b: 3 }` re-ran only the computed over `b` (`Section 12: patchState sets only the keys whose values changed`).
 
 **Follow-ups an interviewer will ask.**
 - *Does an equal new object count as unchanged?* No, by the `!==` read: `{ user: { name: 'a' } }` is a new reference, so the key is set and its dependents re-run.
@@ -2305,7 +2431,7 @@ The approach: state holds client choices, the resource holds the server copy, ev
 - Error: a 500 gave status `error`, a defined `error()` and no products.
 - Short query: `p` and ` p ` sent nothing and the status stayed `idle`.
 
-One probe was restored: a request function reading `this.state().query` itself, not the `sendableQuery` computed, failed the selection test with `selected()` `null`. A new `selectedId` makes a new state object, so the request function returned a new params object and the resource reloaded, which resets its value.
+One change was reverted to check the test: a request function reading `this.state().query` itself, not the `sendableQuery` computed, failed the selection test with `selected()` `null`. A new `selectedId` makes a new state object, so the request function returned a new params object and the resource reloaded, which resets its value.
 
 **Alternative approach:** `RxProductsStore` keeps the API over `HttpClient` and `rxResource`, with `map(parseProducts)` in the stream; the same six tests pass. **Trade-offs:** it gives RxJS operators and `HttpClient` in the store; `httpResource` is shorter and takes `parse` directly.
 
@@ -2370,24 +2496,24 @@ The approach: the inputs are the URL, `filters` is a `computed` over them, and e
   }
 ```
 
-**How each criterion is met.** Each criterion titles one `it` in `describe('E28.2 the URL as state')`, driven by `RouterTestingHarness` with `provideRouter(routes, withComponentInputBinding())`.
+**How each criterion is met.** Each criterion titles one `it` in a `describe.each` named `E28.2 the URL as state`, driven by `RouterTestingHarness` with `provideRouter(routes, withComponentInputBinding())`.
 - Opening: `/products?q=pen&page=3` rendered `pen · page 3 · name`.
 - Writing: from `/products?ref=mail&page=3`, `setQuery('pen')` gave `/products?ref=mail&q=pen`.
 - Defaults: `setPage(2)` gave `?ref=mail&page=2` and `setPage(1)` gave `?ref=mail`; `toQueryParams(parseFilters({}))` is `{}`.
 - Invalid page: `abc`, `0`, `-2`, `2.5` and an empty value, with `sort=size`, all rendered page 1 and sort `name`.
 - Back: after `q=pen` then `q=pencil`, `Location.back()` and the next `NavigationEnd` gave `/products?q=pen` and `pen` on screen.
 
-The back probe came first. In a `TestBed` router, `Location.path()` went back to `?q=pen` but `router.url` stayed `?q=pencil` and no navigation event fired, so a test that only waits for stability fails. After `router.setUpLocationChangeListener()` (documented on `Router`) the same call navigated and the test passed.
+The back navigation needed a setup step. In a `TestBed` router, `Location.path()` went back to `?q=pen` but `router.url` stayed `?q=pencil` and no navigation event fired, so a test that only waits for stability fails. After `router.setUpLocationChangeListener()` (documented on `Router`) the same call navigated and the test passed.
 
-Two probes were restored: dropping the `null` entries failed the writing and defaults tests (a merge keeps an old `page`), and dropping `merge` failed the same two (`ref` was lost).
+Two mutations each failed a test: dropping the `null` entries failed the writing and defaults tests (a merge keeps an old `page`), and dropping `merge` failed the same two (`ref` was lost).
 
-**Alternative approach:** a `filters` signal in a service, written first and then mirrored to the URL. **Trade-offs:** typing shows without waiting for a navigation, but the URL is no longer the only source, so two copies can drift. This breaks the exercise's constraint. Design, not run.
+**Alternative approach:** `LabM28RouteProductListPage` reads `ActivatedRoute.queryParams` through `toSignal` instead of inputs, and writes the whole query string, copying parameters it does not own, instead of a merge with `null` entries. **Trade-offs:** it does not depend on `withComponentInputBinding` and needs no `null` trick, but injects the route and keeps a list of owned keys. Both pass the same tests, labelled `input binding` and `ActivatedRoute`.
 
 **Interviewer follow-ups.**
 - *"The query box must not navigate on every keystroke."* Debounce the write only, never the read: [23 §8](23-rxjs-in-depth.md#8-angular-patterns-typeahead-polling-cache-then-network-and-racing-requests). Design, not run.
 - *"Load the products for these filters."* Key an `httpResource` on `filters()`, as [Exercise 28.1](#ex28-1) keys it on the query.
 
-**Tests:** [url-state.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-2-url-state/url-state.spec.ts); the code is [product-filters.ts](../labs/angular/src/app/modules/28-state-management/exercise-2-url-state/product-filters.ts) and [product-list-page.ts](../labs/angular/src/app/modules/28-state-management/exercise-2-url-state/product-list-page.ts).
+**Tests:** [url-state.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-2-url-state/url-state.spec.ts); the code is [product-filters.ts](../labs/angular/src/app/modules/28-state-management/exercise-2-url-state/product-filters.ts) and [product-list-page.ts](../labs/angular/src/app/modules/28-state-management/exercise-2-url-state/product-list-page.ts); alternative: [route-product-list-page.ts](../labs/angular/src/app/modules/28-state-management/exercise-2-url-state/route-product-list-page.ts).
 
 </details>
 
@@ -2443,7 +2569,7 @@ The approach: the history stores edits (`id`, `from`, `to`), not snapshots, and 
   }
 ```
 
-**How each criterion is met.** Each criterion titles one `it` in `describe('E28.3 …')`, with `provideHttpClient()` then `provideHttpClientTesting()` and `verify()` in `afterEach`.
+**How each criterion is met.** Each criterion titles one `it` in a `describe.each` named `E28.3 …`, with `provideHttpClient()` then `provideHttpClientTesting()` and `verify()` in `afterEach`.
 - Immediate: after `toggle(1)` the flags were `[true, false, false]` with the `PATCH` still open.
 - Error: a 500 on `/api/todos/1` gave `[false, false, false]` and `could not save todo 1`.
 - Per item: `toggle(2)` then `toggle(1)`; item 1 succeeded, item 2 failed, and the flags ended `[true, false, false]`.
@@ -2452,15 +2578,15 @@ The approach: the history stores edits (`id`, `from`, `to`), not snapshots, and 
 - Redo stack: after undo and `toggle(2)`, `canRedo()` was `false`.
 - Bound: 25 toggles, then undo until `canUndo()` was `false`, took 20 undos.
 
-Five probes were restored: an unbounded `past` failed the bound test; a kept `future` failed the redo-stack test; a rebuilt `ids` array failed the references test; resetting every flag on failure failed the per-item test; dropping the message failed the error test.
+Five mutations each failed a test: an unbounded `past` failed the bound test; a kept `future` failed the redo-stack test; a rebuilt `ids` array failed the references test; resetting every flag on failure failed the per-item test; dropping the message failed the error test.
 
-**Alternative approach:** on a failed `PATCH`, reload the list from the server instead of writing `from` back. **Trade-offs:** the server decides the final state, but it costs an extra request and a list endpoint, and the rollback no longer needs a stored `from`. Design, not run.
+**Alternative approach:** `LabM28OverlayTodosStore` keeps confirmed state and unanswered writes apart and derives the visible collection from both; a failed `PATCH` drops its pending write instead of writing `from` back. **Trade-offs:** a rollback never touches confirmed state, but a second signal and a fold replace one write. Both variants, `inverse write-back` and `pending overlay`, pass the same tests.
 
 **Interviewer follow-ups.**
 - *"The same item is toggled twice before the first answer."* The first failure writes its `from` over the second toggle; a version or request token per item decides which answer counts. Design, not run.
 - *"Why not snapshots for undo?"* They rewind edits that succeeded since, the flaw of [section 10](#10-optimistic-updates-normalization-and-undo)'s snapshot rollback.
 
-**Tests:** [todos-store.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todos-store.spec.ts); the code is [todo.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todo.ts), [todos-api.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todos-api.ts) and [todos-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todos-store.ts).
+**Tests:** [todos-store.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todos-store.spec.ts); the code is [todo.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todo.ts), [todos-api.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todos-api.ts) and [todos-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/todos-store.ts); alternative: [overlay-todos-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-3-optimistic-undo/overlay-todos-store.ts).
 
 </details>
 
@@ -2515,7 +2641,7 @@ The approach: one signal that `dispatch` overwrites, and selectors that compare 
   };
 ```
 
-**How each criterion is met.** Each criterion titles one `it` in `describe('E28.4 …')`.
+**How each criterion is met.** Each criterion titles one `it` in a `describe.each` named `E28.4 …`.
 - Dispatch: `addItem` then `setDiscount(10)` gave `{ items: [pen], discountPercent: 10 }`.
 - Ignored: `openCart()` left the same state object.
 - Memo: four calls (a state, the same state, a new root with the same `items`, a new root with an equal new array) gave 2 runs, as in [section 5](#5-selectors-memoization-composition-and-reading-the-store-as-signals).
@@ -2523,17 +2649,17 @@ The approach: one signal that `dispatch` overwrites, and selectors that compare 
 - Freeze: `Object.assign` on the state or an item, and `push` on `items`, threw `TypeError`.
 - Computed: a `computed` over `selectTotal` read 0, 400 and 300; the projector ran 3 times.
 
-Four probes were restored: a memo that always reran, inputs replaced by the state, ignoring `freeze` and a reducer returning `{ ...state }` for unknown actions each failed their tests.
+Four mutations, a memo that always reran, inputs replaced by the state, ignoring `freeze` and a reducer returning `{ ...state }` for unknown actions each failed their tests.
 
 **Against NgRx.** `createActionGroup` derives `[Source] Event` types from one call; here they are written out ([section 4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). NgRx freezes the action too, by default in development; this `freeze` is opt-in and covers the state. The memo is `defaultMemoize`'s one entry and `===` ([section 5](#5-selectors-memoization-composition-and-reading-the-store-as-signals)). The store has no action stream, queue or reducer registry: those are `ActionsSubject`, `State` and `ReducerManager` ([section 12](#12-under-the-hood-how-ngrx-store-reduces-actions-and-how-signalstore-keeps-state-in-signals)).
 
-**Alternative approach:** selectors as `computed` signals over `store.state`, with no `createSelector`. **Trade-offs:** no hand-written memo, but each selector is tied to one store instance and is no longer a `(state) => value` function that the test calls with any state. Design, not run.
+**Alternative approach:** `createSignalSelector` memoizes with Angular's signal graph: each input is a `computed` over a source signal holding the last state, and the projector is a `computed` over the inputs. **Trade-offs:** no hand-written `===` loop, but equality is `Object.is` and a selector writes a signal inside `untracked`. Both pass the same tests (`createSelector`, `createSignalSelector`).
 
 **Interviewer follow-ups.**
 - *"Where would effects go?"* After the reducer: a function that sees each action and may dispatch another. Design, not run.
 - *"Why one memo entry?"* A cache per argument grows without bound.
 
-**Tests:** [mini-store.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/mini-store.spec.ts); the code is [actions.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/actions.ts), [create-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/create-store.ts), [create-selector.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/create-selector.ts) and [cart.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/cart.ts).
+**Tests:** [mini-store.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/mini-store.spec.ts); the code is [actions.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/actions.ts), [create-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/create-store.ts), [create-selector.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/create-selector.ts) and [cart.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/cart.ts); alternative: [create-signal-selector.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/create-signal-selector.ts) and [signal-cart-selectors.ts](../labs/angular/src/app/modules/28-state-management/exercise-4-mini-store/signal-cart-selectors.ts).
 
 </details>
 
@@ -2592,7 +2718,7 @@ The approach: a feature for the status, an `rxMethod` for the load, entity updat
     ),
 ```
 
-**How each criterion is met.** Each criterion titles one `it` in `describe('E28.5 …')`; the spec uses `provideHttpClientTesting()` and `verify()`.
+**How each criterion is met.** Each criterion titles one `it` in a `describe.each` named `E28.5 …`; the spec uses `provideHttpClientTesting()` and `verify()`.
 - Created: injecting the store sent one GET to `/api/todos`; until the flush `status()` was `pending`.
 - Success: two flushed todos gave `ids` `[1, 2]`, status `fulfilled` and `error` null.
 - Failed: a 500 gave status `error`, a message containing `500` and both entities. A second `load()` then succeeded: catching inside `switchMap` keeps the method alive.
@@ -2601,15 +2727,15 @@ The approach: a feature for the status, an `rxMethod` for the load, entity updat
 - Second store: the authors store went `idle`, `pending`, `fulfilled`, then `error`.
 - Protected: `patchState(store, …)` on the injected store fails with `TS2345`, and `// @ts-expect-error` makes `tsc` fail if it ever compiles. The line still ran and changed `status()`: a type, not a lock ([section 8](#8-componentstore-and-signalstore-signalstate-signalstore-withstate-withcomputed-withmethods-and-protected-state)).
 
-Six probes were restored: no `onInit`, no `setFulfilled()`, an error handler emptying the entities, a `toggle` replacing every entity, an untyped `addEntity` and no directive (both `TS2345`) each failed.
+Six mutations, no `onInit`, no `setFulfilled()`, an error handler emptying the entities, a `toggle` replacing every entity, an untyped `addEntity` and no directive (both `TS2345`) each failed.
 
-**Alternative approach:** declare `status` and `error` with `withState` in each store, with no custom feature. **Trade-offs:** fewer files for one store, but each copies the updaters and `isLoading`, which drift. Design, not run.
+**Alternative approach:** `withTrackedRequest()` reuses `withRequestStatus()` and adds a private `_trackRequest(request)` that sets the status around the request with `tapResponse`; each store's `load` only stores the entities. **Trade-offs:** no store can forget a transition, but the feature depends on RxJS. Both variants, `exported updaters` and `tracked request`, pass the same tests.
 
 **Interviewer follow-ups.**
 - *"Why `switchMap` in `load`?"* A second call cancels the first request; `exhaustMap` would ignore the second call. The choice is [23 §2](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion)'s. Design, not run.
 - *"Make the toggle optimistic."* Patch first, restore the previous entity on error: [section 10](#10-optimistic-updates-normalization-and-undo) and [Exercise 28.3](#ex28-3).
 
-**Tests:** [todos-store.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todos-store.spec.ts); the code is [with-request-status.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/with-request-status.ts), [todos-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todos-store.ts), [authors-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/authors-store.ts), [todos-api.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todos-api.ts) and [todo.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todo.ts).
+**Tests:** [todos-store.spec.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todos-store.spec.ts); the code is [with-request-status.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/with-request-status.ts), [todos-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todos-store.ts), [authors-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/authors-store.ts), [todos-api.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todos-api.ts) and [todo.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/todo.ts); alternative: [with-tracked-request.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/with-tracked-request.ts), [tracked-todos-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/tracked-todos-store.ts) and [tracked-authors-store.ts](../labs/angular/src/app/modules/28-state-management/exercise-5-signal-store/tracked-authors-store.ts).
 
 </details>
 

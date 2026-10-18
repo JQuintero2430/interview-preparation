@@ -104,7 +104,7 @@ requestAnimationFrame(() =>
 ### Best practices and anti-patterns
 
 - **Do use `requestAnimationFrame` for visual updates**, because it runs right before style and layout in the frame that will paint them. A `setTimeout` may fire twice in one frame or just after a paint, which causes jank.
-- **Avoid long synchronous tasks** (over about 50 ms). Nothing else, including input handling and paint, can run until they finish. Split the work across tasks or move it to a Web Worker, a script that runs on its own thread and talks to the page by messages ([31. Performance](31-performance.md)).
+- **Avoid long synchronous tasks** (over about 50 ms). Nothing else, including input handling and paint, can run until they finish. Split the work across tasks or move it to a Web Worker, a script that runs on its own thread and talks to the page by messages ([31. Performance](31-performance.md#9-off-the-main-thread-web-workers-in-angular-and-runoutsideangular-in-zone-apps)).
 - **Do treat `setTimeout(fn, 0)` as "after the current task and its microtasks"**, not as "now". It is a legitimate way to yield to rendering and input, but never a synchronization tool between two pieces of your own code.
 - **Avoid relying on ordering between different task sources** (a timer versus a message versus a click). The spec lets browsers choose between queues.
 
@@ -147,7 +147,7 @@ The [Node.js event loop guide](https://nodejs.org/en/learn/asynchronous-work/eve
 **Why it matters for SSR.** A server render runs your components, resolvers and services in Node:
 
 1. **CPU-bound work blocks all users.** A 200 ms synchronous loop in a component delays every concurrent request on that process.
-2. **The server must know when the page is "done".** Pending timers, open HTTP calls and long-polling keep the render waiting. Angular tracks this through its stability and pending-task mechanisms ([21. Change detection](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md)). A `setInterval` started during render can keep it from ever completing.
+2. **The server must know when the page is "done".** Pending timers, open HTTP calls and long-polling keep the render waiting. Angular tracks this through its stability and pending-task mechanisms ([21. Change detection](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md#7-platform-safe-code-browser-apis-afternextrender-document-request-and-response_init)). A `setInterval` started during render can keep it from ever completing.
 3. **Browser-only scheduling APIs do not exist there.** `requestAnimationFrame` and `requestIdleCallback` are absent in Node, so code that calls them during render must be guarded or moved to browser-only hooks ([20. Lifecycle and render hooks](20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases)).
 
 ### Code
@@ -545,7 +545,7 @@ Verified: the `Section 8:` test in [`event-loop.test.ts`](../labs/ts-js/src/outp
 
 ### Best practices and anti-patterns
 
-- **Do register global last-resort handlers** (`unhandledrejection` in the browser, `process.on('unhandledRejection')` on the server) to log and report. Angular's `provideBrowserGlobalErrorListeners()`, which new v22 projects include, listens to the window's `unhandledrejection` and `error` events and forwards them to Angular's `ErrorHandler` (per its doc comment in the 22.2.1 typings) ([37. Elements, PWA and errors](37-elements-pwa-errors-ecosystem.md)).
+- **Do register global last-resort handlers** (`unhandledrejection` in the browser, `process.on('unhandledRejection')` on the server) to log and report. Angular's `provideBrowserGlobalErrorListeners()`, which new v22 projects include, listens to the window's `unhandledrejection` and `error` events and forwards them to Angular's `ErrorHandler` (per its doc comment in the 22.2.1 typings) ([37. Elements, PWA and errors](37-elements-pwa-errors-ecosystem.md#8-errorhandler-and-global-listeners-what-reaches-the-handler-and-what-does-not)).
 - **Avoid using global handlers as the error strategy**, because by then the context (which request, which user action) is lost. Handle rejections where the promise is created or awaited.
 - **Do break long loops of async work with a real task boundary** (`await new Promise(r => setTimeout(r, 0))` or the [`scheduler.yield()`](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield) API, in Chrome 129+ and Firefox 142+ but not Safari per MDN's compatibility data on 2026-10-06, so feature-detect `globalThis.scheduler?.yield`), because `await Promise.resolve()` does not yield to rendering or input.
 
@@ -1346,7 +1346,7 @@ Verified: the `Q04.26` test checks, with fake timers, that no timer is left afte
 
 **Follow-ups an interviewer will ask.**
 - *How do you mark a fire-and-forget call as intentional?* Attach a handler that reports the error: `void sendAnalytics().catch(report)`. The `void` operator alone silences linters, not the runtime.
-- *Where should global handlers report to?* Your error monitoring, as a last resort. Angular's `ErrorHandler` covers errors inside the framework ([37. Errors](37-elements-pwa-errors-ecosystem.md)).
+- *Where should global handlers report to?* Your error monitoring, as a last resort. Angular's `ErrorHandler` covers errors inside the framework ([37. Errors](37-elements-pwa-errors-ecosystem.md#8-errorhandler-and-global-listeners-what-reaches-the-handler-and-what-does-not)).
 
 **Trap to avoid.** Thinking a `try`/`catch` around a call that returns a promise catches its rejection without `await`.
 

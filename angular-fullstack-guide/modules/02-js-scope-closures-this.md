@@ -1127,7 +1127,7 @@ export class Viewport {
 
 **Follow-ups an interviewer will ask.**
 - *And if you must keep `addEventListener`?* `readonly onResize = (): void => this.width.set(window.innerWidth);`, then add and remove `this.onResize`. Or pass `{ signal }` from an `AbortController` and abort it in `onDestroy`, which needs no stable reference at all.
-- *Does this code run during server-side rendering?* No: `window` does not exist on the server. Browser-only code belongs in `afterNextRender` or behind a platform check ([Module 32](32-ssr-ssg-hydration.md)).
+- *Does this code run during server-side rendering?* No: `window` does not exist on the server. Browser-only code belongs in `afterNextRender` or behind a platform check ([Module 32](32-ssr-ssg-hydration.md#7-platform-safe-code-browser-apis-afternextrender-document-request-and-response_init)).
 
 **Trap to avoid.** Fixing only the first bug with `addEventListener('resize', this.onResize.bind(this))`, which keeps the second bug and makes it look fixed.
 

@@ -1,0 +1,10 @@
+{
+  "name": "Module 37 elements, PWA and errors lab",
+  "short_name": "M37 lab",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#1976d2",
+  "icons": [{ "src": "favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
+}

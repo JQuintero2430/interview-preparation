@@ -25,9 +25,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/styles.css"]
           },
           "configurations": {
             "production": {
@@ -70,6 +68,609 @@
           "options": {
             "isolate": true
           }
+        }
+      }
+    },
+    "ssr-lab": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "root": "projects/ssr-lab",
+      "sourceRoot": "projects/ssr-lab/src",
+      "prefix": "lab",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/ssr-lab/src/main.ts",
+            "tsConfig": "projects/ssr-lab/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/ssr-lab/public"
+              }
+            ],
+            "styles": ["projects/ssr-lab/src/styles.css"],
+            "server": "projects/ssr-lab/src/main.server.ts",
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": ["localhost"]
+            },
+            "ssr": {
+              "entry": "projects/ssr-lab/src/server.ts"
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "ssr-lab:build:production"
+            },
+            "development": {
+              "buildTarget": "ssr-lab:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "security-lab": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "root": "projects/security-lab",
+      "sourceRoot": "projects/security-lab/src",
+      "prefix": "lab",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/security-lab/src/main.ts",
+            "tsConfig": "projects/security-lab/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/security-lab/public"
+              }
+            ],
+            "styles": ["projects/security-lab/src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "subresourceIntegrity": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "autocsp": {
+              "security": {
+                "autoCsp": true
+              },
+              "outputPath": "dist/security-lab-autocsp",
+              "baseHref": "/autocsp/"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "security-lab:build:production"
+            },
+            "development": {
+              "buildTarget": "security-lab:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "i18n-lab": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "i18n": {
+        "sourceLocale": "en-US",
+        "locales": {
+          "fr": {
+            "translation": "projects/i18n-lab/src/locale/messages.fr.xlf"
+          },
+          "ar": {
+            "translation": "projects/i18n-lab/src/locale/messages.ar.xlf"
+          }
+        }
+      },
+      "root": "projects/i18n-lab",
+      "sourceRoot": "projects/i18n-lab/src",
+      "prefix": "lab",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/i18n-lab/src/main.ts",
+            "tsConfig": "projects/i18n-lab/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/i18n-lab/public"
+              }
+            ],
+            "styles": ["projects/i18n-lab/src/styles.css"],
+            "polyfills": ["@angular/localize/init"],
+            "localize": true
+          },
+          "configurations": {
+            "production": {
+              "i18nMissingTranslation": "error",
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "runtime": {
+              "localize": false,
+              "browser": "projects/i18n-lab/src/main.runtime.ts",
+              "outputPath": "dist/i18n-lab-runtime",
+              "baseHref": "/runtime/"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "i18n-lab:build:production"
+            },
+            "development": {
+              "buildTarget": "i18n-lab:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "animations-lab": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "root": "projects/animations-lab",
+      "sourceRoot": "projects/animations-lab/src",
+      "prefix": "lab",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/animations-lab/src/main.ts",
+            "tsConfig": "projects/animations-lab/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/animations-lab/public"
+              }
+            ],
+            "styles": ["projects/animations-lab/src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "legacy": {
+              "browser": "projects/animations-lab/src/main.legacy.ts",
+              "outputPath": "dist/animations-lab-legacy",
+              "baseHref": "/legacy/"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "animations-lab:build:production"
+            },
+            "development": {
+              "buildTarget": "animations-lab:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "material-lab": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "root": "projects/material-lab",
+      "sourceRoot": "projects/material-lab/src",
+      "prefix": "lab",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/material-lab/src/main.ts",
+            "tsConfig": "projects/material-lab/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/material-lab/public"
+              }
+            ],
+            "styles": ["projects/material-lab/src/styles.scss"],
+            "inlineStyleLanguage": "scss"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "material-lab:build:production"
+            },
+            "development": {
+              "buildTarget": "material-lab:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "elements-lab": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:class": {
+          "skipTests": true
+        },
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
+        "@schematics/angular:directive": {
+          "skipTests": true
+        },
+        "@schematics/angular:guard": {
+          "skipTests": true
+        },
+        "@schematics/angular:interceptor": {
+          "skipTests": true
+        },
+        "@schematics/angular:pipe": {
+          "skipTests": true
+        },
+        "@schematics/angular:resolver": {
+          "skipTests": true
+        },
+        "@schematics/angular:service": {
+          "skipTests": true
+        }
+      },
+      "root": "projects/elements-lab",
+      "sourceRoot": "projects/elements-lab/src",
+      "prefix": "lab",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/elements-lab/src/main.ts",
+            "tsConfig": "projects/elements-lab/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/elements-lab/public"
+              }
+            ],
+            "styles": ["projects/elements-lab/src/styles.css"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "serviceWorker": "projects/elements-lab/ngsw-config.json"
+            },
+            "v2": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "projects/elements-lab/src/app/build-info.ts",
+                  "with": "projects/elements-lab/src/app/build-info.v2.ts"
+                }
+              ],
+              "serviceWorker": "projects/elements-lab/ngsw-config.v2.json",
+              "outputPath": "dist/elements-lab-v2"
+            },
+            "elements": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "browser": "projects/elements-lab/src/main.elements.ts",
+              "index": false,
+              "outputHashing": "none",
+              "serviceWorker": false,
+              "outputPath": "dist/elements-lab-widgets"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "elements-lab:build:production"
+            },
+            "development": {
+              "buildTarget": "elements-lab:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    },
+    "ui-lib": {
+      "projectType": "library",
+      "root": "projects/ui-lib",
+      "sourceRoot": "projects/ui-lib/src",
+      "prefix": "ui",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ui-lib/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ui-lib/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
         }
       }
     }

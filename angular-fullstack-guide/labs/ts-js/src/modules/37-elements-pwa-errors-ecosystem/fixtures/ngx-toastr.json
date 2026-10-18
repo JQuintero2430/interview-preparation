@@ -1,0 +1,14 @@
+{
+  "_readAt": "2026-10-17",
+  "_command": "npm view ngx-toastr@20.0.5 name version peerDependencies license 'time[20.0.5]' time.modified --json",
+  "name": "ngx-toastr",
+  "version": "20.0.5",
+  "peerDependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "rxjs": "^7.8.2"
+  },
+  "license": "MIT",
+  "time[20.0.5]": "2026-02-06T17:00:39.358Z",
+  "time.modified": "2026-02-06T17:00:39.637Z"
+}

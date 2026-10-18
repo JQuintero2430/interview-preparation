@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" target-language="ar" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="m34.home.title" datatype="html">
+        <source>Module 34 i18n lab</source>
+        <target>مختبر i18n للوحدة 34</target>
+      </trans-unit>
+      <trans-unit id="m34.icu.group" datatype="html">
+        <source>Item count</source>
+        <target>عدد العناصر</target>
+      </trans-unit>
+      <trans-unit id="m34.icu.items" datatype="html">
+        <source>{VAR_PLURAL, plural, =0 {No items} one {One item} other {<x id="INTERPOLATION"/> items}}</source>
+        <target>{VAR_PLURAL, plural, zero {لا عناصر} one {عنصر واحد} two {عنصران} few {<x id="INTERPOLATION"/> عناصر} many {<x id="INTERPOLATION"/> عنصرًا} other {<x id="INTERPOLATION"/> عنصر}}</target>
+      </trans-unit>
+      <trans-unit id="m34.extract.title" datatype="html">
+        <source>Extraction lab</source>
+        <target>مختبر الاستخراج</target>
+      </trans-unit>
+      <trans-unit id="m34.extract.hint" datatype="html">
+        <source>Review your answers</source>
+        <target>راجع إجاباتك</target>
+      </trans-unit>
+      <trans-unit id="4200317694838753109" datatype="html">
+        <source>Welcome back</source>
+        <target>أهلًا بعودتك</target>
+      </trans-unit>
+      <trans-unit id="2522557153388325485" datatype="html">
+        <source>Close</source>
+        <target>أغلق الباب</target>
+      </trans-unit>
+      <trans-unit id="1426216042718898919" datatype="html">
+        <source>Close</source>
+        <target>أغلق مربع الحوار</target>
+      </trans-unit>
+      <trans-unit id="m34.builds.title" datatype="html">
+        <source>Order details</source>
+        <target>تفاصيل الطلب</target>
+      </trans-unit>
+      <trans-unit id="m34.builds.url" datatype="html">
+        <source>Router URL</source>
+        <target>عنوان الموجّه</target>
+      </trans-unit>
+      <trans-unit id="m34.builds.locale" datatype="html">
+        <source>Locale ID</source>
+        <target>معرّف اللغة</target>
+      </trans-unit>
+      <trans-unit id="m34.runtime.title" datatype="html">
+        <source>Runtime translation</source>
+        <target>الترجمة أثناء التشغيل</target>
+      </trans-unit>
+      <trans-unit id="m34.runtime.greeting" datatype="html">
+        <source>Hello <x id="INTERPOLATION" equiv-text="{{ name }}"/>, you have <x id="START_BOLD_TEXT" ctype="x-b" equiv-text="&lt;b&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ count }}"/><x id="CLOSE_BOLD_TEXT" ctype="x-b" equiv-text="&lt;/b&gt;"/> new messages</source>
+        <target>مرحبًا <x id="INTERPOLATION" equiv-text="{{ name }}"/>، لديك <x id="START_BOLD_TEXT" ctype="x-b" equiv-text="&lt;b&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ count }}"/><x id="CLOSE_BOLD_TEXT" ctype="x-b" equiv-text="&lt;/b&gt;"/> رسائل جديدة</target>
+      </trans-unit>
+      <trans-unit id="m34.rtl.start" datatype="html">
+        <source>Aligned to the start</source>
+        <target>محاذاة إلى البداية</target>
+      </trans-unit>
+      <trans-unit id="m34.rtl.arrived" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ name }}"/> just arrived</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ name }}"/> وصل للتو</target>
+      </trans-unit>
+      <trans-unit id="m34.rtl.arrivedIsolated" datatype="html">
+        <source><x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/> just arrived</source>
+        <target><x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/> وصل للتو</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.heading" datatype="html">
+        <source>Order summary</source>
+        <target>ملخص الطلب</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.items" datatype="html">
+        <source>{VAR_PLURAL, plural, one {<x id="INTERPOLATION"/> item} other {<x id="INTERPOLATION"/> items}}</source>
+        <target>{VAR_PLURAL, plural, zero {لا عناصر} one {عنصر واحد} two {عنصران} few {<x id="INTERPOLATION"/> عناصر} many {<x id="INTERPOLATION"/> عنصرًا} other {<x id="INTERPOLATION"/> عنصر}}</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.total" datatype="html">
+        <source>Total</source>
+        <target>الإجمالي</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.zero" datatype="html">
+        <source>No items</source>
+        <target>لا عناصر</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.one" datatype="html">
+        <source><x id="count" equiv-text="count"/> item</source>
+        <target>عنصر واحد</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.two" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target>عنصران</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.few" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target><x id="count" equiv-text="count"/> عناصر</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.many" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target><x id="count" equiv-text="count"/> عنصرًا</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.other" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target><x id="count" equiv-text="count"/> عنصر</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.heading" datatype="html">
+        <source>Order summary</source>
+        <target>ملخص الطلب</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.total" datatype="html">
+        <source>Total</source>
+        <target>الإجمالي</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.back" datatype="html">
+        <source>Back</source>
+        <target>رجوع</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.title" datatype="html">
+        <source>Account</source>
+        <target>الحساب</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.greeting" datatype="html">
+        <source>Welcome back, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></source>
+        <target>مرحبًا بعودتك، <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.phone" datatype="html">
+        <source>Phone</source>
+        <target>الهاتف</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.balance" datatype="html">
+        <source>Balance</source>
+        <target>الرصيد</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.back" datatype="html">
+        <source>Back</source>
+        <target>رجوع</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.title" datatype="html">
+        <source>Account</source>
+        <target>الحساب</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.greeting" datatype="html">
+        <source>Welcome back, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></source>
+        <target>مرحبًا بعودتك، <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.phone" datatype="html">
+        <source>Phone</source>
+        <target>الهاتف</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.balance" datatype="html">
+        <source>Balance</source>
+        <target>الرصيد</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -164,7 +164,7 @@ Approach: compare what the tree would hold. The first has no role, name or focus
 - **Name repeated landmarks**, because an unnamed second `nav` forces the user to open both ([MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/Heading_Elements): "Primary navigation" and "Footer navigation").
 
 > [!NOTE]
-> **Framework vs platform.** The accessibility tree belongs to the browser and Angular adds nothing to it. angular.dev (read 2026-10-07) tells you to re-use native elements, for example a component with an attribute selector on a native `<button>`. Host elements are [module 13](13-components-and-templates.md); CDK helpers [module 36](36-material-and-cdk.md).
+> **Framework vs platform.** The accessibility tree belongs to the browser and Angular adds nothing to it. angular.dev (read 2026-10-07) tells you to re-use native elements, for example a component with an attribute selector on a native `<button>`. Host elements are [module 13](13-components-and-templates.md); CDK helpers [module 36](36-material-and-cdk.md#9-cdk-accessibility-focustrap-focusmonitor-liveannouncer-and-the-key-managers).
 
 ### Misconceptions and traps
 
@@ -366,7 +366,7 @@ function moveStop(items: HTMLElement[], from: number, to: number): void {
 ```
 
 > [!NOTE]
-> **Framework vs platform.** `<dialog>` and `inert` are the platform's answer. The CDK's `CdkTrapFocus`, `FocusMonitor` and `ListKeyManager` (typings read 2026-10-07) are [module 36](36-material-and-cdk.md); angular.dev offers `cdkTrapFocus` for modal dialogs.
+> **Framework vs platform.** `<dialog>` and `inert` are the platform's answer. The CDK's `CdkTrapFocus`, `FocusMonitor` and `ListKeyManager` (typings read 2026-10-07) are [module 36](36-material-and-cdk.md#9-cdk-accessibility-focustrap-focusmonitor-liveannouncer-and-the-key-managers); angular.dev offers `cdkTrapFocus` for modal dialogs.
 
 ### Best practices and anti-patterns
 
@@ -510,7 +510,7 @@ export function focusAfterNavigation({ title, root = document }: NavigationFocus
 `Section 5: focusing a heading with tabindex -1 moves activeElement to it` asserts the title, `tabindex="-1"` and `activeElement`.
 
 > [!NOTE]
-> **Framework vs platform.** The platform supplies focus, `aria-live` and `document.title`; a router decides whether to use them (above). The CDK's `LiveAnnouncer` belongs to [module 36](36-material-and-cdk.md).
+> **Framework vs platform.** The platform supplies focus, `aria-live` and `document.title`; a router decides whether to use them (above). The CDK's `LiveAnnouncer` belongs to [module 36](36-material-and-cdk.md#9-cdk-accessibility-focustrap-focusmonitor-liveannouncer-and-the-key-managers).
 
 ### Best practices and anti-patterns
 
@@ -623,7 +623,7 @@ What to notice: the first three can run on every change; the last two find what 
 - **A rule engine** checks the rendered DOM against rules. axe-core returns `violations`, `passes`, `incomplete` ("review items": neither pass nor fail) and `inapplicable` ([API](https://github.com/dequelabs/axe-core/blob/develop/doc/API.md)). Observed by running axe-core 4.14.0 against a throwaway page in jsdom on 2026-10-07 (an `img` without `alt`, an empty `button`, an unlabelled `input`, a `div role="button" onclick`, `h1` then `h3`, a link "click here"): violations `button-name`, `heading-order`, `image-alt`, `label`; incomplete `landmark-one-main` and `page-has-heading-one`; 21 passes (run with `color-contrast` disabled). Not reported: the `div role="button"` that has no keyboard support, and the vague link text (`link-name` passed). With `color-contrast` enabled (the default), jsdom (no layout; it printed "Not implemented: HTMLCanvasElement's getContext()") left it incomplete. Such a **false negative** (a defect the tool does not report) means green is not usable. The scratch files were deleted and no axe test is committed; [Exercise 11.3](#ex11-3) audits the same fixture.
 - **Lighthouse** scores accessibility as "a weighted average of all accessibility audits", weighted by axe user impact; each audit is pass or fail, and manual audits "don't affect your score" ([docs](https://developer.chrome.com/docs/lighthouse/accessibility/scoring)). It is not a conformance result.
 - **Angular template lint.** `@angular-eslint/eslint-plugin-template` 22.5.0 (rule list read from the package) marks 11 rules as its accessibility preset, among them `alt-text`, `click-events-have-key-events`, `interactive-supports-focus`, `label-has-associated-control`, `valid-aria` and `role-has-required-aria`.
-- **Testing Library.** `getByRole` filters by role and, with `name`, by the accessible name computed by `dom-accessibility-api` (`computeAccessibleName`, read from `@testing-library/dom` 10.4.2); inaccessible elements are excluded unless `hidden: true` ([module 29](29-testing-angular.md)). `@axe-core/playwright` runs axe inside end-to-end tests with `new AxeBuilder({ page }).analyze()` ([module 30](30-e2e-and-testing-strategy.md)).
+- **Testing Library.** `getByRole` filters by role and, with `name`, by the accessible name computed by `dom-accessibility-api` (`computeAccessibleName`, read from `@testing-library/dom` 10.4.2); inaccessible elements are excluded unless `hidden: true` ([module 29](29-testing-angular.md#11-component-harnesses-and-angular-testing-library)). `@axe-core/playwright` runs axe inside end-to-end tests with `new AxeBuilder({ page }).analyze()` ([module 30](30-e2e-and-testing-strategy.md#6-visual-regression-and-accessibility-checks-in-end-to-end-tests)).
 - **The manual pass.** W3C's Easy Checks cover image alternatives, title, headings, contrast, skip link, keyboard focus, language and zoom, and warn that a page "could seem to pass these checks, yet still have significant accessibility barriers" ([WAI](https://www.w3.org/WAI/test-evaluate/easy-checks/)); WAI says "tools can't do it all" ([tools](https://www.w3.org/WAI/test-evaluate/tools/)). Add 200% zoom and 320 CSS pixel reflow ([section 1](#1-why-accessibility-and-what-the-standards-require)), `prefers-reduced-motion` ([MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion)) and `forced-colors`, where author colours are replaced by system colours ([MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/forced-colors)).
 - **Screen readers.** NVDA (NonVisual Desktop Access) is a free Windows screen reader ([NV Access](https://www.nvaccess.org/about-nvda/)); VoiceOver is built into macOS ([Apple](https://support.apple.com/guide/voiceover/welcome/mac)); TalkBack is Google's on Android ([Google](https://support.google.com/accessibility/android/answer/6283677)); Narrator is built into Windows 11 ([Microsoft](https://support.microsoft.com/en-us/windows/complete-guide-to-narrator-e4397a0d-ef4f-b386-d8ae-c172f109bdb1)). No browser pairing or usage figure was read. Check name, role and state, reading order, form errors, route changes and dialogs. CDK and `@angular/aria` helpers are [module 36](36-material-and-cdk.md).
 
@@ -873,7 +873,7 @@ const roving = createRovingTabindex(toolbar, { itemSelector: 'button', orientati
 
 **Short answer (30 seconds).** Prefer `<dialog>` with `showModal()`: top layer, page behind inert, focus moves in, Esc closes (MDN). Hand-roll a trap or use `cdkTrapFocus` only where it does not fit.
 
-**Full explanation.** A hand-rolled trap wraps Tab, offers an Escape exit and restores focus to the opener (the model in section 4) but leaves the page behind active. WCAG 2.1.2 allows a trap with an exit. The CDK is [module 36](36-material-and-cdk.md). [Section 4](#4-keyboard-focus-order-roving-tabindex-and-focus-traps).
+**Full explanation.** A hand-rolled trap wraps Tab, offers an Escape exit and restores focus to the opener (the model in section 4) but leaves the page behind active. WCAG 2.1.2 allows a trap with an exit. The CDK is [module 36](36-material-and-cdk.md#9-cdk-accessibility-focustrap-focusmonitor-liveannouncer-and-the-key-managers). [Section 4](#4-keyboard-focus-order-roving-tabindex-and-focus-traps).
 
 **Follow-ups an interviewer will ask.**
 - *After closing?* Return focus to the opener.
@@ -1067,7 +1067,7 @@ for (const id of ['d1', 'e', 'p', 'q']) console.log(id, JSON.stringify(accessibl
 **Full explanation.** [Section 7](#7-testing-accessibility) maps each layer to what it finds.
 
 **Follow-ups an interviewer will ask.**
-- *Testing Library?* A failed `getByRole` is a design signal ([module 29](29-testing-angular.md)).
+- *Testing Library?* A failed `getByRole` is a design signal ([module 29](29-testing-angular.md#11-component-harnesses-and-angular-testing-library)).
 - *Smallest start?* Lint and a keyboard pass.
 
 **Trap to avoid.** Relying on one layer.
@@ -1539,7 +1539,7 @@ export function audit(root: ParentNode = document): Violation[] {
 
 **Interviewer follow-ups.**
 - *"Catch `click here`?"* Neither axe nor this audit reported it; a deny-list would, with false positives.
-- *"Run it in CI?"* Call it in each component test; add `@axe-core/playwright` for whole pages ([module 30](30-e2e-and-testing-strategy.md)).
+- *"Run it in CI?"* Call it in each component test; add `@axe-core/playwright` for whole pages ([module 30](30-e2e-and-testing-strategy.md#6-visual-regression-and-accessibility-checks-in-end-to-end-tests)).
 
 **Tests:** [`audit.test.ts`](../labs/ts-js/src/modules/11-accessibility/audit.test.ts)
 
@@ -1594,5 +1594,5 @@ Focus reaches an element missing from the accessibility tree (ARIA rule 4).
 ## Connections
 
 - **Builds on:** [08 §4](08-browser-rendering-dom-events.md#4-events-propagation-default-actions-passive-listeners-and-delegation) (focus events), [08 §5](08-browser-rendering-dom-events.md#5-web-components-custom-elements-shadow-dom-and-templates) (`ElementInternals`), [10 §5](10-css-essentials.md#5-responsive-css-media-queries-container-queries-and-fluid-type) (units, zoom) and [10 §6](10-css-essentials.md#6-custom-properties-theming-and-color-scheme) (`color-scheme`).
-- **Read next:** [13. Components and templates](13-components-and-templates.md) (host semantics, ARIA bindings), [24. Routing](24-routing.md) (focus and titles on navigation), [25. Forms](25-forms-reactive-and-template-driven.md) (error display) and [36. Material and CDK](36-material-and-cdk.md) (the CDK a11y utilities).
+- **Read next:** [13. Components and templates](13-components-and-templates.md) (host semantics, ARIA bindings), [24. Routing](24-routing.md) (focus and titles on navigation), [25. Forms](25-forms-reactive-and-template-driven.md) (error display) and [36. Material and CDK](36-material-and-cdk.md#9-cdk-accessibility-focustrap-focusmonitor-liveannouncer-and-the-key-managers) (the CDK a11y utilities).
 - **Uses these ideas later:** [13](13-components-and-templates.md) (host semantics), [19](19-component-communication-and-projection.md) (projected labels), [24](24-routing.md) (navigation focus), [25](25-forms-reactive-and-template-driven.md) and [26](26-signal-forms.md) (error display), [29](29-testing-angular.md) (role queries), [30](30-e2e-and-testing-strategy.md), [34](34-i18n.md), [35](35-animations.md), [36](36-material-and-cdk.md) and [45](45-frontend-system-design-method.md).

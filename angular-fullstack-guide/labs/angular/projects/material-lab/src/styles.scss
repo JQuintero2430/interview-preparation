@@ -1,0 +1,741 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light dark;
+
+  @include mat.theme(
+    (
+      color: mat.$azure-palette,
+      typography: system-ui,
+      density: 0,
+    )
+  );
+}
+
+body {
+  margin: 0;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+/* m36: tasks append one block per section or exercise below, each headed `m36 <section-or-exercise>`. */
+
+/* m36 section-1 (SEC-M36-01): the CDK and Aria listboxes bring no look of their own; these rules are all of it. */
+.m36-layers {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+.m36-listbox {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.m36-option {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-full);
+  cursor: pointer;
+}
+
+.m36-option[aria-selected='true'] {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.m36-option:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+/* m36 section-2 (SEC-M36-02): the layout of the two Material app pages. */
+.m36-material-app {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+/* m36 section-3 (SEC-M36-03): a swatch that reads the system primary color, and a subtree that forces the dark scheme. */
+.m36-theme {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+.m36-theme section {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  padding: 1rem;
+}
+
+.m36-swatch {
+  padding: 0.5rem 1rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+
+.m36-dark-panel {
+  color-scheme: dark;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+/* m36 section-4 (SEC-M36-04): a component override, a system override, and a custom card that reads system variables. */
+.m36-overrides {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+.m36-overrides section {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+}
+
+.m36-brand-buttons {
+  @include mat.button-overrides(
+    (
+      filled-container-color: #8b5000,
+    )
+  );
+}
+
+.m36-brand {
+  @include mat.theme-overrides(
+    (
+      primary: #006a6a,
+    )
+  );
+}
+
+.m36-custom-card {
+  padding: 1rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-custom-card h2 {
+  margin: 0;
+  color: var(--m36-card-accent, var(--mat-sys-primary));
+}
+
+/* m36 section-5 (SEC-M36-05): a sticky header above every stacking context, a clip, and the panel every overlay shows. */
+.m36-overlay-page {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  padding: 4rem 1rem 1rem;
+}
+
+.m36-overlay-page h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-sticky {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 3rem;
+  padding: 0 1rem;
+  background-color: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.m36-clip {
+  box-sizing: border-box;
+  width: 14rem;
+  height: 4rem;
+  padding: 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline);
+}
+
+/* The extra class beats Material's own `position: relative` on its buttons, whose stylesheet loads after this one. */
+.m36-overlay-page .m36-bottom {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+}
+
+.m36-panel {
+  display: block;
+  box-sizing: border-box;
+  width: 14rem;
+  height: 6rem;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-medium);
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-panel p {
+  margin: 0 0 0.5rem;
+}
+
+/* m36 section-6 (SEC-M36-06): drop lists and drag items. Everything sits under the page's root class, except the preview: the CDK appends it to `body`, outside the root. */
+.m36-drag-drop {
+  display: grid;
+  grid-template-columns: repeat(2, 18rem);
+  gap: 1.5rem;
+  align-items: start;
+  padding: 1.5rem;
+}
+
+.m36-drag-drop h1 {
+  grid-column: 1 / -1;
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-drag-drop h2 {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-title-medium);
+}
+
+.m36-drag-drop output {
+  display: block;
+  margin-top: 0.5rem;
+  font: var(--mat-sys-body-small);
+}
+
+.m36-drag-drop .m36-board {
+  display: flex;
+  gap: 1rem;
+}
+
+.m36-drag-drop .m36-drag-list {
+  display: block;
+  box-sizing: border-box;
+  width: 8rem;
+  min-height: 2.5rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--mat-sys-outline);
+  list-style: none;
+}
+
+.m36-drag-drop .m36-drag-item {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  cursor: grab;
+}
+
+.m36-drag-drop .cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.m36-drag-preview {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0 0.75rem;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  box-shadow: var(--mat-sys-level2);
+}
+
+/* m36 section-8 (SEC-M36-08): the layout of the primitives page. Everything sits under the page's root class, because Material's global CSS loads later and wins at equal specificity. */
+.m36-primitives {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+.m36-primitives h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-primitives h2 {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-title-medium);
+}
+
+.m36-primitives .m36-step-input {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 4px;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+}
+
+.m36-primitives output {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.m36-primitives ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+/* m36 section-9 (SEC-M36-09): the layout of the accessibility page. Everything sits under the page's root class, because Material's global CSS loads later and wins at equal specificity. */
+.m36-a11y {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+.m36-a11y h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-a11y h2 {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-title-medium);
+}
+
+.m36-a11y .m36-a11y-button {
+  margin-inline-end: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 4px;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+}
+
+.m36-a11y .m36-a11y-trap {
+  display: inline-block;
+  padding: 0.5rem;
+  border: 1px dashed var(--mat-sys-outline);
+}
+
+/* The rule that removes the default ring for everyone comes first; the class the CDK sets brings it back for keyboard focus only. */
+.m36-a11y .m36-a11y-ring:focus {
+  outline: none;
+}
+
+.m36-a11y .m36-a11y-ring.cdk-keyboard-focused {
+  outline: 3px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.m36-a11y output {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+/* m36 section-11 (SEC-M36-11): the Aria tabs bring no look; these rules are all of it. Everything sits under the page's root class, because Material's global CSS loads later and wins at equal specificity. */
+.m36-aria {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+.m36-aria h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-aria .m36-tab-list {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  list-style: none;
+}
+
+.m36-aria .m36-tab {
+  padding: 0.5rem 1rem;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+}
+
+/* The directive writes aria-selected; the style keys off the same state a screen reader reads. */
+.m36-aria .m36-tab[aria-selected='true'] {
+  border-bottom-color: var(--mat-sys-primary);
+  color: var(--mat-sys-primary);
+}
+
+.m36-aria .m36-tab:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+/* The directive makes a hidden panel inert but leaves its visual hiding to the author (the ngTabPanel typings say so). */
+.m36-aria .m36-tab-panel[inert] {
+  display: none;
+}
+
+.m36-aria .m36-tab-panel {
+  padding: 1rem 0;
+}
+
+/* m36 section-13 (SEC-M36-13): the internals page. Page rules sit under its root class, because Material's global CSS loads later and wins at equal specificity; the panel and the cover rules do not, because overlays in the overlay container render outside the root. */
+.m36-internals {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 48rem;
+  padding: 1.5rem;
+}
+
+.m36-internals h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-internals h2 {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-title-medium);
+}
+
+.m36-internals .m36-internals-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Plain custom properties, no Sass mixin: the first subtree changes the system variable, the second also sets the button's component token. */
+.m36-internals .m36-internals-sys {
+  --mat-sys-primary: #6d3a9c;
+}
+
+.m36-internals .m36-internals-token {
+  --mat-sys-primary: #8c2f39;
+  --mat-button-filled-container-color: #1e6b3a;
+}
+
+.m36-internals-panel {
+  display: block;
+  box-sizing: border-box;
+  width: 12rem;
+  height: 5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-medium);
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-internals-panel p {
+  margin: 0;
+}
+
+.m36-internals-cover {
+  background-color: rgb(0 0 0 / 8%);
+}
+
+/* m36 exercise-1 (EX-M36-01): the shell with its brand override, and variant b's two themes, one on html and one under html.m36-dark. */
+.m36-shell {
+  @include mat.button-overrides(
+    (
+      filled-container-color: #8b2f6e,
+      filled-label-text-color: #ffffff,
+    )
+  );
+
+  display: block;
+  min-height: 100vh;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-shell .m36-shell-title {
+  flex: 1;
+  margin: 0;
+  font: var(--mat-sys-title-large);
+}
+
+.m36-shell .m36-shell-main {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+html.m36-b {
+  color-scheme: light;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        theme-type: light,
+      ),
+    )
+  );
+}
+
+html.m36-b.m36-dark {
+  color-scheme: dark;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        theme-type: dark,
+      ),
+    )
+  );
+}
+
+/* m36 exercise-2 (EX-M36-02): the select of both variants. The page rules sit under its root class; the listbox rules do not, because the listbox renders in an overlay outside the root. */
+.m36-select {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+  max-width: 40rem;
+  padding: 1.5rem;
+}
+
+.m36-select h1 {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-select .m36-select-input {
+  box-sizing: border-box;
+  width: 16rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-small);
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-large);
+}
+
+.m36-select-listbox {
+  box-sizing: border-box;
+  width: 16rem;
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-small);
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-select-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+/* Both variants mark the active option with data-active: variant a through its own host binding, variant b through ngOption's. */
+.m36-select-option[data-active='true'] {
+  background-color: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.m36-select-option[aria-selected='true'] {
+  font-weight: 600;
+}
+
+/* m36 exercise-3 (EX-M36-03): the kanban board of both variants. The page rules sit under its root class; the drag preview does not, because the CDK appends it to body, outside the root. */
+.m36-kanban {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.m36-kanban h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-kanban h2 {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-title-medium);
+}
+
+.m36-kanban .m36-kanban-board {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+}
+
+.m36-kanban .m36-kanban-list {
+  box-sizing: border-box;
+  width: 14rem;
+  min-height: 3.5rem;
+  margin: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--mat-sys-corner-small);
+  list-style: none;
+}
+
+.m36-kanban .m36-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  height: 2.5rem;
+  margin: 0.25rem 0;
+  padding: 0 0.5rem;
+  border-radius: var(--mat-sys-corner-extra-small);
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  cursor: grab;
+}
+
+.m36-kanban .m36-card:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+.m36-kanban .m36-card-move {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-extra-small);
+  background-color: transparent;
+  color: var(--mat-sys-on-surface);
+  cursor: pointer;
+}
+
+.m36-kanban .m36-card-move:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+/* The arrows are generated content, so the card's text is its title alone. */
+.m36-kanban .m36-card-left::before {
+  content: '\2190';
+}
+
+.m36-kanban .m36-card-right::before {
+  content: '\2192';
+}
+
+.m36-kanban .cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.m36-kanban-preview .m36-card-move {
+  display: none;
+}
+
+.m36-kanban-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0 0.75rem;
+  background-color: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+  box-shadow: var(--mat-sys-level2);
+}
+
+/* m36 outputs q36-06..10 (QB-M36-02): the two output pages. Page rules sit under the root class, because Material's global CSS loads later and wins at equal specificity; the panel does not, because the overlay renders outside the root. */
+.m36-out-page {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  padding: 1rem;
+}
+
+.m36-out-page h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.m36-out-page h2 {
+  margin: 0 0 0.5rem;
+  font: var(--mat-sys-title-medium);
+}
+
+.m36-out-page section {
+  padding: 1rem;
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-out-page .m36-out-dark {
+  color-scheme: dark;
+}
+
+.m36-out-page .m36-out-light {
+  color-scheme: light;
+}
+
+.m36-out-page .m36-out-swatch {
+  padding: 0.5rem 1rem;
+  border-radius: var(--mat-sys-corner-medium);
+  background-color: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+
+/* The extra class beats Material's own `position: relative` on its buttons, whose stylesheet loads after this one. */
+.m36-out-page .m36-out-bottom {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+}
+
+.m36-out-panel {
+  display: block;
+  box-sizing: border-box;
+  width: 14rem;
+  height: 6rem;
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-medium);
+  background-color: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+}
+
+.m36-out-panel p {
+  margin: 0 0 0.5rem;
+}
+
+/* m36 outputs q36-11..15 (QB-M36-03): the two output pages' lists. Rules sit under the page's root class, because Material's global CSS loads later and wins at equal specificity. */
+.m36-out-page .m36-out-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.m36-out-page .m36-out-item {
+  box-sizing: border-box;
+  width: 12rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--mat-sys-corner-small);
+  background-color: var(--mat-sys-surface-container);
+  color: var(--mat-sys-on-surface);
+  cursor: grab;
+}

@@ -1,21 +1,30 @@
 import { Location } from '@angular/common';
+import { Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router, provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { filter, firstValueFrom } from 'rxjs';
 import { parseFilters, toQueryParams } from './product-filters';
 import { ProductListPage } from './product-list-page';
+import { LabM28RouteProductListPage } from './route-product-list-page';
 
-describe('E28.2 the URL as state', () => {
+type Page = ProductListPage | LabM28RouteProductListPage;
+
+const variants: [string, Type<Page>][] = [
+  ['input binding', ProductListPage],
+  ['ActivatedRoute', LabM28RouteProductListPage],
+];
+
+describe.each(variants)('E28.2 the URL as state (%s)', (_name, pageType) => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideRouter([{ path: 'products', component: ProductListPage }], withComponentInputBinding())],
+      providers: [provideRouter([{ path: 'products', component: pageType }], withComponentInputBinding())],
     });
   });
 
-  async function open(url: string): Promise<{ harness: RouterTestingHarness; page: ProductListPage }> {
+  async function open(url: string): Promise<{ harness: RouterTestingHarness; page: Page }> {
     const harness = await RouterTestingHarness.create();
-    const page = await harness.navigateByUrl(url, ProductListPage);
+    const page = await harness.navigateByUrl(url, pageType);
     return { harness, page };
   }
 
@@ -50,7 +59,7 @@ describe('E28.2 the URL as state', () => {
   it('an invalid page falls back to the first page', async () => {
     const { harness } = await open('/products');
     for (const bad of ['abc', '0', '-2', '2.5', '']) {
-      await harness.navigateByUrl(`/products?page=${bad}&sort=size`, ProductListPage);
+      await harness.navigateByUrl(`/products?page=${bad}&sort=size`, pageType);
       expect(summary(harness)).toBe(' · page 1 · name');
     }
   });

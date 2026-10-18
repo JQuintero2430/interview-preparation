@@ -305,7 +305,7 @@ customElements.define('rating-stars', RatingStars);
 The lifecycle order (diagram above), hyphen rule, upgrade, closed root, slot assignment, `slotchange` and retargeting run in jsdom in `section-5-web-components.test.ts`. Styling and declarative shadow DOM are from MDN; jsdom computes no styles and does not attach declarative roots.
 
 > [!NOTE]
-> **Framework vs platform.** Angular's default `ViewEncapsulation.Emulated` adds an attribute to the host and to every selector in the component's styles; `ViewEncapsulation.ShadowDom` uses a real shadow root (`@angular/core` 22.2 typings). Encapsulation belongs to [module 13](13-components-and-templates.md); Angular Elements, which wraps a component as a custom element, to [module 37](37-elements-pwa-errors-ecosystem.md).
+> **Framework vs platform.** Angular's default `ViewEncapsulation.Emulated` adds an attribute to the host and to every selector in the component's styles; `ViewEncapsulation.ShadowDom` uses a real shadow root (`@angular/core` 22.2 typings). Encapsulation belongs to [module 13](13-components-and-templates.md); Angular Elements, which wraps a component as a custom element, to [module 37](37-elements-pwa-errors-ecosystem.md#1-angular-elements-turning-a-component-into-a-custom-element).
 
 ### Best practices and anti-patterns
 
@@ -359,7 +359,7 @@ onINP(report);
 onLCP(report);
 ```
 
-This section is documentation only: jsdom has no `PerformanceObserver` and no layout, so no lab can produce these numbers.
+This section is documentation only: jsdom has no `PerformanceObserver` and no layout, so the unit labs cannot produce these numbers; [31 §2](31-performance.md#2-lab-metrics-in-a-real-browser-performance-observers-devtools-protocol-counters-and-lighthouse-in-ci) reads them in Chromium.
 
 ### Best practices and anti-patterns
 
@@ -669,7 +669,7 @@ console.log(link.dispatchEvent(event), event.defaultPrevented);
 
 **Short answer (30 seconds).** One delegated listener on the list. It finds the button with `event.target.closest('button[data-action]')` and the row with `closest('li[data-id]')`, checks both belong to the list, and dispatches on `data-action`. Rows added later need no setup.
 
-**Full explanation.** 20,000 listeners cost memory and setup, and must be removed with their rows. A delegated listener costs one registration and is removed once, with an `AbortSignal`. Check `list.contains(row)`: `closest` can match an ancestor outside the list. Delegation needs bubbling events; for focus use `focusin`. Background: [section 4](#4-events-propagation-default-actions-passive-listeners-and-delegation). Rendering 10,000 rows is a separate problem: virtual scrolling ([module 31](31-performance.md)). Verified: delegation through `closest` in `section-4-events.test.ts`; built in [Exercise 08.1](#ex08-1).
+**Full explanation.** 20,000 listeners cost memory and setup, and must be removed with their rows. A delegated listener costs one registration and is removed once, with an `AbortSignal`. Check `list.contains(row)`: `closest` can match an ancestor outside the list. Delegation needs bubbling events; for focus use `focusin`. Background: [section 4](#4-events-propagation-default-actions-passive-listeners-and-delegation). Rendering 10,000 rows is a separate problem: virtual scrolling ([module 31](31-performance.md#4-long-lists-track-virtual-scrolling-with-the-cdk-and-the-alternatives)). Verified: delegation through `closest` in `section-4-events.test.ts`; built in [Exercise 08.1](#ex08-1).
 
 **Follow-ups an interviewer will ask.**
 - *The rows are custom elements with a shadow root; why does `target.closest('button[data-action]')` find nothing?* Outside the root, `event.target` is retargeted to the host, so the button is out of reach. Read `event.composedPath()[0]` instead: the real button for an open root, while a closed root's nodes are left out of the path and you get the host ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Event/composedPath)). The event must be `composed` to reach the list at all. Both cases are in `section-4-events.test.ts`.
@@ -1082,7 +1082,7 @@ if (!customElements.get('rating-stars')) customElements.define('rating-stars', R
 
 **How each criterion is met.** In `rating-stars.test.ts` (`describe('E08.3 <rating-stars>')`), "`max` buttons" mounts `max="4"` and finds four `part="star"` buttons in `shadowRoot` and none in the document. "Observed attributes" changes `max` and `value` and sees the buttons and `aria-pressed` follow; `element.value = 1` writes `value="1"`. "Clicking a star" clicks the fourth button: `value` is `4`, and a `document` listener gets `detail.value` `4`, `bubbles` and `composed` true, and `target` the host (retargeting, [Q08.12](#q08-12)). "Clamped" reads `value="9"` as `5` and stores `-2` as `"0"`. "Removing" clicks a star after `remove()`: no event, value unchanged. Mutation checks: a closed root, no `part`, `max` not observed, no `composed`, no clamping, no `abort()`, and a setter that does not reflect. Each one failed tests.
 
-**Alternative approach:** an Angular component exported with Angular Elements ([module 37](37-elements-pwa-errors-ecosystem.md)). **Trade-offs:** templates, signals and DI, against shipping Angular's runtime to every host page.
+**Alternative approach:** an Angular component exported with Angular Elements ([module 37](37-elements-pwa-errors-ecosystem.md#1-angular-elements-turning-a-component-into-a-custom-element)). **Trade-offs:** templates, signals and DI, against shipping Angular's runtime to every host page.
 
 **Interviewer follow-ups.**
 - *"Why does the getter clamp, not `attributeChangedCallback`?"* Rewriting the attribute there calls the callback again. Clamping on read keeps one source of truth with no loop.
@@ -1156,4 +1156,4 @@ The host element.
 
 - **Builds on:** [01. Values, types and coercion](01-js-values-types-coercion.md) (DOM values are strings, [§3](#3-dom-apis-and-observers)), [04. The event loop](04-js-async-event-loop.md#1-the-event-loop-tasks-microtasks-and-rendering) (the rendering opportunity, microtasks after listeners) and [03. Classes](03-js-objects-prototypes-classes.md#3-classes-the-sugar-and-what-is-not-sugar) (what a custom element extends).
 - **Read next:** [09. Networking, storage and security](09-web-networking-storage-security.md).
-- **Uses these ideas later:** [10. CSS essentials](10-css-essentials.md#5-responsive-css-media-queries-container-queries-and-fluid-type) (containment), [11. Accessibility](11-accessibility.md) (focus events and shadow DOM), [13. Components and templates](13-components-and-templates.md) (view encapsulation and host listeners), [17. Signals](17-signals.md#4-effects) (`afterRenderEffect` phases against layout thrashing), [24. Routing](24-routing.md) (the History and Navigation APIs under the Router), [31. Performance](31-performance.md) (Core Web Vitals work) and [37. Elements, PWA and errors](37-elements-pwa-errors-ecosystem.md) (Angular Elements as custom elements).
+- **Uses these ideas later:** [10. CSS essentials](10-css-essentials.md#5-responsive-css-media-queries-container-queries-and-fluid-type) (containment), [11. Accessibility](11-accessibility.md) (focus events and shadow DOM), [13. Components and templates](13-components-and-templates.md) (view encapsulation and host listeners), [17. Signals](17-signals.md#4-effects) (`afterRenderEffect` phases against layout thrashing), [24. Routing](24-routing.md) (the History and Navigation APIs under the Router), [31. Performance](31-performance.md) (Core Web Vitals work) and [37. Elements, PWA and errors](37-elements-pwa-errors-ecosystem.md#1-angular-elements-turning-a-component-into-a-custom-element) (Angular Elements as custom elements).

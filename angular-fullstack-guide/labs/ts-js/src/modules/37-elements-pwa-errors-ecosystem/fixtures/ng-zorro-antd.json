@@ -1,0 +1,16 @@
+{
+  "_readAt": "2026-10-17",
+  "_command": "npm view ng-zorro-antd@22.1.2 name version peerDependencies license 'time[22.1.2]' time.modified --json",
+  "name": "ng-zorro-antd",
+  "version": "22.1.2",
+  "peerDependencies": {
+    "@angular/core": "^22.0.0",
+    "@angular/forms": "^22.0.0",
+    "@angular/common": "^22.0.0",
+    "@angular/router": "^22.0.0",
+    "@angular/platform-browser": "^22.0.0"
+  },
+  "license": "MIT",
+  "time[22.1.2]": "2026-10-10T09:49:32.364Z",
+  "time.modified": "2026-10-10T09:49:32.532Z"
+}

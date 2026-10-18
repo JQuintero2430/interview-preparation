@@ -76,7 +76,7 @@ An absolute redirect throws an internal `AbsoluteRedirect` that restarts matchin
 
 ### Code
 
-Every spec of this module drives a `RouterTestingHarness` from `@angular/router/testing` ([module 29](29-testing-angular.md) owns testing). The approach: run a table through `open`, which returns the final URL and routed text.
+Every spec of this module drives a `RouterTestingHarness` from `@angular/router/testing` ([module 29](29-testing-angular.md#9-testing-guards-interceptors-forms-effects-resources-and-stores) owns testing). The approach: run a table through `open`, which returns the final URL and routed text.
 
 1. Define the table: empty-path redirect first, wildcard last.
 2. Configure `TestBed` with `provideRouter(routes)` and create the harness.
@@ -535,7 +535,7 @@ What to notice: `canDeactivate` runs before any `canActivate`, and a redirect is
 **Closing the tab.** Guards run in the navigation pipeline (read, not run), so none is asked when the tab closes; that is the browser's `beforeunload` event, whose dialog text is generic (MDN, read 2026-10-10; documented, not run).
 
 > [!WARNING]
-> **Guards are not access control.** "CRITICAL: Never rely on client-side guards as the sole source of access control. All JavaScript that runs in a web browser can be modified by the user running the browser. Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) See [33](33-security.md) and [42](42-fullstack-authentication.md).
+> **Guards are not access control.** "CRITICAL: Never rely on client-side guards as the sole source of access control. All JavaScript that runs in a web browser can be modified by the user running the browser. Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) See [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server) and [42](42-fullstack-authentication.md).
 
 ### Code
 
@@ -1220,7 +1220,7 @@ What to notice: the strategy changes only how the URL is written and what the se
 
 **What the server sees.** Angular's deployment guide (`adev/src/content/tools/cli/deployment.md`, branch `main`, 2026-10-10) says: "you must configure the server to return the application's host page (`index.html`) when asked for a file that it does not have", and that a reload on a deep link is "handled by the browser itself, _outside_ the running application". No server was run. Under the hash strategy the route is the fragment, and RFC 3986 §3.5 says the fragment "is separated from the rest of the URI prior to a dereference": the request carries only the path before `#`, so no rule is needed.
 
-**Showing one URL, routing another.** `RouterLink` `browserUrl` [Added in v22.0] (CHANGELOG 22.0.0) and `RedirectCommand`'s `browserUrl` write a different address-bar URL. The router state keeps the routed URL: the link kept `href="/b"`, `router.url` was `/b` and `Location.path()` `/shown` (`Section 10: a RouterLink browserUrl changes the address bar, not the route`, `Section 10: a RedirectCommand browserUrl shows one URL and routes another`). The initial navigation on the server is [32](32-ssr-ssg-hydration.md)'s.
+**Showing one URL, routing another.** `RouterLink` `browserUrl` [Added in v22.0] (CHANGELOG 22.0.0) and `RedirectCommand`'s `browserUrl` write a different address-bar URL. The router state keeps the routed URL: the link kept `href="/b"`, `router.url` was `/b` and `Location.path()` `/shown` (`Section 10: a RouterLink browserUrl changes the address bar, not the route`, `Section 10: a RedirectCommand browserUrl shows one URL and routes another`). The initial navigation on the server is [32](32-ssr-ssg-hydration.md#10-under-the-hood-a-request-through-the-engine-the-serialized-page-and-the-clients-hydration-pass)'s.
 
 > [!NOTE]
 > **Framework vs platform.** The History API gives `pushState`, `replaceState` and `popstate` and knows nothing of routes ([08 §7](08-browser-rendering-dom-events.md#7-history-api-versus-navigation-api), [Q08.18](08-browser-rendering-dom-events.md#q08-18)). The Router adds matching, guards, resolvers, lazy loading, cancellation and the state tree ([sections 1 to 7](#1-router-configuration-providerouter-route-matching-redirects-and-the-wildcard)). `withExperimentalPlatformNavigation` [Experimental since v21.1] swaps in the browser's Navigation API; its doc comment says "CRITICAL: This feature is _highly_ experimental and should not be used in production". Not run here.
@@ -1760,7 +1760,7 @@ const canDeactivate: CanDeactivateFn<Editor> = (component, currentRoute, current
 
 **Follow-ups an interviewer will ask.**
 - *Where does the unsaved-changes check go?* In `canDeactivate`, which gets the component and the next URL (`Section 5: canDeactivate receives the component instance and the next URL`); closing the tab is the browser's `beforeunload`, not a guard ([Q24.20](#q24-20)).
-- *May a guard be the access control?* No: the docs warn against client-side guards as the sole access control; see [33](33-security.md) and [42](42-fullstack-authentication.md).
+- *May a guard be the access control?* No: the docs warn against client-side guards as the sole access control; see [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server) and [42](42-fullstack-authentication.md).
 
 **Trap to avoid.** Reading every `false` as "try the next route": only `canMatch` does that, and the rest cancel with `GuardRejected`.
 
@@ -1943,7 +1943,7 @@ const routes: Routes = [{ path: 'admin', canActivate: [isAdmin], component: Admi
 
 **Short answer (30 seconds).** Two bugs, one cause: the check runs where the user controls it. The guard trusts a value the user can write: in the lab `/admin` was refused, then admitted after `localStorage.setItem('role', 'admin')` (`Q24.19 …`). And the API trusts the guard, so anyone who skips the page, with a modified bundle or a direct HTTP call, still gets the data. The guard is UX; authorization is the server's, on every request.
 
-**Full explanation.** The docs say it directly: "Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) Fix the API first: it checks the caller's verified identity and role on every request and answers `401` or `403`. Keep the guard as courtesy, reading the role from the signed-in session, so a user without it sees a redirect, not an empty page. The warning is in [section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand); sessions and tokens are [33](33-security.md) and [42](42-fullstack-authentication.md).
+**Full explanation.** The docs say it directly: "Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) Fix the API first: it checks the caller's verified identity and role on every request and answers `401` or `403`. Keep the guard as courtesy, reading the role from the signed-in session, so a user without it sees a redirect, not an empty page. The warning is in [section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand); sessions and tokens are [33](33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend) and [42](42-fullstack-authentication.md).
 
 **Follow-ups an interviewer will ask.**
 - *Does `canMatch` fix it?* It keeps the router from loading the chunk ([Q24.12](#q24-12)), but it is the same client-side check.
@@ -2196,7 +2196,7 @@ router.currentNavigation()?.abort();
 
 **Follow-ups an interviewer will ask.**
 - *Can a strategy read the network?* jsdom has no `navigator.connection` (`Section 8: jsdom has no navigator.connection to base a preloading decision on`), so Exercise 24.6 injects a fake (`E24.6 with saveData on or a 2g connection, nothing preloads`).
-- *Which strategy suits a large app?* Measured work: [31](31-performance.md).
+- *Which strategy suits a large app?* Measured work: [31](31-performance.md#5-loading-the-initial-bundle-lazy-routes-defer-and-preloading-as-one-plan).
 
 **Trap to avoid.** `PreloadAllModules` as a free speed-up: it downloads every lazy chunk, even ones this user never opens.
 
@@ -2559,7 +2559,7 @@ return router.createUrlTree(['/products', String(id), tab, ...matrix], {
 
 **Problem.** An app has a login page, a checkout page, an editor and a lazy admin area. Only admins may reach `/admin`, a logged-out user must log in before `/checkout`, and the editor must not lose work silently ([section 4](#4-lazy-loading-in-depth-loaders-canmatch-and-route-injectors), [section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand)). Write the guards, editor and routes.
 
-**Constraints.** Functional guards only; at most three injected dependencies per guard; the session and the confirm function are injected, so tests replace them; `legacy/class-guard.ts` compiles and stays unchanged. Not covered: real authentication, tokens and server checks, because guards are not access control ([section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand), [33](33-security.md), [42](42-fullstack-authentication.md)).
+**Constraints.** Functional guards only; at most three injected dependencies per guard; the session and the confirm function are injected, so tests replace them; `legacy/class-guard.ts` compiles and stays unchanged. Not covered: real authentication, tokens and server checks, because guards are not access control ([section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand), [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server), [42](42-fullstack-authentication.md)).
 
 **Acceptance criteria.**
 - [ ] a non-admin navigating to `/admin` never runs the admin loader and lands on the not-found page

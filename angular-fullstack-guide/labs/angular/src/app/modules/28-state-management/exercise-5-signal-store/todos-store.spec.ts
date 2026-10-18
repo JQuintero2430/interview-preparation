@@ -1,26 +1,37 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { patchState } from '@ngrx/signals';
 import { LabM28AuthorsStore } from './authors-store';
 import { Author, Todo } from './todo';
 import { AUTHORS_URL, TODOS_URL } from './todos-api';
 import { LabM28TodosStore } from './todos-store';
+import { LabM28TrackedAuthorsStore } from './tracked-authors-store';
+import { LabM28TrackedTodosStore } from './tracked-todos-store';
+
+type TodosStore = InstanceType<typeof LabM28TodosStore> | InstanceType<typeof LabM28TrackedTodosStore>;
+type AuthorsStore = InstanceType<typeof LabM28AuthorsStore> | InstanceType<typeof LabM28TrackedAuthorsStore>;
+
+const variants: [string, Type<TodosStore>, Type<AuthorsStore>][] = [
+  ['exported updaters', LabM28TodosStore, LabM28AuthorsStore],
+  ['tracked request', LabM28TrackedTodosStore, LabM28TrackedAuthorsStore],
+];
 
 const write: Todo = { id: 1, title: 'write', done: false };
 const test: Todo = { id: 2, title: 'test', done: true };
 const ship: Todo = { id: 3, title: 'ship', done: false };
 
-describe('E28.5 a SignalStore with entities, rxMethod and a reusable request-status feature', () => {
+describe.each(variants)('E28.5 a SignalStore with entities, rxMethod and a reusable request-status feature (%s)', (_name, todosType, authorsType) => {
   let controller: HttpTestingController;
 
-  function setUp() {
+  function setUp(): TodosStore {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     controller = TestBed.inject(HttpTestingController);
-    return TestBed.inject(LabM28TodosStore);
+    return TestBed.inject(todosType);
   }
 
-  function loaded(todos: Todo[]) {
+  function loaded(todos: Todo[]): TodosStore {
     const store = setUp();
     controller.expectOne(TODOS_URL).flush(todos);
     return store;
@@ -93,7 +104,7 @@ describe('E28.5 a SignalStore with entities, rxMethod and a reusable request-sta
   it('the request-status feature works unchanged in a second store', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     controller = TestBed.inject(HttpTestingController);
-    const authors = TestBed.inject(LabM28AuthorsStore);
+    const authors = TestBed.inject(authorsType);
     expect(authors.status()).toBe('idle');
     const ada: Author = { id: 1, name: 'Ada' };
 

@@ -1,0 +1,8 @@
+{
+  "locale": "ar",
+  "translations": {
+    "m34.home.title": "مختبر i18n للوحدة 34",
+    "m34.runtime.title": "الترجمة أثناء التشغيل",
+    "m34.runtime.greeting": "مرحبًا {$INTERPOLATION}، لديك {$START_BOLD_TEXT}{$INTERPOLATION_1}{$CLOSE_BOLD_TEXT} رسائل جديدة"
+  }
+}

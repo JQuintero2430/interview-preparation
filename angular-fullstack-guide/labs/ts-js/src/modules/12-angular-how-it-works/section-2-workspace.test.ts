@@ -1,4 +1,4 @@
-// Section 2 claims: the lab's angular.json (read-only) maps one application project to targets, each a builder with options and named configurations.
+// Section 2 claims: the lab's angular.json (read-only) maps the labs application project to targets, each a builder with options and named configurations.
 
 // A variable specifier keeps node:fs out of the bundler's static graph (the lab has no @types/node).
 const fsSpecifier = 'node:fs';
@@ -39,9 +39,14 @@ function target(name: string): Target {
 }
 
 describe('Section 2: the CLI workspace (labs/angular/angular.json)', () => {
-  it('Section 2: the lab workspace has one application project with build, serve and test targets', () => {
+  it('Section 2: the lab workspace maps the labs application project to build, serve and test targets', () => {
     expect(workspace.version).toBe(1);
-    expect(Object.keys(workspace.projects)).toEqual(['labs']);
+    // ssr-lab is module 32's SSR project (HOUSE-26), security-lab module 33's CSP project (HOUSE-29) and
+    // i18n-lab, module 34's locale project (HOUSE-31), animations-lab, module 35's motion project (HOUSE-33), and
+    // material-lab, module 36's Material project (HOUSE-35), and elements-lab, module 37's Elements and service-worker project
+    // (HOUSE-38), and ui-lib, module 38's library project (HOUSE-40), in the order they were added; this section reads
+    // only the labs project.
+    expect(Object.keys(workspace.projects)).toEqual(['labs', 'ssr-lab', 'security-lab', 'i18n-lab', 'animations-lab', 'material-lab', 'elements-lab', 'ui-lib']);
     const project = workspace.projects['labs'];
     expect(project?.projectType).toBe('application');
     expect(project?.prefix).toBe('lab');

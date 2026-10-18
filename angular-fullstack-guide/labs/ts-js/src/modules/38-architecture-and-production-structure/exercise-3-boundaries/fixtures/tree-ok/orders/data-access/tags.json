@@ -1,0 +1,1 @@
+{ "name": "orders-data", "tags": ["type:data-access", "scope:orders"], "alias": "@ok/orders-data" }

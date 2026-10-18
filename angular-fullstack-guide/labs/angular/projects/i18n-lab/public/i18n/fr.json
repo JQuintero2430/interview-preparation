@@ -1,0 +1,8 @@
+{
+  "locale": "fr",
+  "translations": {
+    "m34.home.title": "Laboratoire i18n du module 34",
+    "m34.runtime.title": "Traduction à l’exécution",
+    "m34.runtime.greeting": "{$START_BOLD_TEXT}{$INTERPOLATION_1}{$CLOSE_BOLD_TEXT} nouveaux messages pour {$INTERPOLATION}"
+  }
+}

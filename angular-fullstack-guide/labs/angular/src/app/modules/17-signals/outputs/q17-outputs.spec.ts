@@ -43,6 +43,8 @@ describe('Module 17 output questions', () => {
     }
     const field = TestBed.createComponent(FieldClock);
     const reactive = TestBed.createComponent(SignalClock);
+    field.detectChanges(); // first render now, synchronously, before either 20 ms timer can fire
+    reactive.detectChanges();
     await field.whenStable();
     await reactive.whenStable();
     await wait(50);

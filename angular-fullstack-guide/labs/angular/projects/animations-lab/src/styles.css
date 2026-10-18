@@ -1,0 +1,153 @@
+/* Global styles. Module 35 rules (::view-transition-* cannot live in component styles) go under one
+   m35 comment block per section, append-only. */
+
+/* m35 reduced motion: each task appends to this block only through its own commented lines. */
+@media (prefers-reduced-motion: reduce) {
+  /* HOUSE-33 */
+  /* Repeated class: outranks the component's scoped selector (class plus attribute) without !important. */
+  .m35-fade-in.m35-fade-in.m35-fade-in {
+    animation: none;
+  }
+
+  /* m35 section-1 (SEC-M35-01): the transition and keyframe boxes; the script box checks the query itself. */
+  .m35-box-transition.m35-box-transition.m35-box-transition {
+    transition: none;
+  }
+  .m35-pulsing.m35-pulsing.m35-pulsing {
+    animation: none;
+  }
+
+  /* m35 section-2 (SEC-M35-02): the transition boxes. */
+  .m35-listed.m35-listed.m35-listed,
+  .m35-with-start.m35-with-start.m35-with-start,
+  .m35-without-start.m35-without-start.m35-without-start,
+  .m35-discrete.m35-discrete.m35-discrete,
+  .m35-plain.m35-plain.m35-plain {
+    transition: none;
+  }
+
+  /* m35 section-3 (SEC-M35-03): the keyframe boxes. */
+  .m35-fade-forwards.m35-fade-forwards.m35-fade-forwards,
+  .m35-fade-plain.m35-fade-plain.m35-fade-plain,
+  .m35-iterating.m35-iterating.m35-iterating,
+  .m35-grow-local.m35-grow-local.m35-grow-local,
+  .m35-global-grow.m35-global-grow.m35-global-grow {
+    animation: none;
+  }
+
+  /* m35 section-4 (SEC-M35-04): the transition box and the spinner; the script animations check the query themselves. */
+  .m35-slide-box.m35-slide-box.m35-slide-box {
+    transition: none;
+  }
+  .m35-spinner.m35-spinner.m35-spinner {
+    animation: none;
+  }
+
+  /* m35 section-5 (SEC-M35-05): the classes bound by animate.enter and animate.leave. */
+  .m35-enter-slide.m35-enter-slide.m35-enter-slide,
+  .m35-leave-fade.m35-leave-fade.m35-leave-fade,
+  .m35-leave-spin.m35-leave-spin.m35-leave-spin,
+  .m35-array-a.m35-array-a.m35-array-a,
+  .m35-sig-a.m35-sig-a.m35-sig-a,
+  .m35-host-in.m35-host-in.m35-host-in {
+    animation: none;
+  }
+
+  /* m35 section-6 (SEC-M35-06): the leave classes; the script callbacks check the query themselves. */
+  .m35-cb-fade.m35-cb-fade.m35-cb-fade,
+  .m35-line-out.m35-line-out.m35-line-out,
+  .m35-card-out.m35-card-out.m35-card-out,
+  .m35-host-out.m35-host-out.m35-host-out,
+  .m35-inner-out.m35-inner-out.m35-inner-out,
+  .m35-dynamic-out.m35-dynamic-out.m35-dynamic-out {
+    animation: none;
+  }
+
+  /* m35 section-7 (SEC-M35-07): the list classes; the glide checks the query itself. */
+  .m35-row-in.m35-row-in.m35-row-in,
+  .m35-row-out.m35-row-out.m35-row-out,
+  .m35-stagger-in.m35-stagger-in.m35-stagger-in {
+    animation: none;
+  }
+
+  /* m35 section-9 (SEC-M35-09): the migrated panel and the leave classes of the notes. */
+  .m35-mig-panel.m35-mig-panel.m35-mig-panel {
+    transition: none;
+  }
+  .m35-note-out.m35-note-out.m35-note-out,
+  .m35-note-cb-out.m35-note-cb-out.m35-note-cb-out {
+    animation: none;
+  }
+
+  /* m35 ex1 (EX-M35-01): the toasts of variant a; variant b checks the query itself. */
+  .m35-toast-in.m35-toast-in.m35-toast-in,
+  .m35-toast-out.m35-toast-out.m35-toast-out {
+    animation: none;
+  }
+
+  /* m35 ex2 (EX-M35-02): the disclosure panels of both variants. */
+  .m35-disc.m35-disc.m35-disc,
+  .m35-disc-b.m35-disc-b.m35-disc-b {
+    transition: none;
+  }
+
+  /* m35 ex3 (EX-M35-03): the stagger classes of variant a; variant b checks the query itself. */
+  .m35-ex3-in.m35-ex3-in.m35-ex3-in,
+  .m35-ex3-out.m35-ex3-out.m35-ex3-out {
+    animation: none;
+  }
+
+  /* m35 ex4 (EX-M35-04): the view transition pseudo-elements while an Exercise 35.4 page is in the document. */
+  :root:has([data-m35-ex4])::view-transition-group(*),
+  :root:has([data-m35-ex4])::view-transition-old(*),
+  :root:has([data-m35-ex4])::view-transition-new(*) {
+    animation: none;
+  }
+
+  /* m35 vt (SEC-M35-10): the router does nothing for reduced motion, so the rule is global. */
+  :root:has([data-m35-vt])::view-transition-group(*),
+  :root:has([data-m35-vt])::view-transition-old(*),
+  :root:has([data-m35-vt])::view-transition-new(*) {
+    animation: none;
+  }
+}
+
+/* m35 section-3 (SEC-M35-03): a global class that names the keyframes `m35-grow` the keyframes page declares in its
+   component styles. Emulated encapsulation renames that declaration, so this name matches nothing. */
+.m35-global-grow {
+  animation: m35-grow 800ms;
+}
+
+/* m35 vt (SEC-M35-10): the view transition pseudo-elements live on the document, so these rules are global. They
+   apply only while a section 10 page (its host carries data-m35-vt) is in the document; the long duration keeps the
+   animations alive until a test ends them. */
+:root:has([data-m35-vt])::view-transition-group(*),
+:root:has([data-m35-vt])::view-transition-old(*),
+:root:has([data-m35-vt])::view-transition-new(*) {
+  animation-duration: 1200ms;
+}
+
+/* m35 section-11 (SEC-M35-11): the router does nothing for reduced motion, so the rule is global. Both rules apply only
+   while the section 11 page (its host carries data-m35-motion) is in the document; the second one only while its
+   checkbox keeps data-m35-motion-guard on the host. */
+:root:has([data-m35-motion])::view-transition-group(*),
+:root:has([data-m35-motion])::view-transition-old(*),
+:root:has([data-m35-motion])::view-transition-new(*) {
+  animation-duration: 1200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:has([data-m35-motion-guard])::view-transition-group(*),
+  :root:has([data-m35-motion-guard])::view-transition-old(*),
+  :root:has([data-m35-motion-guard])::view-transition-new(*) {
+    animation: none;
+  }
+}
+
+/* m35 ex4 (EX-M35-04): global because the pseudo-elements live on the document; scoped to the Exercise 35.4 pages (their
+   hosts carry data-m35-ex4). The long duration keeps the animations alive until a test ends them. */
+:root:has([data-m35-ex4])::view-transition-group(*),
+:root:has([data-m35-ex4])::view-transition-old(*),
+:root:has([data-m35-ex4])::view-transition-new(*) {
+  animation-duration: 1200ms;
+}

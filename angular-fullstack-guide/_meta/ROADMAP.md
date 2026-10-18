@@ -35,17 +35,17 @@ Source: SYLLABUS §6. The parallel batches are dissolved: one module at a time, 
 | 20 | 25 `forms-reactive-and-template-driven` | D | NG | done (CLOSE-M25, REVIEW-M25, FIX-M25 all done 2026-10-11; 21,894 prose words) |
 | 21 | 26 `signal-forms` | D | NG | done (CLOSE-M26, REVIEW-M26, FIX-M26-01..04 all done 2026-10-11; 19,011 prose words, 28 Q, 5 Ex) |
 | 22 | 27 `http-client` | D | NG | done (CLOSE-M27, REVIEW-M27, FIX-M27-01..04 all done 2026-10-13; 22,599 prose words, 34 Q, 6 Ex) |
-| 23 | 28 `state-management` | D | NG | closed (CLOSE-M28 done 2026-10-13; 22,438 prose words, 34 Q, 5 Ex; REVIEW-M28 pending) |
-| 24 | 29 `testing-angular` | D | NG | not started |
-| 25 | 30 `e2e-and-testing-strategy` | D | — | not started (Playwright: Chromium only) |
-| 26 | 31 `performance` | D | NG | not started |
-| 27 | 32 `ssr-ssg-hydration` | D | NG | not started (adds `labs/angular/projects/ssr-lab`) |
-| 28 | 33 `security` | D | NG | not started |
-| 29 | 34 `i18n` | D | NG | not started |
-| 30 | 35 `animations` | D | NG | not started |
-| 31 | 36 `material-and-cdk` | D | NG | not started |
-| 32 | 37 `elements-pwa-errors-ecosystem` | D | NG | not started (adds `projects/elements-lab`) |
-| 33 | 38 `architecture-and-production-structure` | D | NG | not started (adds `projects/ui-lib`) |
+| 23 | 28 `state-management` | D | NG | done (CLOSE-M28, REVIEW-M28 and FIX-M28-01..10 2026-10-13; 22,284 prose words, 34 Q (Output 12), 5 Ex) |
+| 24 | 29 `testing-angular` | D | NG | done (CLOSE-M29, REVIEW-M29, FIX-M29 all done 2026-10-13; 22,874 prose words) |
+| 25 | 30 `e2e-and-testing-strategy` | D | — | done (CLOSE-M30, REVIEW-M30, FIX-M30 all done 2026-10-13; 14,144 prose words) |
+| 26 | 31 `performance` | D | NG | done (CLOSE-M31, REVIEW-M31, FIX-M31 all done 2026-10-14; 19,248 prose words) |
+| 27 | 32 `ssr-ssg-hydration` | D | NG | done (CLOSE-M32 2026-10-15, REVIEW-M32 and FIX-M32-01..03 done 2026-10-15; 18,451 prose words, 27 Q (Output 8), 4 Ex; adds `labs/angular/projects/ssr-lab`; FIX-M32-04 blocked on Jorge, edits 20 and 31 only) |
+| 28 | 33 `security` | D | NG | closed (CLOSE-M33 2026-10-15, REVIEW-M33 next; 19,755 prose words, 29 Q (Output 9), 4 Ex; HOUSE-29 added `labs/angular/projects/security-lab`) |
+| 29 | 34 `i18n` | D | NG | reviewed and fixed (CLOSE-M34 2026-10-15, REVIEW-M34, FIX-M34-01..03 2026-10-16; 18,770 prose words, 25 Q (Output 8), 4 Ex; HOUSE-30 and HOUSE-31 added `@angular/localize`, Transloco, ngx-translate and `labs/angular/projects/i18n-lab`) |
+| 30 | 35 `animations` | D | NG | reviewed and fixed (CLOSE-M35, REVIEW-M35, FIX-M35-01..02 2026-10-16; 18,834 prose words, 25 Q (Output 8), 4 Ex; HOUSE-33 added `labs/angular/projects/animations-lab`) |
+| 31 | 36 `material-and-cdk` | D | NG | reviewed and fixed (CLOSE-M36, REVIEW-M36, FIX-M36-01..02 2026-10-17; 19,637 prose words, 25 Q (Output 8), 4 Ex; HOUSE-34 added `@angular/material` and `@angular/aria` 22.2.1, HOUSE-35 added `labs/angular/projects/material-lab`) |
+| 32 | 37 `elements-pwa-errors-ecosystem` | D | NG | reviewed and fixed (CLOSE-M37, REVIEW-M37, FIX-M37-01..03 2026-10-17; 20,226 prose words, 25 Q (Output 7), 4 Ex; HOUSE-37 added `@angular/elements` and `@angular/service-worker` 22.2.1, HOUSE-38 added `labs/angular/projects/elements-lab` on port 4900) |
+| 33 | 38 `architecture-and-production-structure` | D | NG | written and closed (CLOSE-M38 2026-10-18; 20,030 prose words, 29 Q (Output 5), 4 Ex; HOUSE-39 added `ng-packagr` 22.2.1, HOUSE-40 added `labs/angular/projects/ui-lib`); REVIEW-M38 next |
 | 34 | 39 `version-history-and-migrations` | D | NG | not started |
 | 35 | 40 `framework-comparisons` | D | — | not started |
 | 36 | 41 `fullstack-api-contracts` | E | — | not started |

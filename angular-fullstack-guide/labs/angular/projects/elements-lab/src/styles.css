@@ -1,0 +1,32 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* m37 section-5 */
+lab-m37-caching button {
+  margin-inline-end: 0.5rem;
+}
+
+/* m37 section-6 */
+lab-m37-updates [role='alert'] {
+  font-weight: bold;
+}
+
+/* m37 section-7 */
+lab-m37-push [data-testid='last-push'] {
+  font-family: monospace;
+}
+
+/* m37 section-8 */
+lab-m37-errors button {
+  margin-inline-end: 0.5rem;
+}
+
+/* m37 section-10 */
+lab-m37-offline [data-testid='offline-banner'] {
+  font-weight: bold;
+}
+
+/* m37 ex4 */
+lab-m37-ex4-update-banner-a [role='alert'],
+lab-m37-ex4-update-banner-b [role='alert'] {
+  font-weight: bold;
+}

@@ -1,8 +1,15 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Type } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { LabM28OverlayTodosStore } from './overlay-todos-store';
 import { Todo } from './todo';
 import { HISTORY_LIMIT, TodosStore } from './todos-store';
+
+const variants: [string, Type<TodosStore | LabM28OverlayTodosStore>][] = [
+  ['inverse write-back', TodosStore],
+  ['pending overlay', LabM28OverlayTodosStore],
+];
 
 const seed: Todo[] = [
   { id: 1, title: 'write', done: false },
@@ -12,14 +19,14 @@ const seed: Todo[] = [
 
 const fail = { status: 500, statusText: 'Server Error' };
 
-describe('E28.3 optimistic toggles with rollback, a normalized collection and undo and redo', () => {
+describe.each(variants)('E28.3 optimistic toggles with rollback, a normalized collection and undo and redo (%s)', (_name, storeType) => {
   let http: HttpTestingController;
-  let store: TodosStore;
+  let store: TodosStore | LabM28OverlayTodosStore;
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     http = TestBed.inject(HttpTestingController);
-    store = TestBed.inject(TodosStore);
+    store = TestBed.inject(storeType);
     store.setAll(seed);
   });
 

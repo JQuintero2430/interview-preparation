@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" target-language="fr" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="m34.home.title" datatype="html">
+        <source>Module 34 i18n lab</source>
+        <target>Laboratoire i18n du module 34</target>
+      </trans-unit>
+      <trans-unit id="m34.icu.group" datatype="html">
+        <source>Item count</source>
+        <target>Nombre d'articles</target>
+      </trans-unit>
+      <trans-unit id="m34.icu.items" datatype="html">
+        <source>{VAR_PLURAL, plural, =0 {No items} one {One item} other {<x id="INTERPOLATION"/> items}}</source>
+        <target>{VAR_PLURAL, plural, one {<x id="INTERPOLATION"/> article} other {<x id="INTERPOLATION"/> articles}}</target>
+      </trans-unit>
+      <trans-unit id="m34.extract.title" datatype="html">
+        <source>Extraction lab</source>
+        <target>Laboratoire d'extraction</target>
+      </trans-unit>
+      <trans-unit id="m34.extract.hint" datatype="html">
+        <source>Review your answers</source>
+        <target>Relisez vos réponses</target>
+      </trans-unit>
+      <trans-unit id="4200317694838753109" datatype="html">
+        <source>Welcome back</source>
+        <target>Bon retour</target>
+      </trans-unit>
+      <trans-unit id="2522557153388325485" datatype="html">
+        <source>Close</source>
+        <target>Fermer la porte</target>
+      </trans-unit>
+      <trans-unit id="1426216042718898919" datatype="html">
+        <source>Close</source>
+        <target>Fermer la boîte de dialogue</target>
+      </trans-unit>
+      <trans-unit id="m34.builds.title" datatype="html">
+        <source>Order details</source>
+        <target>Détails de la commande</target>
+      </trans-unit>
+      <trans-unit id="m34.builds.url" datatype="html">
+        <source>Router URL</source>
+        <target>URL du routeur</target>
+      </trans-unit>
+      <trans-unit id="m34.builds.locale" datatype="html">
+        <source>Locale ID</source>
+        <target>Identifiant de locale</target>
+      </trans-unit>
+      <trans-unit id="m34.runtime.title" datatype="html">
+        <source>Runtime translation</source>
+        <target>Traduction à l’exécution</target>
+      </trans-unit>
+      <trans-unit id="m34.runtime.greeting" datatype="html">
+        <source>Hello <x id="INTERPOLATION" equiv-text="{{ name }}"/>, you have <x id="START_BOLD_TEXT" ctype="x-b" equiv-text="&lt;b&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ count }}"/><x id="CLOSE_BOLD_TEXT" ctype="x-b" equiv-text="&lt;/b&gt;"/> new messages</source>
+        <target><x id="START_BOLD_TEXT" ctype="x-b" equiv-text="&lt;b&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ count }}"/><x id="CLOSE_BOLD_TEXT" ctype="x-b" equiv-text="&lt;/b&gt;"/> nouveaux messages pour <x id="INTERPOLATION" equiv-text="{{ name }}"/></target>
+      </trans-unit>
+      <trans-unit id="m34.rtl.start" datatype="html">
+        <source>Aligned to the start</source>
+        <target>Aligné au début</target>
+      </trans-unit>
+      <trans-unit id="m34.rtl.arrived" datatype="html">
+        <source><x id="INTERPOLATION" equiv-text="{{ name }}"/> just arrived</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ name }}"/> vient d’arriver</target>
+      </trans-unit>
+      <trans-unit id="m34.rtl.arrivedIsolated" datatype="html">
+        <source><x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/> just arrived</source>
+        <target><x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/> vient d’arriver</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.heading" datatype="html">
+        <source>Order summary</source>
+        <target>Résumé de la commande</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.items" datatype="html">
+        <source>{VAR_PLURAL, plural, one {<x id="INTERPOLATION"/> item} other {<x id="INTERPOLATION"/> items}}</source>
+        <target>{VAR_PLURAL, plural, one {<x id="INTERPOLATION"/> article} other {<x id="INTERPOLATION"/> articles}}</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.a.total" datatype="html">
+        <source>Total</source>
+        <target>Total</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.zero" datatype="html">
+        <source>No items</source>
+        <target>Aucun article</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.one" datatype="html">
+        <source><x id="count" equiv-text="count"/> item</source>
+        <target><x id="count" equiv-text="count"/> article</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.two" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target><x id="count" equiv-text="count"/> articles</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.few" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target><x id="count" equiv-text="count"/> articles</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.many" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target><x id="count" equiv-text="count"/> articles</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.other" datatype="html">
+        <source><x id="count" equiv-text="count"/> items</source>
+        <target><x id="count" equiv-text="count"/> articles</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.heading" datatype="html">
+        <source>Order summary</source>
+        <target>Résumé de la commande</target>
+      </trans-unit>
+      <trans-unit id="m34.ex2.b.total" datatype="html">
+        <source>Total</source>
+        <target>Total</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.back" datatype="html">
+        <source>Back</source>
+        <target>Retour</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.title" datatype="html">
+        <source>Account</source>
+        <target>Compte</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.greeting" datatype="html">
+        <source>Welcome back, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></source>
+        <target>Bon retour, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.phone" datatype="html">
+        <source>Phone</source>
+        <target>Téléphone</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.a.balance" datatype="html">
+        <source>Balance</source>
+        <target>Solde</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.back" datatype="html">
+        <source>Back</source>
+        <target>Retour</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.title" datatype="html">
+        <source>Account</source>
+        <target>Compte</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.greeting" datatype="html">
+        <source>Welcome back, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></source>
+        <target>Bon retour, <x id="START_TAG_BDI" ctype="x-bdi" equiv-text="&lt;bdi&gt;"/><x id="INTERPOLATION" equiv-text="{{ name }}"/><x id="CLOSE_TAG_BDI" ctype="x-bdi" equiv-text="&lt;/bdi&gt;"/></target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.phone" datatype="html">
+        <source>Phone</source>
+        <target>Téléphone</target>
+      </trans-unit>
+      <trans-unit id="m34.ex4.b.balance" datatype="html">
+        <source>Balance</source>
+        <target>Solde</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

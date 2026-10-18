@@ -1,0 +1,194 @@
+{
+  "_readAt": "2026-10-17",
+  "_command": "npm view @spartan-ng/brain@1.8.0 name version peerDependencies license exports sideEffects 'time[1.8.0]' --json",
+  "name": "@spartan-ng/brain",
+  "version": "1.8.0",
+  "peerDependencies": {
+    "clsx": ">=2.0.0",
+    "rxjs": ">=6.6.0",
+    "luxon": ">=3.0.0",
+    "tailwindcss": ">=4.0.0",
+    "@angular/cdk": ">=21.0.0 <23.0.0",
+    "@angular/core": ">=21.0.0 <23.0.0",
+    "@angular/forms": ">=21.0.0 <23.0.0",
+    "tw-animate-css": ">=1.0.0",
+    "@angular/common": ">=21.0.0 <23.0.0"
+  },
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./types/spartan-ng-brain.d.ts",
+      "default": "./fesm2022/spartan-ng-brain.mjs"
+    },
+    "./core": {
+      "types": "./types/spartan-ng-brain-core.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-core.mjs"
+    },
+    "./tabs": {
+      "types": "./types/spartan-ng-brain-tabs.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-tabs.mjs"
+    },
+    "./field": {
+      "types": "./types/spartan-ng-brain-field.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-field.mjs"
+    },
+    "./forms": {
+      "types": "./types/spartan-ng-brain-forms.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-forms.mjs"
+    },
+    "./input": {
+      "types": "./types/spartan-ng-brain-input.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-input.mjs"
+    },
+    "./label": {
+      "types": "./types/spartan-ng-brain-label.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-label.mjs"
+    },
+    "./sheet": {
+      "types": "./types/spartan-ng-brain-sheet.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-sheet.mjs"
+    },
+    "./avatar": {
+      "types": "./types/spartan-ng-brain-avatar.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-avatar.mjs"
+    },
+    "./button": {
+      "types": "./types/spartan-ng-brain-button.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-button.mjs"
+    },
+    "./dialog": {
+      "types": "./types/spartan-ng-brain-dialog.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-dialog.mjs"
+    },
+    "./drawer": {
+      "types": "./types/spartan-ng-brain-drawer.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-drawer.mjs"
+    },
+    "./select": {
+      "types": "./types/spartan-ng-brain-select.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-select.mjs"
+    },
+    "./slider": {
+      "types": "./types/spartan-ng-brain-slider.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-slider.mjs"
+    },
+    "./sonner": {
+      "types": "./types/spartan-ng-brain-sonner.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-sonner.mjs"
+    },
+    "./switch": {
+      "types": "./types/spartan-ng-brain-switch.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-switch.mjs"
+    },
+    "./toggle": {
+      "types": "./types/spartan-ng-brain-toggle.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-toggle.mjs"
+    },
+    "./command": {
+      "types": "./types/spartan-ng-brain-command.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-command.mjs"
+    },
+    "./overlay": {
+      "types": "./types/spartan-ng-brain-overlay.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-overlay.mjs"
+    },
+    "./popover": {
+      "types": "./types/spartan-ng-brain-popover.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-popover.mjs"
+    },
+    "./tooltip": {
+      "types": "./types/spartan-ng-brain-tooltip.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-tooltip.mjs"
+    },
+    "./calendar": {
+      "types": "./types/spartan-ng-brain-calendar.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-calendar.mjs"
+    },
+    "./checkbox": {
+      "types": "./types/spartan-ng-brain-checkbox.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-checkbox.mjs"
+    },
+    "./combobox": {
+      "types": "./types/spartan-ng-brain-combobox.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-combobox.mjs"
+    },
+    "./progress": {
+      "types": "./types/spartan-ng-brain-progress.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-progress.mjs"
+    },
+    "./textarea": {
+      "types": "./types/spartan-ng-brain-textarea.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-textarea.mjs"
+    },
+    "./accordion": {
+      "types": "./types/spartan-ng-brain-accordion.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-accordion.mjs"
+    },
+    "./date-time": {
+      "types": "./types/spartan-ng-brain-date-time.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-date-time.mjs"
+    },
+    "./input-otp": {
+      "types": "./types/spartan-ng-brain-input-otp.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-input-otp.mjs"
+    },
+    "./resizable": {
+      "types": "./types/spartan-ng-brain-resizable.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-resizable.mjs"
+    },
+    "./separator": {
+      "types": "./types/spartan-ng-brain-separator.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-separator.mjs"
+    },
+    "./hover-card": {
+      "types": "./types/spartan-ng-brain-hover-card.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-hover-card.mjs"
+    },
+    "./collapsible": {
+      "types": "./types/spartan-ng-brain-collapsible.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-collapsible.mjs"
+    },
+    "./date-picker": {
+      "types": "./types/spartan-ng-brain-date-picker.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-date-picker.mjs"
+    },
+    "./radio-group": {
+      "types": "./types/spartan-ng-brain-radio-group.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-radio-group.mjs"
+    },
+    "./alert-dialog": {
+      "types": "./types/spartan-ng-brain-alert-dialog.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-alert-dialog.mjs"
+    },
+    "./autocomplete": {
+      "types": "./types/spartan-ng-brain-autocomplete.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-autocomplete.mjs"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    },
+    "./toggle-group": {
+      "types": "./types/spartan-ng-brain-toggle-group.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-toggle-group.mjs"
+    },
+    "./questionnaire": {
+      "types": "./types/spartan-ng-brain-questionnaire.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-questionnaire.mjs"
+    },
+    "./date-time-luxon": {
+      "types": "./types/spartan-ng-brain-date-time-luxon.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-date-time-luxon.mjs"
+    },
+    "./navigation-menu": {
+      "types": "./types/spartan-ng-brain-navigation-menu.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-navigation-menu.mjs"
+    },
+    "./message-scroller": {
+      "types": "./types/spartan-ng-brain-message-scroller.d.ts",
+      "default": "./fesm2022/spartan-ng-brain-message-scroller.mjs"
+    },
+    "./hlm-tailwind-preset.css": "./hlm-tailwind-preset.css"
+  },
+  "sideEffects": false,
+  "time[1.8.0]": "2026-10-16T13:25:56.555Z"
+}

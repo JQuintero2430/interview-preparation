@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400" role="img" aria-label="Module 31 hero banner">
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e3a5f"/><stop offset="1" stop-color="#3b6ea5"/></linearGradient></defs>
+  <rect width="800" height="400" fill="url(#sky)"/>
+  <circle cx="680" cy="80" r="120" fill="#2f5d8a" opacity="0.6"/>
+  <rect x="40" y="317" width="14" height="43" rx="2" fill="#b88ef2"/>
+  <rect x="58" y="284" width="14" height="76" rx="2" fill="#4b91ce"/>
+  <rect x="76" y="183" width="14" height="177" rx="2" fill="#7bdbd1"/>
+  <rect x="94" y="283" width="14" height="77" rx="2" fill="#48d4c7"/>
+  <rect x="112" y="286" width="14" height="74" rx="2" fill="#7bc4f9"/>
+  <rect x="130" y="186" width="14" height="174" rx="2" fill="#a99acb"/>
+  <rect x="148" y="290" width="14" height="70" rx="2" fill="#45b3eb"/>
+  <rect x="166" y="270" width="14" height="90" rx="2" fill="#74aaf2"/>
+  <rect x="184" y="227" width="14" height="133" rx="2" fill="#7f9adb"/>
+  <rect x="202" y="214" width="14" height="146" rx="2" fill="#4f86d7"/>
+  <rect x="220" y="229" width="14" height="131" rx="2" fill="#629ad2"/>
+  <rect x="238" y="224" width="14" height="136" rx="2" fill="#478bf8"/>
+  <rect x="256" y="154" width="14" height="206" rx="2" fill="#779af7"/>
+  <rect x="274" y="226" width="14" height="134" rx="2" fill="#71aadc"/>
+  <rect x="292" y="197" width="14" height="163" rx="2" fill="#4aa1eb"/>
+  <rect x="310" y="245" width="14" height="115" rx="2" fill="#95c9f2"/>
+  <rect x="328" y="197" width="14" height="163" rx="2" fill="#909bcc"/>
+  <rect x="346" y="242" width="14" height="118" rx="2" fill="#6dc7e5"/>
+  <rect x="364" y="297" width="14" height="63" rx="2" fill="#6c98c3"/>
+  <rect x="382" y="167" width="14" height="193" rx="2" fill="#9fd9cc"/>
+  <rect x="400" y="149" width="14" height="211" rx="2" fill="#a6a4e7"/>
+  <rect x="418" y="154" width="14" height="206" rx="2" fill="#728efa"/>
+  <rect x="436" y="269" width="14" height="91" rx="2" fill="#95b8f3"/>
+  <rect x="454" y="308" width="14" height="52" rx="2" fill="#5ea2cc"/>
+  <rect x="472" y="157" width="14" height="203" rx="2" fill="#5e98d9"/>
+  <rect x="490" y="235" width="14" height="125" rx="2" fill="#69dbd3"/>
+  <rect x="508" y="199" width="14" height="161" rx="2" fill="#4ebfe3"/>
+  <rect x="526" y="225" width="14" height="135" rx="2" fill="#bdd1c4"/>
+  <rect x="544" y="292" width="14" height="68" rx="2" fill="#bc91ff"/>
+  <rect x="562" y="314" width="14" height="46" rx="2" fill="#81befc"/>
+  <rect x="580" y="231" width="14" height="129" rx="2" fill="#7c81cc"/>
+  <rect x="598" y="224" width="14" height="136" rx="2" fill="#88b9d6"/>
+  <rect x="616" y="309" width="14" height="51" rx="2" fill="#618fc6"/>
+  <rect x="634" y="163" width="14" height="197" rx="2" fill="#7498e6"/>
+  <rect x="652" y="144" width="14" height="216" rx="2" fill="#6fc6fa"/>
+  <rect x="670" y="178" width="14" height="182" rx="2" fill="#c0b3dd"/>
+  <rect x="688" y="186" width="14" height="174" rx="2" fill="#71dbfb"/>
+  <rect x="706" y="242" width="14" height="118" rx="2" fill="#b7a9d1"/>
+  <rect x="724" y="225" width="14" height="135" rx="2" fill="#5fc2ec"/>
+  <rect x="742" y="271" width="14" height="89" rx="2" fill="#8ad8f0"/>
+  <polyline points="47,164 65,188 83,111 101,95 119,199 137,175 155,105 173,183 191,144 209,116 227,108 245,121 263,138 281,129 299,116 317,144 335,181 353,129 371,159 389,165 407,121 425,189 443,124 461,184 479,195 497,94 515,94 533,150 551,168 569,195 587,125 605,123 623,158 641,115 659,145 677,194 695,179 713,136 731,116 749,141" fill="none" stroke="#ffd166" stroke-width="4"/>
+  <text x="40" y="64" font-family="sans-serif" font-size="44" fill="#ffffff">Module 31 · Performance</text>
+</svg>

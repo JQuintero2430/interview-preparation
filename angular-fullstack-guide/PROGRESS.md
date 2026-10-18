@@ -2,7 +2,7 @@
 
 Human-facing dashboard, one row per module. Updated by `CLOSE` tasks (and by bootstrap B2). The job's working memory is in `_meta/`: [STATE](_meta/STATE.md) (where the job stands), [TASKS](_meta/TASKS.md) (queue), [ROADMAP](_meta/ROADMAP.md) (module order), [LOG](_meta/LOG.md) (session log). Session protocol: [RUN](_meta/RUN.md).
 
-**Last updated:** 2026-10-11 (CLOSE-M26, session S20261011-1752-claudecode)
+**Last updated:** 2026-10-18 (CLOSE-M38)
 
 ## Phases
 
@@ -13,7 +13,7 @@ Human-facing dashboard, one row per module. Updated by `CLOSE` tasks (and by boo
 - [ ] Phase 4: reviews (one per module, inside each module's lifecycle)
 - [ ] Phase 5: finish line (root files, cross-module review, repo README link)
 
-**Modules done:** 27 / 47 reviewed (01–27); module 28 closed, REVIEW-M28 next. Questions written: 771 (guide floor 600). Exercises: 128. Module 25 stops at 34 of 35 questions: testing forms is module 29's. Module 26 is at its 28-question ceiling. Module 27 stops at 34 of 35 questions: a stand-alone "what is the SSR transfer cache" question belongs to module 32, so §6 covers it in prose and Q27.21 weighs it against the other caches. Module 28 stops at 34 of 35 questions: a second `BehaviorSubject` question would repeat Q17.40 and Q22.18.
+**Modules done:** 37 / 47 reviewed and fixed (01–37; module 37 by REVIEW-M37 and FIX-M37-01..03, 2026-10-17); module 38 written and closed (CLOSE-M38, 2026-10-18), REVIEW-M38 next. Questions written: 1035 (guide floor 600). Exercises: 170. Module 25 stops at 34 of 35 questions: testing forms is module 29's. Module 26 is at its 28-question ceiling. Module 27 stops at 34 of 35 questions: a stand-alone "what is the SSR transfer cache" question belongs to module 32, so §6 covers it in prose and Q27.21 weighs it against the other caches. Module 28 stops at 34 of 35 questions: a second `BehaviorSubject` question would repeat Q17.40 and Q22.18. Module 29 stops at 34 of 35 questions: a 35th would repeat an owner (Q16.34 override matrix, Q18.19 `@defer` tests, Q19.26 binding functions, Q23.34 marble tests, Q27.34 the HTTP testing backend). Module 30 is at its ceilings of 18 questions and 3 exercises (lab mode: Exercise 30.2 is kept, so nothing was dropped). Module 31 stops at 27 of 30 questions, the count PLAN-M31 (`_meta/modules/M31.md`) sized. Module 32 stops at 27 of 30 questions, the count PLAN-M32 (`_meta/modules/M32.md`) sized: "`withIncrementalHydration()` in v22", "`ngSkipHydration` versus a fix" and "deployment security mistakes" are follow-ups of Q32.14, Q32.12 and Q32.25 (the security side of SSR is module 33's). Module 33 stops at 29 of 30 questions, the count PLAN-M33 (`_meta/modules/M33.md`) sized: "`Renderer2` versus `ElementRef` for DOM writes" is a follow-up of Q33.04 because module 14 owns those APIs.
 
 ## Modules
 
@@ -48,17 +48,17 @@ Q and Ex show `written / ceiling` (SYLLABUS §1 ceilings are upper limits, not q
 | [25 forms-reactive-and-template-driven](modules/25-forms-reactive-and-template-driven.md) | D | NG | done | 34 / 35 | 6 / 6 | yes (angular) | yes (CLOSE-M25, 2026-10-11; 21,894 prose words after FIX) | yes (REVIEW-M25 and FIX-M25-01..03, 2026-10-11) |
 | [26 signal-forms](modules/26-signal-forms.md) | D | NG | done | 28 / 28 | 5 / 5 | yes (angular) | yes (CLOSE-M26, 2026-10-11; 19,011 prose words after FIX) | yes (REVIEW-M26 and FIX-M26-01..04, 2026-10-11) |
 | [27 http-client](modules/27-http-client.md) | D | NG | done | 34 / 35 | 6 / 6 | yes (angular) | yes (CLOSE-M27, 2026-10-13; 22,599 prose words after FIX) | yes (REVIEW-M27 and FIX-M27-01..04, 2026-10-13) |
-| [28 state-management](modules/28-state-management.md) | D | NG | done | 34 / 35 | 5 / 5 | yes (angular) | yes (CLOSE-M28, 2026-10-13; 22,438 prose words) | no |
-| 29 `testing-angular` | D | NG | not started | 0 / 35 | 0 / 6 | — | no | — |
-| 30 `e2e-and-testing-strategy` | D | — | not started | 0 / 18 | 0 / 3 | — | no | — |
-| 31 `performance` | D | NG | not started | 0 / 30 | 0 / 5 | — | no | — |
-| 32 `ssr-ssg-hydration` | D | NG | not started | 0 / 30 | 0 / 4 | — | no | — |
-| 33 `security` | D | NG | not started | 0 / 30 | 0 / 4 | — | no | — |
-| 34 `i18n` | D | NG | not started | 0 / 25 | 0 / 4 | — | no | — |
-| 35 `animations` | D | NG | not started | 0 / 25 | 0 / 4 | — | no | — |
-| 36 `material-and-cdk` | D | NG | not started | 0 / 25 | 0 / 4 | — | no | — |
-| 37 `elements-pwa-errors-ecosystem` | D | NG | not started | 0 / 25 | 0 / 4 | — | no | — |
-| 38 `architecture-and-production-structure` | D | NG | not started | 0 / 30 | 0 / 4 | — | no | — |
+| [28 state-management](modules/28-state-management.md) | D | NG | done | 34 / 35 | 5 / 5 | yes (angular) | yes (CLOSE-M28, 2026-10-13; 22,284 prose words after FIX) | yes (REVIEW-M28, FIX-M28-01..10, 2026-10-13) |
+| [29 testing-angular](modules/29-testing-angular.md) | D | NG | done | 34 / 35 | 6 / 6 | yes (angular) | yes (CLOSE-M29, 2026-10-13; 22,874 prose words after FIX) | yes (REVIEW-M29, FIX-M29-01..03, 2026-10-13) |
+| [30 e2e-and-testing-strategy](modules/30-e2e-and-testing-strategy.md) | D | — | done | 18 / 18 | 3 / 3 | yes (e2e, angular, ts-js) | yes (CLOSE-M30, 2026-10-13; 14,144 prose words after FIX) | yes (REVIEW-M30, FIX-M30-01..02, 2026-10-13) |
+| [31 performance](modules/31-performance.md) | D | NG | done | 27 / 30 | 5 / 5 | yes (e2e, angular, ts-js) | yes (CLOSE-M31, 2026-10-14; 19,248 prose words after FIX) | yes (REVIEW-M31, FIX-M31-01..03, HOUSE-24, 2026-10-14) |
+| [32 ssr-ssg-hydration](modules/32-ssr-ssg-hydration.md) | D | NG | done | 27 / 30 | 4 / 4 | yes (e2e, angular, ts-js after HOUSE-28) | yes (CLOSE-M32, 2026-10-15; 18,367 prose words) | no |
+| [33 security](modules/33-security.md) | D | NG | done | 29 / 30 | 4 / 4 | yes (e2e, angular, ts-js) | yes (CLOSE-M33, 2026-10-15; 19,755 prose words) | no |
+| [34 i18n](modules/34-i18n.md) | D | NG | done | 25 / 25 | 4 / 4 | yes (e2e, angular, ts-js) | yes (CLOSE-M34, 2026-10-15; 18,770 prose words) | yes (REVIEW-M34, FIX-M34-01..03, 2026-10-16) |
+| [35 animations](modules/35-animations.md) | D | NG | done | 25 / 25 | 4 / 4 | yes (e2e, angular) | yes (CLOSE-M35, 2026-10-16; 18,834 prose words after FIX-M35-01) | yes (REVIEW-M35, FIX-M35-01..02, 2026-10-16) |
+| [36 material-and-cdk](modules/36-material-and-cdk.md) | D | NG | done | 25 / 25 | 4 / 4 | yes (e2e, angular) | yes (CLOSE-M36, 2026-10-17; 19,637 prose words after FIX-M36-01) | yes (REVIEW-M36, FIX-M36-01..02, 2026-10-17) |
+| [37 elements-pwa-errors-ecosystem](modules/37-elements-pwa-errors-ecosystem.md) | D | NG | done | 25 / 25 | 4 / 4 | yes (e2e, angular, ts-js) | yes (CLOSE-M37, 2026-10-17; 20,226 prose words after FIX-M37-01..02) | yes (REVIEW-M37, FIX-M37-01..03, 2026-10-17) |
+| [38 architecture-and-production-structure](modules/38-architecture-and-production-structure.md) | D | NG | done | 29 / 30 | 4 / 4 | yes (angular, ts-js) | yes (CLOSE-M38, 2026-10-18; 20,030 prose words) | — |
 | 39 `version-history-and-migrations` | D | NG | not started | 0 / 25 | 0 / 4 | — | no | — |
 | 40 `framework-comparisons` | D | — | not started | 0 / 16 | 0 / 2 | — | no | — |
 | 41 `fullstack-api-contracts` | E | — | not started | 0 / 32 | 0 / 5 | — | no | — |

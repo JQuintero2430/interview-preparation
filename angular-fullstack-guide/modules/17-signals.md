@@ -107,7 +107,7 @@ There is no `markForCheck()`, no zone and no subscription. The template reads `c
 
 - *"Signals were invented by Angular."* No. Knockout.js had observables in 2010, and SolidJS, Preact Signals, Vue's `ref` and MobX use the same idea. Angular adopted it in v16 (developer preview) and made `signal` and `computed` stable in v17.
 - *"Signals replace RxJS."* Only for **state**. Signals always hold a current value and are synchronous to read. RxJS models **events over time**, with operators for time (debounce, retry, cancellation). [Section 8](#8-interop-with-rxjs) summarizes when to use each, and [Module 23](23-rxjs-in-depth.md#7-rxjs-and-signals-decision-rules-tosignal-toobservable-and-rxresource) gives the full decision rules.
-- *"Using signals makes an app fast automatically."* Signals make updates *precise*. A slow `computed` or a huge list without `track` is still slow. Measure first ([Module 31](31-performance.md)).
+- *"Using signals makes an app fast automatically."* Signals make updates *precise*. A slow `computed` or a huge list without `track` is still slow. Measure first ([Module 31](31-performance.md#1-measure-first-the-loop-lab-versus-field-and-what-each-tool-answers)).
 
 ---
 
@@ -278,7 +278,7 @@ What to notice: writes only *mark* the effect. It runs later, once, with the fin
 - `effect(fn, options?)` `[Stable since v20.0]` registers `fn` and returns an `EffectRef` with `destroy()`. The options are `injector`, `manualCleanup` and `debugName`. `allowSignalWrites` `[Deprecated since v19.0 — remove it]`: since v19, effects may write signals by default.
 - **Injection context required.** `effect()` needs an [injection context](16-dependency-injection.md) (a constructor, a field initializer, a factory) unless you pass `{ injector }`. Calling it in `ngOnInit` throws `NG0203` ([Q17.16](#q17-16)). The injection context is also how the effect finds its `DestroyRef`, so it is destroyed with its component or service.
 - **Runs at least once**, to discover its dependencies, and then again whenever any of them changes (with equality checks, so a write of an equal value causes no run).
-- **Batched and asynchronous.** Several synchronous writes cause **one** run with the final values ([Q17.13](#q17-13)). Tests flush pending effects with `TestBed.tick()` (introduced in v20.0). The static `TestBed.flushEffects()` `[Removed in v20.0 — use TestBed.tick()]`. Only a deprecated instance method of the same name remains in the 22.2.1 typings.
+- **Batched and asynchronous.** Several synchronous writes cause **one** run with the final values ([Q17.13](#q17-13)). Tests flush pending effects with `TestBed.tick()` (introduced in v20.0). The static `TestBed.flushEffects()` `[Deprecated since v20.0 — use TestBed.tick()]` still exists in 22.2.1 and only forwards to `tick()`; the 20.0.0 CHANGELOG's breaking note says "removed" ([29 §5](29-testing-angular.md#5-zoneless-fixtures-whenstable-testbedtick-detectchanges-and-automatic-change-detection)).
 - **Two kinds, different timing.**
   - A *component effect* is created by a component, a directive, or a service provided by one. It runs as part of change detection for that component, so it can safely read inputs and create views.
   - A *root effect* is created outside the component tree (for example in a root service). It is not tied to any view. The [angular.dev effects guide](https://angular.dev/guide/signals/effect) says root effects are "executed prior to all components being checked by the change detection process", and view effects "*before* their corresponding component is checked". The `effect` API comment also says root effects "run as microtasks". In this guide's zoneless 22.2.1 lab, a root effect did **not** run within one microtask of a write (verified: the "Section 4" test). It ran when `TestBed.tick()` was called, or by itself when the scheduler rendered, always before component effects ([Q17.14](#q17-14)). So the "microtask" wording describes the scheduling mechanism loosely, not the observable timing. The safe rule is not to depend on precise effect timing.
@@ -448,7 +448,7 @@ What to notice: `reloading` keeps the old value visible, while `loading` (new pa
 
 `resource`, `rxResource` [Stable since v22.0] · param status codes, `chain()` and the SSR cache `id` [Added in v22.0].
 
-- `resource({ params, loader, defaultValue?, equal?, injector?, id?, debugName? })` returns a `ResourceRef<T>`. (`id` names the value in `TransferState`, the mechanism that serializes data fetched during server-side rendering into the page so the browser does not fetch it again; see [Module 32](32-ssr-ssg-hydration.md).) Use `stream` instead of `loader` for values that arrive over time.
+- `resource({ params, loader, defaultValue?, equal?, injector?, id?, debugName? })` returns a `ResourceRef<T>`. (`id` names the value in `TransferState`, the mechanism that serializes data fetched during server-side rendering into the page so the browser does not fetch it again; see [Module 32](32-ssr-ssg-hydration.md#8-data-across-the-boundary-the-http-transfer-cache-transferstate-and-resource-ids).) Use `stream` instead of `loader` for values that arrive over time.
 - `params` is reactive. When its value changes, the in-flight load is **aborted** through the `abortSignal` passed to the loader, and a new load starts. Returning `undefined` from `params`, or throwing `ResourceParamsStatus.IDLE`, puts the resource in `idle` without loading. Throwing `ResourceParamsStatus.LOADING` holds it in `loading`. Since v22.0, `params` also receives a context whose `chain(otherResource)` returns another resource's value, or propagates its status (present in the 22.0.0 typings as `ResourceParamsContext`).
 - The loader receives `{ params, abortSignal, previous: { status } }` and returns a promise.
 - **Statuses** (type `ResourceStatus`): `'idle' | 'loading' | 'reloading' | 'resolved' | 'error' | 'local'`. Verified sequence in [Q17.23](#q17-23).
@@ -894,7 +894,7 @@ The full store is [E17.1](#ex17-1).
 
 **Follow-ups an interviewer will ask.**
 - *Why not a getter that returns the writable signal?* Callers could still call `.set()` on it.
-- *When does this outgrow a service?* When many features share state with complex update rules, cross-cutting concerns (undo, devtools, persistence), or event-sourced flows. See the decision framework in [Module 28](28-state-management.md).
+- *When does this outgrow a service?* When many features share state with complex update rules, cross-cutting concerns (undo, devtools, persistence), or event-sourced flows. See the decision framework in [Module 28](28-state-management.md#11-alternatives-and-the-decision-framework-ngxs-elf-tanstack-query-and-when-a-store-library-is-justified).
 
 **Trap to avoid.** Thinking `asReadonly()` deep-freezes the object.
 
@@ -1103,7 +1103,7 @@ TestBed.tick();
 **Full explanation.** `set` only marks the effect dirty and schedules it. The effect runs when Angular flushes effects (here, `TestBed.tick()`; in an app, the change-detection scheduler), by which time both writes have happened. This batching is what keeps effects glitch-free in practice. It also means an effect cannot observe intermediate values. Verified: `Q17.13`.
 
 **Follow-ups an interviewer will ask.**
-- *How do you flush effects in a unit test?* `TestBed.tick()` (since v20.0). The static `TestBed.flushEffects()` was removed in v20.0, so older tutorials that use it no longer compile.
+- *How do you flush effects in a unit test?* `TestBed.tick()` (since v20.0). The static `TestBed.flushEffects()` is deprecated since v20.0 and still works in 22.2.1, forwarding to `tick()`, so prefer `tick()`.
 - *What if I need every intermediate value?* Model it as an event stream (RxJS) or an `output()`, not as state.
 
 **Trap to avoid.** Expecting three log lines.
@@ -1515,7 +1515,7 @@ async save(order: Order): Promise<void> {
 ```
 
 **Follow-ups an interviewer will ask.**
-- *Is there a signal-based mutation API?* Not in Angular core 22. Libraries such as TanStack Query for Angular provide mutations ([Module 28](28-state-management.md)).
+- *Is there a signal-based mutation API?* Not in Angular core 22. Libraries such as TanStack Query for Angular provide mutations ([Module 28](28-state-management.md#11-alternatives-and-the-decision-framework-ngxs-elf-tanstack-query-and-when-a-store-library-is-justified)).
 - *Why not `switchMap` for saves?* It cancels the previous request, which is the same problem as here.
 
 **Trap to avoid.** Believing `abortSignal` makes the server undo the write.
@@ -1882,7 +1882,7 @@ export class ResponsiveGrid {
 **Full explanation.** *Benefits:* synchronous reads (no `subscribe` just to read the current value), `computed` instead of `combineLatest`/`map` chains, no `async` pipe, and readiness for zoneless and OnPush-by-default. *Costs and risks:* `toObservable` emits asynchronously and coalesces values, so subscribers that relied on synchronous, every-value emission (`BehaviorSubject.next` delivers each value immediately) can change behavior. Tests that assert emission counts break. Mixed paradigms add cognitive load for a while. *A safe sequence:* (1) add characterization tests around each service; (2) switch the internal state to `signal`, keeping `readonly state$ = toObservable(this.state)` for existing consumers; (3) migrate consumers module by module to read the signal; (4) delete the Observable once nothing uses it. Measure with the number of manual subscriptions removed and the components moved to OnPush. Run the official schematics for components (`signals`, `inject-migration`, `control-flow-migration`) in the same feature-by-feature rhythm ([Module 39](39-version-history-and-migrations.md)).
 
 **Follow-ups an interviewer will ask.**
-- *Would you adopt NgRx SignalStore instead?* Only if the state has the complexity that justifies a store ([Module 28](28-state-management.md)'s decision framework). Otherwise a signal service is enough.
+- *Would you adopt NgRx SignalStore instead?* Only if the state has the complexity that justifies a store ([Module 28](28-state-management.md#11-alternatives-and-the-decision-framework-ngxs-elf-tanstack-query-and-when-a-store-library-is-justified)'s decision framework). Otherwise a signal service is enough.
 - *How do you prevent regressions in timing-sensitive code?* Find consumers that depend on synchronous emission (for example, code that reads right after `next`) and convert them first, or keep them on RxJS.
 
 **Trap to avoid.** Promising a big-bang migration, or claiming `toObservable` is a drop-in replacement for a `BehaviorSubject`.
@@ -1967,7 +1967,7 @@ export class CartStore {
 
 **How each criterion is met.** Empty start: the initial `signal([])` (test "starts empty"). Add and increment: `add` reuses `setQuantity` (tests "adds a new product…" and "increments the quantity…"). Remove at zero: the guard in `setQuantity` ("removes a line…"). Exact cents: integer arithmetic in `totalCents` ("computes the total in cents…"). New array per change: every write uses spread, `map` or `filter` ("replaces the array…"). Read-only: `asReadonly()` ("exposes a read-only signal…"). `clear()`: `set([])` ("clears all lines").
 
-**Alternative approach:** store lines in a `Record<string, CartLine>` keyed by product ID. Lookups become O(1), and updates replace one entry, but ordering must be kept separately (an `ids` array). That is the normalized shape NgRx Entity uses ([Module 28](28-state-management.md)). **Trade-offs:** worth it for hundreds of lines or frequent single-line updates, and overkill for a typical cart.
+**Alternative approach:** store lines in a `Record<string, CartLine>` keyed by product ID. Lookups become O(1), and updates replace one entry, but ordering must be kept separately (an `ids` array). That is the normalized shape NgRx Entity uses ([Module 28](28-state-management.md#7-ngrx-entity-router-store-and-store-devtools)). **Trade-offs:** worth it for hundreds of lines or frequent single-line updates, and overkill for a typical cart.
 
 **Interviewer follow-ups.**
 - *"Why only one writable signal, instead of one per field?"* Everything else (count, total, empty flag) is derived from the lines with `computed`, so the values can never disagree, and a change that touches several lines is one `update`, seen by readers as one new snapshot ([section 3](#3-computed-signals)).
@@ -2116,7 +2116,7 @@ export class PreferencesStore {
 }
 ```
 
-The token's factory touches `localStorage` lazily, at first injection. In a server-side render `localStorage` does not exist, so an SSR app would provide a no-op storage on the server ([Module 32](32-ssr-ssg-hydration.md)).
+The token's factory touches `localStorage` lazily, at first injection. In a server-side render `localStorage` does not exist, so an SSR app would provide a no-op storage on the server ([Module 32](32-ssr-ssg-hydration.md#7-platform-safe-code-browser-apis-afternextrender-document-request-and-response_init)).
 
 **How each criterion is met.** Defaults and restore: `parsePreferences(readRaw(…))` at construction (tests "uses defaults…", "restores valid…"). Garbage: `JSON.parse` inside `try`, then the `isPreferences` guard ("falls back to defaults for corrupted…"). Persist on flush: the effect ("persists changes…"). One write per batch: effect batching ("writes once for several synchronous changes…"). Throwing storage: `readRaw` and `writeRaw` catch, and the effect sets `persisted` ("survives storage that throws…"). Clamp: `MIN_FONT_SCALE`/`MAX_FONT_SCALE` in `setFontScale` ("clamps the font scale…").
 
@@ -2125,7 +2125,7 @@ The token's factory touches `localStorage` lazily, at first injection. In a serv
 **Interviewer follow-ups.**
 - *"Keep two open tabs in sync."* Listen to the window's `storage` event and `set` the signal from the new value. The event fires in the *other* documents of the same origin, never in the one that wrote ([HTML: Web storage](https://html.spec.whatwg.org/multipage/webstorage.html)). The effect then writes the same value back, which does not bounce between tabs: `setItem` with a value identical to the stored one returns early and broadcasts nothing, as long as the store serializes the received preferences to the same string.
 - *"Why does the effect report failures through a second signal instead of throwing?"* An exception in an effect cannot reach the code that changed the preference (the effect runs later, from the scheduler), and the store must keep working when storage is full or disabled. `persisted()` makes the failure visible to the UI without breaking the write path.
-- *"What changes with server-side rendering?"* There is no user storage on the server, and the server must never share one user's preferences with another, so provide a server implementation of `PREFERENCES_STORAGE` that reads nothing and writes nothing. The injection token is what makes that a provider change instead of a code change ([Module 32](32-ssr-ssg-hydration.md)).
+- *"What changes with server-side rendering?"* There is no user storage on the server, and the server must never share one user's preferences with another, so provide a server implementation of `PREFERENCES_STORAGE` that reads nothing and writes nothing. The injection token is what makes that a provider change instead of a code change ([Module 32](32-ssr-ssg-hydration.md#ex32-2)).
 
 **Tests:** [`preferences-store.spec.ts`](../labs/angular/src/app/modules/17-signals/exercise-3-persisted-preferences/preferences-store.spec.ts)
 

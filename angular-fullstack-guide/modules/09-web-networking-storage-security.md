@@ -200,7 +200,7 @@ What to notice: HOL blocking moves down the stack, from the request queue to TCP
 - **HTTP/1.1.** Pipelining "still suffers from application-layer head-of-line blocking", so clients open several connections ([RFC 9113](https://www.rfc-editor.org/rfc/rfc9113.html#section-1)), commonly six per domain ([MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Connection_management_in_HTTP_1.x)).
 - **HTTP/2** adds binary framing, interleaved streams and header compression (HPACK), but "TCP head-of-line blocking is not addressed". Chrome 106 switched Server Push (resources the server sends unrequested) off by default ([Chrome](https://developer.chrome.com/blog/removing-push)). Browsers pick it inside TLS (the encryption under HTTPS) with **ALPN** (a handshake extension that agrees on `h2`); the HTTP/2 FAQ says none supports it unencrypted ([FAQ](https://http2.github.io/faq/)).
 - **HTTP/3** ([RFC 9114](https://www.rfc-editor.org/rfc/rfc9114.html)): a stream that "suffers packet loss does not prevent progress on other streams". QUIC integrates TLS 1.3 ([RFC 9000](https://www.rfc-editor.org/rfc/rfc9000.html)). `Alt-Svc: h3=":50781"` tells a client to try QUIC, with TCP as fallback.
-- **Bundling.** HTTP/2 removes the need for "concatenated files, image sprites, and domain sharding" ([HPBN](https://hpbn.co/http2/)). How far to split is design reasoning ([Q09.08](#q09-08), [12](12-angular-how-it-works.md), [31](31-performance.md)).
+- **Bundling.** HTTP/2 removes the need for "concatenated files, image sprites, and domain sharding" ([HPBN](https://hpbn.co/http2/)). How far to split is design reasoning ([Q09.08](#q09-08), [12](12-angular-how-it-works.md), [31](31-performance.md#5-loading-the-initial-bundle-lazy-routes-defer-and-preloading-as-one-plan)).
 
 > [!TIP]
 > **Coming from the backend.** The [Backend guide §5.2](../../Backend%20Interview%20Study%20Guide%20-%20Data%20storage%2C%20behavioral%20%26%20concurrency.md) covers multiplexing. **Where the analogy breaks:** here the consequence is bundling and caching strategy, not thread or pool sizing.
@@ -401,7 +401,7 @@ What to notice: one gate when storing, one on every request; `SameSite` is only 
 - **`Secure`, `HttpOnly`, prefixes.** `Secure` limits sending to `https:`. `HttpOnly` hides the cookie from `document.cookie` but it is "still sent with JavaScript-initiated requests" ([MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)). `__Secure-` requires `Secure`; `__Host-` also forbids `Domain` and requires `Path=/`, so subdomains cannot overwrite it (`Section 6: __Host- needs…`).
 - **`SameSite`.** A request is cross-site when initiator and target differ in **site** ([section 5](#5-the-same-origin-policy-and-cors)). `Strict` sends only same-site; `Lax` adds top-level navigations using a safe method; `None` needs `Secure`. Schemeful same-site treats `http` and `https` of one domain as cross-site; Chrome offered it behind a flag from 86 ([web.dev](https://web.dev/articles/schemeful-samesite), 2020-11-20); it gives no default-on date.
 - **Third-party and CHIPS.** A **third-party cookie** belongs to a site other than the one in the address bar. `Partitioned` (CHIPS, Cookies Having Independent Partitioned State) keeps one jar per top-level site and needs `Secure`; MDN: Baseline 2025, since December 2025 ([MDN](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Privacy_sandbox/Partitioned_cookies)).
-- **CSRF** (defined in [section 5](#5-the-same-origin-policy-and-cors)): `SameSite` is defense in depth; see [33](33-security.md), [42](42-fullstack-authentication.md) ([Q09.17](#q09-17)).
+- **CSRF** (defined in [section 5](#5-the-same-origin-policy-and-cors)): `SameSite` is defense in depth; see [33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support), [42](42-fullstack-authentication.md) ([Q09.17](#q09-17)).
 
 > [!TIP]
 > **Coming from the backend.** Spring's `ResponseCookie` and `server.servlet.session.cookie.*` set these attributes ([42](42-fullstack-authentication.md)). **Where the analogy breaks:** the server only requests them; the browser decides.
@@ -487,7 +487,7 @@ jsdom accepted 1 MB writes until `QuotaExceededError` (`Section 7: jsdom's quota
 
 ### Best practices and anti-patterns
 
-- **No secrets in script-readable storage**, because one XSS bug reads it all ([33](33-security.md) has the token trade-offs).
+- **No secrets in script-readable storage**, because one XSS bug reads it all ([33](33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend) has the token trade-offs).
 - **Wrap writes**, because they can throw.
 - **IndexedDB for large data**, because it is asynchronous.
 
@@ -500,7 +500,7 @@ jsdom accepted 1 MB writes until `QuotaExceededError` (`Section 7: jsdom's quota
 
 ### The problem it solves
 
-An XSS bug (cross-site scripting, defined in [section 6](#6-cookies); owner [33](33-security.md)) puts a `<script>` tag in a comment field. A tag manager loads a script from an unexpected host. A 40-host allowlist is bypassed through one JSONP endpoint (an endpoint that wraps data in a callback and loads as a `<script>`; an attacker who names the callback runs code, [Google Research](https://research.google/pubs/pub45542)).
+An XSS bug (cross-site scripting, defined in [section 6](#6-cookies); owner [33](33-security.md#2-xss-and-angulars-template-model-escaping-by-default-trusted-templates-and-the-paths-around-them)) puts a `<script>` tag in a comment field. A tag manager loads a script from an unexpected host. A 40-host allowlist is bypassed through one JSONP endpoint (an endpoint that wraps data in a callback and loads as a `<script>`; an attacker who names the callback runs code, [Google Research](https://research.google/pubs/pub45542)).
 
 ### Mental model
 
@@ -529,7 +529,7 @@ What to notice: trust starts from a per-response value an injected tag cannot kn
 - **Trusted Types** (Baseline 2026, newly available since February 2026, [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API)). `require-trusted-types-for 'script'` makes string input to sinks throw unless a policy from `createPolicy()` produced it; `trusted-types` allowlists policy names. You write the policy; none is supplied.
 
 > [!NOTE]
-> **Framework vs platform.** CSP and Trusted Types are platform features. Angular's sanitizer, nonce support and Trusted Types integration are [33](33-security.md).
+> **Framework vs platform.** CSP and Trusted Types are platform features. Angular's sanitizer, nonce support and Trusted Types integration are [33](33-security.md#3-sanitization-by-security-context-html-style-url-and-resource-url).
 
 ### Code
 
@@ -593,7 +593,7 @@ Documented, not run (Node and jsdom have no service workers); only the three str
 - **Manifest.** Chromium needs `name` or `short_name`, `icons` (192 and 512 px), `start_url`, `display` and HTTPS, but no service worker ([MDN](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable)).
 
 > [!NOTE]
-> **Framework vs platform.** `@angular/service-worker` generates the worker from `ngsw-config.json`, and push and sync live in [37](37-elements-pwa-errors-ecosystem.md); the lifecycle and Cache API are the platform's.
+> **Framework vs platform.** `@angular/service-worker` generates the worker from `ngsw-config.json`, and push and sync live in [37](37-elements-pwa-errors-ecosystem.md#7-push-notifications-and-installability-swpush-notification-clicks-and-the-manifest); the lifecycle and Cache API are the platform's.
 
 ### Code
 
@@ -634,7 +634,7 @@ self.addEventListener('activate', (event) => {
 
 A method's safety and idempotency decide what a client may repeat, and a status code tells caches and proxies what to do, so a `POST` is never blindly retried ([1](#1-http-semantics-methods-status-codes-and-headers)). `fetch` resolves on any HTTP status, rejects only on network failure or abort, and reads its body once ([2](#2-fetch-xhr-and-the-request-lifecycle)). HTTP/2 multiplexes streams but TCP still blocks the line; HTTP/3 moves streams onto QUIC ([3](#3-http11-http2-and-http3)). `no-cache` revalidates, `no-store` stores nothing; hashed assets get a year and `immutable`, the HTML stays `no-cache` ([4](#4-http-caching)).
 
-CORS lets the browser hide a response, never stops the request, and a credentialed answer needs the exact origin ([5](#5-the-same-origin-policy-and-cors)). A cookie's attributes are rules the browser enforces: `HttpOnly` hides it from script but injected script can still use it, and `SameSite` is defense in depth ([6](#6-cookies)). Web Storage holds strings, and any injected script reads it, IndexedDB and Cache Storage too, so keep secrets out of all of them ([33](33-security.md)) ([7](#7-browser-storage-what-each-is-safe-for)). A nonce or hash CSP beats an allowlist, and Trusted Types guard sinks, not logic ([8](#8-content-security-policy-and-trusted-types)). A service worker keeps controlling pages until every client closes, so version cache names ([9](#9-service-workers-and-the-pwa-manifest)).
+CORS lets the browser hide a response, never stops the request, and a credentialed answer needs the exact origin ([5](#5-the-same-origin-policy-and-cors)). A cookie's attributes are rules the browser enforces: `HttpOnly` hides it from script but injected script can still use it, and `SameSite` is defense in depth ([6](#6-cookies)). Web Storage holds strings, and any injected script reads it, IndexedDB and Cache Storage too, so keep secrets out of all of them ([33](33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend)) ([7](#7-browser-storage-what-each-is-safe-for)). A nonce or hash CSP beats an allowlist, and Trusted Types guard sinks, not logic ([8](#8-content-security-policy-and-trusted-types)). A service worker keeps controlling pages until every client closes, so version cache names ([9](#9-service-workers-and-the-pwa-manifest)).
 
 ## Question bank
 
@@ -828,7 +828,7 @@ async function loadUser(id: string, signal: AbortSignal) {
 
 **Follow-ups an interviewer will ask.**
 - *Is domain sharding still useful?* No; MDN calls it detrimental on HTTP/2.
-- *Who builds the chunks?* The CLI ([12](12-angular-how-it-works.md), [31](31-performance.md)).
+- *Who builds the chunks?* The CLI ([12](12-angular-how-it-works.md), [31](31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls)).
 
 **Trap to avoid.** Concluding that request count no longer matters.
 
@@ -991,7 +991,7 @@ response.setHeader('Vary', 'Origin');
 
 **Follow-ups an interviewer will ask.**
 - *A session cookie?* `__Host-sid; Secure; HttpOnly; Path=/; SameSite=Lax`.
-- *CSRF tokens still?* Yes ([33](33-security.md)).
+- *CSRF tokens still?* Yes ([33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support)).
 
 **Trap to avoid.** "`HttpOnly` stops XSS."
 
@@ -1039,7 +1039,7 @@ console.log(jar.getCookieStringSync(page));
 
 **Follow-ups an interviewer will ask.**
 - *Is `app` calling `api` a CORS request?* Yes: cross-origin, though same-site.
-- *CSRF?* `SameSite` is defense in depth ([33](33-security.md), [42](42-fullstack-authentication.md)).
+- *CSRF?* `SameSite` is defense in depth ([33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support), [42](42-fullstack-authentication.md)).
 
 **Trap to avoid.** Mixing up origin and site.
 
@@ -1056,7 +1056,7 @@ console.log(jar.getCookieStringSync(page));
 **Full explanation.** Any script on the origin reads Web Storage, IndexedDB and Cache Storage, so one XSS bug reads them all. The string, JSON, quota and eviction rules are in [section 7](#7-browser-storage-what-each-is-safe-for), with the `Section 7: …` tests.
 
 **Follow-ups an interviewer will ask.**
-- *Where does a token go?* The trade-off matrix is in [33](33-security.md).
+- *Where does a token go?* The trade-off matrix is in [33](33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend).
 - *Keep data from eviction?* Ask `navigator.storage.persist()`.
 
 **Trap to avoid.** Treating `localStorage` as private.
@@ -1075,7 +1075,7 @@ console.log(jar.getCookieStringSync(page));
 
 **Follow-ups an interviewer will ask.**
 - *Does CSP fix XSS?* It limits what injected markup can run.
-- *Angular's nonce support?* [33](33-security.md).
+- *Angular's nonce support?* [33](33-security.md#5-content-security-policy-with-angular-nonces-csp_nonce-and-autocsp).
 
 **Trap to avoid.** A longer allowlist.
 
@@ -1093,7 +1093,7 @@ console.log(jar.getCookieStringSync(page));
 
 **Follow-ups an interviewer will ask.**
 - *Where is the code to audit?* The few `createPolicy()` calls.
-- *In Angular?* [33](33-security.md).
+- *In Angular?* [33](33-security.md#6-trusted-types-with-angular-the-frameworks-policies-enforcement-and-rollout).
 
 **Trap to avoid.** Assuming Trusted Types sanitize.
 
@@ -1129,7 +1129,7 @@ console.log(jar.getCookieStringSync(page));
 
 **Follow-ups an interviewer will ask.**
 - *Network first on a slow line?* The fallback runs only when the fetch fails: add a timeout ([Q04.26](04-js-async-event-loop.md#q04-26)).
-- *Angular's version?* [37](37-elements-pwa-errors-ecosystem.md).
+- *Angular's version?* [37](37-elements-pwa-errors-ecosystem.md#5-caching-with-asset-and-data-groups-navigation-requests-and-the-app-shell).
 
 **Trap to avoid.** One strategy for everything.
 
@@ -1603,4 +1603,4 @@ Cache first, because a changed file gets a new name.
 
 - **Builds on:** [04. Cancellation](04-js-async-event-loop.md#7-cancellation-with-abortcontroller) and [tasks](04-js-async-event-loop.md#1-the-event-loop-tasks-microtasks-and-rendering) (aborting `fetch`), and [08. Events](08-browser-rendering-dom-events.md#4-events-propagation-default-actions-passive-listeners-and-delegation) and Core Web Vitals (the History API belongs to the router, [24](24-routing.md#10-the-router-and-the-platform-history-api-navigation-api-and-location-strategies)).
 - **Read next:** [10. CSS essentials](10-css-essentials.md) (the next layer), then [27. HTTP client](27-http-client.md) (Angular's wrapper) and [33. Security](33-security.md) (cookies, CSP and tokens in depth).
-- **Uses these ideas later:** [27](27-http-client.md) (interceptors, retries), [31](31-performance.md) (caching, HTTP/2), [32](32-ssr-ssg-hydration.md) (cookies on the server), [33](33-security.md) (CSP, XSS, token storage), [37](37-elements-pwa-errors-ecosystem.md) (service workers), [41](41-fullstack-api-contracts.md) (server CORS), [42](42-fullstack-authentication.md) (cookies and CSRF), [43](43-fullstack-realtime.md) (long-lived connections) and [44](44-fullstack-delivery-and-operations.md) (CDN and cache headers).
+- **Uses these ideas later:** [27](27-http-client.md) (interceptors, retries), [31](31-performance.md) (caching, HTTP/2), [32](32-ssr-ssg-hydration.md) (cookies on the server), [33](33-security.md) (CSP, XSS, token storage), [37](37-elements-pwa-errors-ecosystem.md#4-angularservice-worker-registration-ngsw-configjson-and-the-generated-ngswjson) (service workers), [41](41-fullstack-api-contracts.md) (server CORS), [42](42-fullstack-authentication.md) (cookies and CSRF), [43](43-fullstack-realtime.md) (long-lived connections) and [44](44-fullstack-delivery-and-operations.md) (CDN and cache headers).

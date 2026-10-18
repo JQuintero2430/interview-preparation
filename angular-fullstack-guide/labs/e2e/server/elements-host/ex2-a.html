@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>m37-ex2-rating-a host page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <h1>Rating widget, variant a</h1>
+    <div id="first"><m37-ex2-rating-a max-stars="4"></m37-ex2-rating-a></div>
+    <div id="second"></div>
+    <button id="move" type="button">Move</button>
+    <ol id="log" aria-label="Event log"></ol>
+    <script>
+      const rating = document.querySelector('m37-ex2-rating-a');
+      rating.addEventListener('ratingChange', (event) => {
+        const item = document.createElement('li');
+        item.textContent = 'ratingChange ' + event.detail;
+        document.getElementById('log').appendChild(item);
+      });
+      customElements.whenDefined('m37-ex2-rating-a').then(() => {
+        rating.value = 2;
+      });
+      document.getElementById('move').addEventListener('click', () => {
+        document.getElementById('second').appendChild(rating);
+      });
+    </script>
+    <script type="module" src="/widgets/main.js"></script>
+  </body>
+</html>

@@ -186,7 +186,7 @@ What to notice: each level groups the one below it, and only the top level match
 
 A code point above U+FFFF is stored as a **surrogate pair**: a high surrogate (U+D800–U+DBFF) followed by a low surrogate (U+DC00–U+DFFF). Code-unit APIs see two separate units. A surrogate without its partner is a **lone surrogate**, which makes the string *ill-formed*: it cannot be encoded as valid UTF-8, so `TextEncoder` and `encodeURIComponent` either replace it with U+FFFD or throw. `isWellFormed()` and `toWellFormed()` [Added in ES2024] detect and repair this ([MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/isWellFormed)).
 
-The string iterator ([§22.1.5](https://tc39.es/ecma262/#sec-string-iterator-objects)) yields code points, which is why spread and `for…of` keep pairs together. Graphemes need the Unicode segmentation rules (UAX #29), which the language core does not implement; `Intl.Segmenter` exposes them. [Module 34](34-i18n.md) covers `Intl` in depth ([Q01.10](#q01-10)).
+The string iterator ([§22.1.5](https://tc39.es/ecma262/#sec-string-iterator-objects)) yields code points, which is why spread and `for…of` keep pairs together. Graphemes need the Unicode segmentation rules (UAX #29), which the language core does not implement; `Intl.Segmenter` exposes them. [Module 34](34-i18n.md#2-the-platforms-intl-apis-dates-numbers-plurals-lists-collation-and-display-names) covers `Intl` in depth ([Q01.10](#q01-10)).
 
 The same text can also be encoded in different ways. `'\u00E9'` (precomposed é) and `'e\u0301'` (e plus combining acute accent) render the same, but they are different code-unit sequences. `normalize('NFC')` composes and `normalize('NFD')` decomposes, so normalize both sides before comparing user-entered text.
 
@@ -410,7 +410,7 @@ What to notice: only the Boolean and object edges loop back to the top, so one c
 
 Two consequences explain most puzzles. Booleans are converted to numbers **before** the object step, so `'true' == true` is `'true' == 1`, which is `NaN == 1`, which is `false`. And relational operators (`<`, `>=`) are a **different** algorithm (IsLessThan, with the `'number'` hint), not built from `==`: `null >= 0` is `true` while `null == 0` is `false` ([Q01.19](#q01-19)).
 
-When **both** sides of `<` are strings, IsLessThan compares them code unit by code unit, not numerically and not by locale: `'10' < '9'` is `true`, while `'10' < 9` converts the string and is `false`. The default `Array.prototype.sort` converts elements to strings and compares them the same way, so `[10, 9, 1].sort()` gives `1,10,9`. Pass a comparator: `(a, b) => a - b` for numbers, or `new Intl.Collator('en', { numeric: true }).compare` for strings that contain numbers ([Module 34](34-i18n.md)). Verified: `Section 6: strings compare by code unit, …` in [`sections.test.ts`](../labs/ts-js/src/outputs/01-js-values-types-coercion/sections.test.ts).
+When **both** sides of `<` are strings, IsLessThan compares them code unit by code unit, not numerically and not by locale: `'10' < '9'` is `true`, while `'10' < 9` converts the string and is `false`. The default `Array.prototype.sort` converts elements to strings and compares them the same way, so `[10, 9, 1].sort()` gives `1,10,9`. Pass a comparator: `(a, b) => a - b` for numbers, or `new Intl.Collator('en', { numeric: true }).compare` for strings that contain numbers ([Module 34](34-i18n.md#2-the-platforms-intl-apis-dates-numbers-plurals-lists-collation-and-display-names)). Verified: `Section 6: strings compare by code unit, …` in [`sections.test.ts`](../labs/ts-js/src/outputs/01-js-values-types-coercion/sections.test.ts).
 
 `Set` and `Map` also normalize `-0` to `+0` when storing a key ([§24.2.4.1 Set.prototype.add](https://tc39.es/ecma262/#sec-set.prototype.add)), which is why their lookups can use SameValueZero consistently.
 
@@ -828,7 +828,7 @@ const byGrapheme = (s) => Array.from(segmenter.segment(s), (g) => g.segment).rev
 
 **Follow-ups an interviewer will ask.**
 - *Why does it pass the tests?* ASCII strings have one code unit per code point per grapheme, so all three levels agree. Test with emoji and combining marks.
-- *Is `Intl.Segmenter` available everywhere?* It is part of ECMA-402 (2022) and ships in Chrome 87, Firefox 125, Safari 14.1 and Node 16 (MDN compatibility data, read 2026-10-06), so older Firefox versions lack it; [Module 34](34-i18n.md) covers `Intl`.
+- *Is `Intl.Segmenter` available everywhere?* It is part of ECMA-402 (2022) and ships in Chrome 87, Firefox 125, Safari 14.1 and Node 16 (MDN compatibility data, read 2026-10-06), so older Firefox versions lack it; [Module 34](34-i18n.md#2-the-platforms-intl-apis-dates-numbers-plurals-lists-collation-and-display-names) covers `Intl`.
 
 **Trap to avoid.** Saying "use `Array.from(s)`" and stopping there. It is the same code-point fix as spread.
 
@@ -1252,7 +1252,7 @@ export function truncate(text: string, maxGraphemes: number, ellipsis: string = 
 **Interviewer follow-ups.**
 - *"The database column is limited to 255 bytes, not characters."* Take whole clusters while the running total of `new TextEncoder().encode(cluster).length` stays within the limit. UTF-8 sizes differ per cluster (`'é'` is 2 bytes, `'👍🏽'` is 8), so a byte budget and a grapheme budget cut in different places, and the field contract must say which one applies.
 - *"A product description is 50,000 characters long. Do you still segment all of it?"* No. Iterate `segmenter.segment(text)` directly and stop after `maxGraphemes + 1` clusters: that is enough to know the text is too long and to build the prefix, so the loop never walks the rest of the description.
-- *"Does the segmenter's locale matter?"* Little for graphemes: the default extended-grapheme-cluster rules of [Unicode UAX #29](https://www.unicode.org/reports/tr29/) are the same for every language. It matters for `granularity: 'word'`, where languages written without spaces (Thai, Japanese) need locale-specific rules ([Module 34](34-i18n.md)).
+- *"Does the segmenter's locale matter?"* Little for graphemes: the default extended-grapheme-cluster rules of [Unicode UAX #29](https://www.unicode.org/reports/tr29/) are the same for every language. It matters for `granularity: 'word'`, where languages written without spaces (Thai, Japanese) need locale-specific rules ([Module 34](34-i18n.md#2-the-platforms-intl-apis-dates-numbers-plurals-lists-collation-and-display-names)).
 
 **Tests:** [`unicode-text.test.ts`](../labs/ts-js/src/modules/01-js-values-types-coercion/unicode-text.test.ts)
 

@@ -1,0 +1,13 @@
+{
+  "_readAt": "2026-10-17",
+  "_command": "npm view @ngneat/until-destroy@10.0.0 name version peerDependencies license 'time[10.0.0]' time.modified --json",
+  "name": "@ngneat/until-destroy",
+  "version": "10.0.0",
+  "peerDependencies": {
+    "rxjs": "^6.4.0 || ^7.0.0",
+    "@angular/core": ">=13"
+  },
+  "license": "MIT",
+  "time[10.0.0]": "2023-08-03T19:26:18.112Z",
+  "time.modified": "2024-08-06T07:09:16.960Z"
+}

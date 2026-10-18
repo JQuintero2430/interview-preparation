@@ -1,0 +1,10 @@
+/*
+ * Design tokens: values every component reads with var(), defined once.
+ * In a real app this folder is listed under "styles" in angular.json; the lab keeps
+ * angular.json shared and does not wire it, so this file only shows where tokens live.
+ */
+:root {
+  --lab-m38-space-1: 0.25rem;
+  --lab-m38-space-2: 0.5rem;
+  --lab-m38-color-text: #1f2328;
+}

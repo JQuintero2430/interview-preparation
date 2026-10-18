@@ -26,6 +26,7 @@ One reader with two speeds. Someone who has never built an Angular app must be a
    - `[Stable since vX]` for a stable API that interviewers ask "since when" about (anything that graduated in the last three majors), and `[Added in vX.Y]` for an option or overload added in a minor release. Use the version from the `@publicApi vX` tag or the changelog.
 
    - `[Baseline <year>: newly available, per MDN]` or `[Baseline <year>: widely available, per MDN]` for a browser platform feature (not an Angular API), taken from the feature's MDN page. Define Baseline once per module, at its first use, with a link to MDN's Baseline glossary (*newly available*: works in the latest stable Chrome, Edge, Firefox and Safari; *widely available*: a consistent history of support in each for at least 2.5 years), as [module 08](modules/08-browser-rendering-dom-events.md) does.
+   - `[Baseline: limited availability, per MDN]` for a browser platform API (not an Angular API) whose MDN page lists it as limited availability, meaning it is not yet in all of the latest stable Chrome, Edge, Firefox and Safari. It carries no year; name the supporting browsers MDN lists next to it.
 
    Markers are inline text in square brackets at the first mention, never blockquotes. Several markers on one API are separated by `·`: `` `linkedSignal` [Stable since v20.0] · `set` option [Added in v22.1] ``.
 3. Never invent an API, option, flag or behavior. If a claim cannot be verified in an official source or by running code, leave it out, or write `> **Unverified:** …` and say what would confirm it.

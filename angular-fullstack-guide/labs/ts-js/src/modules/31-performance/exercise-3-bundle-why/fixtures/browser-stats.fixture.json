@@ -1,0 +1,133 @@
+{
+  "inputs": {
+    "src/main.ts": {
+      "bytes": 180,
+      "imports": [
+        { "path": "src/app/app.ts", "kind": "import-statement", "original": "./app/app" },
+        { "path": "src/app/app.config.ts", "kind": "import-statement", "original": "./app/app.config" }
+      ],
+      "format": "esm"
+    },
+    "src/app/app.ts": {
+      "bytes": 900,
+      "imports": [
+        {
+          "path": "node_modules/@angular/core/fesm2022/core.mjs",
+          "kind": "import-statement",
+          "original": "@angular/core"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/app/app.config.ts": {
+      "bytes": 700,
+      "imports": [
+        { "path": "src/app/app.routes.ts", "kind": "import-statement", "original": "./app.routes" },
+        {
+          "path": "node_modules/@angular/router/fesm2022/router.mjs",
+          "kind": "import-statement",
+          "original": "@angular/router"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/app/app.routes.ts": {
+      "bytes": 650,
+      "imports": [
+        { "path": "src/app/home.ts", "kind": "import-statement", "original": "./home" },
+        { "path": "src/app/admin/admin.ts", "kind": "dynamic-import", "original": "./admin/admin" }
+      ],
+      "format": "esm"
+    },
+    "src/app/home.ts": {
+      "bytes": 800,
+      "imports": [
+        {
+          "path": "node_modules/@angular/core/fesm2022/core.mjs",
+          "kind": "import-statement",
+          "original": "@angular/core"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/app/admin/admin.ts": {
+      "bytes": 1400,
+      "imports": [
+        { "path": "node_modules/chart.js/dist/chart.js", "kind": "import-statement", "original": "chart.js" }
+      ],
+      "format": "esm"
+    },
+    "node_modules/@angular/core/fesm2022/core.mjs": {
+      "bytes": 140000,
+      "imports": [
+        {
+          "path": "node_modules/rxjs/dist/esm/internal/Observable.js",
+          "kind": "import-statement",
+          "original": "rxjs"
+        },
+        { "path": "<runtime>", "kind": "import-statement", "external": true }
+      ],
+      "format": "esm"
+    },
+    "node_modules/@angular/router/fesm2022/router.mjs": {
+      "bytes": 60000,
+      "imports": [
+        {
+          "path": "node_modules/@angular/core/fesm2022/core.mjs",
+          "kind": "import-statement",
+          "original": "@angular/core"
+        }
+      ],
+      "format": "esm"
+    },
+    "node_modules/rxjs/dist/esm/internal/Observable.js": {
+      "bytes": 5200,
+      "imports": [],
+      "format": "esm"
+    },
+    "node_modules/chart.js/dist/chart.js": {
+      "bytes": 190000,
+      "imports": [],
+      "format": "esm"
+    },
+    "src/styles.css": {
+      "bytes": 80,
+      "imports": []
+    }
+  },
+  "outputs": {
+    "main-AAAA1111.js": {
+      "bytes": 85770,
+      "inputs": {
+        "src/main.ts": { "bytesInOutput": 120 },
+        "src/app/app.ts": { "bytesInOutput": 640 },
+        "src/app/app.config.ts": { "bytesInOutput": 410 },
+        "src/app/app.routes.ts": { "bytesInOutput": 380 },
+        "src/app/home.ts": { "bytesInOutput": 520 },
+        "node_modules/@angular/core/fesm2022/core.mjs": { "bytesInOutput": 61200 },
+        "node_modules/@angular/router/fesm2022/router.mjs": { "bytesInOutput": 18400 },
+        "node_modules/rxjs/dist/esm/internal/Observable.js": { "bytesInOutput": 4100 }
+      },
+      "imports": [{ "path": "chunk-BBBB2222.js", "kind": "dynamic-import" }],
+      "exports": [],
+      "entryPoint": "src/main.ts"
+    },
+    "chunk-BBBB2222.js": {
+      "bytes": 72400,
+      "inputs": {
+        "src/app/admin/admin.ts": { "bytesInOutput": 900 },
+        "node_modules/chart.js/dist/chart.js": { "bytesInOutput": 71500 }
+      },
+      "imports": [],
+      "exports": ["Admin"]
+    },
+    "styles-CCCC3333.css": {
+      "bytes": 80,
+      "inputs": {
+        "src/styles.css": { "bytesInOutput": 80 }
+      },
+      "imports": [],
+      "exports": []
+    }
+  }
+}

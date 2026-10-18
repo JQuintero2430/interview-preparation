@@ -1,0 +1,24 @@
+{
+  "_readAt": "2026-10-17",
+  "_command": "npm view @ngneat/until-destroy@10.0.0 name version peerDependencies license exports sideEffects 'time[10.0.0]' --json",
+  "name": "@ngneat/until-destroy",
+  "version": "10.0.0",
+  "peerDependencies": {
+    "rxjs": "^6.4.0 || ^7.0.0",
+    "@angular/core": ">=13"
+  },
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "esm": "./esm2022/ngneat-until-destroy.mjs",
+      "types": "./index.d.ts",
+      "default": "./fesm2022/ngneat-until-destroy.mjs",
+      "esm2022": "./esm2022/ngneat-until-destroy.mjs"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    }
+  },
+  "sideEffects": false,
+  "time[10.0.0]": "2023-08-03T19:26:18.112Z"
+}

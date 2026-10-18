@@ -1,0 +1,35 @@
+{
+  "_readAt": "2026-10-17",
+  "_command": "npm view ngx-toastr@20.0.5 name version peerDependencies license exports sideEffects 'time[20.0.5]' --json",
+  "name": "ngx-toastr",
+  "version": "20.0.5",
+  "peerDependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "rxjs": "^7.8.2"
+  },
+  "license": "MIT",
+  "exports": {
+    "./toastr": {
+      "default": "./toastr.css"
+    },
+    "./toastr-old": {
+      "default": "./toastr-old.css"
+    },
+    "./toastr-bs4-alert": {
+      "default": "./toastr-bs4-alert.scss"
+    },
+    "./toastr-bs5-alert": {
+      "default": "./toastr-bs5-alert.scss"
+    },
+    "./package.json": {
+      "default": "./package.json"
+    },
+    ".": {
+      "types": "./types/ngx-toastr.d.ts",
+      "default": "./fesm2022/ngx-toastr.mjs"
+    }
+  },
+  "sideEffects": false,
+  "time[20.0.5]": "2026-02-06T17:00:39.358Z"
+}
