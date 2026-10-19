@@ -1186,7 +1186,7 @@ readonly visible = computed(() => {
 
 **Follow-ups an interviewer will ask.**
 - *Is there any case where syncing via effect is acceptable?* When the target is *not* a signal: a URL query parameter, storage, a third-party component's imperative API.
-- *How do you catch this in review at scale?* Search for `effect(` whose body only calls `.set` on a signal. angular-eslint 22.5 ships signal rules (`prefer-signals`, `prefer-signal-model`, `no-uncalled-signals`), but none of them flags effect-based state propagation, so this stays a review item ([Module 38](38-architecture-and-production-structure.md)).
+- *How do you catch this in review at scale?* Search for `effect(` whose body only calls `.set` on a signal. angular-eslint 22.5 ships signal rules (`prefer-signals`, `prefer-signal-model`, `no-uncalled-signals`), but none of them flags effect-based state propagation, so this stays a review item ([Module 38](38-architecture-and-production-structure.md#9-linting-and-formatting-angular-eslint-prettier-import-ordering-and-commit-hooks)).
 
 **Trap to avoid.** Proposing `untracked` or `allowSignalWrites` as the fix. The design is wrong, not the flags.
 

@@ -1142,7 +1142,39 @@ Module 38 (PLAN-M38; plan in `_meta/modules/M38.md`, written by S20261017-1635).
 | QB-M38-05 | M | done | QB-M38-04 | S20261017-2100-claudecode (writer claude-sonnet-5-5; checks main claude-opus-5-5) |
 | QB-M38-06 | M | done | QB-M38-05 | S20261017-2100-claudecode (writer claude-sonnet-5-5; checks main claude-opus-5-5) |
 | CLOSE-M38 | M | done | QB-M38-06 | S20261017-2100-claudecode (Sonnet closer; main verify) |
-| REVIEW-M38 | L | todo | CLOSE-M38 | |
+| REVIEW-M38 | L | done | CLOSE-M38 | S20261018-1122-claudecode (reviewer subagent claude-opus-5-5; re-runs and bookkeeping by main claude-opus-5-5) |
+| FIX-M38-01 | M | done | REVIEW-M38 | S20261018-1122-claudecode (fixer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| FIX-M38-02 | S | done | REVIEW-M38 | S20261018-1122-claudecode (fixer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| FIX-M38-03 | S | done | REVIEW-M38 | S20261018-1122-claudecode (fixer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+
+Module 39 (PLAN-M39; plan in `_meta/modules/M39.md`, written by S20261018-1411). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 38), then REVIEW-M39 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part D, the pilot's depth (RUN.md §9, QUALITY-BAR G1), scaled to 12 sections, 25 questions and 4 exercises (ceilings 25 / 4; floor 25 / 4, kind NG): plan 19,489 module words (skeleton 1,879 + sections 9,000 + exercises 2,120 + bank 5,690 + closing 800), CLOSE at most 19,489, ceiling 20,189 after REVIEW fixes. **No HOUSE task: nothing is installed and no Angular project is added** (M39.md Lab decision 1): the observable material reads the installed `labs/angular/node_modules` 22.2.1 (core and CLI migration files, typings, `@angular-devkit/schematics/testing`); AngularJS 1.8.3 and `@angular/upgrade` 22.2.1 stay documented only (tarball and docs reads; M39.md For Jorge 1). **Probe first in SEC-M39-11:** if the v22 core migrations cannot run in memory through `SchematicTestRunner` under Vitest, `PLAN-M39-B` (S, Opus) is appended before SEC-M39-12 and re-plans §11, Q39.22, Q39.23 and Exercise 39.4 as source reads and a leftover scanner (no count changes). Writers: Opus for SEC-M39-02, SEC-M39-09, SEC-M39-10, SEC-M39-12 and EX-M39-04, Sonnet for the rest; REVIEW-M39 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| PLAN-M39 | M | done | REVIEW-M38 | S20261018-1411-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-01 | M | done | PLAN-M39 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; checks, marker cleanup and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-02 | M | done | SEC-M39-01 | S20261018-1730-claudecode (writer subagent claude-opus-5-5; checks, Mermaid parse and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-03 | M | done | SEC-M39-02 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; checks, Mermaid parse and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-04 | M | done | SEC-M39-03 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; F12 re-check and table fix, checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-05 | M | done | SEC-M39-04 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; F13 spot-check, one misconception fix, checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-06 | M | done | SEC-M39-05 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; anchor fix, checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-07 | M | done | SEC-M39-06 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; `--force` spot-check, checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-08 | M | done | SEC-M39-07 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-09 | M | done | SEC-M39-08 | S20261018-1730-claudecode (writer subagent claude-opus-5-5; Angular builds, checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-10 | M | todo | SEC-M39-09 |  |
+| SEC-M39-11 | M | todo | SEC-M39-10 |  |
+| SEC-M39-12 | M | todo | SEC-M39-11 |  |
+| EX-M39-01 | M | todo | SEC-M39-12 |  |
+| EX-M39-02 | M | todo | EX-M39-01 |  |
+| EX-M39-03 | M | todo | EX-M39-02 |  |
+| EX-M39-04 | M | todo | EX-M39-03 |  |
+| QB-M39-01 | M | todo | EX-M39-04 |  |
+| QB-M39-02 | M | todo | QB-M39-01 |  |
+| QB-M39-03 | M | todo | QB-M39-02 |  |
+| QB-M39-04 | M | todo | QB-M39-03 |  |
+| QB-M39-05 | M | todo | QB-M39-04 |  |
+| CLOSE-M39 | M | todo | QB-M39-05 |  |
+| REVIEW-M39 | L | todo | CLOSE-M39 |  |
 
 ## Task details
 
@@ -6096,3 +6128,188 @@ Common rules for each task: only the declared files change; no git writes; the m
 ### REVIEW-M38 · L · independent review of module 38
 - Model: Opus (judgment-heavy: independent review in a fresh session).
 - As `REVIEW-M37`. Must run in a session that authored no task of module 38 except PLAN-M38, and not in a continuation of their conversations. Findings become `FIX-M38-nn` tasks appended to this file. Module-specific checks: the HOUSE-39/40 results in every LOG line; every recorded `dist/ui-lib` file, `package.json` field, exported name, rendered row, call count and Prettier output (F4-F8 and the five Output answers) against a re-run of the committed specs after `npx ng build ui-lib`; **no third-party tool worded as observed** and every Nx, angular-eslint, Storybook and federation claim traced to F11-F16 or a dated C2 read (C6, C9); no speed, size or quality claim (C6, C11); no network, `git`, `npm`, `ng` or `nx` call in any test (Lab decision 5, C15); the `dist` ordering stated wherever a spec needs it (C10); the docs' "paths must point to the built library" rule (F9) stated consistently with the lab; status markers as C5; the required backend (§3) and Framework vs platform (§8) callouts with "Where the analogy breaks" (C3); the handoff lines into 38 (M38.md "Handoffs into 38") honored, with an anchor proposal per file-level link (M38.md anchor candidates) for a FIX task; prose at most 21,475 after fixes.
+
+### FIX-M38-01 · M · Unasserted runs, Nx rule facts, affected files, §5 lab, links, terms, internal names, Q38.08, nits (F-1..F-6, T-2..T-5, N-1..N-10)
+- Files: `modules/38-architecture-and-production-structure.md`; `SOURCES.md` (package lines under `## Module 38`: `typescript@6.0.3` `matchPatternOrExact`, `@angular/cli@22.2.1` `findProjectByPath`, `ng-packagr@22.2.1` `write-package.transform.js` secondary stub and `.npmignore`, `@nx/eslint-plugin@23.3.0` `getTargetProjectBasedOnRelativeImport` and the `noTransitiveDependencies` and `bannedExternalImportsViolation` messages, `nx@23.3.0` `parseFiles` and `nx-schema` `namedInputs`); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M38.md` (Factual findings F-1..F-6, Teaching and completeness findings T-2..T-5, Nits N-1..N-10).
+- Do: apply each fix text in REVIEW-M38, finding each line by its quoted text: F-1 (§11 `labs` resolution, Exercise 38.2's "What the lab observed" paragraph, Q38.16's "Reading the built files"), F-2 (§4 relative-import reason), F-3 (§7 unconstrained bullet, Q38.19 follow-up), F-4 (Q38.18 short answer and message list), F-5 (Q38.20, §13 misconception), F-6 (§5 `paths` sentence and file list), T-2 ("Drilled in" Q38.10/Q38.11 after §4's misconceptions; "practised in" Exercise 38.1 in §3, 38.2 in §6, 38.4 in §11 and §13), T-3 (`switchMap`, named input), T-4 (nine internal names), T-5 (Q38.08), N-1..N-10. No lab file, no heading or anchor change; M38.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 38` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/38-architecture-and-production-structure.md`: `grep -c 'recorded by a run on 2026-10-17'` = 0, `grep -c 'With only `"ui-lib": \["./dist/ui-lib"\]`'` = 0, `grep -c 'Reading the built files'` = 0, `grep -c 'graph cannot match it'` = 0, `grep -c 'A tagged project that matches no constraint'` = 0, `grep -c 'add a `\*` constraint that bans'` = 0, `grep -c 'holds exactly that entry'` = 0, `grep -c 'or uncommitted and untracked files when absent'` = 0, `grep -c 'and scopes differ'` = 0, `grep -c 'matchPatternOrExact'` ≥ 1, `grep -c 'getTargetProjectBasedOnRelativeImport'` ≥ 1, `grep -c 'parseFiles'` ≥ 2, `grep -c '](#q38-10)'` ≥ 1, `grep -c '](#q38-11)'` ≥ 1, `grep -c '](#ex38-1)'` ≥ 1, `grep -c '](#ex38-3)'` ≥ 2, `grep -c 'the internal `filterAffected`'` = 1, `grep -c 'the internal `findConstraintsFor`'` = 1; §7's `### Code` has numbered steps; no line ends in a space; `<details>` still 47/47; the 13 Mermaid diagrams unchanged; every Q38 answer at most 290 prose words; prose at most +250 over the count just before and at most 21,475, both counts in the LOG line.
+- Model: **Sonnet** (every text is prescribed in the review).
+
+### FIX-M38-02 · S · One more answered follow-up in six answers and two exercises (T-1)
+- Files: `modules/38-architecture-and-production-structure.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M38.md` T-1 (topic and basis of each follow-up); the module's existing follow-up form.
+- Do: add one answered follow-up, about 35 words, after the last existing one in Q38.06, Q38.08, Q38.09, Q38.26, Q38.28, Q38.29 and in Exercises 38.2 and 38.3 (their `**Interviewer follow-ups.**` lists), each from the basis T-1 names; cite the named test titles exactly. Run after FIX-M38-01 or before it (disjoint lines).
+- Acceptance: `node labs/tools/check-snippets.mjs . 38` and `node labs/tools/check-links.mjs --planned` exit 0; every Q38 answer has at least two answered follow-ups and every exercise at least two follow-up bullets (count by script); each cited test title exists in the module-38 or `ui-lib` specs; every Q38 answer at most 290 prose words; prose at most +300 over the count just before and at most 21,475, both counts in the LOG line.
+- Model: **Sonnet** (topics and basis prescribed).
+
+### FIX-M38-03 · S · Anchors for the file-level links into 38 (+0 words)
+- Files: link targets only in `modules/03-js-objects-prototypes-classes.md`, `05-js-modules-memory-modern-features.md`, `10-css-essentials.md`, `12-angular-how-it-works.md`, `13-components-and-templates.md`, `14-directives-and-pipes.md`, `15-standalone-and-ngmodules.md`, `17-signals.md`, `24-routing.md`, `28-state-management.md`, `29-testing-angular.md`, `30-e2e-and-testing-strategy.md`, `31-performance.md`, `34-i18n.md`, `36-material-and-cdk.md`, `37-elements-pwa-errors-ecosystem.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M38.md` § Handoffs.
+- Do: apply the Handoffs table (35 rows: 15:1396, 15:2256 → §1; 03:1032 → §2; 28:1185, 28:2792, 28:2793 → §3; 14:2206 → §4; 12:117, 12:699, 12:897, 12:1861, 36:2314 → §5; 36:1189, 36:2315 → §6; 05:198, 05:907, 05:1680, 37:72, 37:1345, 37:2105, 37:2106 → §8; 17:1189, 37:985 → §9; 30:560 → §10; 30:676, 30:1305, 30:1703, 31:2013 → §11; 10:1400, 13:2514, 24:2979, 29:2998, 29:2999, 30:1704, 34:1944 → §12; find each line by its context text, not the line number). Only the link target changes (`38-architecture-and-production-structure.md` → `38-architecture-and-production-structure.md#<slug>`). Verify each slug against module 38's `## N.` headings. Leave the stay-file-level lines alone (12:5, 15:5, 28:5, 29:5, 30:5, 34:5, 36:5, 37:5). No heading changes in FIX-M38-01 or -02, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '38-architecture-and-production-structure.md#'` across the sixteen files totals 35 (0 before); `git diff --stat` touches only those sixteen files (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+- Model: **Sonnet** (mechanical; slugs listed).
+
+### Module 39 tasks (PLAN-M39) · common rules
+- Inputs for every task: `_meta/modules/M39.md` (its section, question or exercise rows, the budget, "Handoffs into 39", "What other modules already teach", "Lab decision", "Facts established while planning" F1-F21, "Could not be read" C1-C15, the owner map), STYLE-GUIDE §3-§8, QUALITY-BAR B-E, SYLLABUS §4 (39) and §5 (deliberately legacy examples), the module skeleton, the pilot `modules/17-signals.md` and the finished `modules/38-architecture-and-production-structure.md` for Part D depth (read a section, answer or exercise of the same kind before writing; never copy), and `_meta/reviews/REVIEW-M38.md` § Findings. Re-verify every fact the task uses before writing (lab > package source > official docs/changelog/registry) and record the basis next to the claim; every "Could not be read" item for the task is read or run first, or the claim is dropped (a matrix row whose fact stays unread is left out, C1). Where M39.md says "probe first", the committed test is the probe and the run wins (state the difference in the LOG line).
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics (C7): no re-teaching of `ng update` mechanics (12 §2, Q12.05), the webpack-to-application-builder migration (Q12.09), `strictTemplates` (Q12.22), Ivy's locality (Q12.26), the standalone schematic (15 §7, Q15.20-Q15.23), BehaviorSubject to signals (Q17.40), the control-flow schematic (18 §8, Q18.21, Q18.23), the signal API schematics (19 §6, Q19.23, Q19.24), zone.js and the zoneless migration (21 §3, §6, Q21.12, Q21.22), Karma to Vitest (29 §3, Q29.06, Q29.07), the animations migration (35 §9, Q35.17), Signal Forms interop (26 §9), the fetch default (Q27.05), M3 theming (36 §3), library evolution (38 §6, Q38.17); each gets one sentence and a link (planned modules 40, 44, 46 file-level). Q18.23 is linked, never re-asked (REVIEW-M18 handoff). Status markers only as C5 says. **AngularJS and `@angular/upgrade` are documented only** (Lab decision 1, C14): stated from the `angular@1.8.3` and `@angular/upgrade@22.2.1` tarballs (file and line or function), the AngularJS docs sources and dated docs reads, never as observed; our digest model, migration selector and Update Guide classifier are named as ours in every sentence that reports their output (C9). **"Why" claims only from a read** (C3): no motive, performance number or quote of intent without a source with URL and date; blogs are not readable here (F21).
+- Every task adds its sources under `## Module 39 · Version history and migrations` in `SOURCES.md` (after the last module section present; package reads as `<pkg>@<version>, <file>, read <date>`; changelog reads as `<repo> CHANGELOG(_ARCHIVE).md, <entry version>, read <date>`; registry reads as `npm view <pkg> <fields>, read <date>`) and its inline-defined terms under `## Module 39` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** `ng test` specs live only under `labs/angular/src/app/modules/39-version-history-and-migrations/` (jsdom, development mode; `legacy/` is deliberately legacy and compiles under v22, SYLLABUS §5); Vitest specs only under `labs/ts-js/src/modules/39-version-history-and-migrations/`, reading `labs/angular/node_modules` **read-only** through `support/angular-node-modules.ts` (JSON and typings with `node:fs`) and `support/run-schematic.ts` (`createRequire` rooted at `labs/angular/package.json`, types through `unknown`, no `any`), paths from `new URL(…, import.meta.url)`; a test that cannot find `labs/angular/node_modules` **fails** with "run `npm ci` in labs/angular first", never skips (C10); **no test calls `git`, `npm`, `ng` or the network, or reads the clock** (dates are parameters or fixture data; Lab decision 5, C15); schematic runs use an in-memory tree only; no duration is asserted (C11); no Playwright in this module.
+- **Shared files (C13):** no task edits `package.json`, a lockfile, `angular.json`, a tsconfig, VERSIONS.md or another module's folder or file. `support/angular-node-modules.ts` is created by SEC-M39-07 and `support/run-schematic.ts` by SEC-M39-11; both are read-only to later tasks.
+- **Code:** strict TypeScript, no `any`, no `as` outside a type test; Angular code in `migrated/` and `concepts/` follows STYLE-GUIDE §7.1 (standalone, `inject()`, signals, built-in control flow with `track`, v22 file names, at most 4 injected dependencies); `legacy/` is exempt by design (SYLLABUS §5) and says so in a file comment; lab components use the `lab-m39-` prefix and `LabM39…` names; no internal symbol (`ɵ`-prefixed, CLI or schematic internals) imported by lab code (C8); AngularJS snippets, JSON and shell snippets are Partial with their source named (M39.md Lab decision, last paragraph).
+- **First-time-pass rules (from REVIEW-M14 to M38; named so they do not recur):** every recorded migration name, version, flag, file edit, rendered row and message is checked against the run or the named file before writing; every "in the lab, X" names a test (`Section N: …`, `Q39.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its package, version, file and function, or a dated docs or changelog read; quotes verbatim from the named file, version or URL and date, a shortened message carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M39.md names followed by a line starting `What to notice`, parsed with the mermaid parser; **every Misconceptions bullet gives the correction and a cause clause** (M39.md names each cause); **terms defined at first use** (M39.md lists them per section), checked by a first-use script; **internal names marked internal at first use in each section** (C8); each `### Code` has numbered steps; each mechanism answers one "why" from a source read; Output short answers give the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups**; **every question and exercise is linked from the body** ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors.
+- **Prose budget** (deltas over the module count measured just before the task; M39.md "Budget"): skeleton 1,879 measured 2026-10-18 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps: SEC-M39-01..12 = 850 / 650 / 700 / 800 / 800 / 850 / 750 / 700 / 750 / 800 / 650 / 700 (9,000); EX-M39-01 = 560 (intro included), EX-M39-02..04 = 520 each (2,120); QB-M39-01 = 1,170 (intro included), QB-M39-02..05 = 1,130 each (5,690); CLOSE-M39 = 800. 1,879 + 9,000 + 2,120 + 5,690 + 800 = 19,489. **CLOSE at most 19,489 words; REVIEW ceiling 20,189.** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a diagram, a trap's cause or a "because"). Answer parts average at most 226 words per QB chunk, none above 290.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M39-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker (QB-M39-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M39-01 also writes the exercise intro at its placeholder). CLOSE-M39's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M39, and the header's Labs line carries a relink comment for CLOSE-M39. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q39-NN -->` (or `#ex39-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/angular` file changed: from `labs/angular`, `npx ng build ui-lib`, then `npx ng test --watch=false --include='src/app/modules/39-version-history-and-migrations/**/*.spec.ts'` (when a spec there exists), `npx tsc -p tsconfig.spec.json --noEmit` and `npx ng build` exit 0; when a `labs/ts-js` file changed: from `labs/ts-js`, `npx vitest run src/modules/39-version-history-and-migrations` and `npx tsc --noEmit` exit 0; from the guide root, `node labs/tools/check-snippets.mjs . 39` and `node labs/tools/check-links.mjs --planned` exit 0; every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`; `dist/`, `out-tsc/` and `node_modules/` are ignored); the task's marker is gone; no scratch, probe or tarball file left; the LOG line gives both prose counts.
+
+### SEC-M39-01 · M · AngularJS: scopes, watchers and the digest cycle
+- Model: Sonnet (facts F16 and tests named in M39.md §1).
+- Files: module §1 and the verification paragraph (its placeholder before §1); `labs/ts-js/src/modules/39-version-history-and-migrations/concepts/{mini-digest.ts,section-1-digest.test.ts}`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §1, F16 (re-read `angular@1.8.3` `angular.js` from an `npm pack` into the job scratchpad, deleted after: `TTL`, `$digest`, `$apply`, `beginPhase`'s "already in progress" message; the AngularJS `guide/scope` docs source with the date), 21 §2, §3.
+- Do: M39.md §1 (delta 850 including the paragraph) with `flowchart TD`; the three `Section 1: …` tests on our model, worded "our model of the 1.8.3 loop" (C9); the AngularJS snippets Partial (C14); contrast with Angular's tick once (link 21 §3); link Q39.01, Q39.02 and Exercise 39.1 (relink comments until written); the verification paragraph (80-110 words) as M39.md §1 lists.
+- Acceptance: common rules.
+
+### SEC-M39-02 · M · Why Angular was rewritten, and what carried over
+- Model: Opus (judgment-heavy: every motive must be a read, C3).
+- Files: module §2; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §2, C3, F11, F15, F16 (the `$injector` annotation docs or 1.8.3's `annotate` function, read with the date), 13, 16, 21 §3.
+- Do: M39.md §2 (delta 650) with `flowchart LR`; mechanism, not motive, unless an official source with URL and date states the motive (C3); the Framework vs platform callout (TC39 modules and classes versus AngularJS's own module system and digest), only with read facts; what carried over; link 13, 16 and 21 §3 once each; link Q39.03.
+- Acceptance: common rules; no lab file.
+
+### SEC-M39-03 · M · How Angular ships: semantic versioning, the release cadence, support windows and the deprecation policy
+- Model: Sonnet (facts F9, F18 and tests named in M39.md §3).
+- Files: module §3; `labs/ts-js/…/fixtures/support-windows.ts`, `concepts/section-3-support.test.ts`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §3, F9 (re-read angular.dev `reference/releases.md` with the date), F18 (the `@deprecated` tag on `ChangeDetectionStrategy.Default` in the installed typings); 38 §6, §8.
+- Do: M39.md §3 (delta 700) with `timeline`; the two `Section 3: …` tests (the typings read through `support/`-style code local to this test until SEC-M39-07 creates the helper, or the helper created here and listed as SEC-M39-07's input); the "Once true: … until v22" correction for the 6-month cadence; the compiler ABI note links 38 §8 once; link Q39.04, Q39.05.
+- Acceptance: common rules.
+
+### SEC-M39-04 · M · The version matrix, part 1: v2 to v8
+- Model: Sonnet (facts F6, F11, F12, F15 named in M39.md §4; C1 reads).
+- Files: module §4; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §4, F6, F11, F12, F15, C1 (read the angular-cli `CHANGELOG.md` and archive entries for v6-v8 before stating `ng update`, `ng add`, `angular.json`, prompts, budgets, differential loading; otherwise leave the cell out), 27, 37.
+- Do: M39.md §4 (delta 800) with `timeline`; the matrix table, every cell with its changelog entry or registry read; the "why" for each row only from the entry text (C3); `@angular/http` and `Renderer` legacy pointers; link 27 and 37 once each; link Q39.06, Q39.10.
+- Acceptance: common rules; no lab file.
+
+### SEC-M39-05 · M · The version matrix, part 2: v9 to v15, from Ivy to standalone
+- Model: Sonnet (facts F8, F12-F14, F20 named in M39.md §5; C1 reads).
+- Files: module §5; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §5, F8 (the Update Guide's Ivy and `ngcc` texts), F12-F14, F20, C1 (standalone v14 preview, v15 stable: read from owner 15 or the changelog), 12 §8, 15, 19 §7, 25, 36 §3, 38 §5.
+- Do: M39.md §5 (delta 800) with `flowchart LR`; the matrix table; `#### Legacy` with the `ComponentFactoryResolver` snippet (Partial, marked non-compiling under v22, SYLLABUS §5; link 19 §7 once); link 12 §8 and Q12.26 once each; link Q39.07, Q39.08, Q39.10.
+- Acceptance: common rules; no lab file.
+
+### SEC-M39-06 · M · The version matrix, part 3: v16 to v22, from signals to OnPush by default
+- Model: Sonnet (facts F2, F13, F14, F18, F20 and the test named in M39.md §6).
+- Files: module §6; `labs/ts-js/…/concepts/section-6-installed.test.ts`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §6, F1, F2, F10, F13, F14, F18, F20 (owner markers quoted, not re-derived), C12; 17, 21, 26, 35 §9, 36 §3.
+- Do: M39.md §6 (delta 850) with `timeline`; the matrix with introduced / stable / default / deprecated-or-removed columns; the "new default versus `ng update` keeps" distinction (link §11); the `Section 6: …` test (records the `^26.0.0` versus `>=26.0.0` difference as the expected value, C12); link 35 §9 and 36 §3 once each; link Q39.08, Q39.09, Q39.10.
+- Acceptance: common rules.
+
+### SEC-M39-07 · M · Updating in practice: `ng update`, migration schematics and the Update Guide
+- Model: Sonnet (facts F2, F4-F8 and tests named in M39.md §7).
+- Files: module §7; `labs/ts-js/…/support/angular-node-modules.ts` (new; read-only to later tasks), `concepts/section-7-migrations.test.ts`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §7, F2, F4-F8 (re-read `@angular/cli` 22.2.1 `src/commands/update/cli.js` and `update-resolver.js` for what `--force` changes before stating it), 12 §1, §2, Q12.05, 33 §11, 38.
+- Do: M39.md §7 (delta 750) with `flowchart TD`; the order (core and CLI, then Material, then libraries; commit after each); the three `Section 7: …` tests; library peer ranges as mechanism only (C6); link 12 §2 and Q12.05 once each and 38 §6 once (migrations shipped by a library); link Q39.11-Q39.14 and Exercise 39.2.
+- Acceptance: common rules; SEC-M39-03's typings test uses the helper if it was written inline (one-line change allowed to this task only).
+
+### SEC-M39-08 · M · Skipping versions safely: one major per hop, Node and TypeScript ranges, and libraries that block a hop
+- Model: Sonnet (facts F2, F6, F8, F10, F13, F14 and tests named in M39.md §8).
+- Files: module §8; `labs/ts-js/…/fixtures/compat-table.ts`, `concepts/section-8-hops.test.ts`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §8, F10 (re-read `reference/versions.md` with the date; copy rows 13.0 to 22.0 with source and date in a header comment), F6, F2, F8, F13, F14.
+- Do: M39.md §8 (delta 700) with `flowchart LR`; the CLI refusal quoted from the source (not as a run); the two `Section 8: …` tests (our tiny range check, C9); blocking libraries as mechanism (C6) with the options and their costs; link Q39.15, Q39.16 and Exercise 39.2.
+- Acceptance: common rules.
+
+### SEC-M39-09 · M · From AngularJS to Angular: ngUpgrade hybrids, the strangler fig and rewrites
+- Model: Opus (judgment-heavy: a documented-only trade-off built on the `@angular/upgrade` source).
+- Files: module §9; `labs/angular/src/app/modules/39-version-history-and-migrations/concepts/{section-9-strangler.ts,section-9-strangler.spec.ts}` and stub pages in `concepts/` (or `migrated/order-list-page.ts` and `migrated/order-detail-page.ts`, M39.md "Lab files"); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §9, F16, F17 (re-read `@angular/upgrade@22.2.1` `types/static.d.ts` and `fesm2022/static.mjs` from an `npm pack` into the job scratchpad, deleted after), F8 (`ngUpgrade` option), 24, 38 §8.
+- Do: M39.md §9 (delta 750) with `flowchart TD`; ngUpgrade "read, not run" (C14); the strangler costs as mechanisms; the two `Section 9: …` specs with `RouterTestingHarness` and the `LEGACY_NAVIGATOR` token (no `window.location`); the Framework vs platform callout only if a read fact supports it; link 38 §8 once; link Q39.17-Q39.19.
+- Acceptance: common rules.
+
+### SEC-M39-10 · M · A migration program for an old Angular codebase: order, dependencies and checkpoints
+- Model: Opus (judgment-heavy: sequencing six owner migrations by sourced edges).
+- Files: module §10; `labs/angular/src/app/modules/39-version-history-and-migrations/{legacy,migrated}/**` (new), `concepts/section-10-before-after.spec.ts`; `labs/ts-js/…/concepts/section-10-leftovers.test.ts`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §10, F3, F4, F19 (re-read the migration docs with the date), C4 (probe first that the legacy `NgModule` compiles under `strictTemplates`), 12 §3, Q12.09, 15 §5, §7, Q15.22, 17, Q17.40, 18 §8, Q18.23, 19 §6, 21 §6, 29 §3, 35 §9.
+- Do: M39.md §10 (delta 800) with `flowchart LR`; edges labeled docs or recommendation; `#### Legacy` with an Excerpt of `legacy/`; the two `Section 10: …` specs and the leftovers test; one link per owner (C7), Q15.22 and Q18.23 linked, not re-asked; link Q39.20, Q39.21 and Exercises 39.3, 39.4.
+- Acceptance: common rules.
+
+### SEC-M39-11 · M · The v22 upgrade: what `ng update` changes and why each migration keeps the old behavior
+- Model: Sonnet (facts F2, F4, F5, F18 and tests named in M39.md §11; probe first, C4).
+- Files: module §11; `labs/ts-js/…/support/run-schematic.ts` (new; read-only to later tasks), `concepts/section-11-v22.test.ts`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §11, Lab decision 3, F2, F4, F5, F18; Q12.22, Q27.05, 24 (`canMatch`), 32 (incremental hydration), 21 §2.
+- Do: **probe first**: the first committed test runs `change-detection-eager` through `SchematicTestRunner` on the in-memory workspace; if it cannot run, stop, record the error in the LOG line and ask main to append `PLAN-M39-B` (S, Opus) before continuing (Lab decision 3). Otherwise M39.md §11 (delta 650) with `flowchart LR`; the four `Section 11: …` tests, exact edits as the run shows; link owners once each; link Q39.22, Q39.23.
+- Acceptance: common rules.
+
+### SEC-M39-12 · M · Under the hood: how `ng update` selects migrations and how the Update Guide builds its checklist
+- Model: Opus (internals read from source; two mirrors that must match it exactly).
+- Files: module §12; `labs/ts-js/…/concepts/{select-migrations.ts,update-guide.ts,section-12-internals.test.ts}`; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M39.md §12, F2, F7 (re-read `@angular/cli` 22.2.1 `src/commands/update/utilities/migration.js`), F8 (re-read `adev/src/app/features/update/update.component.ts` with the date), C8, C9; Q12.05.
+- Do: M39.md §12 (delta 700) with `flowchart TD`; internal names marked internal (C8); our selector (no `semver` package) and classifier, worded as ours (C9); the three `Section 12: …` tests; link Q12.05 once; link Q39.14, Q39.24, Q39.25.
+- Acceptance: common rules.
+
+### EX-M39-01 · M · Exercise 39.1 · A dirty-checking digest loop in the AngularJS style
+- Model: Sonnet (criteria named in M39.md Exercises 1).
+- Files: module exercise region and the exercise intro (its placeholder); `labs/ts-js/src/modules/39-version-history-and-migrations/exercise-1-digest/`; SOURCES.md.
+- Inputs: M39.md Exercises 1, §1, F16.
+- Do: full E1 anatomy (delta 560 with the intro, at most 40 words); five criteria over both variants (`describe.each`); our code modeled on 1.8.3 (C9); at least two answered follow-ups; restore section links to Exercise 39.1.
+- Acceptance: common rules.
+
+### EX-M39-02 · M · Exercise 39.2 · An upgrade path planner: one major per hop, with the Node and TypeScript each hop needs
+- Model: Sonnet (criteria named in M39.md Exercises 2).
+- Files: module exercise region; `labs/ts-js/…/exercise-2-hops/`; SOURCES.md.
+- Inputs: M39.md Exercises 2, §3, §7, §8, F6, F10.
+- Do: full E1 anatomy (delta 520); five criteria over both variants; the fixture rows 9.0 to 22.0 copied from F10 with source and date; the refusal wording from F6; at least two answered follow-ups; restore section links to Exercise 39.2.
+- Acceptance: common rules.
+
+### EX-M39-03 · M · Exercise 39.3 · A migration program scheduler: prerequisites, pull-request batches and checkpoints
+- Model: Sonnet (criteria named in M39.md Exercises 3).
+- Files: module exercise region; `labs/ts-js/…/exercise-3-program/`; SOURCES.md.
+- Inputs: M39.md Exercises 3, §10, F19.
+- Do: full E1 anatomy (delta 520); five criteria over both variants (Kahn's algorithm and depth-first order); edges labeled `docs` or `recommendation`; no `git`, no clock (C11); at least two answered follow-ups; restore section links to Exercise 39.3.
+- Acceptance: common rules.
+
+### EX-M39-04 · M · Exercise 39.4 · Modernize a legacy feature with the official schematics, run in a test
+- Model: Opus (real schematics over the real legacy feature; probe first with a fallback).
+- Files: module exercise region; `labs/ts-js/…/exercise-4-schematics/`; SOURCES.md.
+- Inputs: M39.md Exercises 4, §10-§12, F3, `support/run-schematic.ts` (read-only), the `legacy/` text (read-only), C4.
+- Do: **probe first** (`control-flow-migration` alone on the in-memory workspace); then full E1 anatomy (delta 520); five criteria over both variants (one schematic per step, and `signals` first); idempotence as the run shows; at least two answered follow-ups; under `PLAN-M39-B` the leftover-scanner version; restore section links to Exercise 39.4.
+- Acceptance: common rules.
+
+### QB-M39-01 · M · Q39.01-Q39.05 and the bank intro
+- Model: Sonnet (routine question writing; facts, tests and links named in M39.md "Question notes").
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); section links in §1-§3 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 226 words across the chunk, none above 290, at least two answered follow-ups each; Q39.01 links 21 §3 once; Q39.03 links 13, 16 and 21 §3 once each, mechanism not motive (C3); Q39.05 links 38 §6 once.
+- Acceptance: common rules; D1 counts equal 5; chunk at most +1,170 words (5% tolerance).
+
+### QB-M39-02 · M · Q39.06-Q39.10
+- Model: Sonnet (as QB-M39-01).
+- Files: module Question bank (its marker region); section links in §4-§6; SOURCES.md.
+- Do: as QB-M39-01; Q39.07 links 12 §8 and Q12.26 once each; Q39.08 links 15 and 18 once each; Q39.09 links Q12.05 and Q27.05 once each; Q39.10 corrects each claim with a marker or a dated read.
+- Acceptance: common rules; D1 counts equal 5; chunk at most +1,130 words.
+
+### QB-M39-03 · M · Q39.11-Q39.15
+- Model: Sonnet (as QB-M39-01; Q39.14 Output from the installed files).
+- Files: module Question bank (its marker region); `labs/ts-js/src/modules/39-version-history-and-migrations/outputs/q39-outputs.test.ts` (new, with `Q39.14 …`); section links in §7, §8; SOURCES.md.
+- Do: as QB-M39-01; Q39.12 links Q12.22 once; Q39.13 quotes F6's messages from source (not as a run) and treats peer ranges as mechanism (C6); Q39.14 through our selector over the installed `migration-collection.json`, the result and its reason, order as the run shows (C9).
+- Acceptance: common rules; D1 counts equal 5; chunk at most +1,130 words; the outputs test passes.
+
+### QB-M39-04 · M · Q39.16-Q39.20
+- Model: Sonnet (as QB-M39-01).
+- Files: module Question bank (its marker region); section links in §8-§10; SOURCES.md.
+- Do: as QB-M39-01; Q39.17 "read, not run" from F17; Q39.20 links Q15.22, Q18.23, Q19.23, Q21.22, Q29.06 and Q12.09 once each and does not re-ask Q18.23.
+- Acceptance: common rules; D1 counts equal 5; chunk at most +1,130 words.
+
+### QB-M39-05 · M · Q39.21-Q39.25
+- Model: Sonnet (as QB-M39-01; three Output answers from runs).
+- Files: module Question bank (its marker region); `outputs/q39-outputs.test.ts` (adds `Q39.22 …`, `Q39.23 …`, `Q39.24 …`) and `outputs/update-guide-steps.ts` (the five-step fixture, labeled invented, C9); section links in §10-§12; SOURCES.md.
+- Do: as QB-M39-01; Q39.21 links 21 §6 and 29 §3 once each; Q39.22 and Q39.23 through `support/run-schematic.ts` (Concept under `PLAN-M39-B`); Q39.24 through our classifier; Q39.25 links Q12.05 once; then D3 and D5 for the whole bank and a link check into 12, 13, 14, 15, 16, 17, 18, 19, 21, 24, 25, 26, 27, 29, 32, 35, 36 and 38.
+- Acceptance: common rules; D1 counts equal 5; chunk at most +1,130 words; the outputs test passes; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M39 · M · Close module 39
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Files: module header (Applies to, Short on time, Labs line with links), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 39, totals); `_meta/ROADMAP.md` (row 34).
+- Do: as CLOSE-M38: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M39.md's breadth table against the finished module (all five checkboxes); run the full verification (Standard checks, `check-snippets.mjs . 01 … 39`, `module-stats.mjs` and the python one-liner); trim named repeats if above 19,489; no other module is edited: record in the LOG line the file-level links into 39 (M39.md anchor candidates), the VERSIONS.md rows of For Jorge 3, whether `PLAN-M39-B` ran, and the open points C1, C3, C4, C12.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/39-version-history-and-migrations.md` is 0; prose at most 19,489.
+
+### REVIEW-M39 · L · independent review of module 39
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- As `REVIEW-M38`. Must run in a session that authored no task of module 39 except PLAN-M39, and not in a continuation of their conversations. Findings become `FIX-M39-nn` tasks appended to this file. Module-specific checks: every version, date and status in the matrix (§4-§6, Q39.06-Q39.10) traced to F9-F15, F20 or a dated C1 read, and no row written from memory (C1); no motive for the rewrite without a source (C3); AngularJS and ngUpgrade never worded as observed, and our digest model, selector and classifier named as ours (C9, C14); the migration lists, orders and edits of §7, §11, Q39.14, Q39.22-Q39.24 and Exercise 39.4 against a re-run of the committed tests (or `PLAN-M39-B`'s source reads); no network, `git`, `npm` or `ng` call and no clock in any test (Lab decision 5); the cross-lab read fails with the C10 message when `labs/angular/node_modules` is missing; no duration and no library-lag claim (C6, C11); docs-versus-package differences stated as C12 says; the handoff lines into 39 (M39.md "Handoffs into 39") honored, Q18.23 not re-asked, with an anchor proposal per file-level link (M39.md anchor candidates) for a FIX task; prose at most 20,189 after fixes.

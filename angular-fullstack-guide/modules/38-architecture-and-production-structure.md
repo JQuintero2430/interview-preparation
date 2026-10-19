@@ -207,11 +207,11 @@ What to notice: only the facade faces the container, and a fake swaps in at the 
 
 **State.** The store is a **service-with-signals store**: private state in a `signal`, `computed` selectors, methods as the only writers ([28 §2](28-state-management.md#2-the-service-with-signals-store-state-shape-derived-selectors-methods-and-async-loads); [Q28.04](28-state-management.md#q28-04) designs one). The facade hands out those read-only signals.
 
-**Errors are mapped once, at the edge.** `HttpOrdersApi` turns every failure into `OrdersError`, status 0 into `offline` ([27 §5](27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter); [Q27.16](27-http-client.md#q27-16) designs such a layer). Caught inside `switchMap`, the error becomes state, the next `load()` still works, and `setError` keeps the orders shown.
+**Errors are mapped once, at the edge.** `HttpOrdersApi` turns every failure into `OrdersError`, status 0 into `offline` ([27 §5](27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter); [Q27.16](27-http-client.md#q27-16) designs such a layer). Caught inside `switchMap` (the operator that switches to each new inner stream and cancels the previous one, [23 §1](23-rxjs-in-depth.md#1-higher-order-observables-switchmap-mergemap-concatmap-and-exhaustmap)), the error becomes state, the next `load()` still works, and `setError` keeps the orders shown.
 
 **Why the page and a test share one facade.** `provideOrdersDataAccess()` aliases `OrdersFacadePort` to `OrdersFacade` with `useExisting` and binds the token `ORDERS_API` to `HttpOrdersApi` ([16 §7](16-dependency-injection.md#7-injectiontoken-multi-providers-environment-providers-and-initializers)). In `@angular/core` 22.2.1 the internal `providerToFactory` (`fesm2022/_pending_tasks-chunk.mjs`) turns `useExisting` into a factory that injects the other token, so both names give one object (read, not run). The orders route lists these providers, so they live in its route injector, created once and kept ([24 §4](24-routing.md#4-lazy-loading-in-depth-loaders-canmatch-and-route-injectors)).
 
-**When a facade is overhead.** It earns its place when a container would otherwise inject more than four services. One component making one call should inject the service directly. Drilled in [Q38.07](#q38-07), [Q38.08](#q38-08) and [Q38.09](#q38-09).
+**When a facade is overhead.** It earns its place when a container would otherwise inject more than four services. One component making one call should inject the service directly. Drilled in [Q38.07](#q38-07), [Q38.08](#q38-08) and [Q38.09](#q38-09); practised in [Exercise 38.1](#ex38-1).
 
 > [!TIP]
 > **Coming from the backend.** In hexagonal architecture (ports and adapters) the application defines ports and adapters implement them at the edge; Alistair Cockburn's intent: "Allow an application to equally be driven by users, programs, automated test or batch scripts" ([Hexagonal architecture](https://alistair.cockburn.us/hexagonal-architecture/), read 2026-10-17). Against a layered Spring service (controller → service → repository), the facade is the application service, `HttpOrdersApi` the adapter in the repository's place, and `ORDERS_API` the port. See the [root guide's Facade](../../Backend%20Study%20Guide%20-%20Security%2C%20JPA%2C%20Design%20Patterns%20%26%20Spring.md#facade) and [Q16.35](16-dependency-injection.md#q16-35) (the two containers). **Where the analogy breaks:** the front end's "domain" is mostly server state cached for display ([28 §1](28-state-management.md#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs)); the facade outlives requests and pushes changes through signals; and no Maven module stops a component importing `HttpClient`, so import rules enforce the direction ([§4](#4-layers-library-types-and-dependency-rules)).
@@ -221,7 +221,7 @@ What to notice: only the facade faces the container, and a fake swaps in at the 
 Approach: three `data-access/` classes registered on the orders route, then tests that swap the port's adapter.
 
 1. Write `HttpOrdersApi`, which maps DTOs and errors.
-2. Write `OrdersStore` and `OrdersFacade`, which extends the `OrdersFacadePort` [§2](#2-smart-container-and-presentational-components)'s page injects.
+2. Write `OrdersStore` and `OrdersFacade`, which extends `OrdersFacadePort`, the class [§2](#2-smart-container-and-presentational-components)'s page injects.
 3. Add `provideOrdersDataAccess()` to the orders route.
 4. Test with `HttpTestingController` (a testing backend answered by hand), then with a fake `ORDERS_API`.
 
@@ -287,7 +287,7 @@ Without Nx, two tools enforce the direction. A folder convention (`features/<sco
 
 With Nx, each project carries **tags** (labels such as `type:ui` and `scope:orders`) and `@nx/enforce-module-boundaries` compares them with `depConstraints` ([§7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching) owns the project graph). Nx is documented here, not run.
 
-**Why a `../../` import into another project is reported even when the tags allow it.** Read, not run, in `@nx/eslint-plugin` 23.3.0, `dist/src/rules/enforce-module-boundaries.js`: the first message is "Projects cannot be imported by a relative or absolute path, and must begin with a npm scope". A **relative import** names a file by its position, so it bypasses the project's public entry and the graph cannot match it to a project name; the tag rules only apply to imports by package name.
+**Why a `../../` import into another project is reported even when the tags allow it.** Read, not run, in `@nx/eslint-plugin` 23.3.0, `dist/src/rules/enforce-module-boundaries.js`: the first message is "Projects cannot be imported by a relative or absolute path, and must begin with a npm scope". A **relative import** names a file by its position, so it bypasses the project's public entry. The rule still resolves it to the project that owns the file (the internal `getTargetProjectBasedOnRelativeImport`) and reports it whenever that project is not the importer's, before any tag is compared.
 
 Cycles break the direction itself. In `ng-packagr` 22.2.1 entry points are built in topological order with `new DepGraph({ circular: false })` (`ng-package/package.transform.js`), and a cycle throws `DepGraphCycleError` with "Dependency Cycle Found: a -> b -> a" (`dependency-graph` 1.0.0, `lib/dep_graph.js`; read, not run).
 
@@ -324,6 +324,8 @@ export const allowedTypes: Record<LibraryType, readonly LibraryType[]> = {
 - *"A `util` may import anything if it is small."* A `util` that imports a component pulls rendering into every consumer and invites cycles. The myth comes from size feeling harmless.
 - *"A cycle between two libraries only matters for the build."* Bundlers tolerate many cycles, but ng-packagr refuses them between entry points and initialization order gets fragile. The myth comes from bundlers hiding the problem.
 
+Drilled in [Q38.10](#q38-10) and [Q38.11](#q38-11).
+
 ## 5. Angular CLI libraries: `ng generate library`, ng-packagr and consuming the build
 
 ### The problem it solves
@@ -346,9 +348,9 @@ What to notice: the only arrow into the app starts at `dist`, so an edit in `src
 
 ### How it actually works
 
-**Why the app does not see a library edit until you rebuild.** Read, not run, in `@schematics/angular` 22.2.1, `library/index.js`: the internal function `updateTsConfig` writes `compilerOptions.paths["ui-lib"]` as `./dist/ui-lib`. The lab's `tsconfig.json` holds exactly that entry. The Angular docs state the rule: an app "should only use TypeScript path mappings that point to the built library" and the mappings "should not point to the library source .ts files" (emphasis omitted; [creating libraries](https://angular.dev/tools/libraries/creating-libraries), read 2026-10-17). `ng build ui-lib --watch` rebuilds on each save.
+**Why the app does not see a library edit until you rebuild.** Read, not run, in `@schematics/angular` 22.2.1, `library/index.js`: the internal function `updateTsConfig` writes `compilerOptions.paths["ui-lib"]` as `./dist/ui-lib`. The lab's `tsconfig.json` holds that entry, plus the `ui-lib/*` wildcard that [Exercise 38.2](#ex38-2) needs for subpaths; both point at `dist`. The Angular docs state the rule: an app "should only use TypeScript path mappings that point to the built library" and the mappings "should not point to the library source .ts files" (emphasis omitted; [creating libraries](https://angular.dev/tools/libraries/creating-libraries), read 2026-10-17). `ng build ui-lib --watch` rebuilds on each save.
 
-**What the build wrote.** The test `Section 5: the build writes package.json, a fesm2022 bundle and a bundled types file` observed `README.md`, `fesm2022/ui-lib.mjs`, `fesm2022/ui-lib.mjs.map`, `package.json` and `types/ui-lib.d.ts` (2026-10-17). Compiling in **partial compilation** mode ([12 §8](12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it); [Q12.28](12-angular-how-it-works.md#q12-28)) is what `tsconfig.lib.prod.json` sets, and `Section 5: the built bundle contains a partial declaration, not a full definition` observed the internal name `ɵɵngDeclareComponent` in the bundle and no `ɵɵdefineComponent`.
+**What the build wrote.** The test `Section 5: the build writes package.json, a fesm2022 bundle and a bundled types file` found `README.md`, `fesm2022/ui-lib.mjs`, `fesm2022/ui-lib.mjs.map`, `package.json` and `types/ui-lib.d.ts` among the output (2026-10-17; the later entry points add their own files). Compiling in **partial compilation** mode ([12 §8](12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it); [Q12.28](12-angular-how-it-works.md#q12-28)) is what `tsconfig.lib.prod.json` sets, and `Section 5: the built bundle contains a partial declaration, not a full definition` observed the internal name `ɵɵngDeclareComponent` in the bundle and no `ɵɵdefineComponent`.
 
 **What ng-packagr enforces**, read, not run, in `ng-packagr` 22.2.1, `ng-package/entry-point/write-package.transform.js`: `dependencies` other than `tslib` throw "Dependency X must be explicitly allowed using the "allowedNonPeerDependencies" option."; `scripts` is deleted unless `keepLifecycleScripts` is true; a build that is not partial gets a `prepublishOnly` script that fails `npm publish`. Angular packages belong in **peer dependencies** (a range the consumer's app must also install), which the docs say for every `@angular/*` package.
 
@@ -375,7 +377,7 @@ import { UiBadge } from 'ui-lib';
     await fixture.whenStable();
 ```
 
-`Section 5: the labs app imports UiBadge by package name from the built library` reads `in stock` in `span.ui-badge`. 
+`Section 5: the labs app imports UiBadge by package name from the built library` reads `in stock` in `span.ui-badge`.
 
 ### Best practices and anti-patterns
 
@@ -415,9 +417,9 @@ What to notice: `internal/` has no arrow to an export, so the badge uses `format
 
 **Why a consumer cannot deep-import a file.** Read, not run, in `ng-packagr` 22.2.1: the internal function `generatePackageExports` (`src/lib/utils/package-json.js`) writes `./package.json`, then `.` for the primary entry point and `./<folder>` for each secondary one, each as `{ types, default }`. Node then refuses what is not listed: "When the "exports" field is defined, all subpaths of the package are encapsulated and no longer available to importers", and `require('pkg/subpath.js')` throws `ERR_PACKAGE_PATH_NOT_EXPORTED` ([Node packages docs](https://nodejs.org/api/packages.html), read 2026-10-17). The same page calls it "not a strong encapsulation" for absolute file paths.
 
-**How a folder becomes an entry point.** Read, not run, in `src/lib/ng-package/discover-packages.js` (`findSecondaryPackagesPaths`): the build globs for `**/ng-package.json` under the library and treats each folder as a secondary entry point. A secondary `lib.entryFile` defaults to `src/public_api.ts` (`ng-entrypoint.schema.json`), and the schematic's primary file is `public-api.ts`, so the lab names the file explicitly.
+**How a folder becomes an entry point.** Read, not run, in `src/lib/ng-package/discover-packages.js` (the internal `findSecondaryPackagesPaths`): the build globs for `**/ng-package.json` under the library and treats each folder as a secondary entry point. A secondary `lib.entryFile` defaults to `src/public_api.ts` (`ng-entrypoint.schema.json`), and the schematic's primary file is `public-api.ts`, so the lab names the file explicitly.
 
-**What the lab observed** (2026-10-17):
+**What the lab observed** (2026-10-17, after `npx ng build ui-lib`):
 
 - `Section 6: exports lists the package, the root and the testing subpath only` read exactly `.`, `./package.json` and `./testing` (Exercise 38.2 later adds its own `./ex2-a` and `./ex2-b`, which the test leaves out).
 - `Section 6: an internal helper's name is absent from the root types file` found `UiBadge` and no `formatCount` in the root typings, and `formatCount` still inside the root bundle: unexported, not removed.
@@ -467,7 +469,7 @@ The helper needs no `@angular/core/testing` import, so the entry point is plain 
 - *"A secondary entry point is only about tree shaking."* It does help shaking, but the larger reason is a separate, optional dependency surface such as testing helpers. The myth comes from the shaking benefit being the easiest to measure.
 - *"Deep imports are just bad style."* With the generated map they fail to resolve. The myth comes from the time before `exports` existed, when they worked.
 
-Drilled in [Q38.15](#q38-15), [Q38.16](#q38-16) and [Q38.17](#q38-17).
+Drilled in [Q38.15](#q38-15), [Q38.16](#q38-16) and [Q38.17](#q38-17); practised in [Exercise 38.2](#ex38-2).
 
 ## 7. Nx monorepos: the project graph, tags, `@nx/enforce-module-boundaries`, affected commands and caching
 
@@ -500,14 +502,14 @@ Everything here is documented only: the lab has no Nx workspace, and no Nx comma
 
 - A constraint selects its source projects with `sourceTag`, or with `allSourceTags` (all must match). Tags can be `*`, a regex between slashes, or a glob (`hasTag`).
 - `onlyDependOnLibsWithTags` passes when the target has any one of the tags. `notDependOnLibsWithTags` is checked with `findDependenciesWithTags`, which collects every project reachable from the target, so it reports transitive dependencies, not only direct imports.
-- A tagged project that matches no constraint is reported: "A project without tags matching at least one constraint cannot depend on any libraries".
+- Once any constraint exists, a project whose tags match none of them, an untagged one included, is reported on each import of another project: "A project without tags matching at least one constraint cannot depend on any libraries".
 - Relative imports are reported before any tag is read, as [section 4](#4-layers-library-types-and-dependency-rules) showed.
 
 The docs describe tags as "a generic mechanism for expressing constraints on project dependencies" and the rule as checking "TypeScript imports and `package.json` dependencies during linting" ([Nx, enforce module boundaries](https://nx.dev/docs/features/enforce-module-boundaries), read 2026-10-18).
 
-**Affected.** Read, not run, in `nx` 23.3.0 (`dist/src/project-graph/affected/affected-project-graph.js`): the internal `filterAffected` finds touched projects from touched files, reverses the graph, and adds every project reachable from them. `--base` and `--head` choose the files; the base falls back to `defaultBase` in `nx.json`, then `affected.defaultBase`, then `main`, and `NX_BASE` is read when `--base` is absent (`dist/src/utils/command-line-utils.js`).
+**Affected.** Read, not run, in `nx` 23.3.0 (`dist/src/project-graph/affected/affected-project-graph.js`): the internal `filterAffected` finds touched projects from touched files, reverses the graph, and adds every project reachable from them. `--base` and `--head` choose the files (the internal `parseFiles`); the base falls back to `defaultBase` in `nx.json`, then `affected.defaultBase`, then `main`, and `NX_BASE` is read when `--base` is absent (`dist/src/utils/command-line-utils.js`).
 
-**The cache.** In `dist/src/hasher/task-hasher.js` the default named input is `{projectRoot}/**/*`, and the default task inputs are that fileset plus the same for dependencies. `targetDefaults` in `nx.json` set `cache`, `inputs`, `outputs` and `dependsOn` per target. Nx "restores both the terminal output and the files created from running the task" ([Nx, cache task results](https://nx.dev/docs/features/cache-task-results), read 2026-10-18). A **remote cache** shares those results between machines.
+**The cache.** In `dist/src/hasher/task-hasher.js` the default **named input** (a reusable input list that `nx.json` declares under `namedInputs`) is `{projectRoot}/**/*`, and the default task inputs are that fileset plus the same for dependencies. `targetDefaults` in `nx.json` set `cache`, `inputs`, `outputs` and `dependsOn` per target. Nx "restores both the terminal output and the files created from running the task" ([Nx, cache task results](https://nx.dev/docs/features/cache-task-results), read 2026-10-18). A **remote cache** shares those results between machines.
 
 **What the lab observed** (2026-10-18, our own code, "the algorithm read from `nx` 23.3.0, run on our code"; it is not Nx):
 
@@ -519,6 +521,10 @@ The docs describe tags as "a generic mechanism for expressing constraints on pro
 ### Code
 
 Approach: tag each project twice, by type and by scope, then constrain by tag.
+
+1. Give each project a `type:` and a `scope:` tag in its `project.json`.
+2. List in `depConstraints`, per source tag, the tags it may import.
+3. Make `build` cacheable in `targetDefaults` and build dependencies first with `^build`.
 
 ```js
 // Partial: the rest of the flat config and the plugin registration are omitted
@@ -535,7 +541,7 @@ const depConstraints = [
 { "targetDefaults": { "build": { "cache": true, "dependsOn": ["^build"], "outputs": ["{projectRoot}/dist"] } } }
 ```
 
-Exercises 38.3 and [38.4](#ex38-4) implement these rules as their own code.
+Exercises [38.3](#ex38-3) and [38.4](#ex38-4) implement these rules as their own code.
 
 ### Best practices and anti-patterns
 
@@ -685,7 +691,7 @@ ESLint, angular-eslint and the hooks are documented only: none ran in the lab. M
 
 **Rules worth switching on.** The plugin ships `prefer-signals`, `no-uncalled-signals`, `no-developer-preview` and `no-experimental`; `@angular-eslint/eslint-plugin-template` ships `prefer-control-flow` (read as rule files; whether a preset enables them was not read).
 
-**Prettier.** `ng new` writes `.prettierrc`, and the CLI formats generated files with Prettier when the workspace resolves it (`@angular/cli` 22.2.1, `src/utilities/prettier.js`); `ng lint` without a `lint` target only offers angular-eslint (`architect-command-module.js`). Prettier's `"angular"` parser is the `"html"` parser "but also formats angular-specific syntax" ([Prettier options](https://prettier.io/docs/options#parser), read 2026-10-18). `Section 9: Prettier with the workspace .prettierrc formats a template with the angular parser` runs Prettier 3.9.9 (`prettier/standalone` with the `angular`, `html`, `estree` and `typescript` plugins) inside `ng test`, with `printWidth: 100`, `singleQuote: true` and the angular parser, copied from `labs/angular/.prettierrc`; it does not read the file. It passes: a one-line `@if` block with `<a>` and four attributes prints with each attribute on its own line, indented under `@if`, and the closing `>` moves onto the content line (`>{{ u.name }}</a`, then `>`).
+**Prettier.** `ng new` writes `.prettierrc`, and the CLI formats generated files with Prettier when the workspace resolves it (`@angular/cli` 22.2.1, `src/utilities/prettier.js`); `ng lint` without a `lint` target only offers angular-eslint (`commands/lint/cli.js`, `missingTargetChoices`). Prettier's `"angular"` parser is the `"html"` parser "but also formats angular-specific syntax" ([Prettier options](https://prettier.io/docs/options#parser), read 2026-10-18). `Section 9: Prettier with the workspace .prettierrc formats a template with the angular parser` runs Prettier 3.9.9 (`prettier/standalone` with the `angular`, `html`, `estree` and `typescript` plugins) inside `ng test`, with `printWidth: 100`, `singleQuote: true` and the angular parser, copied from `labs/angular/.prettierrc`; it does not read the file. It passes: a one-line `@if` block with `<a>` and four attributes prints with each attribute on its own line, indented under `@if`, and the closing `>` moves onto the content line (`>{{ u.name }}</a`, then `>`).
 
 **Import order and hooks.** `eslint-plugin-simple-import-sort` 14.0.0 ("Easy autofixable import sorting", run by `eslint --fix`; rules `imports` and `exports`). husky 9.1.7 sets `core.hooksPath` to `.husky/_` and writes a stub per Git hook (`index.js`). lint-staged 17.6.0 passes the staged files matching each glob to a command. commitlint's guide extends `@commitlint/config-conventional` ([guide](https://commitlint.js.org/guides/getting-started), read 2026-10-18).
 
@@ -837,9 +843,9 @@ The **install** stage runs `npm ci` (lockfile rules: [33 §11](33-security.md#11
 | End-to-end | wiring of the deployed app ([30 §8](30-e2e-and-testing-strategy.md#8-ci-strategy-for-end-to-end-tests-workers-sharding-retries-policy-and-test-data)) | exhaustive logic cases |
 | Preview | a human's judgment of the real build | anything nobody opens |
 
-**Why `ng test` and `ng lint` cover every project but `ng build` needs a name.** Read, not run, in `@angular/cli` 22.2.1, `src/command-builder/architect-command-module.js`, method `getProjectNamesByTarget` (internal name). If the command's `multiTarget` flag is true, it returns "all projects that have the target"; `commands/test/cli.js`, `lint/cli.js` and `e2e/cli.js` set it true, `build`, `serve`, `deploy` and `extract-i18n` set it false. A false flag with several candidate projects falls back to `getProjectByCwd` in `src/utilities/config.js`, which picks the project whose `root` contains the working directory, and only if none does throws "Cannot determine project for command."
+**Why `ng test` and `ng lint` cover every project but `ng build` needs a name.** Read, not run, in `@angular/cli` 22.2.1, `src/command-builder/architect-command-module.js`, method `getProjectNamesByTarget` (internal name). If the command's `multiTarget` flag is true, it returns "all projects that have the target"; `commands/test/cli.js`, `lint/cli.js` and `e2e/cli.js` set it true, `build`, `serve`, `deploy` and `extract-i18n` set it false. A false flag with several candidate projects falls back to the internal `getProjectByCwd` in `src/utilities/config.js`, which picks the project whose `root` contains the working directory, and only if none does throws "Cannot determine project for command."
 
-In this workspace of eight projects, `npx ng build` run at the workspace root resolved to `labs`, the project whose root is the workspace root (recorded by a run on 2026-10-17, not a committed test). That is also why the generated `test` target of `ui-lib` was removed: `ng test` would have run it. The lab's standard checks run `npx ng build ui-lib` first, because `tsconfig.json` maps `ui-lib` to `./dist/ui-lib` and the spec compile and `ng test` need it ([Q12.04](12-angular-how-it-works.md#q12-04)). Backend counterpart: [delivery path](../../Architect-Level%20Production%20%26%20Architect.md#q29--the-delivery-path-what-the-pipeline-contains-and-what-one-commits-journey-looks-like). In a monorepo, affected-only runs shrink every stage ([§7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)).
+In this workspace of eight projects, `npx ng build` at the workspace root resolves to `labs`: the internal `findProjectByPath` (`src/utilities/config.js`) keeps the projects whose `root` contains the working directory, and only `labs` has the workspace root as `root` (read, not run). That is also why the generated `test` target of `ui-lib` was removed: `ng test` would have run it. The lab's standard checks run `npx ng build ui-lib` first, because `tsconfig.json` maps `ui-lib` to `./dist/ui-lib` and the spec compile and `ng test` need it ([Q12.04](12-angular-how-it-works.md#q12-04)). Backend counterpart: [delivery path](../../Architect-Level%20Production%20%26%20Architect.md#q29--the-delivery-path-what-the-pipeline-contains-and-what-one-commits-journey-looks-like). In a monorepo, affected-only runs shrink every stage ([§7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)).
 
 ### Code
 
@@ -889,7 +895,7 @@ Majors are the newest major tag each repository lists, read 2026-10-18: `actions
 - *"Unit tests in CI need a browser."* The v22 default runs Vitest with jsdom. The myth comes from Karma.
 - *"Retry e2e failures until green."* Retries hide flakiness; the retry policy is owned by section 8 of module 30. The myth comes from suites that are already flaky.
 
-Drilled in [Q38.27](#q38-27).
+Drilled in [Q38.27](#q38-27); practised in [Exercise 38.4](#ex38-4).
 
 ## 12. A complete production folder tree, folder by folder
 
@@ -1039,7 +1045,7 @@ Approach: Kahn's sort over §7's graph shape.
   if (pending.size > 0) throw new Error(`Dependency cycle among: ${[...pending.keys()].join(', ')}`);
 ```
 
-Drilled in [Q38.29](#q38-29).
+Drilled in [Q38.29](#q38-29); practised in [Exercise 38.4](#ex38-4).
 
 ### Best practices and anti-patterns
 
@@ -1051,7 +1057,7 @@ Drilled in [Q38.29](#q38-29).
 
 - *"ng-packagr builds entry points in folder order."* It sorts by imports, rejects cycles and runs independent ones in parallel. The myth comes from the alphabetical output folders.
 - *"The Nx cache keys on the git commit."* It hashes the declared inputs and the command, so an undeclared input gives a stale hit. The myth comes from CI caches that do key on commits.
-- *"Affected uses the files in the last commit."* It compares `--base` with `--head`, or uncommitted and untracked files (§7). The myth comes from local habits.
+- *"Affected uses the files in the last commit."* It diffs `--base` against `--head`, or, with no head, against `HEAD` plus uncommitted and untracked files (§7). The myth comes from local habits.
 
 ## Summary
 
@@ -1186,6 +1192,7 @@ orders.update((list) => [...list, { id: 3, customer: 'Linus' }]);
 
 **Follow-ups an interviewer will ask.**
 - *Where does shared container code go?* In a function or service the containers compose, not a base class ([Q20.18](20-lifecycle-and-render-hooks.md#q20-18) prefers composition).
+- *What signals that a split is due?* A second screen needs the same view, or a test needs providers only to render it; the list test in [§2](#2-smart-container-and-presentational-components) needs none.
 
 **Trap to avoid.** Splitting by a rule ("every template gets a container"), which produces pass-through containers.
 
@@ -1224,12 +1231,13 @@ export abstract class OrdersFacadePort {
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** The facade maps to the application service, the `ORDERS_API` token to a port, `HttpOrdersApi` to an adapter in the repository's place, and the one-way arrows to the layer rule. It breaks in four places: the client holds cached server state that outlives a request, `ui` has no backend twin, nothing in the build stops a wrong import, and scopes differ.
+**Short answer (30 seconds).** The facade maps to the application service, the `ORDERS_API` token to a port, `HttpOrdersApi` to an adapter in the repository's place, and the one-way arrows to the layer rule. It breaks in four places: the client holds cached server state that outlives a request, `ui` has no backend twin, nothing in the build stops a wrong import, and lifetimes differ.
 
-**Full explanation.** What maps: the adapter converts a DTO to a view model and an HTTP failure to `OrdersError`, as a repository converts rows to entities; `feature` plays the controller. Where it breaks. First, the front end's "domain" is mostly server state kept for display ([28 §1](28-state-management.md#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs)), so the facade has no business invariants to protect; it lives as long as its route injector and pushes changes through signals. Second, `ui` has no layer in a Spring service. Third, Maven modules stop a controller importing a driver; an Angular component can import `HttpClient` freely, so lint enforces the direction ([§4](#4-layers-library-types-and-dependency-rules)). Fourth, lifetimes: the facade lives with its route injector, and the two containers differ ([Q16.35](16-dependency-injection.md#q16-35)).
+**Full explanation.** What maps: the adapter converts a DTO to a view model and an HTTP failure to `OrdersError`, as a repository converts rows to entities; `feature` plays the controller. Where it breaks. First, the front end's "domain" is mostly server state kept for display ([28 §1](28-state-management.md#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs)), so the facade has no business invariants to protect and pushes changes through signals. Second, `ui` has no layer in a Spring service. Third, Maven modules stop a controller importing a driver; an Angular component can import `HttpClient` freely, so lint enforces the direction ([§4](#4-layers-library-types-and-dependency-rules)). Fourth, lifetimes: the facade lives with its route injector, and the two containers differ ([Q16.35](16-dependency-injection.md#q16-35)).
 
 **Follow-ups an interviewer will ask.**
 - *Is the facade a port?* No: the port is `ORDERS_API`, what the facade needs; the facade is what components need.
+- *Where does a use case with real business rules go?* In the facade, or in a pure function in a util library that the facade calls, so the rule tests without Angular.
 
 **Trap to avoid.** Copying a hexagon onto the front end for what is a cache and a few screens.
 
@@ -1260,8 +1268,9 @@ providers: [...provideOrdersDataAccess(), { provide: ORDERS_API, useValue: fake 
 
 **Follow-ups an interviewer will ask.**
 - *Is a third `load()` possible after the failure?* Yes: the catch sits inside the `switchMap`, so the stream lives ([§3](#3-facades-and-the-data-access-layer)).
+- *Why does the adapter not throw to the container?* The facade turns the failure into state once, so every view reads one error signal instead of each handling its own exception.
 
-**Trap to avoid.** Expecting a blank list after the failure: the facade keeps the last good orders,
+**Trap to avoid.** Expecting a blank list after the failure: the facade keeps the last good orders.
 
 </details>
 
@@ -1331,7 +1340,11 @@ providers: [...provideOrdersDataAccess(), { provide: ORDERS_API, useValue: fake 
   "type": "module",
   "sideEffects": false,
   "dependencies": { "tslib": "^2.3.0" },
-  "exports": { ".": { "types": "./types/ui-lib.d.ts", "default": "./fesm2022/ui-lib.mjs" } }
+  "exports": {
+    ".": { "types": "./types/ui-lib.d.ts", "default": "./fesm2022/ui-lib.mjs" },
+    "./package.json": { "…": "…" },
+    "./testing": { "…": "…" }
+  }
 }
 ```
 
@@ -1376,7 +1389,7 @@ providers: [...provideOrdersDataAccess(), { provide: ORDERS_API, useValue: fake 
 
 **Short answer (30 seconds).** The public API surface is everything a consumer may import and rely on. `public-api.ts` decides the names, the bundled `.d.ts` shows the compiler only those names, and the `exports` map lets Node and bundlers resolve only listed subpaths. Peer dependencies hide nothing: they state which Angular versions the surface was built for.
 
-**Full explanation.** [§6](#6-public-api-surfaces-public-apits-exports-secondary-entry-points-and-versioning) shows each layer. `Section 6: an internal helper's name is absent from the root types file` found `UiBadge` and no `formatCount` in the root typings, and `formatCount` still inside the bundle. `Section 6: exports lists the package, the root and the testing subpath only` read `.`, `./package.json` and `./testing`. `generatePackageExports` writes that map (read, not run, `ng-packagr` 22.2.1), and Node rejects unlisted subpaths with `ERR_PACKAGE_PATH_NOT_EXPORTED` ([Node packages docs](https://nodejs.org/api/packages.html), read 2026-10-17). The Angular docs add that `@angular/*` packages belong in peers.
+**Full explanation.** [§6](#6-public-api-surfaces-public-apits-exports-secondary-entry-points-and-versioning) shows each layer. `Section 6: an internal helper's name is absent from the root types file` found `UiBadge` and no `formatCount` in the root typings, and `formatCount` still inside the bundle. `Section 6: exports lists the package, the root and the testing subpath only` read `.`, `./package.json` and `./testing`. the internal `generatePackageExports` writes that map (read, not run, `ng-packagr` 22.2.1), and Node rejects unlisted subpaths with `ERR_PACKAGE_PATH_NOT_EXPORTED` ([Node packages docs](https://nodejs.org/api/packages.html), read 2026-10-17). The Angular docs add that `@angular/*` packages belong in peers.
 
 **Follow-ups an interviewer will ask.**
 - *Does `export *` change this?* Yes: every name the barrel re-exports becomes public.
@@ -1392,9 +1405,9 @@ providers: [...provideOrdersDataAccess(), { provide: ORDERS_API, useValue: fake 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** The root `.d.ts` declares only `UiBadge`. The internal `UiBadgeDot`, which `UiBadge` renders, is absent from it but compiled into the bundle. `ui-lib-testing.d.ts` declares only `UiBadgeHarnessLite`. `exports` lists `.`, `./package.json` and `./testing`, plus the two Exercise 38.2 entry points.
+**Short answer (30 seconds).** The root `.d.ts` declares only `UiBadge`. The internal `UiBadgeDot`, which `UiBadge` renders, is absent from it but compiled into the bundle, because the types file holds what each entry file exports, while the bundle keeps what that code uses. `ui-lib-testing.d.ts` declares only `UiBadgeHarnessLite`. `exports` lists `.`, `./package.json` and `./testing`, plus the two Exercise 38.2 entry points.
 
-**Full explanation.** `Q38.16: an internal component is compiled into the bundle but absent from the root types; testing and exports list only their own names` read `dist/ui-lib` after `npx ng build ui-lib` (Node 24.21.0, run 2026-10-18). The root types contain `UiBadge` and no `UiBadgeDot`; the root bundle `fesm2022/ui-lib.mjs` contains it; the testing types contain `UiBadgeHarnessLite` and no `UiBadgeDot`. The test leaves the `./ex2-*` keys out. Reading the built files, the bundle lists `imports: [UiBadgeDot]` in `UiBadge`'s metadata (partial compilation, [Q12.28](12-angular-how-it-works.md#q12-28)), while its declaration names no dependency.
+**Full explanation.** `Q38.16: an internal component is compiled into the bundle but absent from the root types; testing and exports list only their own names` read `dist/ui-lib` after `npx ng build ui-lib` (Node 24.21.0, run 2026-10-18). The root types contain `UiBadge` and no `UiBadgeDot`; the root bundle `fesm2022/ui-lib.mjs` contains it; the testing types contain `UiBadgeHarnessLite` and no `UiBadgeDot`. The test leaves the `./ex2-*` keys out. The bundle's partial declaration of `UiBadge` lists `imports: [UiBadgeDot]` ([Q12.28](12-angular-how-it-works.md#q12-28)), while its type declaration names no dependency (read in `dist/ui-lib`, not asserted).
 
 **Follow-ups an interviewer will ask.**
 - *Can a consumer use `<ui-badge-dot>`?* Not by import. The bundle holds it, but nothing exports it.
@@ -1428,9 +1441,9 @@ providers: [...provideOrdersDataAccess(), { provide: ORDERS_API, useValue: fake 
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** The project graph is Nx's map of projects and the dependencies between them, built from imports and configuration. Tags are plain strings declared on each project in `project.json` or `package.json`. Besides tag constraints, the rule reports relative imports across projects, circular dependencies, imports of apps and e2e projects, static imports of lazy-loaded libraries, and banned external packages. Read from `@nx/eslint-plugin` 23.3.0, not run.
+**Short answer (30 seconds).** The project graph is Nx's map of projects and the dependencies between them, built from imports and configuration. Tags are plain strings declared on each project in `project.json` or `package.json`. Besides tag constraints, the rule reports relative imports across projects, circular dependencies, imports of apps and e2e projects, static imports of lazy-loaded libraries, buildable libraries importing non-buildable ones, transitive dependencies missing from `package.json`, and banned external packages. Read from `@nx/eslint-plugin` 23.3.0, not run.
 
-**Full explanation.** Affected commands, task ordering and the lint rule share that one model ([section 7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)). A constraint in `depConstraints` selects source projects by tag and limits targets by tag. The rule's message table (`dist/src/rules/enforce-module-boundaries.js`) holds the other checks, verbatim: "Projects cannot be imported by a relative or absolute path, and must begin with a npm scope", "Circular dependency between …", "Imports of apps are forbidden", "Imports of e2e projects are forbidden", "Static imports of lazy-loaded libraries are forbidden.", "Buildable libraries cannot import or export from non-buildable libraries", and "Only packages defined in the "package.json" can be imported".
+**Full explanation.** Affected commands, task ordering and the lint rule share that one model ([section 7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)). A constraint in `depConstraints` selects source projects by tag and limits targets by tag. The rule's message table (`dist/src/rules/enforce-module-boundaries.js`) holds the other checks, verbatim: "Projects cannot be imported by a relative or absolute path, and must begin with a npm scope", "Circular dependency between …", "Imports of apps are forbidden", "Imports of e2e projects are forbidden", "Static imports of lazy-loaded libraries are forbidden.", "Buildable libraries cannot import or export from non-buildable libraries", "Only packages defined in the "package.json" can be imported." (abridged; `banTransitiveDependencies`), and "A project tagged with "{{sourceTag}}" is not allowed to import "{{imp}}"".
 
 **Follow-ups an interviewer will ask.**
 - *Does the graph need tags?* No; tags only feed constraints.
@@ -1448,7 +1461,7 @@ providers: [...provideOrdersDataAccess(), { provide: ORDERS_API, useValue: fake 
 
 **Short answer (30 seconds).** `type:ui` may import any project, tagged or not, because `*` matches everything. The new untagged project is reported on any library import: "A project without tags matching at least one constraint cannot depend on any libraries". The ban with `[]` reports only imports of tagged targets, so an untagged project slips through. Read from `@nx/eslint-plugin` 23.3.0, not run.
 
-**Full explanation.** In `enforce-module-boundaries.js`, `findConstraintsFor` picks the constraints whose `sourceTag` the importing project has. If none match, the rule reports `projectWithoutTagsCannotHaveDependencies` and stops: an untagged source matches no `sourceTag`, so every library import fails. For `type:ui`, `onlyDependOnLibsWithTags: ['*']` passes because `hasNoneOfTheseTags` is false when `hasTag` returns true for `*`. The empty list is a separate branch: it reports only `if targetProject.data.tags.length !== 0`, with "A project tagged with "type:util" cannot depend on any libs with tags". The untagged library is the hole in the ban.
+**Full explanation.** In `enforce-module-boundaries.js`, the internal `findConstraintsFor` picks the constraints whose `sourceTag` the importing project has. If none match, the rule reports `projectWithoutTagsCannotHaveDependencies` and stops: an untagged source matches no `sourceTag`, so every library import fails. For `type:ui`, `onlyDependOnLibsWithTags: ['*']` passes because the internal `hasNoneOfTheseTags` is false when `hasTag` returns true for `*`. The empty list is a separate branch: it reports only `if targetProject.data.tags.length !== 0`, with "A project tagged with "type:util" cannot depend on any libs with tags". The untagged library is the hole in the ban.
 
 ```js
 // Partial: shape of the options read in @nx/eslint-plugin 23.3.0
@@ -1459,7 +1472,7 @@ const depConstraints = [
 ```
 
 **Follow-ups an interviewer will ask.**
-- *How do you close the hole?* Tag every project, and add a `*` constraint that bans untagged projects.
+- *How do you close the hole?* Write the ban as `notDependOnLibsWithTags: ['*']`: `hasTag` matches `*` on every project the target reaches, tagged or not. A `sourceTag: '*'` constraint does the opposite: it matches every source, so none is reported as unconstrained.
 - *Does `*` weaken `notDependOnLibsWithTags`?* No, that list is checked separately.
 
 **Trap to avoid.** Trusting `[]` as "depends on nothing". It means "no tagged libraries".
@@ -1474,7 +1487,7 @@ const depConstraints = [
 
 **Short answer (30 seconds).** Affected narrows by project. Nx maps touched files to touched projects, then adds every project that depends on one, transitively. The cache narrows by task. Nx hashes the task's declared inputs and command, and a matching hash replays the stored outputs instead of running. Read from `nx` 23.3.0, not run.
 
-**Full explanation.** `filterAffected` (`dist/src/project-graph/affected/affected-project-graph.js`) runs touched-project locators over the changed files, reverses the graph, and walks from each touched project to its dependents. `--base` and `--head` choose the files, or uncommitted and untracked files when absent; the base falls back to `defaultBase` in `nx.json`, then `affected.defaultBase`, then `main` ([section 7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)). Then each target's hash covers its inputs. With no `inputs`, `DEFAULT_INPUTS` in `task-hasher.js` use the project's `{projectRoot}/**/*` fileset plus the same for its dependencies; `targetDefaults` can add `env` or other inputs. `outputs` say which files to store and restore. The lab's `Section 7` tests ran our own reversed-graph walk, "the algorithm read from `nx` 23.3.0, run on our code": it is not Nx ([section 13](#13-under-the-hood-ng-packagrs-build-graph-and-how-nx-computes-affected-projects-and-task-hashes)).
+**Full explanation.** The internal `filterAffected` (`dist/src/project-graph/affected/affected-project-graph.js`) runs touched-project locators over the changed files, reverses the graph, and walks from each touched project to its dependents. `--base` and `--head` choose the files; with no `--head`, the diff from the base to `HEAD` plus uncommitted and untracked files (the internal `parseFiles`, `command-line-utils.js`); the base falls back to `defaultBase` in `nx.json`, then `affected.defaultBase`, then `main` ([section 7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)). Then each target's hash covers its inputs. With no `inputs`, `DEFAULT_INPUTS` in `task-hasher.js` use the project's `{projectRoot}/**/*` fileset plus the same for its dependencies; `targetDefaults` can add `env` or other inputs. `outputs` say which files to store and restore. The lab's `Section 7` tests ran our own reversed-graph walk, "the algorithm read from `nx` 23.3.0, run on our code": it is not Nx ([section 13](#13-under-the-hood-ng-packagrs-build-graph-and-how-nx-computes-affected-projects-and-task-hashes)).
 
 **Follow-ups an interviewer will ask.**
 - *What if `--base` is missing?* `NX_BASE` is read, then the configured default base.
@@ -1632,6 +1645,7 @@ export const Capped: StoryObj<UiBadge> = { args: { count: 120 } };
 
 **Follow-ups an interviewer will ask.**
 - *Does Storybook replace component tests?* No; tests assert behavior in CI without a browser UI, and stories show appearance.
+- *Why does Storybook still need `@angular-devkit/build-angular`?* It is a non-optional peer (`>=18.0.0 < 23.0.0`) of `@storybook/angular` 10.6.2, whose webpack 5 build compiles the stories.
 
 **Trap to avoid.** Assuming Storybook rides the application builder: it brings webpack 5 beside it.
 
@@ -1645,7 +1659,7 @@ export const Capped: StoryObj<UiBadge> = { args: { count: 120 } };
 
 **Short answer (30 seconds).** Order stages cheapest and most likely to fail first: install, format and lint, unit tests, build with budgets, end-to-end, then the preview. Each stage is a gate: a non-zero exit stops every later stage. Cache the npm download folder by lockfile hash, and in a monorepo run only affected projects.
 
-**Full explanation.** `prettier --check` exits with code 1 for an unformatted file, and `ng lint` fails on a rule error, which needs a lint target ([§9](#9-linting-and-formatting-angular-eslint-prettier-import-ordering-and-commit-hooks)). Unit tests run with `--watch=false`, because a watching runner never exits. The build fails on a compile error or a budget over its error threshold ([Q31.05](31-performance.md#q31-05) owns what budgets and Lighthouse each catch). End-to-end runs against the built app, after the build job, and retries stay with its owner ([Q30.16](30-e2e-and-testing-strategy.md#q30-16)). The preview passes when published; a reviewer judges it. `setup-node` with `cache-dependency-path` keys the npm cache on `package-lock.json`. Affected runs shrink every stage ([§7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching), [§11](#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews)).
+**Full explanation.** `prettier --check` exits with code 1 for an unformatted file, and `ng lint` fails on a rule error, which needs a lint target ([§9](#9-linting-and-formatting-angular-eslint-prettier-import-ordering-and-commit-hooks)). Unit tests run with `--watch=false`, because a watching runner never exits. The build fails on a compile error or a budget over its error threshold ([Q31.05](31-performance.md#q31-05) owns what budgets and Lighthouse each catch). End-to-end runs against the built app, after the build job, and the e2e stage's workers, shards and retries are [Q30.16](30-e2e-and-testing-strategy.md#q30-16)'s. The preview passes when published; a reviewer judges it. `setup-node` with `cache-dependency-path` keys the npm cache on `package-lock.json`. Affected runs shrink every stage ([§7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching), [§11](#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews)).
 
 **Code.**
 
@@ -1686,6 +1700,7 @@ src/app/
 
 **Follow-ups an interviewer will ask.**
 - *Where do models go?* DTOs in data-access, row shapes beside their component, not a `models/` folder.
+- *Where do translation files go?* In `src/locale/`, the folder [34 §6](34-i18n.md#6-extraction-and-translation-files-ng-extract-i18n-formats-and-message-ids) uses for `ng extract-i18n` output.
 
 **Trap to avoid.** Re-registering a core provider in a feature route, which builds a second instance.
 
@@ -1699,7 +1714,7 @@ src/app/
 
 **Short answer (30 seconds).** ng-packagr finds every folder with an `ng-package.json`, reads each entry point's imports to draw edges, sorts the entry points so dependencies build first, and rejects cycles. Each entry point is compiled, bundled and given a `package.json`. Nx finds touched projects and their dependents, then hashes each task's declared inputs plus its command. Read, not run: ng-packagr 22.2.1, nx 23.3.0.
 
-**Full explanation.** `analyseEntryPoint` reads each source file with TypeScript's `preProcessFile` and keeps imports equal to the primary name or starting with it plus `/`; relative imports are never edges. `scheduleEntryPoints` puts the entry points in `new DepGraph({ circular: false })`, so a cycle throws, and starts those with no unbuilt dependencies together, so independent ones build in parallel. `writeBundles` (rolldown) and `writePackage` finish each one. Nx's `task-hasher.js` takes the target's `inputs`, or by default the project's `{projectRoot}/**/*` plus each dependency's; `hashCommand` adds project, target, configuration and overrides. In the lab, `Section 13: a cycle between two entry points is reported by our topological sort` throws "Dependency cycle among: ui-lib/a, ui-lib/b"; that sort is ours, not ng-packagr's ([§13](#13-under-the-hood-ng-packagrs-build-graph-and-how-nx-computes-affected-projects-and-task-hashes)).
+**Full explanation.** Every function named here is internal. `analyseEntryPoint` reads each source file with TypeScript's `preProcessFile` and keeps imports equal to the primary name or starting with it plus `/`; relative imports are never edges. `scheduleEntryPoints` puts the entry points in `new DepGraph({ circular: false })`, so a cycle throws, and starts those with no unbuilt dependencies together, so independent ones build in parallel. `writeBundles` (rolldown) and `writePackage` finish each one. Nx's `task-hasher.js` takes the target's `inputs`, or by default the project's `{projectRoot}/**/*` plus each dependency's; `hashCommand` adds project, target, configuration and overrides. In the lab, `Section 13: a cycle between two entry points is reported by our topological sort` throws "Dependency cycle among: ui-lib/a, ui-lib/b"; that sort is ours, not ng-packagr's ([§13](#13-under-the-hood-ng-packagrs-build-graph-and-how-nx-computes-affected-projects-and-task-hashes)).
 
 **Code.**
 
@@ -1710,6 +1725,7 @@ src/app/
 
 **Follow-ups an interviewer will ask.**
 - *Why did the cache replay an old build?* An input the build reads was not declared, so the hash did not change.
+- *Why does ng-packagr report no cycle for a relative import between entry points?* A relative import is not an edge in its graph; only imports of an entry point's name are.
 
 **Trap to avoid.** Believing the Nx cache keys on the git commit; it keys on declared inputs and the command.
 
@@ -1838,12 +1854,13 @@ export { provideUiStatus } from './provide-status';
 - Rendering: `ready` renders `Ready` in `span.ui-status-pill`.
 - Configuration: with `provideUiStatus({ labels: { ready: 'Listo' } })` the same input renders `Listo`.
 
-**What the lab observed** (2026-10-18). With only `"ui-lib": ["./dist/ui-lib"]` in `tsconfig.json`, compiling the spec failed with TS2307 on `ui-lib/ex2-a` and `ui-lib/ex2-b`: a `paths` pattern without a wildcard matches one specifier. Adding `"ui-lib/*": ["./dist/ui-lib/*"]` fixed it; the build output holds a stub folder per entry point (`ex2-a/package.json` with `module` and `typings`), which the mapping reaches (listing read, not asserted).
+**Why the consumer needs a second `paths` entry.** A `paths` key without `*` matches only that exact specifier (`typescript` 6.0.3, `matchPatternOrExact`, internal; read, not run), so `"ui-lib"` alone cannot resolve `ui-lib/ex2-a`. The lab's `tsconfig.json` therefore also maps `"ui-lib/*": ["./dist/ui-lib/*"]`. It reaches the stub `package.json` (`module` and `typings` only) that ng-packagr writes in each secondary entry point's folder (`write-package.transform.js`, read, not run).
 
 **Alternative approach:** `ex2-b` keeps `src/public-api.ts` as `export * from './api'`, where `api/index.ts` re-exports only the curated files and `internal/` sits outside `api/`. **Trade-offs:** in a, each name is written once in a visible list, so a new file never widens the API silently; in b, the surface is a folder, which is shorter to maintain but makes `export *` the gate. Both pass the same tests, with no extra ng-packagr configuration.
 
 **Interviewer follow-ups.**
 - *"Why does the consumer need a `ui-lib/*` path?"* The `ui-lib` entry matches only the bare name; the wildcard lets TypeScript find each subpath's stub folder.
+- *"Why do `formatStatus` and `UiStatusConfig` stay out of the public types?"* They are internal; the test `keeps the internal formatter out of the public types` fails if the declarations expose them.
 
 **Tests:** [exercise-2.test.ts](../labs/ts-js/src/modules/38-architecture-and-production-structure/exercise-2-library/exercise-2.test.ts) and [exercise-2.spec.ts](../labs/angular/src/app/modules/38-architecture-and-production-structure/exercise-2-library/exercise-2.spec.ts) (both need `npx ng build ui-lib` first); the code is [ex2-a](../labs/angular/projects/ui-lib/ex2-a/src/public-api.ts) and [ex2-b](../labs/angular/projects/ui-lib/ex2-b/src/public-api.ts).
 
@@ -1904,6 +1921,7 @@ const only = (sourceTag: string, ...tags: string[]): Constraint => ({ sourceTag,
 
 **Interviewer follow-ups.**
 - *"Why report a relative import the tags allow?"* A relative path skips the project's public entry, so the rule cannot be enforced; Nx reports it too ([section 7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)).
+- *"Why does the banned-tag check cover reachable projects, not only direct imports?"* A banned project can sit behind an allowed one; `reports a dependency on a banned tag reached through another project` pins it, as `notDependOnLibsWithTags` does ([section 7](#7-nx-monorepos-the-project-graph-tags-nxenforce-module-boundaries-affected-commands-and-caching)).
 
 **Tests:** [exercise-3.test.ts](../labs/ts-js/src/modules/38-architecture-and-production-structure/exercise-3-boundaries/exercise-3.test.ts); the code and both fixture trees are in the same [folder](../labs/ts-js/src/modules/38-architecture-and-production-structure/exercise-3-boundaries/).
 
@@ -1936,7 +1954,7 @@ The approach: affected projects, a task graph, an order, a hash per task.
 1. Map changed files to touched projects, then add their dependents (`concepts/affected.ts`).
 2. Build the task graph for those projects.
 3. Order it in **waves**: wave 0 waits for nothing; each later wave holds the tasks whose last dependency was in the previous wave, so one wave could run in parallel.
-4. Hash project, target, global inputs, the project's sorted files and its dependencies' hashes, as `DEFAULT_INPUTS` adds each dependency's input.
+4. Hash project, target, global inputs, the project's sorted files and its dependencies' hashes, as Nx's internal `DEFAULT_INPUTS` adds each dependency's input.
 5. Skip a cached hash; stop at a failing task and report the rest as not run.
 
 ```ts

@@ -4,7 +4,7 @@ Measured usage cost per task size, in percentage points of the rate-limit window
 
 | Harness | Model | S | M | L | Samples (sessions) | Last updated |
 |---|---|---|---|---|---|---|
-| Claude Code CLI | claude-opus-5-5 | 1.07 | 2.67 | 5.33 | 44 | 2026-10-17 |
+| Claude Code CLI | claude-opus-5-5 | 3.02 | 7.56 | 15.11 | 46 | 2026-10-18 |
 | Claude Code (cloud) | claude-opus-5-5 | 0.75 | 1.88 | 3.75 | 2 | 2026-10-13 |
 
 ## Raw samples
@@ -66,3 +66,6 @@ Measured usage cost per task size, in percentage points of the rate-limit window
 | S20261016-1622-claudecode (Jorge readout 12% at the SEC-M36-08 dispatch) | end of the same session (Jorge's pasted usage readout at the 2026-10-17 launch: 28%, RESETS 21:40) | 21:40 (same window) | 12% → 28% (16 points) | about 6 M = 30 default points (SEC-M36-08..13; Opus main past 150k context, Sonnet and Opus writers, folder ×5 + full e2e per task) | 16 / 30 = 0.533 × default: S 1.07, M 2.67, L 5.33 (row raised to this sample: conservative) |
 | S20261017-0645-claudecode | S20261017-1049-claudecode | 11:40 (same window) | 0% → 16% (16 points) | 10 M + 1 S = 52 default points (EX-M36-01..04, QB-M36-01..05, CLOSE-M36, HOUSE-36; Opus main dispatching, Sonnet writers/closer, one Opus writer, full e2e under caffeinate) | 16 / 52 = 0.308 × default: S 0.62, M 1.54, L 3.08 (row kept at 1.07 / 2.67 / 5.33: below the row, conservative) |
 | S20261017-1423-claudecode | S20261017-1635-claudecode | 16:40 (same window) | 17% → 25% (8 points) | 9 M = 45 default points (EX-M37-02..04, QB-M37-01..05, CLOSE-M37; Opus main dispatching and running every check, Sonnet writers/closer, one Opus writer, full e2e under caffeinate) | 8 / 45 = 0.178 × default: S 0.36, M 0.89, L 1.78 (row kept at 1.07 / 2.67 / 5.33: below the row, conservative) |
+| S20261018-1122-claudecode | S20261018-1406-claudecode | 16:00 (same window) | 0% → 11% (11 points) | 1 L + 1 M + 2 S = 19 default points (REVIEW-M38 by an Opus reviewer subagent, FIX-M38-01..03 by Sonnet fixers; Opus main ran folder checks, no e2e) | 11 / 19 = 0.579 × default: S 1.16, M 2.89, L 5.79 (row raised to this sample: conservative) |
+| S20261018-1411-claudecode | S20261018-1558-claudecode | 16:30 (same window) | 35% → 76% (41 points) | 1 M = 5 default points (PLAN-M39 by an Opus planner subagent reading many packed sources; Opus main verification) | 41 / 5 = 8.200 × default: S 16.40, M 41.00, L 82.00 (row kept at 1.16 / 2.89 / 5.79: one planner outlier, like the 1.000 PLAN-M27 sample; source-heavy PLAN tasks cost far above an average M) |
+| S20261018-1730-claudecode | S20261018-1950-claudecode | 22:30 (same window) | 0% → 68% (68 points) | 9 M = 45 default points (SEC-M39-01..09; Opus main running every Angular build and check, Sonnet writers for 7, Opus writers for 2; real get_usage readings after each task: 7, 15, 21, 27, 36, 45, 50, 56, 67) | 68 / 45 = 1.511 × default: S 3.02, M 7.56, L 15.11 (row raised to this sample: conservative; SEC tasks with main-run Angular checks cost well above the earlier subagent-only rows) |

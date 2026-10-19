@@ -46,7 +46,7 @@ Source: SYLLABUS §6. The parallel batches are dissolved: one module at a time, 
 | 31 | 36 `material-and-cdk` | D | NG | reviewed and fixed (CLOSE-M36, REVIEW-M36, FIX-M36-01..02 2026-10-17; 19,637 prose words, 25 Q (Output 8), 4 Ex; HOUSE-34 added `@angular/material` and `@angular/aria` 22.2.1, HOUSE-35 added `labs/angular/projects/material-lab`) |
 | 32 | 37 `elements-pwa-errors-ecosystem` | D | NG | reviewed and fixed (CLOSE-M37, REVIEW-M37, FIX-M37-01..03 2026-10-17; 20,226 prose words, 25 Q (Output 7), 4 Ex; HOUSE-37 added `@angular/elements` and `@angular/service-worker` 22.2.1, HOUSE-38 added `labs/angular/projects/elements-lab` on port 4900) |
 | 33 | 38 `architecture-and-production-structure` | D | NG | written and closed (CLOSE-M38 2026-10-18; 20,030 prose words, 29 Q (Output 5), 4 Ex; HOUSE-39 added `ng-packagr` 22.2.1, HOUSE-40 added `labs/angular/projects/ui-lib`); REVIEW-M38 next |
-| 34 | 39 `version-history-and-migrations` | D | NG | not started |
+| 34 | 39 `version-history-and-migrations` | D | NG | planned (PLAN-M39 2026-10-18; skeleton 1,879 words, 25 Q, 4 Ex, 22 markers; no HOUSE task; plan 19,489 words) |
 | 35 | 40 `framework-comparisons` | D | — | not started |
 | 36 | 41 `fullstack-api-contracts` | E | — | not started |
 | 37 | 42 `fullstack-authentication` | E | — | not started |
