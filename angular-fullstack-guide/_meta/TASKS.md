@@ -1161,16 +1161,16 @@ Module 39 (PLAN-M39; plan in `_meta/modules/M39.md`, written by S20261018-1411).
 | SEC-M39-07 | M | done | SEC-M39-06 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; `--force` spot-check, checks and bookkeeping by main claude-opus-5-5) |
 | SEC-M39-08 | M | done | SEC-M39-07 | S20261018-1730-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
 | SEC-M39-09 | M | done | SEC-M39-08 | S20261018-1730-claudecode (writer subagent claude-opus-5-5; Angular builds, checks and bookkeeping by main claude-opus-5-5) |
-| SEC-M39-10 | M | todo | SEC-M39-09 |  |
-| SEC-M39-11 | M | todo | SEC-M39-10 |  |
-| SEC-M39-12 | M | todo | SEC-M39-11 |  |
-| EX-M39-01 | M | todo | SEC-M39-12 |  |
-| EX-M39-02 | M | todo | EX-M39-01 |  |
-| EX-M39-03 | M | todo | EX-M39-02 |  |
-| EX-M39-04 | M | todo | EX-M39-03 |  |
-| QB-M39-01 | M | todo | EX-M39-04 |  |
-| QB-M39-02 | M | todo | QB-M39-01 |  |
-| QB-M39-03 | M | todo | QB-M39-02 |  |
+| SEC-M39-10 | M | done | SEC-M39-09 | S20261019-0411-claudecode (writer subagent claude-opus-5-5; checks, Mermaid parse and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-11 | M | done | SEC-M39-10 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5 in two phases around a main-run probe; one type fix, checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M39-12 | M | done | SEC-M39-11 | S20261019-0411-claudecode (writer subagent claude-opus-5-5; ordering re-read, checks and bookkeeping by main claude-opus-5-5) |
+| EX-M39-01 | M | done | SEC-M39-12 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| EX-M39-02 | M | done | EX-M39-01 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| EX-M39-03 | M | done | EX-M39-02 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| EX-M39-04 | M | done | EX-M39-03 | S20261019-0411-claudecode (writer subagent claude-opus-5-5, two probe rounds run by main; source re-read, checks and bookkeeping by main claude-opus-5-5) |
+| QB-M39-01 | M | done | EX-M39-04 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5; spot-check, checks and bookkeeping by main claude-opus-5-5) |
+| QB-M39-02 | M | done | QB-M39-01 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5; one claim re-based on a source read, checks and bookkeeping by main claude-opus-5-5) |
+| QB-M39-03 | M | in_progress | QB-M39-02 |  |
 | QB-M39-04 | M | todo | QB-M39-03 |  |
 | QB-M39-05 | M | todo | QB-M39-04 |  |
 | CLOSE-M39 | M | todo | QB-M39-05 |  |
