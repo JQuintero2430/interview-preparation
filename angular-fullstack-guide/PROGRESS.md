@@ -2,7 +2,7 @@
 
 Human-facing dashboard, one row per module. Updated by `CLOSE` tasks (and by bootstrap B2). The job's working memory is in `_meta/`: [STATE](_meta/STATE.md) (where the job stands), [TASKS](_meta/TASKS.md) (queue), [ROADMAP](_meta/ROADMAP.md) (module order), [LOG](_meta/LOG.md) (session log). Session protocol: [RUN](_meta/RUN.md).
 
-**Last updated:** 2026-10-18 (CLOSE-M38)
+**Last updated:** 2026-10-23 (CLOSE-M47)
 
 ## Phases
 
@@ -13,7 +13,7 @@ Human-facing dashboard, one row per module. Updated by `CLOSE` tasks (and by boo
 - [ ] Phase 4: reviews (one per module, inside each module's lifecycle)
 - [ ] Phase 5: finish line (root files, cross-module review, repo README link)
 
-**Modules done:** 37 / 47 reviewed and fixed (01–37; module 37 by REVIEW-M37 and FIX-M37-01..03, 2026-10-17); module 38 written and closed (CLOSE-M38, 2026-10-18), REVIEW-M38 next. Questions written: 1035 (guide floor 600). Exercises: 170. Module 25 stops at 34 of 35 questions: testing forms is module 29's. Module 26 is at its 28-question ceiling. Module 27 stops at 34 of 35 questions: a stand-alone "what is the SSR transfer cache" question belongs to module 32, so §6 covers it in prose and Q27.21 weighs it against the other caches. Module 28 stops at 34 of 35 questions: a second `BehaviorSubject` question would repeat Q17.40 and Q22.18. Module 29 stops at 34 of 35 questions: a 35th would repeat an owner (Q16.34 override matrix, Q18.19 `@defer` tests, Q19.26 binding functions, Q23.34 marble tests, Q27.34 the HTTP testing backend). Module 30 is at its ceilings of 18 questions and 3 exercises (lab mode: Exercise 30.2 is kept, so nothing was dropped). Module 31 stops at 27 of 30 questions, the count PLAN-M31 (`_meta/modules/M31.md`) sized. Module 32 stops at 27 of 30 questions, the count PLAN-M32 (`_meta/modules/M32.md`) sized: "`withIncrementalHydration()` in v22", "`ngSkipHydration` versus a fix" and "deployment security mistakes" are follow-ups of Q32.14, Q32.12 and Q32.25 (the security side of SSR is module 33's). Module 33 stops at 29 of 30 questions, the count PLAN-M33 (`_meta/modules/M33.md`) sized: "`Renderer2` versus `ElementRef` for DOM writes" is a follow-up of Q33.04 because module 14 owns those APIs.
+**Modules done:** 47 / 47 reviewed and fixed (01–47; module 47 by REVIEW-M47 and FIX-M47-01..03, 2026-10-24; module 38 by REVIEW-M38 and FIX-M38-01..03, 2026-10-18; module 39 by REVIEW-M39 and FIX-M39-01..03, 2026-10-20); module 40 by REVIEW-M40 and FIX-M40-01..03, 2026-10-20; module 41 by REVIEW-M41 and FIX-M41-01..03, 2026-10-20; module 42 by REVIEW-M42 and FIX-M42-01..03, 2026-10-21; module 43 by REVIEW-M43 and FIX-M43-01..03, 2026-10-22; module 44 by REVIEW-M44 and FIX-M44-01..03, 2026-10-22; module 45 by REVIEW-M45 and FIX-M45-01..03, 2026-10-22; module 46 by REVIEW-M46 and FIX-M46-01..03, 2026-10-23. Module 47 is closed (CLOSE-M47, 2026-10-23), REVIEW-M47 next. Questions written: 1220 (guide floor 600). Exercises: 197. Module 25 stops at 34 of 35 questions: testing forms is module 29's. Module 26 is at its 28-question ceiling. Module 27 stops at 34 of 35 questions: a stand-alone "what is the SSR transfer cache" question belongs to module 32, so §6 covers it in prose and Q27.21 weighs it against the other caches. Module 28 stops at 34 of 35 questions: a second `BehaviorSubject` question would repeat Q17.40 and Q22.18. Module 29 stops at 34 of 35 questions: a 35th would repeat an owner (Q16.34 override matrix, Q18.19 `@defer` tests, Q19.26 binding functions, Q23.34 marble tests, Q27.34 the HTTP testing backend). Module 30 is at its ceilings of 18 questions and 3 exercises (lab mode: Exercise 30.2 is kept, so nothing was dropped). Module 31 stops at 27 of 30 questions, the count PLAN-M31 (`_meta/modules/M31.md`) sized. Module 32 stops at 27 of 30 questions, the count PLAN-M32 (`_meta/modules/M32.md`) sized: "`withIncrementalHydration()` in v22", "`ngSkipHydration` versus a fix" and "deployment security mistakes" are follow-ups of Q32.14, Q32.12 and Q32.25 (the security side of SSR is module 33's). Module 33 stops at 29 of 30 questions, the count PLAN-M33 (`_meta/modules/M33.md`) sized: "`Renderer2` versus `ElementRef` for DOM writes" is a follow-up of Q33.04 because module 14 owns those APIs.
 
 ## Modules
 
@@ -59,15 +59,15 @@ Q and Ex show `written / ceiling` (SYLLABUS §1 ceilings are upper limits, not q
 | [36 material-and-cdk](modules/36-material-and-cdk.md) | D | NG | done | 25 / 25 | 4 / 4 | yes (e2e, angular) | yes (CLOSE-M36, 2026-10-17; 19,637 prose words after FIX-M36-01) | yes (REVIEW-M36, FIX-M36-01..02, 2026-10-17) |
 | [37 elements-pwa-errors-ecosystem](modules/37-elements-pwa-errors-ecosystem.md) | D | NG | done | 25 / 25 | 4 / 4 | yes (e2e, angular, ts-js) | yes (CLOSE-M37, 2026-10-17; 20,226 prose words after FIX-M37-01..02) | yes (REVIEW-M37, FIX-M37-01..03, 2026-10-17) |
 | [38 architecture-and-production-structure](modules/38-architecture-and-production-structure.md) | D | NG | done | 29 / 30 | 4 / 4 | yes (angular, ts-js) | yes (CLOSE-M38, 2026-10-18; 20,030 prose words) | — |
-| 39 `version-history-and-migrations` | D | NG | not started | 0 / 25 | 0 / 4 | — | no | — |
-| 40 `framework-comparisons` | D | — | not started | 0 / 16 | 0 / 2 | — | no | — |
-| 41 `fullstack-api-contracts` | E | — | not started | 0 / 32 | 0 / 5 | — | no | — |
-| 42 `fullstack-authentication` | E | — | not started | 0 / 38 | 0 / 5 | — | no | — |
-| 43 `fullstack-realtime` | E | — | not started | 0 / 24 | 0 / 3 | — | no | — |
-| 44 `fullstack-delivery-and-operations` | E | — | not started | 0 / 30 | 0 / 4 | — | no | — |
-| 45 `frontend-system-design-method` | F | — | not started | 0 / 18 | 0 / 2 | — | no | — |
-| 46 `system-design-case-studies` | F | — | not started | 0 / 30 | 0 / 6 | — | no | — |
-| 47 `behavioral-and-interview-craft` | G | — | not started | 0 / 15 | 0 / 2 | — | no | — |
+| [39 version-history-and-migrations](modules/39-version-history-and-migrations.md) | D | NG | done | 25 / 25 | 4 / 4 | yes (angular, ts-js) | yes (CLOSE-M39, 2026-10-19; 19,449 prose words after FIX-M39-01..02) | yes (REVIEW-M39, FIX-M39-01..03, 2026-10-20) |
+| [40 framework-comparisons](modules/40-framework-comparisons.md) | D | — | done | 16 / 16 | 2 / 2 | yes (ts-js) | yes (CLOSE-M40, 2026-10-20; 13,478 prose words after FIX-M40-01..02) | yes (REVIEW-M40, FIX-M40-01..03, 2026-10-20) |
+| [41 fullstack-api-contracts](modules/41-fullstack-api-contracts.md) | E | NG | done | 21 / 21 | 3 / 3 | yes (angular, ts-js) | yes (CLOSE-M41, 2026-10-20; 9,600 prose words after FIX-M41-01..02) | yes (REVIEW-M41, FIX-M41-01..03, 2026-10-20) |
+| [42 fullstack-authentication](modules/42-fullstack-authentication.md) | E | — | done | 23 / 23 | 3 / 3 | yes (angular, ts-js) | yes (CLOSE-M42, 2026-10-20; 9,831 prose words after FIX-M42-01..02) | yes (REVIEW-M42, FIX-M42-01..03, 2026-10-21) |
+| [43 fullstack-realtime](modules/43-fullstack-realtime.md) | E | — | done | 21 / 24 | 3 / 3 | yes (angular, ts-js) | yes (CLOSE-M43, 2026-10-22; 9,423 prose words, 9,664 after FIX-M43-01..02) | yes (REVIEW-M43, FIX-M43-01..03, 2026-10-22) |
+| [44 fullstack-delivery-and-operations](modules/44-fullstack-delivery-and-operations.md) | E | — | done | 21 / 30 | 3 / 4 | yes (angular, ts-js) | yes (CLOSE-M44, 2026-10-22; 9,585 prose words, 9,793 after FIX-M44-01..02) | yes (REVIEW-M44, FIX-M44-01..03, 2026-10-22) |
+| [45 frontend-system-design-method](modules/45-frontend-system-design-method.md) | F | — | done | 17 / 18 | 2 / 2 | yes (ts-js) | yes (CLOSE-M45, 2026-10-22; 8,242 prose words after FIX-M45) | yes (REVIEW-M45, all FIX done 2026-10-22) |
+| [46 system-design-case-studies](modules/46-system-design-case-studies.md) | F | — | done | 26 / 30 | 5 / 6 | yes (ts-js) | yes (CLOSE-M46, 2026-10-23; 14,474 prose words, 14,588 after FIX-M46-01..02) | yes (REVIEW-M46, FIX-M46-01..03, 2026-10-23) |
+| [47 behavioral-and-interview-craft](modules/47-behavioral-and-interview-craft.md) | G | — | done | 15 / 15 | 2 / 2 | yes (ts-js) | yes (CLOSE-M47, 2026-10-23; 9,024 prose words, 9,209 after FIX-M47-01..02) | yes (REVIEW-M47, FIX-M47-01..03, 2026-10-24) |
 
 ## Last full verification
 

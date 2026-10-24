@@ -890,7 +890,7 @@ export function lazy<T>(load: () => Promise<T>): () => Promise<T> {
 
 **Follow-ups an interviewer will ask.**
 - *Why not ``import(`./charts/${name}.js`)``?* A computed specifier forces the bundler to guess or to include every match. Map names to static `import()` calls.
-- *How do you handle a chunk 404 after a deploy?* Retry once, and on a second failure offer a reload, because the page's chunk names belong to the old build ([module 44](44-fullstack-delivery-and-operations.md)).
+- *How do you handle a chunk 404 after a deploy?* Retry once, and on a second failure offer a reload, because the page's chunk names belong to the old build ([module 44](44-fullstack-delivery-and-operations.md#8-feature-flags-with-openfeature-and-canary-releases-providers-evaluation-context-sticky-rollout-kill-switches-and-version-skew)).
 
 **Trap to avoid.** Caching the rejected promise, so one offline moment breaks the feature until a reload.
 

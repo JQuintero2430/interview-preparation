@@ -250,7 +250,7 @@ Ceilings: the module is 20,283 prose words (module-stats and the Python count ag
 
 ### FIX-M22-04 · S · Ownership links in modules 16 and 04 (F-8; +0 words)
 - Files: `modules/16-dependency-injection.md` (lines 829, 1700, 2271), `modules/04-js-async-event-loop.md` (lines 1515, 1619).
-- Do: in 16, "`takeUntilDestroyed` is [module 22](22-rxjs-foundations.md)'s" becomes "[module 20 §5](20-lifecycle-and-render-hooks.md#5-teardown-ngondestroy-destroyref-and-takeuntildestroyed)'s" (keep the "and 23" at 829; line 2271 reads "module 20"); in 04, the two links to 22 for `mergeMap`, `exhaustMap`, `concatMap` and `switchMap` point to `23-rxjs-in-depth.md`.
+- Do: in 16, "`takeUntilDestroyed` is [module 22](../../modules/22-rxjs-foundations.md)'s" becomes "[module 20 §5](../../modules/20-lifecycle-and-render-hooks.md#5-teardown-ngondestroy-destroyref-and-takeuntildestroyed)'s" (keep the "and 23" at 829; line 2271 reads "module 20"); in 04, the two links to 22 for `mergeMap`, `exhaustMap`, `concatMap` and `switchMap` point to `23-rxjs-in-depth.md`.
 - Acceptance: `check-links --planned` exits 0; word count of each file touched changes by at most 3; no other text changes.
 
 ### FIX-M22-05 · S · Anchors for file-level links (T-10; +0 words)

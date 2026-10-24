@@ -18,7 +18,7 @@ Counts: **40 Pass, 5 Partial, 0 Fail, 0 N/A** (45 items). Items not Pass: B7, B9
 | ID | Result | Evidence |
 |---|---|---|
 | A1 | Pass | Lines 3-9 in STYLE-GUIDE §4.1 order: What this covers (3), Prerequisites (4), Leads to (5), Applies to (6), Study time (7), Short on time (8), Labs with the run command (9). I ran the command: 12 files, 79 tests passed. |
-| A2 | Pass | Line 4: [19 §5](19-component-communication-and-projection.md#5-queries-view-and-content-queries-with-signal-queries) and [17 §4](17-signals.md#4-effects), both anchored and resolving (link check). |
+| A2 | Pass | Line 4: [19 §5](../../modules/19-component-communication-and-projection.md#5-queries-view-and-content-queries-with-signal-queries) and [17 §4](../../modules/17-signals.md#4-effects), both anchored and resolving (link check). |
 | A3 | Pass | Line 8: four section links (1, the table in 3, 4, 6), five question IDs (Q20.02, Q20.07, Q20.11, Q20.14, Q20.20), Exercise 20.2 and the Summary link; every link resolves. |
 | A4 | Pass | Lines 13-24 list the seven sections and the five closing sections; the `## ` headings are the seven sections, Summary (838), Question bank (846), Hands-on exercises (1777), Check your understanding (2133) and Connections (2186). |
 | A5 | Pass | Order: the map (§1), the constructor boundary (§2), the signal-era choice (§3), render hooks (§4), teardown (§5), `NG0100` (§6), the mechanism (§7, the deepest). No section needs a later one except for forward links the text labels (§1 line 72 to §4; §3 table to §5). |

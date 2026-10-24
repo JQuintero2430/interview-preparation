@@ -1,0 +1,40 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Orders API",
+    "version": "v1",
+    "description": "Our hand-written fixture for module 41, in the OpenAPI 3.1.0 shape springdoc-openapi 3.1.1 publishes at /v3/api-docs by default; not produced by springdoc."
+  },
+  "paths": {
+    "/api/orders/{id}": {
+      "get": {
+        "tags": ["orders"],
+        "summary": "Read one order",
+        "operationId": "getOrder",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderDto" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrderDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "customerName": { "type": "string" },
+          "status": { "type": "string" },
+          "quantity": { "type": "integer", "format": "int32" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "note": { "type": "string" }
+        },
+        "required": ["id", "customerName", "status", "quantity", "createdAt"]
+      }
+    }
+  }
+}

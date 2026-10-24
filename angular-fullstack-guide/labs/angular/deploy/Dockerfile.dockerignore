@@ -1,0 +1,8 @@
+# labs/angular/deploy/Dockerfile.dockerignore — documented only, not built: Docker is not run in the labs
+# Named <Dockerfile name>.dockerignore and kept beside the Dockerfile, it takes precedence over a root .dockerignore.
+# Keep deploy/ out of this list: the runtime stage's COPY lines read from it.
+node_modules
+dist
+.angular
+.git
+.env*

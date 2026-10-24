@@ -150,12 +150,12 @@ Line numbers were read 2026-10-16; find each line by its context, not its number
 | File:line | Context | Anchor | Why |
 |---|---|---|---|
 | 10:114 | "transitions and animations also rank here ([module 35]" | S4 | §4 quotes "Animations take precedence over all static styles" and tests it. |
-| 10:1400 | "[35](35-animations.md) (transitions)" | S2 | M35.md. |
-| 13:2514 | "[35](35-animations.md) (host bindings)" | S5 | M35.md; §5 tests `animate.enter` as a host binding. |
-| 14:61 | "beyond style encapsulation and [animation](35-animations.md) hooks" | S8 | M35.md; §8 explains the renderer the legacy providers wrap. |
-| 18:2611 | "[35](35-animations.md) (animating `@if` and `@for`)" | S7 | M35.md. |
-| 19:2527 | "[35](35-animations.md) (animating projected and dynamic content)" | S6 | M35.md; §6's Dynamic content paragraph. |
-| 20:2235 | "[35](35-animations.md) (animating around render hooks)" | S12 | M35.md; §12's queue in `afterNextRender`. |
+| 10:1400 | "[35](../../modules/35-animations.md) (transitions)" | S2 | M35.md. |
+| 13:2514 | "[35](../../modules/35-animations.md) (host bindings)" | S5 | M35.md; §5 tests `animate.enter` as a host binding. |
+| 14:61 | "beyond style encapsulation and [animation](../../modules/35-animations.md) hooks" | S8 | M35.md; §8 explains the renderer the legacy providers wrap. |
+| 18:2611 | "[35](../../modules/35-animations.md) (animating `@if` and `@for`)" | S7 | M35.md. |
+| 19:2527 | "[35](../../modules/35-animations.md) (animating projected and dynamic content)" | S6 | M35.md; §6's Dynamic content paragraph. |
+| 20:2235 | "[35](../../modules/35-animations.md) (animating around render hooks)" | S12 | M35.md; §12's queue in `afterNextRender`. |
 
 Stay file-level (headers, Leads to, and "Uses these ideas later" lines with no reason): 10:5, 11:1598, 13:5, 14:2206, 21:2711. CLOSE-M35's LOG mapped 14:61 to §12 and 19:2527 to §5/§7; this table follows M35.md (§8, §6), whose reasons match the target text.
 
@@ -182,9 +182,9 @@ Stay file-level (headers, Leads to, and "Uses these ideas later" lines with no r
 ## Teaching and completeness findings
 
 **T-1 · Minor (B9) · four terms used before any definition.**
-- 31: "`ng test` (jsdom, development mode) covers tokens, `TestBed` options," → "`ng test` (on jsdom, a JavaScript DOM for Node, [29 §2](29-testing-angular.md#2-the-runner-vitest-through-angularbuildunit-test-jsdom-and-browser-mode); development mode) covers tokens, options of `TestBed` (Angular's testing module, [29 §4](29-testing-angular.md#4-testbed-the-testing-module-inject-runininjectioncontext-overrides-and-teardown))," (+18; the module-29 glosses are module 29's own, line 41).
-- 72: "the legacy provider replaces `RendererFactory2` and sets" → "the legacy provider replaces `RendererFactory2` (the factory of the renderers that write to the DOM, [14 §1](14-directives-and-pipes.md#1-directives-and-attribute-directives-host-inputs-elementref-and-renderer2)) and sets" (+11).
-- 855: "Otherwise its update callback resolves after `afterNextRender` plus a `setTimeout`," → "Otherwise its update callback resolves after `afterNextRender` (a render hook that runs once after the next render, [20 §4](20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases)) plus a `setTimeout`," (+13).
+- 31: "`ng test` (jsdom, development mode) covers tokens, `TestBed` options," → "`ng test` (on jsdom, a JavaScript DOM for Node, [29 §2](../../modules/29-testing-angular.md#2-the-runner-vitest-through-angularbuildunit-test-jsdom-and-browser-mode); development mode) covers tokens, options of `TestBed` (Angular's testing module, [29 §4](../../modules/29-testing-angular.md#4-testbed-the-testing-module-inject-runininjectioncontext-overrides-and-teardown))," (+18; the module-29 glosses are module 29's own, line 41).
+- 72: "the legacy provider replaces `RendererFactory2` and sets" → "the legacy provider replaces `RendererFactory2` (the factory of the renderers that write to the DOM, [14 §1](../../modules/14-directives-and-pipes.md#1-directives-and-attribute-directives-host-inputs-elementref-and-renderer2)) and sets" (+11).
+- 855: "Otherwise its update callback resolves after `afterNextRender` plus a `setTimeout`," → "Otherwise its update callback resolves after `afterNextRender` (a render hook that runs once after the next render, [20 §4](../../modules/20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases)) plus a `setTimeout`," (+13).
 
 **T-2 · Minor (M35.md C8) · internal names without "internal" or "may change in any release".**
 - 673: "Read, not run: `buildKeyframes` folds a delay" → "Read, not run: the internal `buildKeyframes` (may change in any release) folds a delay" (+7). Basis: `browser.mjs` 1245-1275, a method of an unexported timeline class.
@@ -192,7 +192,7 @@ Stay file-level (headers, Leads to, and "Uses these ideas later" lines with no r
 - 1922: "internal `createViewTransition`)" → "internal `createViewTransition`, may change in any release)" and "internal `ChangeDetectionSchedulerImpl`)" → "internal `ChangeDetectionSchedulerImpl`, may change in any release)" (+10).
 
 **T-3 · Minor (C1, LOG SEC-M35-05 and CLOSE-M35 hand-offs) · the v22.2 signal form and the lab's signal test.** §5 (394) and Q35.07 teach that a signal "may be bound"; the runtime does unwrap a function value (`getClassListFromValue`, 4200-4210), but 22.2.1's extended diagnostic NG8109 explicitly flags `[animate.enter]="mySignal"` (`@angular/compiler-cli` `InterpolatedSignalCheck`, `BindingType.Animation`), which is why SEC-M35-05 changed the lab to `signalClasses()`. The lab therefore asserts an invoked signal, an ordinary expression, while 423 and Q35.07 say "a signal".
-- 394: after "a function or **signal** ([17 §2](17-signals.md#2-writable-signals)) that returns a class list." add " Bound uninvoked, `[animate.enter]="classes"` is unwrapped at run time, but 22.2.1's extended diagnostic NG8109 (a compile-time warning for a likely mistake) still asks for `classes()` (read, not run: `getClassListFromValue` in `@angular/core`, the `interpolated_signal_not_invoked` check in `@angular/compiler-cli`)." (+43)
+- 394: after "a function or **signal** ([17 §2](../../modules/17-signals.md#2-writable-signals)) that returns a class list." add " Bound uninvoked, `[animate.enter]="classes"` is unwrapped at run time, but 22.2.1's extended diagnostic NG8109 (a compile-time warning for a likely mistake) still asks for `classes()` (read, not run: `getClassListFromValue` in `@angular/core`, the `interpolated_signal_not_invoked` check in `@angular/compiler-cli`)." (+43)
 - 423: "In the lab an array and a signal each give two classes" → "In the lab an array and an invoked signal (`signalClasses()`) each give two classes" (+2).
 - Q35.07 full explanation: "An array and a signal each applied two classes" → "An array and an invoked signal each applied two classes" (+1).
 
@@ -206,7 +206,7 @@ Stay file-level (headers, Leads to, and "Uses these ideas later" lines with no r
 - **N-4:** Q35.16 (1473) puts the `ANIMATION_MODULE_TYPE` test behind the `NG05105` sentence. "(`Section 8: a synthetic property without an animation provider throws NG05105`) (`Section 8: provideNoopAnimations sets ANIMATION_MODULE_TYPE to NoopAnimations`)." → "(`Section 8: a synthetic property without an animation provider throws NG05105`); the noop provider sets the token as the table says (`Section 8: provideNoopAnimations sets ANIMATION_MODULE_TYPE to NoopAnimations`)." (+9)
 - **N-5:** Q35.25 (1653) "The leave runs on after `ApplicationRef.whenStable()` resolves" → "The leave is still running after `ApplicationRef.whenStable()` resolves" (+1).
 - **N-6:** no blank line between "Drilled in [Q35.25](../../modules/35-animations.md#q35-25)." (1054) and "### Code" (1055); insert one (+0).
-- **N-7 (C7, links):** 921 links a written module file-level: "accessibility: [module 11](11-accessibility.md)" → "accessibility: [module 11](11-accessibility.md#7-testing-accessibility)" (+0; 11 §7 names `prefers-reduced-motion` in its manual pass).
+- **N-7 (C7, links):** 921 links a written module file-level: "accessibility: [module 11](../../modules/11-accessibility.md)" → "accessibility: [module 11](../../modules/11-accessibility.md#7-testing-accessibility)" (+0; 11 §7 names `prefers-reduced-motion` in its manual pass).
 
 ## Judged acceptable
 

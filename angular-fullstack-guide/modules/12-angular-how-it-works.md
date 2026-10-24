@@ -85,7 +85,7 @@ The decorator only describes the class; [section 8](#8-under-the-hood-what-the-c
 
 ### Misconceptions and traps
 
-- *"Angular is a library like React."* Angular owns the entry point, build and update loop; you never instantiate a component. The myth exists because both render component trees whose code looks alike ([module 40](40-framework-comparisons.md)).
+- *"Angular is a library like React."* Angular owns the entry point, build and update loop; you never instantiate a component. The myth exists because both render component trees whose code looks alike ([module 40](40-framework-comparisons.md#1-library-framework-progressive-framework-what-each-project-decides-for-you)).
 - *"Opinionated means you cannot opt out."* Builder and test runner are options in `angular.json`, and third-party state or UI libraries work. The myth exists because older code declared every component in an NgModule; standalone components reduce "the need for NgModules" ([angular.dev](https://angular.dev/reference/migrations/standalone)) and are the default ([module 15](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array)).
 - *"A new major ships every six months."* Once true: "Until Angular v22, Angular had a 6-month major release cycle" (release policy). Now: 12 months, 4-6 minors. The myth survives because most upgrade advice predates v22.
 
@@ -120,7 +120,7 @@ A target has `builder`, `options`, `configurations` ("A map of alternative targe
 
 A schematic is "a template-based code generator that supports complex logic" packaged into **collections** ([angular.dev](https://angular.dev/tools/cli/schematics)). It edits a virtual tree (`create`, `overwrite`, `delete`, `rename` in the `@angular-devkit/schematics` typings), so `--dry-run` "reports activity without writing out results". `ng generate` uses `@schematics/angular` (component, service, `environments` ([section 4](#4-environments-and-configuration-build-time-versus-run-time)), `library` and more). The component schematic's `type` option has no default, which is why v22 files are `app.ts`, not `app.component.ts` (`ng new`'s `fileNameStyleGuide` `"2016"` restores the suffix) ([module 13](13-components-and-templates.md)).
 
-`ng update` reads each package's **`ng-update` field** in `package.json`: `packageGroup` ([section 1](#1-what-a-framework-does-and-angulars-philosophy)) and `migrations`, a collection whose entries carry a version. It runs every migration whose version is greater than the installed one and at most the target, required ones first, then a prompt for optional ones (`recommended` pre-selected) (`src/commands/update/utilities/migration.js`, `executeMigrations`). In 22.2.1, `@angular/core`'s 22.0.0 migrations include `strict-templates-default` ("Adds 'strictTemplates: false' in tsconfig.json when not set.") and `change-detection-eager` ("Adds `ChangeDetectionStrategy.Eager` to all components.") [Changed in v22: components default to OnPush; `ChangeDetectionStrategy.Eager` opts out], which keep old defaults in upgraded projects. `ng update` refuses to cross several majors at once; the practice is [module 39](39-version-history-and-migrations.md). Drilled in [Q12.03](#q12-03), [Q12.04](#q12-04) and [Q12.05](#q12-05).
+`ng update` reads each package's **`ng-update` field** in `package.json`: `packageGroup` ([section 1](#1-what-a-framework-does-and-angulars-philosophy)) and `migrations`, a collection whose entries carry a version. It runs every migration whose version is greater than the installed one and at most the target, required ones first, then a prompt for optional ones (`recommended` pre-selected) (`src/commands/update/utilities/migration.js`, `executeMigrations`). In 22.2.1, `@angular/core`'s 22.0.0 migrations include `strict-templates-default` ("Adds 'strictTemplates: false' in tsconfig.json when not set.") and `change-detection-eager` ("Adds `ChangeDetectionStrategy.Eager` to all components.") [Changed in v22: components default to OnPush; `ChangeDetectionStrategy.Eager` opts out], which keep old defaults in upgraded projects. `ng update` refuses to cross several majors at once; the practice is [module 39](39-version-history-and-migrations.md#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop). Drilled in [Q12.03](#q12-03), [Q12.04](#q12-04) and [Q12.05](#q12-05).
 
 ### Code
 
@@ -325,7 +325,7 @@ Constants enable **dead-code elimination**, the minifier deleting code that can 
 
 None of this is secret: "Files in `src/environments/` are bundled into your client-side application and visible to anyone who loads the page. Never store secrets such as API keys here" (environments page).
 
-**Runtime configuration** is data the app reads after it starts: a `provideAppInitializer` function fetches a JSON file during bootstrap ([section 6](#6-bootstrapping-bootstrapapplication-the-platform-and-initializers)) and exposes it through an **injection token**, a typed key for the injector ([module 16](16-dependency-injection.md)). [Exercise 12.2](#ex12-2) builds that loader; how a deployment writes the file per environment is [module 44](44-fullstack-delivery-and-operations.md). Drilled in [Q12.10](#q12-10) and [Q12.11](#q12-11).
+**Runtime configuration** is data the app reads after it starts: a `provideAppInitializer` function fetches a JSON file during bootstrap ([section 6](#6-bootstrapping-bootstrapapplication-the-platform-and-initializers)) and exposes it through an **injection token**, a typed key for the injector ([module 16](16-dependency-injection.md)). [Exercise 12.2](#ex12-2) builds that loader; how a deployment writes the file per environment is [module 44](44-fullstack-delivery-and-operations.md#5-runtime-configuration-without-rebuilding-configjson-environment-substitution-at-container-start-and-provideappinitializer). Drilled in [Q12.10](#q12-10) and [Q12.11](#q12-11).
 
 ### Code
 
@@ -698,7 +698,7 @@ What to notice: the decorator is gone, and no tree of virtual nodes is built or 
 
 **Partial compilation and the linker.** **Partial compilation** (`compilationMode: "partial"`: "a stable, but intermediate form suitable for publication to NPM", `public_options.d.ts`) emits `ɵɵngDeclareComponent({ minVersion: "17.0.0", version: "22.2.1", … })`, with the template still a string. `@angular/router` 22.2.1 ships `RouterLink` the same way (`ɵɵngDeclareDirective`, `minVersion: "17.1.0"`). The application build's **linker** turns these declarations into full definitions: the OXC in-place linker by default, the Babel one with `NG_BUILD_BABEL_LINKER` (`@angular/build` 22.2.1, `environment-options.js`). Libraries are [module 38](38-architecture-and-production-structure.md#5-angular-cli-libraries-ng-generate-library-ng-packagr-and-consuming-the-build).
 
-**Versus a virtual DOM:** [module 40](40-framework-comparisons.md); [Exercise 12.4](#ex12-4) models the slot walk. Drilled in [Q12.23](#q12-23), [Q12.24](#q12-24), [Q12.25](#q12-25), [Q12.26](#q12-26), [Q12.27](#q12-27) and [Q12.28](#q12-28).
+**Versus a virtual DOM:** [module 40](40-framework-comparisons.md#3-reacts-model-re-rendering-reconciliation-memoization-and-the-react-compiler); [Exercise 12.4](#ex12-4) models the slot walk. Drilled in [Q12.23](#q12-23), [Q12.24](#q12-24), [Q12.25](#q12-25), [Q12.26](#q12-26), [Q12.27](#q12-27) and [Q12.28](#q12-28).
 
 ### Code
 
@@ -848,7 +848,7 @@ The questions run from the basic idea to the internals. Every *Output* answer is
 
 **Short answer (30 seconds).** The integrated framework wins when many people, teams or years are involved: one way to build, automated upgrades, skills that move between projects. Chosen libraries win for a small or unusual app, a team expert in a stack, or a piece that must be best in class. The framework charges up front (learning curve, lock-step upgrades); assembly charges later (each upgrade is a compatibility matrix the team owns).
 
-**Full explanation.** Ask *who is the integrator*. With assembled libraries it is the team: when the router's next major needs a newer view library, nobody else fixes that seam ([section 1](#1-what-a-framework-does-and-angulars-philosophy)). With Angular, one release group ships its own migrations, so an upgrade is mostly `ng update` ([section 2](#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)). The price is freedom: router and core move together, on one release calendar. Weigh the number of teams, the expected lifetime, the upgrade budget, and any requirement the framework does not ship. Comparing frameworks is [module 40](40-framework-comparisons.md).
+**Full explanation.** Ask *who is the integrator*. With assembled libraries it is the team: when the router's next major needs a newer view library, nobody else fixes that seam ([section 1](#1-what-a-framework-does-and-angulars-philosophy)). With Angular, one release group ships its own migrations, so an upgrade is mostly `ng update` ([section 2](#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)). The price is freedom: router and core move together, on one release calendar. Weigh the number of teams, the expected lifetime, the upgrade budget, and any requirement the framework does not ship. Comparing frameworks is [module 40](40-framework-comparisons.md#8-choosing-a-framework-balanced-trade-offs-and-how-to-answer-why-angular).
 
 **Follow-ups an interviewer will ask.**
 - *How do you keep the framework's upgrade cost low?* Upgrade one major at a time while each is supported, and keep developer-preview APIs, which a patch may change, out of code you cannot revisit.
@@ -916,7 +916,7 @@ The questions run from the basic idea to the internals. Every *Output* answer is
 
 **Follow-ups an interviewer will ask.**
 - *Can you re-run one migration?* `ng update @angular/core --name <migration>` implies `--migrate-only`: it runs that migration without changing versions; `--from` and `--to` replay a range.
-- *How does a team ship its own conventions?* As its own schematic collection (a `feature` generator, say), listed in `cli.schematicCollections`. Upgrade practice is [module 39](39-version-history-and-migrations.md).
+- *How does a team ship its own conventions?* As its own schematic collection (a `feature` generator, say), listed in `cli.schematicCollections`. Upgrade practice is [module 39](39-version-history-and-migrations.md#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide).
 
 **Trap to avoid.** Bumping versions in `package.json` and running `npm install`. No migration runs, so the project silently gets strict templates and, without `change-detection-eager`, OnPush components: errors and stale views nobody planned.
 
@@ -1012,7 +1012,7 @@ The questions run from the basic idea to the internals. Every *Output* answer is
 
 **Short answer (30 seconds).** `fileReplacements` and `define` are fixed when the bundle is **built**: the first swaps a whole source file per configuration, the second replaces a global identifier with a constant in code. Runtime configuration is fixed when the app **starts** in the browser: an initializer fetches it, so one build serves every environment.
 
-**Full explanation.** A file replacement makes the compiler load the other file, so its values become literals in `main-*.js`: as the staging build in [section 4](#4-environments-and-configuration-build-time-versus-run-time) shows. `define` acts on identifiers in code; inside decorator metadata the compiler cannot evaluate them and the build fails (`NG1010`). Both suit values that belong to the *build*: flags, a build label. Runtime configuration suits values that belong to the *deployment*: `provideAppInitializer` fetches a JSON file before the root component exists, and an injection token hands it to services ([Exercise 12.2](#ex12-2)). Who writes that file per environment is [module 44](44-fullstack-delivery-and-operations.md).
+**Full explanation.** A file replacement makes the compiler load the other file, so its values become literals in `main-*.js`: as the staging build in [section 4](#4-environments-and-configuration-build-time-versus-run-time) shows. `define` acts on identifiers in code; inside decorator metadata the compiler cannot evaluate them and the build fails (`NG1010`). Both suit values that belong to the *build*: flags, a build label. Runtime configuration suits values that belong to the *deployment*: `provideAppInitializer` fetches a JSON file before the root component exists, and an injection token hands it to services ([Exercise 12.2](#ex12-2)). Who writes that file per environment is [module 44](44-fullstack-delivery-and-operations.md#5-runtime-configuration-without-rebuilding-configjson-environment-substitution-at-container-start-and-provideappinitializer).
 
 **Follow-ups an interviewer will ask.**
 - *Which removes a disabled feature from the bundle?* A `define` boolean: `SHOW_DEBUG_PANEL` set to `false` deleted its `if` block, while `environment.debug` survived as `<name>.debug&&…` (section 4's output).
@@ -1050,7 +1050,7 @@ export class App {}
 
 **Follow-ups an interviewer will ask.**
 - *How do you check a build for leaked values?* Search the emitted `browser/` files; what you find there, every visitor can read.
-- *Who writes the runtime file per stage?* The deployment, so the bundle is identical in every stage ([module 44](44-fullstack-delivery-and-operations.md)).
+- *Who writes the runtime file per stage?* The deployment, so the bundle is identical in every stage ([module 44](44-fullstack-delivery-and-operations.md#5-runtime-configuration-without-rebuilding-configjson-environment-substitution-at-container-start-and-provideappinitializer)).
 
 **Trap to avoid.** Passing the key from a CI variable through `define`. It still lands in the bundle as a literal.
 
@@ -1460,7 +1460,7 @@ mirror inputs: [{"propName":"label","templateName":"heading","isSignal":true}]
 
 **Short answer (30 seconds).** A virtual-DOM library calls the render function again, diffs the new tree of plain objects with the previous one and applies the differences. Angular has no tree: each template's compiled update block visits only the slots holding bindings, compares each value with the last one stored and writes the changed ones; static nodes are never revisited.
 
-**Full explanation.** Diffing visits the re-rendered tree's nodes; Angular's update pass visits the checked views' bindings, because the compiler knows which nodes can change. `Counter`'s update block never mentions `ɵɵtext(4, "+1")`: the button label is a create-time constant ([section 8](#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)). The emitted update block lists only binding slots; [Exercise 12.4](#ex12-4)'s tests count zero DOM writes for an unchanged render. The price is a compiler: structure is fixed at build time and varies only through control-flow blocks, compiled to embedded views. Comparing frameworks is [module 40](40-framework-comparisons.md).
+**Full explanation.** Diffing visits the re-rendered tree's nodes; Angular's update pass visits the checked views' bindings, because the compiler knows which nodes can change. `Counter`'s update block never mentions `ɵɵtext(4, "+1")`: the button label is a create-time constant ([section 8](#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)). The emitted update block lists only binding slots; [Exercise 12.4](#ex12-4)'s tests count zero DOM writes for an unchanged render. The price is a compiler: structure is fixed at build time and varies only through control-flow blocks, compiled to embedded views. Comparing frameworks is [module 40](40-framework-comparisons.md#3-reacts-model-re-rendering-reconciliation-memoization-and-the-react-compiler).
 
 **Follow-ups an interviewer will ask.**
 - *Does Angular skip work when nothing changed?* It skips DOM writes, not evaluation: every binding expression of a checked view runs first. Skipping whole views is [module 21](21-change-detection.md#4-the-tree-walk-global-and-targeted-refreshes).
@@ -1634,7 +1634,7 @@ function loadConfig(source: () => Promise<unknown>, fallback?: AppConfig): Promi
 
 **Interviewer follow-ups.**
 - *"Load it over HTTP."* `source()` is called synchronously inside the initializer, so it may call `inject`: `() => firstValueFrom(inject(HttpClient).get('/config.json'))`, with `provideHttpClient()` registered ([module 27](27-http-client.md#2-setting-up-httpclient-providehttpclient-its-features-and-the-fetch-backend-default)).
-- *"Who writes `config.json` per environment?"* The deployment, not the build: a container entrypoint or the web server ([module 44](44-fullstack-delivery-and-operations.md)).
+- *"Who writes `config.json` per environment?"* The deployment, not the build: a container entrypoint or the web server ([module 44](44-fullstack-delivery-and-operations.md#5-runtime-configuration-without-rebuilding-configjson-environment-substitution-at-container-start-and-provideappinitializer)).
 - *"Two initializers depend on each other."* `runInitializers` starts every initializer, then waits on `Promise.all`, so none waits for another unless it is given the other's promise; chaining both inside one function is simpler ([module 16](16-dependency-injection.md) for multi providers).
 
 **Tests:** [`startup-config.spec.ts`](../labs/angular/src/app/modules/12-angular-how-it-works/exercise-2-startup-config/startup-config.spec.ts)
@@ -1712,7 +1712,7 @@ The excerpt omits three measures and the `null` guard.
 **Interviewer follow-ups.**
 - *"Why measure raw bytes, not transfer size?"* Because the calculator only reads each file's `size`, the raw output; the "Estimated transfer size" column is a Brotli estimate shown in the table and compared with nothing ([section 3](#3-building-the-application-builder-output-layout-and-budgets)).
 - *"The budget fails: what next?"* Find what grew with the esbuild analyzer before raising anything ([module 31](31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls)).
-- *"Where does this run?"* In CI: a production `ng build`, where a budget error fails the step ([module 44](44-fullstack-delivery-and-operations.md)).
+- *"Where does this run?"* In CI: a production `ng build`, where a budget error fails the step ([module 44](44-fullstack-delivery-and-operations.md#7-cicd-for-both-layers-one-image-promoted-through-stages-a-monorepo-or-separate-repositories-and-versioning-the-contract)).
 
 **Tests:** [`budgets.test.ts`](../labs/ts-js/src/modules/12-angular-how-it-works/budgets.test.ts)
 
@@ -1789,7 +1789,7 @@ Unlike section 8's output: named slots instead of `ɵɵadvance`, closures instea
 **Interviewer follow-ups.**
 - *"Why compare values, not the rendered text?"* It decides without building the string. Angular's `ɵɵtextInterpolate2` also goes through `bindingUpdated` (section 8).
 - *"What would `@if` need?"* A template function per branch, an embedded view with two passes (`Counter_Conditional_5_Template`) ([module 18](18-control-flow-and-defer.md#q18-24)).
-- *"How does a virtual DOM compare?"* It builds and diffs a new tree per update; here update cost grows with bindings, not nodes ([module 40](40-framework-comparisons.md)).
+- *"How does a virtual DOM compare?"* It builds and diffs a new tree per update; here update cost grows with bindings, not nodes ([module 40](40-framework-comparisons.md#3-reacts-model-re-rendering-reconciliation-memoization-and-the-react-compiler)).
 
 **Tests:** [`mini-template.test.ts`](../labs/ts-js/src/modules/12-angular-how-it-works/mini-template.test.ts)
 
@@ -1858,5 +1858,5 @@ Partial compilation is a stable intermediate form; the application build's linke
 
 - **Builds on:** [05 §1](05-js-modules-memory-modern-features.md#1-es-modules-static-structure-linking-and-live-bindings) and [§2](05-js-modules-memory-modern-features.md#2-commonjs-interop-and-dynamic-import) (the modules and dynamic `import()` behind chunks), [06 §1](06-ts-type-system-essentials.md#1-what-typescript-is-erased-types-tsc-and-transpile-only-tools) (`tsc` versus per-file transpilers such as esbuild), [07 §7](07-ts-advanced-types-and-decorators.md#7-decorators-tc39-standard-versus-experimentaldecorators-and-what-angular-does-with-them) (decorators) and [09 §4](09-web-networking-storage-security.md#4-http-caching) (why hashed file names cache well).
 - **Read next:** [13. Components and templates](13-components-and-templates.md) (the bindings, encapsulation and `$any` behind section 8's instructions), [16. Dependency injection](16-dependency-injection.md) (how the injectors bootstrap creates resolve providers) and [21. Change detection](21-change-detection.md) (when the update pass runs, and what `onPush` in the definition means).
-- **Uses these ideas later:** [15](15-standalone-and-ngmodules.md#3-bootstrapping-and-providers-without-modules-bootstrapapplication-provide-functions-and-importprovidersfrom) (`ApplicationConfig` providers), [18](18-control-flow-and-defer.md) (embedded views for `@if` and `@for`), [24](24-routing.md) (lazy chunks), [29](29-testing-angular.md) (JIT in tests), [31](31-performance.md) (bundle analysis), [32](32-ssr-ssg-hydration.md) (server output), [37](37-elements-pwa-errors-ecosystem.md#1-angular-elements-turning-a-component-into-a-custom-element) (`createApplication`), [38](38-architecture-and-production-structure.md#5-angular-cli-libraries-ng-generate-library-ng-packagr-and-consuming-the-build) (libraries and partial compilation), [39](39-version-history-and-migrations.md) (`ng update` practice) and [44](44-fullstack-delivery-and-operations.md) (runtime configuration per deployment).
-- **Comparisons:** [40. Framework comparisons](40-framework-comparisons.md) puts instruction-based rendering next to virtual-DOM libraries, and Angular's integrated toolchain next to stacks of chosen libraries.
+- **Uses these ideas later:** [15](15-standalone-and-ngmodules.md#3-bootstrapping-and-providers-without-modules-bootstrapapplication-provide-functions-and-importprovidersfrom) (`ApplicationConfig` providers), [18](18-control-flow-and-defer.md) (embedded views for `@if` and `@for`), [24](24-routing.md) (lazy chunks), [29](29-testing-angular.md) (JIT in tests), [31](31-performance.md) (bundle analysis), [32](32-ssr-ssg-hydration.md) (server output), [37](37-elements-pwa-errors-ecosystem.md#1-angular-elements-turning-a-component-into-a-custom-element) (`createApplication`), [38](38-architecture-and-production-structure.md#5-angular-cli-libraries-ng-generate-library-ng-packagr-and-consuming-the-build) (libraries and partial compilation), [39](39-version-history-and-migrations.md#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide) (`ng update` practice) and [44](44-fullstack-delivery-and-operations.md) (runtime configuration per deployment).
+- **Comparisons:** [40. Framework comparisons](40-framework-comparisons.md#6-routing-forms-data-fetching-tooling-and-testing-first-party-or-ecosystem) puts instruction-based rendering next to virtual-DOM libraries, and Angular's integrated toolchain next to stacks of chosen libraries.

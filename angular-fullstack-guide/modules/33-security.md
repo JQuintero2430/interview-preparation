@@ -648,7 +648,7 @@ An XSS payload sends the token in `localStorage` to another host. Moved into mem
 
 ### Mental model
 
-An **access token** is the credential an API accepts per request; a **refresh token** is a longer-lived one traded for new access tokens ([27 §7](27-http-client.md#7-authentication-attaching-tokens-refreshing-on-401-with-a-request-queue-and-avoiding-refresh-loops)). A **JWT** is a token format: signed claims as base64url text ([42](42-fullstack-authentication.md) issues them). **Exfiltration** is copying a secret out to the attacker. A **session cookie** holds an id the server maps to a user. A **backend-for-frontend (BFF)** is a server on the app's site that keeps the tokens and gives the browser only a session cookie.
+An **access token** is the credential an API accepts per request; a **refresh token** is a longer-lived one traded for new access tokens ([27 §7](27-http-client.md#7-authentication-attaching-tokens-refreshing-on-401-with-a-request-queue-and-avoiding-refresh-loops)). A **JWT** is a token format: signed claims as base64url text ([42](42-fullstack-authentication.md#1-sessions-versus-tokens-what-the-server-keeps-what-each-request-carries-revocation-and-scaling) issues them). **Exfiltration** is copying a secret out to the attacker. A **session cookie** holds an id the server maps to a user. A **backend-for-frontend (BFF)** is a server on the app's site that keeps the tokens and gives the browser only a session cookie.
 
 Ask each option: **can injected script read it** and take it away? **can it use it** while the page is open?
 
@@ -776,7 +776,7 @@ What to notice: the server's check decides; the browser's rules only reduce what
 
 The `def` result is that test's, signed in seconds earlier; [09 §6](09-web-networking-storage-security.md#6-cookies) describes the short window. It says nothing about other browsers or versions.
 
-**The server decides.** `Section 9: the forged post without the header is rejected`: the session cookies arrived, no header, 403. `Section 9: the app's own post carries the XSRF header and is accepted`: `same-origin`, header, 200. Spring's `CookieCsrfTokenRepository` writes `XSRF-TOKEN` and reads `X-XSRF-TOKEN` by default ([API 7.1.1](https://docs.spring.io/spring-security/reference/api/java/org/springframework/security/web/csrf/CookieCsrfTokenRepository.html), read 2026-10-15); [42](42-fullstack-authentication.md) configures it.
+**The server decides.** `Section 9: the forged post without the header is rejected`: the session cookies arrived, no header, 403. `Section 9: the app's own post carries the XSRF header and is accepted`: `same-origin`, header, 200. Spring's `CookieCsrfTokenRepository` writes `XSRF-TOKEN` and reads `X-XSRF-TOKEN` by default ([API 7.1.1](https://docs.spring.io/spring-security/reference/api/java/org/springframework/security/web/csrf/CookieCsrfTokenRepository.html), read 2026-10-15); [42](42-fullstack-authentication.md#6-csrf-with-cookiecsrftokenrepository-and-angulars-xsrf-support-csrfspa-in-spring-security-7) configures it.
 
 **Prefixed JSON.** The [docs](https://angular.dev/guide/security) (`main`, read 2026-10-15) say servers can prefix JSON "to make them non-executable, by convention, using the well-known string `")]}',\n"`". `@angular/common` 22.2.1 (`fesm2022/_module-chunk.mjs`, read; internal, may change in any release) defines `XSSI_PREFIX = /^\)\]\}',?\n/`, and the fetch backend (line 963) and the XHR backend (1862) strip it before parsing. `Section 9: HttpClient strips the XSSI prefix before parsing JSON`: `JSON.parse` of the raw body throws, the page shows `Status ok: true`.
 
@@ -881,7 +881,7 @@ export const isAdmin: CanMatchFn = () => inject(LabM33GuardSession).role() === '
 
 - *"`canMatch` keeps the admin code away from non-admins."* The router skipped the request, yet the file answered 200 to anyone (tested); the myth comes from reading "never loaded" as "never available".
 - *"Guards are pointless if they are not security."* They spare users failing screens and needless `403`s; the myth comes from all-or-nothing thinking.
-- *"A role inside the token lets the client decide."* The claim is readable and the page's belief is editable, so the server verifies the token and the role on every request ([42](42-fullstack-authentication.md)); the myth comes from treating readable as trusted.
+- *"A role inside the token lets the client decide."* The claim is readable and the page's belief is editable, so the server verifies the token and the role on every request ([42](42-fullstack-authentication.md#5-spring-security-as-a-resource-server-validating-jwts-and-turning-scopes-into-authorities)); the myth comes from treating readable as trusted.
 
 ## 11. Dependency and supply-chain security: lockfiles, `npm audit`, install scripts and Subresource Integrity
 
@@ -1572,7 +1572,7 @@ transferState.set(DISPLAY_NAME, q)   // on the server only
 **Short answer (30 seconds).** Where script cannot read it. Run a backend-for-frontend (BFF) if you can: the browser then holds only a session cookie. Otherwise keep a short-lived access token in memory and the refresh token in an `HttpOnly` cookie. Use Web Storage last. Every option lets script in the page act as the user; the choice limits what is stolen.
 
 **Full explanation.** Ask whether injected script can read and whether it can use the token ([§8](#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend) has the matrix).
-- *BFF.* [RFC 10017](https://www.rfc-editor.org/rfc/rfc10017.html) §6.1 (read 2026-10-15): "there are no tokens available to extract from the browser". It costs a server, and CSRF protection for its cookie ([§9](#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support)); Spring's side is [42](42-fullstack-authentication.md).
+- *BFF.* [RFC 10017](https://www.rfc-editor.org/rfc/rfc10017.html) §6.1 (read 2026-10-15): "there are no tokens available to extract from the browser". It costs a server, and CSRF protection for its cookie ([§9](#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support)); Spring's side is [42](42-fullstack-authentication.md#3-where-the-oauth-client-runs-a-browser-only-client-a-token-mediating-backend-or-a-backend-for-frontend-with-spring).
 - *Memory plus an `HttpOnly` refresh cookie.* The memory token is gone after a reload (`Section 8: a token kept in memory is gone after a reload`: the next call got 401), so the cookie fetches a new one. Keep it short-lived: a payload captured it (`Section 8: injected script captures an in-memory token from the app's next request`).
 - *Web Storage.* A payload read `localStorage`; the copy worked elsewhere (`Section 8: injected script reads a token kept in localStorage`). OWASP: "Do not store session identifiers in local storage as the data is always accessible by JavaScript." Storage rules: [Q09.18](09-web-networking-storage-security.md#q09-18).
 
@@ -1864,7 +1864,7 @@ export function toEmbedUrl(input: string): string | null {
     });
 ```
 
-**Constraints.** No `bypassSecurityTrust*`, no `'unsafe-inline'` in `script-src`, providers only at the route. Not covered: `frame-ancestors` and reporting endpoints in production ([module 44](44-fullstack-delivery-and-operations.md)).
+**Constraints.** No `bypassSecurityTrust*`, no `'unsafe-inline'` in `script-src`, providers only at the route. Not covered: `frame-ancestors` and reporting endpoints in production ([module 44](44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli)).
 
 **Acceptance criteria.**
 - [ ] boots with no CSP or Trusted Types violation
@@ -1931,7 +1931,7 @@ The approach: the server owns the policy and its nonce; the widget lets Angular 
     this.http.post(`${this.api}transfer`, { amount: 10 }).subscribe({
 ```
 
-**Constraints.** No `withNoXsrfProtection`, and `GET` never changes state. Not covered: login CSRF and Spring's configuration ([module 42](42-fullstack-authentication.md)).
+**Constraints.** No `withNoXsrfProtection`, and `GET` never changes state. Not covered: login CSRF and Spring's configuration ([module 42](42-fullstack-authentication.md#6-csrf-with-cookiecsrftokenrepository-and-angulars-xsrf-support-csrfspa-in-spring-security-7)).
 
 **Acceptance criteria.**
 - [ ] accepts a transfer submitted by the app
@@ -2001,7 +2001,7 @@ Both variants pass all five tests and the second-layer test, which sends a forei
     localStorage.setItem(LAB_M33_TOKEN_KEY, token);
 ```
 
-**Constraints.** No token in Web Storage or a script-readable cookie; at most four injected dependencies per class. Not covered: OAuth, PKCE, refresh rotation, reuse detection and expiry ([module 42](42-fullstack-authentication.md)).
+**Constraints.** No token in Web Storage or a script-readable cookie; at most four injected dependencies per class. Not covered: OAuth, PKCE, refresh rotation, reuse detection and expiry ([module 42](42-fullstack-authentication.md#4-refresh-tokens-rotation-reuse-detection-silent-renew-and-refreshing-across-tabs)).
 
 **Acceptance criteria.**
 - [ ] keeps no token in localStorage, sessionStorage or document.cookie
@@ -2052,7 +2052,7 @@ export const labM33Ex4BearerInterceptor: HttpInterceptorFn = (req, next) => {
 - Another site: the attacker page's restore and data calls arrived `cross-site`, without cookie or token, and got 401.
 - Logout: the browser's credential, replayed from another client, got 200 before and 401 after; a reload stays signed out.
 
-**Alternative approach:** a backend-for-frontend: an `HttpOnly; SameSite=Strict; Path=/` session cookie, while the server keeps the access token and calls the same bearer API (the browser sends no `Authorization`). **Trade-offs:** no token in the browser, but a server to run and a cookie needing [§9](#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support)'s defenses; [module 42](42-fullstack-authentication.md) builds one.
+**Alternative approach:** a backend-for-frontend: an `HttpOnly; SameSite=Strict; Path=/` session cookie, while the server keeps the access token and calls the same bearer API (the browser sends no `Authorization`). **Trade-offs:** no token in the browser, but a server to run and a cookie needing [§9](#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support)'s defenses; [module 42](42-fullstack-authentication.md#3-where-the-oauth-client-runs-a-browser-only-client-a-token-mediating-backend-or-a-backend-for-frontend-with-spring) builds one.
 
 ```js
 // Excerpt of labs/e2e/server/security/ex4-tokens-b.mjs
@@ -2125,6 +2125,6 @@ Only that no reported advisory matches; it knows nothing newer.
 ## Connections
 
 - **Builds on:** [09 §8](09-web-networking-storage-security.md#8-content-security-policy-and-trusted-types) (CSP and Trusted Types as platform features), [13 §4](13-components-and-templates.md#4-property-attribute-class-and-style-bindings) (bindings), [14 §1](14-directives-and-pipes.md#1-directives-and-attribute-directives-host-inputs-elementref-and-renderer2) (`ElementRef`, `Renderer2`), [24 §5](24-routing.md#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand) (guards), [27 §8](27-http-client.md#8-xsrf-protection-how-httpclient-reads-the-cookie-and-sets-the-header-and-when-it-does-not) (the XSRF gates) and [32 §9](32-ssr-ssg-hydration.md#9-deploying-ssr-node-and-other-runtimes-static-output-caching-rendered-pages-and-allowed-hosts) (host validation).
-- **Read next:** [42. Full-stack authentication](42-fullstack-authentication.md) (the token flows end to end) and [44. Full-stack delivery and operations](44-fullstack-delivery-and-operations.md) (sending the headers in production).
-- **Uses these ideas later:** [37](37-elements-pwa-errors-ecosystem.md#10-error-ux-expected-and-unexpected-errors-http-failures-offline-state-and-route-errors) (errors must not leak), [41](41-fullstack-api-contracts.md) (server-side validation), [42](42-fullstack-authentication.md), [44](44-fullstack-delivery-and-operations.md), [45](45-frontend-system-design-method.md) and [46](46-system-design-case-studies.md) (security in a design), all file-level and not yet written.
+- **Read next:** [42. Full-stack authentication](42-fullstack-authentication.md) (the token flows end to end) and [44. Full-stack delivery and operations](44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli) (sending the headers in production).
+- **Uses these ideas later:** [37](37-elements-pwa-errors-ecosystem.md#10-error-ux-expected-and-unexpected-errors-http-failures-offline-state-and-route-errors) (errors must not leak), [41](41-fullstack-api-contracts.md#7-validation-on-both-layers-bean-validation-angular-validators-and-server-errors-on-form-fields) (server-side validation), [42](42-fullstack-authentication.md), [44](44-fullstack-delivery-and-operations.md), [45](45-frontend-system-design-method.md) and [46](46-system-design-case-studies.md) (security in a design), all file-level and not yet written.
 - **Comparisons:** [Q09.19](09-web-networking-storage-security.md#q09-19) (CSP as a platform feature), [Q24.19](24-routing.md#q24-19) (guards in code review) and [Q27.26](27-http-client.md#q27-26) (the cookie-to-header pattern).

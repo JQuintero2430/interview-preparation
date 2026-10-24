@@ -1,0 +1,1072 @@
+# Consistency scan (generated)
+
+## 1. Non-canonical status markers
+
+- `[Added in ESN]` (44)
+  - X-01 `modules/01-js-values-types-coercion.md:57` `[Added in ES2020]`
+  - X-01 `modules/01-js-values-types-coercion.md:100` `[Added in ES2015]`
+  - X-01 `modules/01-js-values-types-coercion.md:187` `[Added in ES2024]`
+  - X-01 `modules/01-js-values-types-coercion.md:311` `[Added in ES2016]`
+  - X-01 `modules/01-js-values-types-coercion.md:365` `[Added in ES2016]`
+  - X-01 `modules/01-js-values-types-coercion.md:466` `[Added in ES2020]`
+  - X-01 `modules/01-js-values-types-coercion.md:467` `[Added in ES2020]`
+  - X-01 `modules/01-js-values-types-coercion.md:497` `[Added in ES2020]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:103` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:134` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:167` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:220` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:220` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:222` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:224` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:490` `[Added in ES2023]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:584` `[Added in ES2025]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:848` `[Added in ES2017]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:848` `[Added in ES2021]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:888` `[Added in ES2019]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:888` `[Added in ES2017]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:888` `[Added in ES2020]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:975` `[Added in ES2022]`
+  - X-01 `modules/03-js-objects-prototypes-classes.md:1384` `[Added in ES2025]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:3` `[Added in ES2026]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:3` `[Added in ES2027]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:4` `[Added in ES2022]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:27` `[Added in ES2021]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:27` `[Added in ES2022]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:27` `[Added in ES2027]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:59` `[Added in ES2022]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:136` `[Added in ES2020]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:199` `[Added in ES2020]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:200` `[Added in ES2025]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:274` `[Added in ES2021]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:334` `[Added in ES2021]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:335` `[Added in ES2021]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:396` `[Added in ES2022]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:397` `[Added in ES2021]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:398` `[Added in ES2026]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:439` `[Added in ES2022]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:464` `[Added in ES2027]`
+  - X-01 `modules/05-js-modules-memory-modern-features.md:1163` `[Added in ES2026]`
+  - X-01 `modules/06-ts-type-system-essentials.md:288` `[Added in ES2026]`
+- `[Added in ESN, ECMA-N]` (1)
+  - X-01 `modules/01-js-values-types-coercion.md:172` `[Added in ES2022, ECMA-402]`
+- `[Added in ESN, ECMA-N `Intl.NumberFormat` vN]` (1)
+  - X-01 `modules/01-js-values-types-coercion.md:672` `[Added in ES2023, ECMA-402 `Intl.NumberFormat` v3]`
+- `[Changed in Node N: libuv N.N runs timers after poll in each iteration; they used to run first. Timers still run once before the first iteration, which is why older articles start the list with them.]` (1)
+  - X-01 `modules/04-js-async-event-loop.md:141` `[Changed in Node 20: libuv 1.45 runs timers after poll in each iteration; they used to run first. Timers still run once before the first iteration, which is why older articles start the list with them.]`
+- `[Changed in ESN: the normative PR "Reduce the number of ticks in async/await", merged into ECMA-N in February N]` (1)
+  - X-01 `modules/04-js-async-event-loop.md:379` `[Changed in ES2019: the normative PR "Reduce the number of ticks in async/await", merged into ECMA-262 in February 2019]`
+- `[Changed in Node N.N: the `'module.exports'` key was added]` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:134` `[Changed in Node 23.0: the `'module.exports'` key was added]`
+- `[Changed in Node N.N: `require(esm)` needs no flag]` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:181` `[Changed in Node 22.12: `require(esm)` needs no flag]`
+- `[Changed in ESN: symbols as `WeakMap` keys]` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:333` `[Changed in ES2023: symbols as `WeakMap` keys]`
+- `[Changed in ESN]` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:370` `[Changed in ES2023]`
+- `[Changed in Node N.N: no flag needed]` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:821` `[Changed in Node 22.12: no flag needed]`
+- `[Stable since Node.js vN.N.N]` (1)
+  - X-01 `modules/06-ts-type-system-essentials.md:53` `[Stable since Node.js v24.12.0]`
+- `[Added in TypeScript N.N]` (24)
+  - X-01 `modules/06-ts-type-system-essentials.md:53` `[Added in TypeScript 5.8]`
+  - X-01 `modules/06-ts-type-system-essentials.md:99` `[Added in TypeScript 2.4]`
+  - X-01 `modules/06-ts-type-system-essentials.md:159` `[Added in TypeScript 5.5]`
+  - X-01 `modules/06-ts-type-system-essentials.md:160` `[Added in TypeScript 3.7]`
+  - X-01 `modules/06-ts-type-system-essentials.md:161` `[Added in TypeScript 5.4]`
+  - X-01 `modules/06-ts-type-system-essentials.md:264` `[Added in TypeScript 4.4]`
+  - X-01 `modules/06-ts-type-system-essentials.md:314` `[Added in TypeScript 3.4]`
+  - X-01 `modules/06-ts-type-system-essentials.md:315` `[Added in TypeScript 4.9]`
+  - X-01 `modules/06-ts-type-system-essentials.md:358` `[Added in TypeScript 5.6]`
+  - X-01 `modules/06-ts-type-system-essentials.md:360` `[Added in TypeScript 5.4]`
+  - X-01 `modules/06-ts-type-system-essentials.md:687` `[Added in TypeScript 3.7]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:46` `[Added in TypeScript 5.0]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:47` `[Added in TypeScript 5.4]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:94` `[Added in TypeScript 4.1]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:95` `[Added in TypeScript 4.1]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:188` `[Added in TypeScript 4.5]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:226` `[Added in TypeScript 2.6]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:229` `[Added in TypeScript 4.7]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:309` `[Added in TypeScript 5.0]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:312` `[Added in TypeScript 5.2]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:528` `[Added in TypeScript 5.0]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:528` `[Added in TypeScript 5.4]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:733` `[Added in TypeScript 4.7]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:841` `[Added in TypeScript 5.0]`
+- `[Changed in TypeScript N.N]` (2)
+  - X-01 `modules/06-ts-type-system-essentials.md:210` `[Changed in TypeScript 3.9]`
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:46` `[Changed in TypeScript 5.3]`
+- `[Changed in TypeScript N.N: before, `N` was accepted]` (1)
+  - X-01 `modules/06-ts-type-system-essentials.md:310` `[Changed in TypeScript 5.0: before, `99` was accepted]`
+- `[Changed in TypeScript N.N: `strict`, `module`, `target`, `types`, `rootDir` and `noUncheckedSideEffectImports`]` (1)
+  - X-01 `modules/06-ts-type-system-essentials.md:361` `[Changed in TypeScript 6.0: `strict`, `module`, `target`, `types`, `rootDir` and `noUncheckedSideEffectImports`]`
+- `[Changed in TypeScript N.N: tail-recursive conditionals]` (1)
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:147` `[Changed in TypeScript 4.5: tail-recursive conditionals]`
+- `[Changed in TypeScript N.N: it was `T extends null | undefined ? never : T`]` (1)
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:186` `[Changed in TypeScript 4.8: it was `T extends null | undefined ? never : T`]`
+- `[Added in Angular N]` (1)
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:443` `[Added in Angular 14]`
+- `[Baseline widely available since February N, per MDN's shadowRootMode page]` (1)
+  - X-01 `modules/08-browser-rendering-dom-events.md:281` `[Baseline widely available since February 2024, per MDN's shadowRootMode page]`
+- `[Baseline N: newly available since January N, per MDN]` (1)
+  - X-01 `modules/08-browser-rendering-dom-events.md:404` `[Baseline 2026: newly available since January 2026, per MDN]`
+- `[Deprecated since CLI N.N — use @angular/build:application]` (1)
+  - X-02 `modules/12-angular-how-it-works.md:263` `[Deprecated since CLI 22.0 — use @angular/build:application]`
+- `[Changed in vN.N]` (12)
+  - X-02 `modules/13-components-and-templates.md:55` `[Changed in v22.0]`
+  - X-02 `modules/13-components-and-templates.md:132` `[Changed in v20.0]`
+  - X-02 `modules/13-components-and-templates.md:316` `[Changed in v22.0]`
+  - X-02 `modules/13-components-and-templates.md:1100` `[Changed in v19.0]`
+  - X-02 `modules/13-components-and-templates.md:1100` `[Changed in v22.0]`
+  - X-02 `modules/13-components-and-templates.md:1100` `[Changed in v20.0]`
+  - X-02 `modules/13-components-and-templates.md:1122` `[Changed in v22.0]`
+  - X-02 `modules/13-components-and-templates.md:1266` `[Changed in v22.0]`
+  - X-02 `modules/13-components-and-templates.md:1895` `[Changed in v22.0]`
+  - X-02 `modules/14-directives-and-pipes.md:632` `[Changed in v20.0]`
+  - X-02 `modules/14-directives-and-pipes.md:893` `[Changed in v20.0]`
+  - X-02 `modules/14-directives-and-pipes.md:2198` `[Changed in v20.0]`
+- `[Added in vN.N · Changed in vN.N: on by default]` (1)
+  - X-02 `modules/13-components-and-templates.md:686` `[Added in v20.0 · Changed in v21.0: on by default]`
+- `[Deprecated]` (1)
+  - X-02 `modules/13-components-and-templates.md:1016` `[Deprecated]`
+- `[Changed in vN.N.N: "only bind inputs that are part of microsyntax to a structural directive"]` (1)
+  - X-02 `modules/14-directives-and-pipes.md:157` `[Changed in v20.3.1: "only bind inputs that are part of microsyntax to a structural directive"]`
+- `[Changed in vN.N.N: "preserve literal key union in KeyValuePipe.transform()"]` (1)
+  - X-02 `modules/14-directives-and-pipes.md:634` `[Changed in v22.1.3: "preserve literal key union in KeyValuePipe.transform()"]`
+- `[Changed in vN.N.N: no markForCheck on subscription]` (1)
+  - X-02 `modules/14-directives-and-pipes.md:806` `[Changed in v17.2.3: no markForCheck on subscription]`
+- `[Deprecated since vN.N — remove it]` (1)
+  - X-02 `modules/17-signals.md:278` `[Deprecated since v19.0 — remove it]`
+- `[Deprecated since vN.N — pass an observer]` (1)
+  - X-03 `modules/22-rxjs-foundations.md:178` `[Deprecated since v6.4 — pass an observer]`
+- `[Deprecated since vN.N — keep the default]` (1)
+  - X-03 `modules/22-rxjs-foundations.md:181` `[Deprecated since v6.0 — keep the default]`
+- `[Deprecated since vN.N — no replacement]` (1)
+  - X-03 `modules/22-rxjs-foundations.md:217` `[Deprecated since v7.0 — no replacement]`
+- `[Deprecated since vN.N — pass an array or an object]` (1)
+  - X-03 `modules/22-rxjs-foundations.md:714` `[Deprecated since v6.5 — pass an array or an object]`
+- `[Deprecated since vN.N — pass a factory]` (1)
+  - X-03 `modules/23-rxjs-in-depth.md:304` `[Deprecated since v7.0 — pass a factory]`
+- `[Deprecated since vN.N.N — use retry with delay]` (1)
+  - X-03 `modules/23-rxjs-in-depth.md:398` `[Deprecated since v7.5.5 — use retry with delay]`
+- `[Deprecated since vN.N.N — use repeat with delay]` (1)
+  - X-03 `modules/23-rxjs-in-depth.md:398` `[Deprecated since v7.5.5 — use repeat with delay]`
+- `[Deprecated since vN.N — remove it, fetch is the default]` (1)
+  - X-03 `modules/27-http-client.md:140` `[Deprecated since v22.0 — remove it, fetch is the default]`
+- `[Deprecated since vN.N — read status]` (1)
+  - X-03 `modules/27-http-client.md:503` `[Deprecated since v21.0 — read status]`
+- `[Experimental since N.N.N — the first release of @tanstack/angular-query-experimental; the docs call it experimental]` (1)
+  - X-03 `modules/28-state-management.md:65` `[Experimental since 5.12.1 — the first release of @tanstack/angular-query-experimental; the docs call it experimental]`
+- `[Deprecated since NgRx vN.N — use a selector factory]` (1)
+  - X-03 `modules/28-state-management.md:557` `[Deprecated since NgRx v12.0 — use a selector factory]`
+- `[Removed in NgRx vN.N — pass { next, error, complete }]` (1)
+  - X-03 `modules/28-state-management.md:648` `[Removed in NgRx v22.0 — pass { next, error, complete }]`
+- `[Deprecated since NgRx vN.N]` (1)
+  - X-03 `modules/28-state-management.md:773` `[Deprecated since NgRx v22.0]`
+- `[Added in NgRx vN.N]` (4)
+  - X-03 `modules/28-state-management.md:831` `[Added in NgRx v19.0]`
+  - X-03 `modules/28-state-management.md:953` `[Added in NgRx v19.0]`
+  - X-03 `modules/28-state-management.md:980` `[Added in NgRx v20.0]`
+  - X-03 `modules/28-state-management.md:980` `[Added in NgRx v19.1]`
+- `[Stable since NgRx vN.N]` (1)
+  - X-03 `modules/28-state-management.md:955` `[Stable since NgRx v21.0]`
+- `[Changed in NgRx vN.N: renamed from withEffects]` (1)
+  - X-03 `modules/28-state-management.md:955` `[Changed in NgRx v21.0: renamed from withEffects]`
+- `[Deprecated since NgRx vN.N — call it in an injection context or pass an injector]` (1)
+  - X-03 `modules/28-state-management.md:972` `[Deprecated since NgRx v21.1 — call it in an injection context or pass an injector]`
+- `[Experimental since NgRx vN.N]` (1)
+  - X-03 `modules/28-state-management.md:980` `[Experimental since NgRx v22.0]`
+- `[Deprecated since vN.N]` (1)
+  - X-03 `modules/29-testing-angular.md:222` `[Deprecated since v22.2]`
+- `[Changed in vN.N.N: only javascript: URLs are blocked]` (1)
+  - X-04 `modules/33-security.md:266` `[Changed in v15.2.6: only javascript: URLs are blocked]`
+- `[Changed in vN.N.N: reworked to handle Signal Forms]` (1)
+  - X-04 `modules/36-material-and-cdk.md:145` `[Changed in v22.0.4: reworked to handle Signal Forms]`
+- `[Added in vN.N.N]` (1)
+  - X-04 `modules/36-material-and-cdk.md:508` `[Added in v22.2.1]`
+- `[Deprecated since vN.N.N — use `createDragRef` and `createDropListRef`]` (1)
+  - X-04 `modules/36-material-and-cdk.md:625` `[Deprecated since v21.0.6 — use `createDragRef` and `createDropListRef`]`
+
+## 2. One API, different markers
+
+- `). ` X-01
+  - `modules/03-js-objects-prototypes-classes.md:134` `[Added in ES2022]`
+  - `modules/14-directives-and-pipes.md:163` `[Deprecated since v20.0 — use @if]`
+  - `modules/16-dependency-injection.md:54` `[Added in v22.0]`
+  - `modules/16-dependency-injection.md:449` `[Added in v15.1]`
+  - `modules/16-dependency-injection.md:449` `[Added in v14.1]`
+  - `modules/16-dependency-injection.md:829` `[Added in v20.1]`
+  - `modules/16-dependency-injection.md:1600` `[Added in v18.0]`
+  - `modules/19-component-communication-and-projection.md:472` `[Added in v22.2]`
+  - `modules/25-forms-reactive-and-template-driven.md:817` `[Added in v20.0]`
+  - `modules/35-animations.md:501` `[Changed in v22.0: `VoidFunction`, was `Function`]`
+  - `modules/37-elements-pwa-errors-ecosystem.md:1521` `[Added in v19.0]`
+- `, ` X-01
+  - `modules/06-ts-type-system-essentials.md:358` `[Added in TypeScript 5.6]`
+  - `modules/25-forms-reactive-and-template-driven.md:69` `[Added in v21.0]`
+- ` ` X-01
+  - `modules/08-browser-rendering-dom-events.md:421` `[Experimental since v21.1]`
+  - `modules/17-signals.md:278` `[Deprecated since v19.0 — remove it]`
+  - `modules/17-signals.md:644` `[Stable since v20.0]`
+  - `modules/28-state-management.md:831` `[Added in NgRx v19.0]`
+  - `modules/28-state-management.md:980` `[Added in NgRx v19.1]`
+  - `modules/28-state-management.md:980` `[Experimental since NgRx v22.0]`
+  - `modules/32-ssr-ssg-hydration.md:630` `[Deprecated since v22.0 — use the default of provideClientHydration()]`
+- `@angular-devkit/build-angular` X-02
+  - `modules/12-angular-how-it-works.md:263` `[Deprecated since CLI 22.0 — use @angular/build:application]`
+  - `modules/38-architecture-and-production-structure.md:639` `[Deprecated since v22.0 — use `@angular/build`]`
+- `APP_INITIALIZER` X-02
+  - `modules/12-angular-how-it-works.md:532` `[Deprecated since v19 — use provideAppInitializer]`
+  - `modules/16-dependency-injection.md:740` `[Deprecated since v19.0 — use provideAppInitializer]`
+  - `modules/39-version-history-and-migrations.md:482` `[Deprecated since v19 — use `provideAppInitializer`]`
+- `NG8023` X-02
+  - `modules/13-components-and-templates.md:59` `[Changed in v22.0: "will now throw at compile time"]`
+  - `modules/13-components-and-templates.md:1122` `[Changed in v22.0]`
+- `changeDetection` X-02
+  - `modules/13-components-and-templates.md:1100` `[Changed in v19.0]`
+  - `modules/14-directives-and-pipes.md:711` `[Changed in v22.0: the default]`
+  - `modules/21-change-detection.md:60` `[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]`
+  - `modules/31-performance.md:218` `[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]`
+  - `modules/31-performance.md:1084` `[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]`
+  - `modules/38-architecture-and-production-structure.md:142` `[Changed in v22.0: components without `changeDetection` are OnPush]`
+  - `modules/38-architecture-and-production-structure.md:1136` `[Changed in v22.0: components without `changeDetection` are OnPush]`
+- `.component` X-02
+  - `modules/13-components-and-templates.md:1100` `[Changed in v20.0]`
+  - `modules/39-version-history-and-migrations.md:483` `[Changed in v20.0: generated file names have no `.component` suffix]`
+- `NgSwitch` X-02
+  - `modules/14-directives-and-pipes.md:2174` `[Deprecated since v20.0 — use `@if`, `@for`, `@switch`]`
+  - `modules/18-control-flow-and-defer.md:79` `[Deprecated since v20.0 — use @switch]`
+- `HttpClientModule` X-02
+  - `modules/15-standalone-and-ngmodules.md:295` `[Deprecated since v18.0 — use provideHttpClient(withInterceptorsFromDi())]`
+  - `modules/15-standalone-and-ngmodules.md:1168` `[Deprecated since v18.0 — use provideHttpClient(withInterceptorsFromDi())]`
+  - `modules/39-version-history-and-migrations.md:481` `[Deprecated since v18 — use `provideHttpClient`]`
+- `*ngIf` X-02
+  - `modules/15-standalone-and-ngmodules.md:486` `[Deprecated since v20.0 — use @if]`
+  - `modules/18-control-flow-and-defer.md:34` `[Deprecated since v20.0 — use @if]`
+  - `modules/39-version-history-and-migrations.md:520` `[Deprecated since v20.0 — use `@if`]`
+- ` and ` X-03
+  - `modules/22-rxjs-foundations.md:306` `[Deprecated since v7.0 — use share, connectable or connect]`
+  - `modules/25-forms-reactive-and-template-driven.md:792` `[Added in v18.0]`
+  - `modules/27-http-client.md:171` `[Deprecated since v18.0 — use provideHttpClient(withInterceptorsFromDi())]`
+  - `modules/27-http-client.md:503` `[Deprecated since v21.0 — read status]`
+  - `modules/34-i18n.md:121` `[Baseline 2025: newly available, per MDN]`
+  - `modules/37-elements-pwa-errors-ecosystem.md:401` `[Added in v19.0]`
+- `merge` X-03
+  - `modules/22-rxjs-foundations.md:463` `[Deprecated since v6.0 — use mergeWith]`
+  - `modules/22-rxjs-foundations.md:716` `[Deprecated since v6.5 — use scheduled and mergeAll]`
+- `delay` X-03
+  - `modules/23-rxjs-in-depth.md:334` `[Added in v7.3]`
+  - `modules/23-rxjs-in-depth.md:369` `[Added in v7.5]`
+- `RedirectCommand` X-03
+  - `modules/24-routing.md:501` `[Added in v18.0]`
+  - `modules/24-routing.md:501` `[Added in v22.2]`
+
+## 3. Duplicate question candidates
+
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q04.03 (Output) `modules/04-js-async-event-loop.md:606` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q04.05 (Output) `modules/04-js-async-event-loop.md:669` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q04.10 (Output) `modules/04-js-async-event-loop.md:796` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q04.15 (Output) `modules/04-js-async-event-loop.md:939` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q04.22 (Output) `modules/04-js-async-event-loop.md:1156` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q04.25 (Output) `modules/04-js-async-event-loop.md:1253` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q01.04 (Output) `modules/01-js-values-types-coercion.md:603` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q04.03 (Output) `modules/04-js-async-event-loop.md:606` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q04.05 (Output) `modules/04-js-async-event-loop.md:669` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q04.10 (Output) `modules/04-js-async-event-loop.md:796` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q04.15 (Output) `modules/04-js-async-event-loop.md:939` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q04.22 (Output) `modules/04-js-async-event-loop.md:1156` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q04.25 (Output) `modules/04-js-async-event-loop.md:1253` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q02.02 (Output) `modules/02-js-scope-closures-this.md:551` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q02.06 (Output) `modules/02-js-scope-closures-this.md:714` "What does this print? (the classic loop)" vs Q04.04 (Output) `modules/04-js-async-event-loop.md:632` "The classic: what does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q04.03 (Output) `modules/04-js-async-event-loop.md:606` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q04.05 (Output) `modules/04-js-async-event-loop.md:669` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q04.10 (Output) `modules/04-js-async-event-loop.md:796` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q04.15 (Output) `modules/04-js-async-event-loop.md:939` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q04.22 (Output) `modules/04-js-async-event-loop.md:1156` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q04.25 (Output) `modules/04-js-async-event-loop.md:1253` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q03.01 (Output) `modules/03-js-objects-prototypes-classes.md:634` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q04.03 (Output) `modules/04-js-async-event-loop.md:606` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q04.05 (Output) `modules/04-js-async-event-loop.md:669` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q04.10 (Output) `modules/04-js-async-event-loop.md:796` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q04.15 (Output) `modules/04-js-async-event-loop.md:939` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q04.22 (Output) `modules/04-js-async-event-loop.md:1156` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q04.25 (Output) `modules/04-js-async-event-loop.md:1253` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q03.04 (Output) `modules/03-js-objects-prototypes-classes.md:723` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q04.03 (Output) `modules/04-js-async-event-loop.md:606` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q04.03 (Output) `modules/04-js-async-event-loop.md:606` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q04.03 (Output) `modules/04-js-async-event-loop.md:606` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q04.05 (Output) `modules/04-js-async-event-loop.md:669` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q04.05 (Output) `modules/04-js-async-event-loop.md:669` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q04.05 (Output) `modules/04-js-async-event-loop.md:669` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q04.10 (Output) `modules/04-js-async-event-loop.md:796` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q04.10 (Output) `modules/04-js-async-event-loop.md:796` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q04.10 (Output) `modules/04-js-async-event-loop.md:796` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q04.15 (Output) `modules/04-js-async-event-loop.md:939` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q04.15 (Output) `modules/04-js-async-event-loop.md:939` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q04.15 (Output) `modules/04-js-async-event-loop.md:939` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q04.22 (Output) `modules/04-js-async-event-loop.md:1156` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q04.22 (Output) `modules/04-js-async-event-loop.md:1156` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q04.22 (Output) `modules/04-js-async-event-loop.md:1156` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+- X-01 Q04.25 (Output) `modules/04-js-async-event-loop.md:1253` "What does this print?" vs Q17.04 (Output) `modules/17-signals.md:844` "What does this print?"
+- X-01 Q04.25 (Output) `modules/04-js-async-event-loop.md:1253` "What does this print?" vs Q17.06 (Output) `modules/17-signals.md:904` "What does this print?"
+- X-01 Q04.25 (Output) `modules/04-js-async-event-loop.md:1253` "What does this print?" vs Q17.20 (Output) `modules/17-signals.md:1316` "What does this print?"
+
+## 4. Glossary terms defined in more than one module
+
+- `abortcontroller` X-03 (2)
+  - 22: **`AbortController`**: the object that carries a cancel signal to an operation ([22 §1] (../modules/22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness))
+  - 43: **`AbortController`**: the platform object whose `signal` cancels a `fetch`; calling `abort()` ends the request and its body stream ([43 §4] (../modules/43-fullstack-realtime.md#4-the-angular-sse-client-eventsource-or-a-fetch-stream-as-an-observable-and-when-httpclient-fits))
+- `access token` X-04 (2)
+  - 33: **access token**: the credential an API accepts on each request, usually sent as `Authorization: Bearer <token>` ([33 §8] (../modules/33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend))
+  - 42: **access token**: the credential the API accepts, sent as a bearer token ([42 §2] (../modules/42-fullstack-authentication.md#2-oauth-20-and-openid-connect-for-a-single-page-app-authorization-code-with-pkce-and-why-the-implicit-flow-is-gone))
+- `accessibility tree` X-01 (2)
+  - 11: **accessibility tree**: the browser's tree of objects with a name, description, role and state, built from the DOM and exposed to assistive technology ([11 §2] (../modules/11-accessibility.md#2-semantic-html-landmarks-and-headings)).
+  - 30: **accessibility tree**: the roles, names and states the browser exposes to assistive technology ([30 §6] (../modules/30-e2e-and-testing-strategy.md#6-visual-regression-and-accessibility-checks-in-end-to-end-tests))
+- `accessible name` X-03 (2)
+  - 29: **accessible name**: the text assistive technology announces for a control; a query by it tests the page the way a user meets it ([29 §6] (../modules/29-testing-angular.md#6-component-tests-dom-queries-componentfixture-signal-inputs-with-setinput-and-bindings-outputs-and-onpush))
+  - 30: **accessible name**: the text assistive technology announces for a control, which `getByRole` matches with its `name` option ([30 §4] (../modules/30-e2e-and-testing-strategy.md#4-locators-page-objects-and-fixtures))
+- `adapter` X-02 (2)
+  - 16: **adapter**: a class that gives a foreign API the shape a token promises, so consumers keep one interface ([16 §9] (../modules/16-dependency-injection.md#9-di-patterns-testing-and-the-spring-container)).
+  - 40: **adapter**: a thin layer that gives a core or a source the shape one consumer needs (owner [38 §3] (../modules/38-architecture-and-production-structure.md#3-facades-and-the-data-access-layer); [40 §8] (../modules/40-framework-comparisons.md#8-choosing-a-framework-balanced-trade-offs-and-how-to-answer-why-angular))
+- `ambient credential` X-04 (2)
+  - 33: **ambient credential**: a credential the browser attaches by itself, such as a cookie, HTTP authentication or a client certificate; an `Authorization` header set by script is not ambient ([33 §9] (../modules/33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support))
+  - 42: **ambient credential**: a credential the browser attaches by itself, such as a cookie, so a page on another site can trigger a request that carries it ([42 §1] (../modules/42-fullstack-authentication.md#1-sessions-versus-tokens-what-the-server-keeps-what-each-request-carries-revocation-and-scaling))
+- `angular package format` X-04 (2)
+  - 38: **Angular Package Format**: the folder layout of a built library: `package.json` with `exports`, FESM bundles and bundled typings ([38 §5] (../modules/38-architecture-and-production-structure.md#5-angular-cli-libraries-ng-generate-library-ng-packagr-and-consuming-the-build))
+  - 39: **Angular Package Format**: the layout `ng-packagr` writes for a library ([39 §5] (../modules/39-version-history-and-migrations.md#5-the-version-matrix-part-2-v9-to-v15-from-ivy-to-standalone); owner [38 §5] (../modules/38-architecture-and-production-structure.md#5-angular-cli-libraries-ng-generate-library-ng-packagr-and-consuming-the-build))
+- `app shell` X-01 (2)
+  - 09: **app shell**: the HTML, JavaScript and CSS that render an app's basic UI, usually precached ([09 §9] (../modules/09-web-networking-storage-security.md#9-service-workers-and-the-pwa-manifest)).
+  - 37: **app shell**: a route rendered at build time so a static page appears at once; documented only here ([37 §5] (../modules/37-elements-pwa-errors-ecosystem.md#5-caching-with-asset-and-data-groups-navigation-requests-and-the-app-shell))
+- `applicationref` X-02 (3)
+  - 12: **`ApplicationRef`**: the handle to a running application: its root components, injector and `destroy()` ([12 §6] (../modules/12-angular-how-it-works.md#6-bootstrapping-bootstrapapplication-the-platform-and-initializers)).
+  - 15: **`ApplicationRef` (as used in 15)**: the app's root handle, which lives in the root environment injector ([15 §3] (../modules/15-standalone-and-ngmodules.md#3-bootstrapping-and-providers-without-modules-bootstrapapplication-provide-functions-and-importprovidersfrom); owner [12 §6] (../modules/12-angular-how-it-works.md#6-bootstrapping-bootstrapapplication-the-platform-and-initializers))
+  - 19: **`ApplicationRef`**: the object that runs change detection for the application's root views and holds the views attached to it ([19 §7] (../modules/19-component-communication-and-projection.md#7-dynamic-components-viewcontainerrefcreatecomponent-createcomponent-and-bindings))
+- `aria` X-01 (2)
+  - 11: **ARIA**: Accessible Rich Internet Applications, the W3C vocabulary of roles, states and properties that annotates the accessibility tree and adds no behavior ([11 §3] (../modules/11-accessibility.md#3-aria-roles-states-properties-and-its-rules)).
+  - 13: **ARIA**: the attributes that tell assistive technology a role and state; owner [11] (../modules/11-accessibility.md) ([13 §1] (../modules/13-components-and-templates.md#1-component-anatomy-selector-template-styles-imports-and-the-v22-file-convention)).
+- `async pipe` X-02 (2)
+  - 14: **`async` pipe**: an impure pipe that subscribes, stores the latest value, marks the view, and disposes on source change or destroy ([14 §8] (../modules/14-directives-and-pipes.md#8-the-async-pipe-under-the-hood)).
+  - 28: **`async` pipe**: a template pipe that subscribes to an Observable, renders its latest value, marks the view for check on each value and unsubscribes at destroy ([28 §3] (../modules/28-state-management.md#3-the-service-with-behaviorsubject-store-the-legacy-but-common-pattern-and-its-migration))
+- `authentication` X-04 (2)
+  - 33: **authentication**: establishing who the caller is; a request with no valid identity is answered `401` ([33 §10] (../modules/33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server))
+  - 42: **authentication**: who is calling a service; it comes before authorization ([42 §1] (../modules/42-fullstack-authentication.md#1-sessions-versus-tokens-what-the-server-keeps-what-each-request-carries-revocation-and-scaling))
+- `authorization` X-04 (2)
+  - 33: **authorization**: deciding whether a known caller may do this; a refusal is answered `403`, and only the server can enforce it ([33 §10] (../modules/33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server))
+  - 42: **authorization**: what a caller, once identified, may do ([42 §1] (../modules/42-fullstack-authentication.md#1-sessions-versus-tokens-what-the-server-keeps-what-each-request-carries-revocation-and-scaling))
+- `backend-for-frontend (bff)` X-04 (3)
+  - 33: **backend-for-frontend (BFF)**: a server on the app's own site that keeps the tokens and gives the browser only a session cookie ([33 §8] (../modules/33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend))
+  - 42: **backend-for-frontend (BFF)**: a server on the app's site that is the OAuth client, keeps every token and proxies API calls; the browser holds only a session cookie ([42 §3] (../modules/42-fullstack-authentication.md#3-where-the-oauth-client-runs-a-browser-only-client-a-token-mediating-backend-or-a-backend-for-frontend-with-spring))
+  - 44: **backend-for-frontend (BFF)**: a backend built for one front end that aggregates service calls and holds the session ([44 §1] (../modules/44-fullstack-delivery-and-operations.md#1-where-the-api-calls-go-direct-calls-a-same-origin-reverse-proxy-an-api-gateway-or-a-backend-for-frontend))
+- `barrel` X-02 (2)
+  - 16: **barrel**: an index file that re-exports other files; one scratch build kept unused services re-exported through one ([16 §3] (../modules/16-dependency-injection.md#3-providedin-service-scopes-and-tree-shaking)).
+  - 18: **barrel**: an `index.ts` that re-exports other files, so one import can reach several of them ([18 §7] (../modules/18-control-flow-and-defer.md#7-what-lands-in-a-chunk-testing-deferred-blocks-and-the-ssr-pointer))
+- `barrel file` X-04 (2)
+  - 31: **barrel file**: an `index.ts` that only re-exports other modules ([31 §6] (../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
+  - 38: **barrel file**: an `index.ts` that re-exports a folder's public names ([38 §1] (../modules/38-architecture-and-production-structure.md#1-folder-structures-that-scale-by-feature-domain-slices-and-core-shared-and-feature-boundaries))
+- `base href` X-03 (2)
+  - 24: **base href**: the URL prefix of the app, from `APP_BASE_HREF` or the document's `<base href>`, which `PathLocationStrategy` puts before every URL ([24 §10] (../modules/24-routing.md#10-the-router-and-the-platform-history-api-navigation-api-and-location-strategies))
+  - 34: **base `href`**: the URL in `<base href>` that relative links and the router resolve against; `/fr/` in the French build ([34 §7] (../modules/34-i18n.md#7-compile-time-localization-one-build-per-locale-subpath-lang-and-dir))
+- `baseline` X-01 (6)
+  - 08: **Baseline**: MDN's cross-browser label; *newly available* once the latest stable version of every core browser supports a feature, *widely available* about 2.5 years later ([08 Contents] (../modules/08-browser-rendering-dom-events.md#contents)).
+  - 11: **Baseline**: MDN's label for cross-browser availability, newly available or widely available ([11 header] (../modules/11-accessibility.md)).
+  - 35: **Baseline**: MDN's cross-browser label; newly available means support in the latest Chrome, Edge, Firefox and Safari, widely available at least 2.5 years of it ([35 §1] (../modules/35-animations.md#1-motion-in-a-ui-what-to-animate-the-browsers-three-animation-mechanisms-and-where-angular-fits))
+  - 42: **Baseline**: MDN's label for a web feature's support across the core browsers ([42 §4] (../modules/42-fullstack-authentication.md#4-refresh-tokens-rotation-reuse-detection-silent-renew-and-refreshing-across-tabs))
+  - 44: **Baseline**: MDN's label for browser support: newly available in all current major browsers, or widely available for 2.5+ years ([44 §3] (../modules/44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli))
+  - 47: **baseline**: the measurement taken before a change, against which the result is stated ([47 §2] (../modules/47-behavioral-and-interview-craft.md#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture))
+- `binding` X-01 (2)
+  - 02: **binding**: the association between a name and its storage slot in an environment record ([02 §1] (../modules/02-js-scope-closures-this.md#1-lexical-scope-and-the-scope-chain)).
+  - 20: **binding**: a template expression tied to a value shown on screen ([20 §6] (../modules/20-lifecycle-and-render-hooks.md#6-expressionchangedafterithasbeencheckederror-cause-and-fixes))
+- `brotli` X-02 (2)
+  - 12: **Brotli**: a compression format; the build's "Estimated transfer size" column is a Brotli estimate ([12 §3] (../modules/12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)).
+  - 44: **Brotli**: a compression format denser than gzip's deflate ([44 §3] (../modules/44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli))
+- `bubbling` X-02 (2)
+  - 14: **bubbling**: the order in which a DOM event reaches the clicked element first and then each ancestor ([14 Exercise 14.1] (../modules/14-directives-and-pipes.md#ex14-1)).
+  - 37: **bubbling**: an event also reaching the listeners of its target's ancestors ([37 §2] (../modules/37-elements-pwa-errors-ecosystem.md#2-the-elements-public-contract-attributes-properties-events-projected-content-and-typings))
+- `budget (build)` X-02 (2)
+  - 12: **budget (build)**: a size limit on part of the build output that warns or fails the build ([12 §3] (../modules/12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)).
+  - 31: **budget (build)**: a size limit that fails the build when crossed ([31 §6] (../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
+- `builder` X-02 (3)
+  - 12: **builder**: the function a target runs, named `<package>:<name>` ([12 §2] (../modules/12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)).
+  - 29: **builder**: the CLI unit behind an `angular.json` target such as `test`, here `@angular/build:unit-test` ([29 §2] (../modules/29-testing-angular.md#2-the-runner-vitest-through-angularbuildunit-test-jsdom-and-browser-mode))
+  - 30: **builder**: the function an `angular.json` target names; `ng e2e` runs the one registered as the `e2e` target ([30 §2] (../modules/30-e2e-and-testing-strategy.md#2-playwright-and-cypress-architecture-ng-e2e-and-the-end-of-protractor))
+- `cache key` X-04 (2)
+  - 38: **cache key**: the label a saved folder is stored under in CI, so the same key restores it ([38 §11] (../modules/38-architecture-and-production-structure.md#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews))
+  - 45: **cache key**: the identity under which an answer is stored ([45 §7] (../modules/45-frontend-system-design-method.md#7-rendering-strategy-and-caching-layers-a-rendering-choice-per-route-and-every-cache-from-the-cdn-to-the-component))
+- `change detection` X-02 (2)
+  - 20: **change detection**: the walk over the component tree that checks every template binding for changes ([20 §1] (../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
+  - 21: **change detection**: the step that makes the DOM match the state: each binding of a refreshed view is evaluated and compared with its last value, and the DOM is written only where it differs ([21 §1] (../modules/21-change-detection.md#1-the-synchronization-problem-dirty-checking-and-fine-grained-reactivity))
+- `checkpoint` X-04 (3)
+  - 39: **checkpoint**: the build, tests, render check and commit that follow each migration batch ([39 §10] (../modules/39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints))
+  - 45: **checkpoint**: a pause where you ask the interviewer where to go deeper ([45 §2] (../modules/45-frontend-system-design-method.md#2-communicating-under-time-pressure-a-time-plan-complete-trade-off-statements-and-diagrams-at-three-zoom-levels))
+  - 47: **checkpoint**: a question to the interviewer at a working state, such as "does this match what you want?" ([47 §4] (../modules/47-behavioral-and-interview-craft.md#4-live-coding-an-angular-task-clarify-say-the-plan-build-in-working-increments-narrate-and-recover-when-stuck))
+- `chunk` X-01 (4)
+  - 05: **chunk**: a separate output file a bundler emits so that part of an app loads on demand ([05 Q05.08] (../modules/05-js-modules-memory-modern-features.md#q05-08)).
+  - 12: **chunk**: a separately loaded output file; each dynamic `import()` starts one ([12 §3] (../modules/12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)).
+  - 15: **chunk**: a separately downloaded JavaScript file the bundler emits, for example for each dynamic `import()` target ([15 §4] (../modules/15-standalone-and-ngmodules.md#4-lazy-loading-without-modules-loadcomponent-and-loadchildren-with-route-arrays)).
+  - 31: **chunk**: one JavaScript file the build emits ([31 §5] (../modules/31-performance.md#5-loading-the-initial-bundle-lazy-routes-defer-and-preloading-as-one-plan))
+- `cldr` X-02 (2)
+  - 14: **CLDR**: the project the typings name as the source of currency data; named only on that basis ([14 §6] (../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
+  - 34: **CLDR**: the Unicode Common Locale Data Repository, the data behind date, number and unit formats and collation ([34 §1] (../modules/34-i18n.md#1-i18n-l10n-and-the-locale-language-tags-what-a-locale-decides-and-locale_id))
+- `codemod` X-02 (3)
+  - 18: **codemod**: a program that rewrites source code mechanically ([18 §8] (../modules/18-control-flow-and-defer.md#8-migrating-with-ng-generate-angularcorecontrol-flow))
+  - 19: **codemod**: a program that rewrites source code; a schematic is the CLI's form ([19 §6] (../modules/19-component-communication-and-projection.md#6-decorator-based-inputs-outputs-and-queries-and-the-migration-schematics))
+  - 39: **codemod**: a program that rewrites source code; a schematic is the CLI's codemod ([39 §10] (../modules/39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints); owner [18 §8] (../modules/18-control-flow-and-defer.md#8-migrating-with-ng-generate-angularcorecontrol-flow))
+- `commonjs` X-01 (2)
+  - 05: **CommonJS**: Node's original module system: `require` runs a file once and returns its `module.exports` value ([05 §2] (../modules/05-js-modules-memory-modern-features.md#2-commonjs-interop-and-dynamic-import)).
+  - 31: **CommonJS**: the older `require`-based module format ([31 §6] (../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
+- `composition` X-01 (2)
+  - 03: **composition**: building behavior by holding collaborators ("has a") instead of inheriting ("is a") ([03 §4] (../modules/03-js-objects-prototypes-classes.md#4-inheritance-composition-and-mixins)).
+  - 14: **composition**: building a class's behavior from parts such as host directives instead of inheriting it ([14 §3] (../modules/14-directives-and-pipes.md#3-host-directives-the-composition-api)).
+- `compositor-only property` X-01 (2)
+  - 08: **compositor-only property**: `transform` or `opacity` on an element with its own layer, whose change skips layout and paint ([08 §2] (../modules/08-browser-rendering-dom-events.md#2-layout-paint-and-composite-what-each-change-costs)).
+  - 35: **compositor-only property**: a CSS property (`transform`, `opacity`) the browser can change without layout or paint ([35 §11] (../modules/35-animations.md#11-performance-and-reduced-motion-compositor-properties-measuring-jank-and-prefers-reduced-motion))
+- `constraint` X-01 (2)
+  - 07: **constraint**: an `extends` bound on a type parameter that a type argument must satisfy (`T extends { length: number }`) ([07 §1] (../modules/07-ts-advanced-types-and-decorators.md#1-generics-constraints-defaults-inference-and-const-type-parameters)).
+  - 45: **constraint**: a limit fixed from outside the design, such as team, existing API or deadline ([45 §3] (../modules/45-frontend-system-design-method.md#3-requirements-first-functional-and-non-functional-requirements-constraints-and-back-of-envelope-numbers))
+- `container` X-05 (2)
+  - 44: **container**: a running instance of an image ([44 §2] (../modules/44-fullstack-delivery-and-operations.md#2-a-docker-multi-stage-build-for-angular-build-and-runtime-stages-layer-caching-dockerignore-and-a-non-root-image))
+  - 45: **container**: a component that reads state and passes it down; a presentational component takes inputs and emits outputs ([45 §4] (../modules/45-frontend-system-design-method.md#4-component-architecture-data-model-and-data-flow-from-screens-to-a-component-tree-and-a-client-side-model))
+- `cors` X-01 (2)
+  - 05: **CORS**: the browser's cross-origin permission check, which module scripts always go through (taught in module 09) ([05 §1] (../modules/05-js-modules-memory-modern-features.md#1-es-modules-static-structure-linking-and-live-bindings)).
+  - 09: **CORS**: Cross-Origin Resource Sharing, the response headers by which a server lets other origins' scripts read its responses ([09 §5] (../modules/09-web-networking-storage-security.md#5-the-same-origin-policy-and-cors)).
+- `csr (client-side rendering)` X-04 (2)
+  - 31: **CSR (client-side rendering)**: the server sends a nearly empty shell and the browser builds the page by running JavaScript ([31 §10] (../modules/31-performance.md#10-rendering-strategy-as-a-performance-decision-csr-ssr-and-ssg))
+  - 32: **CSR (client-side rendering)**: the server sends an empty app root and the browser builds the page by running JavaScript ([32 §1] (../modules/32-ssr-ssg-hydration.md#1-why-render-on-the-server-csr-ssr-ssg-and-hybrid-rendering-and-what-each-costs))
+- `custom element` X-01 (2)
+  - 08: **custom element**: a class registered with `customElements.define` for a hyphenated tag name; elements already in the page are upgraded ([08 §5] (../modules/08-browser-rendering-dom-events.md#5-web-components-custom-elements-shadow-dom-and-templates)).
+  - 37: **custom element**: a class the browser runs for a registered tag; Angular Elements builds one from a component ([37 §1] (../modules/37-elements-pwa-errors-ecosystem.md#1-angular-elements-turning-a-component-into-a-custom-element))
+- `debounce` X-01 (2)
+  - 02: **debounce**: run only after calls stop for a given wait ([02 §6] (../modules/02-js-scope-closures-this.md#6-higher-order-functions-currying-partial-application-debounce-and-throttle)).
+  - 22: **debounce**: emit the last value only after a silence of `d` ([22 §8] (../modules/22-rxjs-foundations.md#8-timing-operators-debouncetime-throttletime-audittime-and-sampletime))
+- `dependency injection (di)` X-02 (2)
+  - 12: **dependency injection (DI)**: the mechanism that constructs a class and supplies its dependencies, calling the compiled factory `ɵfac` ([12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)).
+  - 16: **dependency injection (DI)**: a class declares what it needs and an injector decides what it gets ([16 §1] (../modules/16-dependency-injection.md#1-why-dependency-injection-containers-constructor-injection-and-inject)).
+- `derived state` X-02 (4)
+  - 14: **derived state**: a value computed from other state, such as a total from a list ([14 §7] (../modules/14-directives-and-pipes.md#7-pipe-computed-or-method-call-in-a-template)).
+  - 20: **derived state**: a value computed from other state, best held in a `computed` rather than copied in a hook ([20 §3] (../modules/20-lifecycle-and-render-hooks.md#3-which-hooks-still-matter-with-signals))
+  - 28: **derived state**: state computed from other state and never stored ([28 §1] (../modules/28-state-management.md#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs))
+  - 31: **derived state**: a value calculated from other signals, in Angular a `computed` ([31 §3] (../modules/31-performance.md#3-runtime-cost-of-a-change-onpush-zoneless-signals-and-per-check-template-work))
+- `design system` X-04 (2)
+  - 36: **design system**: the design tokens, components, usage rules and tests that several products share ([36 §12] (../modules/36-material-and-cdk.md#12-a-design-system-on-the-cdk-and-angular-aria-or-a-wrapper-around-material))
+  - 47: **design system**: a shared component library with its rules ([36 §12] (../modules/36-material-and-cdk.md#12-a-design-system-on-the-cdk-and-angular-aria-or-a-wrapper-around-material), [47 §6] (../modules/47-behavioral-and-interview-craft.md#6-questions-to-ask-about-the-front-end-practice-versions-and-updates-testing-the-design-system-and-accessibility-performance-contracts-and-releases-and-how-to-read-the-answers))
+- `design token` X-01 (4)
+  - 10: **design token**: a named design decision (colour, spacing) stored once as a custom property ([10 §6] (../modules/10-css-essentials.md#6-custom-properties-theming-and-color-scheme)).
+  - 13: **design token**: a named design value, such as a colour, usually held in a custom property ([13 §8] (../modules/13-components-and-templates.md#8-styling-strategies-component-styles-global-styles-css-variables-and-tailwind); owner [10 §6] (../modules/10-css-essentials.md#6-custom-properties-theming-and-color-scheme)).
+  - 36: **design token**: a named design decision, such as a color role or a type style, stored as a value that code reads by name ([36 §3] (../modules/36-material-and-cdk.md#3-theming-with-material-3-mattheme-system-variables-and-light-and-dark-with-color-scheme))
+  - 38: **design token**: a design decision stored once as a CSS custom property ([38 §12] (../modules/38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder); owner [10 §6] (../modules/10-css-essentials.md#6-custom-properties-theming-and-color-scheme))
+- `developer preview` X-04 (2)
+  - 37: **developer preview**: an Angular API label for APIs that "can change at any time, even in new patch versions" ([12 §1] (../modules/12-angular-how-it-works.md#1-what-a-framework-does-and-angulars-philosophy), [37 §9] (../modules/37-elements-pwa-errors-ecosystem.md#9-error-boundaries-boundary-error-reset-onviewerror-and-onerror))
+  - 39: **developer preview**: a working API not yet stabilized, outside the versioning and deprecation policies ([39 §3] (../modules/39-version-history-and-migrations.md#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy))
+- `development mode` X-02 (2)
+  - 12: **development mode**: the state in which `ngDevMode` is on and `isDevMode()` returns true ([12 §5] (../modules/12-angular-how-it-works.md#5-the-dev-loop-ng-serve-hot-module-replacement-and-angular-devtools)).
+  - 20: **development mode**: a build where `ngDevMode` is true, which adds checks such as the second pass behind `NG0100`; production builds drop them ([20 §6] (../modules/20-lifecycle-and-render-hooks.md#6-expressionchangedafterithasbeencheckederror-cause-and-fixes))
+- `dirty checking` X-02 (3)
+  - 17: **dirty checking**: change detection by walking the component tree and comparing every template binding with its previous value ([17 §1] (../modules/17-signals.md#1-why-signals-exist)).
+  - 21: **dirty checking**: comparing each binding with its last value after anything might have changed ([21 §1] (../modules/21-change-detection.md#1-the-synchronization-problem-dirty-checking-and-fine-grained-reactivity))
+  - 39: **dirty checking**: comparing every watched value with its last value after anything might have changed ([39 §1] (../modules/39-version-history-and-migrations.md#1-angularjs-scopes-watchers-and-the-digest-cycle); owner [21 §1] (../modules/21-change-detection.md#1-the-synchronization-problem-dirty-checking-and-fine-grained-reactivity))
+- `dto (data transfer object)` X-01 (3)
+  - 03: **DTO (data transfer object)**: plain fields with no methods, sent across a boundary and turned back into an instance by a factory ([03 Q03.16] (../modules/03-js-objects-prototypes-classes.md#q03-16)).
+  - 07: **DTO (data transfer object)**: the shape of data sent over an API, often derived from an entity with `Omit`/`Pick`/`Partial` ([07 §4] (../modules/07-ts-advanced-types-and-decorators.md#4-utility-types-built-in-and-by-hand)).
+  - 41: **DTO (data transfer object)**: a class made only for the wire, separate from the entity and filled by a mapper at the controller edge ([41 §2] (../modules/41-fullstack-api-contracts.md#2-dto-contracts-what-crosses-the-wire-absent-versus-null-and-checking-responses-at-the-boundary))
+- `dynamic component` X-02 (2)
+  - 14: **dynamic component**: a component whose class is chosen at run time, rendered through `NgComponentOutlet` ([14 §4] (../modules/14-directives-and-pipes.md#4-built-in-directives-ngclass-ngstyle-the-outlets-and-what-control-flow-replaced)).
+  - 19: **dynamic component**: a component that code creates at run time instead of a template ([19 §7] (../modules/19-component-communication-and-projection.md#7-dynamic-components-viewcontainerrefcreatecomponent-createcomponent-and-bindings))
+- `effect` X-02 (2)
+  - 17: **effect**: a live consumer that runs a side effect when the signals it read change, batched and scheduled, never synchronously on write ([17 §4] (../modules/17-signals.md#4-effects)).
+  - 14: **`effect` (as used in 14)**: a function Angular re-runs when a signal it read changes; owner [17 §4] (../modules/17-signals.md#4-effects) ([14 §2] (../modules/14-directives-and-pipes.md#2-structural-directives-ng-template-templateref-viewcontainerref-and-the-microsyntax)).
+- `embedded view` X-02 (4)
+  - 13: **embedded view**: the template fragment an `@if`, `@for` block or `<ng-template>` creates, with its own scope ([13 §6] (../modules/13-components-and-templates.md#6-template-reference-variables-and-let)).
+  - 14: **embedded view**: a view created from a template, with its own bindings and lifecycle ([14 §2] (../modules/14-directives-and-pipes.md#2-structural-directives-ng-template-templateref-viewcontainerref-and-the-microsyntax)).
+  - 18: **embedded view**: a piece of template with its own DOM nodes and bindings that Angular creates and destroys as a unit; each block branch is one ([18 §1] (../modules/18-control-flow-and-defer.md#1-built-in-blocks-versus-directives-and-the-if-family-with-as))
+  - 35: **embedded view**: a view created from a template block (`@if`, `@for`, `@switch`, `ng-template`) inside a component's view ([35 §6] (../modules/35-animations.md#6-function-callbacks-and-the-v22-leave-semantics-animationcallbackevent-animationcomplete-and-nested-leaves))
+- `emulated encapsulation` X-02 (2)
+  - 13: **emulated encapsulation**: Angular's default mode: every selector is rewritten to also need an attribute that only this component's elements carry ([13 §9] (../modules/13-components-and-templates.md#9-view-encapsulation-emulated-shadowdom-and-none-and-what-the-compiler-does-to-your-css)).
+  - 35: **emulated encapsulation**: Angular's default view encapsulation: the compiler scopes a component's selectors with an attribute and renames its own `@keyframes` ([35 §3] (../modules/35-animations.md#3-css-keyframe-animations-keyframes-fill-modes-iteration-and-component-scoped-names))
+- `entity` X-05 (2)
+  - 41: **entity**: the class mapped to a database table, such as a JPA entity; returning it exposes every column ([41 §2] (../modules/41-fullstack-api-contracts.md#2-dto-contracts-what-crosses-the-wire-absent-versus-null-and-checking-responses-at-the-boundary))
+  - 45: **entity**: a thing with an id, such as a board, column, card, comment or user ([45 §4] (../modules/45-frontend-system-design-method.md#4-component-architecture-data-model-and-data-flow-from-screens-to-a-component-tree-and-a-client-side-model))
+- `environment injector` X-02 (3)
+  - 14: **environment injector** (as used in 14): the injector of the application scope, passable to `NgComponentOutlet`; owner [16] (../modules/16-dependency-injection.md) ([14 §4] (../modules/14-directives-and-pipes.md#4-built-in-directives-ngclass-ngstyle-the-outlets-and-what-control-flow-replaced)).
+  - 16: **environment injector**: an injector for a region of the app (platform, root, or one per route with `providers`), searched after the element tree ([16 §5] (../modules/16-dependency-injection.md#5-the-injector-tree-platform-root-route-and-element-injectors-and-the-modifiers)).
+  - 37: **environment injector**: the injector that holds an application's providers rather than one component's, which an element's component is created with ([37 §1] (../modules/37-elements-pwa-errors-ecosystem.md#1-angular-elements-turning-a-component-into-a-custom-element))
+- `error mapping layer` X-03 (2)
+  - 27: **error mapping layer**: one function at the edge that turns an `HttpErrorResponse` into a small union of domain errors the UI renders ([27 §5] (../modules/27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter))
+  - 37: **error mapping layer**: the one place that turns an `HttpErrorResponse` into errors the UI can render (defined in [27 §5] (../modules/27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter), used in [37 §10] (../modules/37-elements-pwa-errors-ecosystem.md#10-error-ux-expected-and-unexpected-errors-http-failures-offline-state-and-route-errors))
+- `errorhandler` X-02 (3)
+  - 14: **`ErrorHandler`**: the application's central error sink; owner [37] (../modules/37-elements-pwa-errors-ecosystem.md) ([14 §8] (../modules/14-directives-and-pipes.md#8-the-async-pipe-under-the-hood)).
+  - 18: **`ErrorHandler`**: Angular's error-reporting service; its default logs to the console ([18 §5] (../modules/18-control-flow-and-defer.md#5-defer-blocks-and-states-placeholder-loading-error-minimum-and-after))
+  - 37: **ErrorHandler**: the class with a `handleError(error)` method that Angular sends every error it catches to; you replace it by providing your own under the `ErrorHandler` token ([37 §8] (../modules/37-elements-pwa-errors-ecosystem.md#8-errorhandler-and-global-listeners-what-reaches-the-handler-and-what-does-not))
+- `esbuild` X-01 (2)
+  - 06: **esbuild**: a fast bundler that compiles each file on its own and only strips TypeScript types ([06 header] (../modules/06-ts-type-system-essentials.md)).
+  - 12: **esbuild**: the bundler the `application` builder uses ([12 §3] (../modules/12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)).
+- `exact match` X-04 (2)
+  - 34: **exact match**: an ICU plural case written `=n` that tests the value itself and wins over any plural category ([34 §5] (../modules/34-i18n.md#5-icu-expressions-plural-select-and-nesting))
+  - 44: **exact match**: a `location =` block, used only for exactly that URI; finding one ends the search ([44 §3] (../modules/44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli))
+- `facade` X-02 (2)
+  - 16: **facade**: one class in front of several services, so consumers learn a single method ([16 §9] (../modules/16-dependency-injection.md#9-di-patterns-testing-and-the-spring-container)).
+  - 41: **facade**: one service in front of generated code, so components depend on it and not on the generator's output ([41 §3] (../modules/41-fullstack-api-contracts.md#3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen))
+- `fake timers` X-03 (2)
+  - 22: **fake timers**: a test clock that replaces the timer functions and is advanced by hand, `vi.useFakeTimers()` ([22 §8] (../modules/22-rxjs-foundations.md#8-timing-operators-debouncetime-throttletime-audittime-and-sampletime))
+  - 29: **fake timers**: Vitest's mock clock, installed with `vi.useFakeTimers()` and removed with `vi.useRealTimers()` ([29 §10] (../modules/29-testing-angular.md#10-async-tests-vitest-fake-timers-versus-fakeasync-and-waitforasync))
+- `feature flag` X-02 (2)
+  - 16: **feature flag**: a token whose value, or whose factory's choice, selects an implementation ([16 §9] (../modules/16-dependency-injection.md#9-di-patterns-testing-and-the-spring-container)).
+  - 44: **feature flag**: a switch that chooses a code path at run time, so a change can be turned on or off without a deploy ([44 §8] (../modules/44-fullstack-delivery-and-operations.md#8-feature-flags-with-openfeature-and-canary-releases-providers-evaluation-context-sticky-rollout-kill-switches-and-version-skew))
+- `field data` X-04 (2)
+  - 31: **field data**: performance metrics collected from real users' devices and networks ([31 §1] (../modules/31-performance.md#1-measure-first-the-loop-lab-versus-field-and-what-each-tool-answers))
+  - 47: **field data**: metrics from real users' browsers, such as RUM or CrUX ([08 §6] (../modules/08-browser-rendering-dom-events.md#6-core-web-vitals-lcp-inp-and-cls), [47 §2] (../modules/47-behavioral-and-interview-craft.md#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture))
+- `field initializer` X-02 (2)
+  - 16: **field initializer**: the expression after `=` in a class body, run while the object is constructed, so `inject()` works there ([16 §4] (../modules/16-dependency-injection.md#4-the-injection-context-inject-runininjectioncontext-and-injectasync)).
+  - 20: **field initializer**: a class field's `= expression`, which runs during construction ([20 §2] (../modules/20-lifecycle-and-render-hooks.md#2-constructor-ngoninit-and-inputs-what-exists-when))
+- `fill mode` X-04 (2)
+  - 31: **`fill` mode**: `NgOptimizedImage`'s option where the image takes its parent's box and carries no `width` or `height` ([31 §7] (../modules/31-performance.md#7-images-ngoptimizedimage-with-priority-fill-loaders-and-placeholders))
+  - 35: **fill mode**: what a CSS animation applies outside its active interval: `backwards` the first keyframe during the delay, `forwards` the last keyframe after the end, `both`, or `none` (the default) ([35 §3] (../modules/35-animations.md#3-css-keyframe-animations-keyframes-fill-modes-iteration-and-component-scoped-names))
+- `fine-grained reactivity` X-02 (2)
+  - 17: **fine-grained reactivity**: refreshing only the views that read the changed value ([17 §1] (../modules/17-signals.md#1-why-signals-exist)).
+  - 40: **fine-grained reactivity**: reactivity whose unit of update is a single DOM expression ([40 §4] (../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
+- `flush` X-03 (2)
+  - 23: **flush**: running the queued virtual actions in frame order, which `run` does after the callback ([23 §10] (../modules/23-rxjs-in-depth.md#10-testing-with-testscheduler-marble-syntax-and-virtual-time-under-the-hood))
+  - 27: **`flush`**: the `TestRequest` method that answers with a body and status, as a response for 2xx and an `HttpErrorResponse` otherwise ([27 §11] (../modules/27-http-client.md#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace))
+- `framework` X-02 (2)
+  - 12: **framework**: code that calls yours; it owns the entry point, creates your objects and decides when they run ([12 §1] (../modules/12-angular-how-it-works.md#1-what-a-framework-does-and-angulars-philosophy)).
+  - 40: **framework**: code that owns the entry point and the update loop and calls your code (owner [12 §1] (../modules/12-angular-how-it-works.md#1-what-a-framework-does-and-angulars-philosophy); [40 §1] (../modules/40-framework-comparisons.md#1-library-framework-progressive-framework-what-each-project-decides-for-you))
+- `grace period` X-05 (2)
+  - 43: **grace period**: the wait after the last reader leaves during which a returning reader cancels the close, so a route change keeps the socket ([43 §8] (../modules/43-fullstack-realtime.md#8-from-streams-to-signals-one-shared-connection-tosignal-and-rxresource-bursts-and-connection-state))
+  - 44: **grace period**: how long `docker stop` (10 s by default for Linux containers) or an orchestrator waits after the stop signal before sending SIGKILL ([44 §6] (../modules/44-fullstack-delivery-and-operations.md#6-serving-ssr-apps-in-containers-the-node-server-as-pid-1-graceful-shutdown-health-probes-and-what-nginx-or-a-cdn-still-serves))
+- `harness loader` X-03 (2)
+  - 29: **harness loader**: the object that finds harnesses under a root element; `TestbedHarnessEnvironment.loader(fixture)` creates one ([29 §11] (../modules/29-testing-angular.md#11-component-harnesses-and-angular-testing-library))
+  - 36: **harness loader**: an object whose `getHarness`, `getHarnessOrNull` and `getAllHarnesses` find harnesses under a root element ([36 §10] (../modules/36-material-and-cdk.md#10-component-harnesses-for-material-the-cdk-and-your-own-components))
+- `heap snapshot` X-01 (2)
+  - 05: **heap snapshot**: a DevTools capture of every object and its retainers, compared across snapshots to find what grows ([05 §4] (../modules/05-js-modules-memory-modern-features.md#4-garbage-collection-and-memory-leaks)).
+  - 31: **heap snapshot**: a DevTools record of every object in the JavaScript heap at one moment ([31 §8] (../modules/31-performance.md#8-memory-leaks-heap-snapshots-detached-nodes-and-the-devtools-workflow))
+- `hop` X-04 (2)
+  - 39: **hop**: one `ng update` from one major to the next; a version can be skipped in the calendar but not in the update ([39 §8] (../modules/39-version-history-and-migrations.md#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop); owner of the mechanics [12 §2] (../modules/12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update))
+  - 44: **hop**: one more network step between the browser and the service that answers ([44 §1] (../modules/44-fullstack-delivery-and-operations.md#1-where-the-api-calls-go-direct-calls-a-same-origin-reverse-proxy-an-api-gateway-or-a-backend-for-frontend))
+- `host binding` X-02 (2)
+  - 13: **host binding**: a binding declared in a component's `host` metadata (or with `@HostBinding`) that writes to the component's own element, not to its template ([13 §7] (../modules/13-components-and-templates.md#7-the-host-element-host-metadata-hostbinding-and-hostlistener)).
+  - 14: **host binding** (as used in 14): a `host` metadata binding on a directive's own element, the declarative channel to it; owner [13 §7] (../modules/13-components-and-templates.md#7-the-host-element-host-metadata-hostbinding-and-hostlistener) ([14 §1] (../modules/14-directives-and-pipes.md#1-directives-and-attribute-directives-host-inputs-elementref-and-renderer2)).
+- `host element` X-02 (2)
+  - 12: **host element**: the DOM element a component renders into, such as `<lab-root>` for the root component ([12 §6] (../modules/12-angular-how-it-works.md#6-bootstrapping-bootstrapapplication-the-platform-and-initializers)).
+  - 13: **host element**: the DOM element that matches a component's selector; the component's view renders inside it ([13 §1] (../modules/13-components-and-templates.md#1-component-anatomy-selector-template-styles-imports-and-the-v22-file-convention)).
+- `hostattributetoken` X-02 (2)
+  - 13: **`HostAttributeToken`**: an injection token that reads a static attribute of the host element with `inject()`; it throws when the attribute is missing unless the injection is optional ([13 §7] (../modules/13-components-and-templates.md#7-the-host-element-host-metadata-hostbinding-and-hostlistener)).
+  - 16: **`HostAttributeToken`**: a token that injects a static attribute of the host element, `null` when optional and absent ([16 §6] (../modules/16-dependency-injection.md#6-providers-versus-viewproviders-and-per-instance-state)).
+- `httptestingcontroller` X-03 (2)
+  - 23: **`HttpTestingController`**: Angular's test double for the HTTP backend; its `cancelled` flag reports that the test request's subscription was torn down ([23 §2] (../modules/23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion))
+  - 27: **`HttpTestingController`**: the test-side handle on the test backend, used to find, answer and verify requests ([27 §11] (../modules/27-http-client.md#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace))
+- `hybrid app` X-02 (2)
+  - 15: **hybrid app**: an app that mixes NgModules and standalone components, as every migration does for a while ([15 §6] (../modules/15-standalone-and-ngmodules.md#6-interop-ngmodule-libraries-in-standalone-apps-and-standalone-pieces-in-ngmodule-apps)).
+  - 21: **hybrid app**: an application that still provides `provideZoneChangeDetection` beside the notification scheduler ([21 §6] (../modules/21-change-detection.md#6-migrating-a-zone-based-app-to-zoneless))
+- `hydration` X-02 (3)
+  - 18: **hydration (as used in 18)**: the browser reusing the DOM the server rendered instead of building it again; owned by module 32 ([18 §7] (../modules/18-control-flow-and-defer.md#7-what-lands-in-a-chunk-testing-deferred-blocks-and-the-ssr-pointer))
+  - 31: **hydration (as used in 31)**: making server-rendered HTML interactive on the client by reusing its DOM; owned by module 32 ([31 §10] (../modules/31-performance.md#10-rendering-strategy-as-a-performance-decision-csr-ssr-and-ssg))
+  - 32: **hydration**: making server-rendered HTML interactive by reusing its DOM instead of rebuilding it ([32 §1] (../modules/32-ssr-ssg-hydration.md#1-why-render-on-the-server-csr-ssr-ssg-and-hybrid-rendering-and-what-each-costs))
+- `idempotency key` X-01 (3)
+  - 09: **idempotency key**: a unique token a client sends with a `POST` so the server recognizes a repeat; an API convention, not defined by RFC 9110 ([09 §1] (../modules/09-web-networking-storage-security.md#1-http-semantics-methods-status-codes-and-headers)).
+  - 27: **idempotency key**: a client-chosen unique value sent with a request so the server applies it once however often it is retried ([27 §5] (../modules/27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter))
+  - 46: **idempotency key**: a unique value the client sends in the `Idempotency-Key` header so the server recognizes retries of one request; made once per intent, never per attempt ([46 §8] (../modules/46-system-design-case-studies.md#8-under-the-hood-a-money-transfer-with-idempotency-keys-optimistic-ui-that-never-claims-success-and-the-unknown-outcome))
+- `initializer` X-02 (2)
+  - 12: **initializer**: a function run during bootstrap whose promise or observable must settle before the root component is created ([12 §6] (../modules/12-angular-how-it-works.md#6-bootstrapping-bootstrapapplication-the-platform-and-initializers)).
+  - 16: **initializer**: a function an injector runs when it is created; environment initializers are not awaited, app initializers are, owner [12 Q12.17] (../modules/12-angular-how-it-works.md#q12-17) ([16 §7] (../modules/16-dependency-injection.md#7-injectiontoken-multi-providers-environment-providers-and-initializers)).
+- `injection context` X-02 (3)
+  - 12: **injection context**: a place where `inject()` may be called, such as an initializer run by bootstrap ([12 §6] (../modules/12-angular-how-it-works.md#6-bootstrapping-bootstrapapplication-the-platform-and-initializers); owned by module 16).
+  - 16: **injection context**: a place where `inject()` may be called, such as construction or a field initializer; owner [16 §4] (../modules/16-dependency-injection.md#4-the-injection-context-inject-runininjectioncontext-and-injectasync) ([16 §1] (../modules/16-dependency-injection.md#1-why-dependency-injection-containers-constructor-injection-and-inject)).
+  - 20: **injection context**: the moment `inject()` is allowed: construction, a field initializer or `runInInjectionContext` ([20 §2] (../modules/20-lifecycle-and-render-hooks.md#2-constructor-ngoninit-and-inputs-what-exists-when))
+- `injection token` X-02 (2)
+  - 12: **injection token**: a typed key for a value in the injector ([12 §4] (../modules/12-angular-how-it-works.md#4-environments-and-configuration-build-time-versus-run-time); owned by module 16).
+  - 35: **injection token**: a typed key under which dependency injection provides a value ([35 §6] (../modules/35-animations.md#6-function-callbacks-and-the-v22-leave-semantics-animationcallbackevent-animationcomplete-and-nested-leaves))
+- `instant` X-04 (2)
+  - 34: **instant**: one moment in time, the same for everyone; stored as UTC, shown in the user's time zone ([34 §10] (../modules/34-i18n.md#10-dates-times-numbers-and-money-time-zones-currency-codes-and-minor-units))
+  - 41: **instant**: one moment in time, the same for everyone, such as Java's `Instant`; on the wire, ISO 8601 text ending in `Z` or an offset ([41 §9] (../modules/41-fullstack-api-contracts.md#9-dates-time-zones-decimals-and-money-across-the-wire))
+- `instruction` X-02 (3)
+  - 12: **instruction**: a small runtime function (`ɵɵdomElementStart`, `ɵɵtext`, `ɵɵadvance`…) that a template function calls to create or update DOM ([12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)).
+  - 19: **instruction**: a function the runtime calls from a compiled template to create or update a view ([19 §8] (../modules/19-component-communication-and-projection.md#8-under-the-hood-the-compiled-definition-projection-slots-and-query-refresh))
+  - 35: **instruction**: a function call the compiler writes into a component's template function, such as `ɵɵanimateLeave` ([35 §12] (../modules/35-animations.md#12-under-the-hood-from-animateleave-to-a-removed-node))
+- `interceptor` X-03 (2)
+  - 27: **interceptor**: a function that can read or replace a request and its response as it passes through the `HttpClient` chain ([27 §1] (../modules/27-http-client.md#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform))
+  - 41: **interceptor**: a function every `HttpClient` request and response passes through (owner [27 §4] (../modules/27-http-client.md#4-interceptors-the-functional-chain-order-and-next-and-class-interceptors-through-withinterceptorsfromdi); [41 §5] (../modules/41-fullstack-api-contracts.md#5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular))
+- `inversion of control` X-02 (2)
+  - 12: **inversion of control**: the reversal in which the framework, not your code, drives the program and calls into it ([12 §1] (../modules/12-angular-how-it-works.md#1-what-a-framework-does-and-angulars-philosophy)).
+  - 16: **inversion of control**: the reversal in which the container, not the class, controls how a dependency is created ([16 §1] (../modules/16-dependency-injection.md#1-why-dependency-injection-containers-constructor-injection-and-inject)).
+- `iso 8601` X-04 (2)
+  - 34: **ISO 8601**: the international notation for dates and times; JavaScript's date time string format is a simplification of it ([34 §10] (../modules/34-i18n.md#10-dates-times-numbers-and-money-time-zones-currency-codes-and-minor-units))
+  - 41: **ISO 8601**: the international notation for dates and times, such as `2026-10-21T03:30:00Z` ([41 §9] (../modules/41-fullstack-api-contracts.md#9-dates-time-zones-decimals-and-money-across-the-wire))
+- `ivy` X-02 (2)
+  - 12: **Ivy**: the name of Angular's current compiler and runtime design, in which each decorator compiles to a static definition on its class ([12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)).
+  - 39: **Ivy**: the compiler and runtime that replaced View Engine, the default in v9 and the only engine from v15 ([39 §5] (../modules/39-version-history-and-migrations.md#5-the-version-matrix-part-2-v9-to-v15-from-ivy-to-standalone); owner [12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it))
+- `jitter` X-03 (3)
+  - 23: **jitter**: a random part added to each retry wait so that many clients do not retry in step ([23 §4] (../modules/23-rxjs-in-depth.md#4-retrying-and-repeating-retry-with-backoff-and-repeat))
+  - 27: **jitter**: a random share added to a retry delay so clients that failed together do not retry together ([27 §5] (../modules/27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter))
+  - 43: **jitter**: a random part added to each reconnection wait so that clients spread out instead of returning together ([43 §9] (../modules/43-fullstack-realtime.md#9-scaling-out-and-under-the-hood-sticky-sessions-the-broker-relay-backpressure-and-one-message-traced-across-two-instances))
+- `jsdom` X-01 (4)
+  - 11: **jsdom**: a JavaScript implementation of the DOM and HTML Standards for Node.js, used by the labs; it has no accessibility tree or layout ([11] (../modules/11-accessibility.md)).
+  - 13: **jsdom** (as used in 13): a browser DOM implemented in JavaScript for Node; the specs of 13 run in it, and it resolves no `var()` ([13] (../modules/13-components-and-templates.md)).
+  - 14: **jsdom** (as used in 14): a browser DOM implemented in JavaScript for Node; the specs of 14 run in it ([14] (../modules/14-directives-and-pipes.md)).
+  - 29: **jsdom**: a JavaScript implementation of the DOM for Node, with no layout or rendering ([29 §2] (../modules/29-testing-angular.md#2-the-runner-vitest-through-angularbuildunit-test-jsdom-and-browser-mode))
+- `layout thrashing` X-01 (2)
+  - 08: **layout thrashing**: forced synchronous layouts repeated in a loop that interleaves reads and writes; fixed by batching reads before writes ([08 §2] (../modules/08-browser-rendering-dom-events.md#2-layout-paint-and-composite-what-each-change-costs)).
+  - 17: **layout thrashing**: forcing the browser to recalculate layout repeatedly by interleaving DOM reads and writes ([17 §4] (../modules/17-signals.md#4-effects)).
+- `lifecycle hook` X-02 (2)
+  - 16: **lifecycle hook**: a method such as `ngOnInit` that Angular calls at set moments; it is not an injection context, owner module 20 ([16 §4] (../modules/16-dependency-injection.md#4-the-injection-context-inject-runininjectioncontext-and-injectasync)).
+  - 20: **lifecycle hook**: a method Angular calls on a component at a fixed point of change detection, such as `ngOnInit` or `ngOnDestroy` ([20 §1] (../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
+- `live consumer` X-02 (2)
+  - 17: **live consumer**: an effect or template view, which producers link to and notify; non-live computeds are not linked and validate by polling ([17 §9] (../modules/17-signals.md#9-under-the-hood-the-reactive-graph)).
+  - 21: **live consumer**: a reactive node that always listens to what it reads, as each template's consumer does; its `consumerMarkedDirty` flags the ancestors for traversal ([21 §9] (../modules/21-change-detection.md#9-under-the-hood-the-notification-the-dirty-flags-and-the-refresh))
+- `loading plan` X-04 (2)
+  - 31: **loading plan**: the decision, for each piece of code, of when it downloads: initial bundle, lazy route, `@defer` block or early fetch ([31 §5] (../modules/31-performance.md#5-loading-the-initial-bundle-lazy-routes-defer-and-preloading-as-one-plan))
+  - 45: **loading plan**: what a route loads up front and what waits ([45 §6] (../modules/45-frontend-system-design-method.md#6-performance-and-accessibility-as-design-steps-budgets-a-loading-plan-long-lists-and-keyboard-and-pointer-paths))
+- `locale` X-02 (2)
+  - 14: **locale**: a language with an optional region (`en-GB`) whose formatting tables the pipes read; an unregistered language other than `en` is an error ([14 §6] (../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
+  - 34: **locale**: a language, optionally with a script and a region, that decides text, formats, plural rules, collation and direction; written as a BCP 47 language tag ([34 §1] (../modules/34-i18n.md#1-i18n-l10n-and-the-locale-language-tags-what-a-locale-decides-and-locale_id))
+- `locale_id` X-02 (2)
+  - 14: **`LOCALE_ID`**: the injection token holding the locale the pipes use, `en-US` by default; owner [34] (../modules/34-i18n.md) ([14 §6] (../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
+  - 34: **`LOCALE_ID`**: Angular's injection token for the app's locale; a provider wins, else `$localize.locale`, else `en-US` ([34 §1] (../modules/34-i18n.md#1-i18n-l10n-and-the-locale-language-tags-what-a-locale-decides-and-locale_id))
+- `location` X-03 (2)
+  - 24: **`Location`**: the Angular service that writes and reads the app's URL through a `LocationStrategy`; `path()` returns the route without the base href ([24 §10] (../modules/24-routing.md#10-the-router-and-the-platform-history-api-navigation-api-and-location-strategies))
+  - 44: **`location`**: an Nginx block that configures the requests whose URI it matches ([44 §3] (../modules/44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli))
+- `locator` X-02 (2)
+  - 19: **locator**: what a query searches for: a class, a template reference name or any provider token ([19 §5] (../modules/19-component-communication-and-projection.md#5-queries-view-and-content-queries-with-signal-queries))
+  - 36: **locator**: a function a harness builds with `locatorFor` to find an element or child harness inside its host ([36 §10] (../modules/36-material-and-cdk.md#10-component-harnesses-for-material-the-cdk-and-your-own-components))
+- `logical property` X-01 (2)
+  - 10: **logical property**: a property defined relative to the writing mode (`margin-inline`, `inline-size`) instead of a physical side ([10 §5] (../modules/10-css-essentials.md#5-responsive-css-media-queries-container-queries-and-fluid-type)).
+  - 34: **logical property**: a CSS property defined relative to the inline and block axes, such as `margin-inline-start`, so it follows the writing direction ([34 §11] (../modules/34-i18n.md#11-right-to-left-layouts-dir-logical-css-properties-and-bidirectional-text))
+- `mdc` X-04 (2)
+  - 39: **MDC**: the `material-components-web` package that Angular Material's v15 components were re-implemented on ([39 §5] (../modules/39-version-history-and-migrations.md#5-the-version-matrix-part-2-v9-to-v15-from-ivy-to-standalone))
+  - 44: **MDC**: the logging framework's per-thread context map, from which Spring Boot builds the `[traceId-spanId]` correlation ID ([44 §10] (../modules/44-fullstack-delivery-and-operations.md#10-under-the-hood-opentelemetry-for-the-web-traceparent-and-one-click-traced-to-a-spring-boot-span-and-log-line))
+- `memoization` X-01 (4)
+  - 02: **memoization**: caching a function's results by its arguments ([02 §6] (../modules/02-js-scope-closures-this.md#6-higher-order-functions-currying-partial-application-debounce-and-throttle)).
+  - 14: **memoization**: remembering the last result of a function so a repeat call with the same input skips the work ([14 §7] (../modules/14-directives-and-pipes.md#7-pipe-computed-or-method-call-in-a-template)).
+  - 28: **memoization**: remembering a function's last arguments and result so equal arguments return the stored result; NgRx selectors keep one entry and compare with `===` ([28 §5] (../modules/28-state-management.md#5-selectors-memoization-composition-and-reading-the-store-as-signals))
+  - 31: **memoization**: returning a stored result while a function's inputs are unchanged ([31 §3] (../modules/31-performance.md#3-runtime-cost-of-a-change-onpush-zoneless-signals-and-per-check-template-work))
+- `microtask` X-01 (2)
+  - 04: **microtask**: a job run right after the current task, before the next one: promise reactions, `await` continuations, `queueMicrotask` ([04 §1] (../modules/04-js-async-event-loop.md#1-the-event-loop-tasks-microtasks-and-rendering)).
+  - 22: **microtask**: a job queued after the current code finishes, where Promise handlers run ([22 §1] (../modules/22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness))
+- `migration (ng update)` X-02 (2)
+  - 12: **migration (ng update)**: a versioned schematic that `ng update` runs to rewrite code for a new version ([12 §2] (../modules/12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)).
+  - 39: **migration (ng update)**: a schematic that rewrites your code for one version step ([39 §7] (../modules/39-version-history-and-migrations.md#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide); owner [12 §2] (../modules/12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update))
+- `minification` X-02 (2)
+  - 12: **minification**: rewriting code into fewer characters without changing behavior ([12 §3] (../modules/12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)).
+  - 39: **minification**: shrinking code by renaming locals (and stripping whitespace) ([39 §2] (../modules/39-version-history-and-migrations.md#2-why-angular-was-rewritten-and-what-carried-over))
+- `minor units` X-05 (2)
+  - 41: **minor units**: the smallest unit of a currency counted as an integer, such as cents ([34 §10] (../modules/34-i18n.md#10-dates-times-numbers-and-money-time-zones-currency-codes-and-minor-units); [41 §9] (../modules/41-fullstack-api-contracts.md#9-dates-time-zones-decimals-and-money-across-the-wire))
+  - 47: **minor units**: the smallest unit of a currency, such as cents, held as an integer ([Exercise 47.1] (../modules/47-behavioral-and-interview-craft.md#ex47-1))
+- `mixin` X-01 (2)
+  - 03: **mixin**: a function that takes a class and returns a subclass with added behavior ([03 §4] (../modules/03-js-objects-prototypes-classes.md#4-inheritance-composition-and-mixins)).
+  - 10: **mixin**: a Sass block of declarations reused with `@include`, optionally taking arguments and a `@content` block ([10 §7] (../modules/10-css-essentials.md#7-native-nesting-versus-sass)).
+- `mockstore` X-03 (2)
+  - 28: **`MockStore`**: the test double from `@ngrx/store/testing` whose `overrideSelector` fixes a selector's result ([28 §5] (../modules/28-state-management.md#5-selectors-memoization-composition-and-reading-the-store-as-signals))
+  - 29: **`MockStore`**: the NgRx test double that holds a state you set and lets a test override selector results; `provideMockStore` registers it ([29 §9] (../modules/29-testing-angular.md#9-testing-guards-interceptors-forms-effects-resources-and-stores))
+- `narrowing` X-01 (2)
+  - 06: **narrowing**: the checker refining a variable's type after a test, separately on each branch ([06 §3] (../modules/06-ts-type-system-essentials.md#3-narrowing-and-control-flow-analysis)).
+  - 13: **narrowing**: the type checker learning that a value is present inside a check such as `@if (user(); as u)` ([13 §3] (../modules/13-components-and-templates.md#3-safe-navigation-the-non-null-assertion-and-any)).
+- `ngc` X-01 (6)
+  - 07: **`ngc`**: the Angular compiler's command-line tool; it compiles `@Component` and other decorators ahead of time into static definitions such as `ɵfac` and `ɵcmp` ([07 §7] (../modules/07-ts-advanced-types-and-decorators.md#7-decorators-tc39-standard-versus-experimentaldecorators-and-what-angular-does-with-them)).
+  - 12: **`ngc`**: the Angular compiler's command-line tool, `tsc` plus template compilation and type checking ([12 §7] (../modules/12-angular-how-it-works.md#7-aot-versus-jit-and-template-type-checking)).
+  - 13: **`ngc`**: the Angular compiler's command line, used in 13 to observe compiler output and diagnostics ([13] (../modules/13-components-and-templates.md)).
+  - 14: **`ngc`** (as used in 14): the Angular compiler's command line, used to observe compiler output and diagnostics ([14] (../modules/14-directives-and-pipes.md)).
+  - 18: **`ngc`**: the Angular compiler's command line, used here to observe diagnostics and emitted code ([18 §1] (../modules/18-control-flow-and-defer.md#1-built-in-blocks-versus-directives-and-the-if-family-with-as))
+  - 19: **`ngc`**: the Angular compiler's command line, used here to observe diagnostics and emitted code ([19 §1] (../modules/19-component-communication-and-projection.md#1-inputs-outputs-and-two-way-binding-the-parent-and-child-contract))
+- `ngservermode` X-02 (2)
+  - 18: **`ngServerMode`**: the global flag Angular checks to know it is rendering on a server ([18 §7] (../modules/18-control-flow-and-defer.md#7-what-lands-in-a-chunk-testing-deferred-blocks-and-the-ssr-pointer))
+  - 20: **`ngServerMode` (as used in 20)**: the internal global flag server rendering sets; render hooks return a no-op ref under it ([20 §4] (../modules/20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases))
+- `nonce` X-01 (2)
+  - 09: **nonce**: a random, per-response value placed in the CSP and on each trusted `<script>`; only scripts carrying it run ([09 §8] (../modules/09-web-networking-storage-security.md#8-content-security-policy-and-trusted-types)).
+  - 42: **nonce**: a random value copied into the ID token, tying it to the login ([42 §2] (../modules/42-fullstack-authentication.md#2-oauth-20-and-openid-connect-for-a-single-page-app-authorization-code-with-pkce-and-why-the-implicit-flow-is-gone))
+- `notification` X-03 (2)
+  - 22: **notification**: one call of an observer's callbacks: a `next` with a value, an `error` or a `complete` ([22 §2] (../modules/22-rxjs-foundations.md#2-anatomy-observable-observer-subscription-and-teardown))
+  - 40: **notification**: what a state write does to tell the runtime that work is owed ([40 §9] (../modules/40-framework-comparisons.md#9-under-the-hood-one-state-change-traced-through-angular-react-vue-and-solid))
+- `npm ci` X-04 (2)
+  - 33: **`npm ci`**: the clean install that uses exactly the lockfile, exits with an error when it disagrees with `package.json` and never rewrites it ([33 §11] (../modules/33-security.md#11-dependency-and-supply-chain-security-lockfiles-npm-audit-install-scripts-and-subresource-integrity))
+  - 38: **`npm ci`**: install exactly what the lockfile says, failing if it disagrees with `package.json` ([38 §11] (../modules/38-architecture-and-production-structure.md#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews))
+- `observableinput` X-03 (2)
+  - 22: **`ObservableInput`**: anything `from` accepts as a source (an Observable, array, Promise, iterable or async iterable) ([22 §7] (../modules/22-rxjs-foundations.md#7-combining-streams-combinelatest-withlatestfrom-forkjoin-zip-merge-and-concat))
+  - 23: **`ObservableInput`**: anything `from` accepts (the 7.8.2 `types.d.ts` union: an Observable or interop Observable, a Promise-like, an array-like, an iterable, an async iterable or a `ReadableStream`-like), and so anything a flattening operator accepts as an inner ([23 §1] (../modules/23-rxjs-in-depth.md#1-higher-order-observables-switchmap-mergemap-concatmap-and-exhaustmap))
+- `onpush` X-02 (6)
+  - 17: **OnPush**: a component setting under which Angular checks the component only when an input changes by reference, an event fires inside it, a signal it reads changes, or it is explicitly marked; the default since v22 ([17 §1] (../modules/17-signals.md#1-why-signals-exist)).
+  - 14: **OnPush (as used in 14)**: a component setting under which the component is re-checked only when an input signal, an event inside it or a signal it reads changes; the default since v22.0 [Changed in v22.0]; owner [21] (../modules/21-change-detection.md) ([14 §7] (../modules/14-directives-and-pipes.md#7-pipe-computed-or-method-call-in-a-template)).
+  - 19: **OnPush**: a component Angular refreshes only when something marks it dirty; the default for a component with no `changeDetection` property ([19 §1] (../modules/19-component-communication-and-projection.md#1-inputs-outputs-and-two-way-binding-the-parent-and-child-contract))
+  - 20: **OnPush (as used in 20)**: a component Angular refreshes only when something marks it dirty; the default since v22.0, owner [21] (../modules/21-change-detection.md) ([20 §1] (../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
+  - 38: **OnPush**: the change-detection strategy that re-checks a component when an input changes, an event fires or a signal it reads changes ([38 §2] (../modules/38-architecture-and-production-structure.md#2-smart-container-and-presentational-components))
+  - 39: **OnPush**: a strategy that checks a component only when something marks it dirty ([39 §6] (../modules/39-version-history-and-migrations.md#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default); owner [21 §2] (../modules/21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty))
+- `optional chaining (?.)` X-01 (2)
+  - 01: **optional chaining (`?.`)**: property access or call that short-circuits the whole chain to `undefined` when its left side is nullish ([01 §7] (../modules/01-js-values-types-coercion.md#7-null-undefined-and-the-nullish-operators)).
+  - 13: **optional chaining (`?.`)**: access that stops at a `null` or `undefined` left side; in Angular templates the result is `undefined` since v22.0, `null` before ([13 §3] (../modules/13-components-and-templates.md#3-safe-navigation-the-non-null-assertion-and-any)).
+- `origin` X-01 (2)
+  - 09: **origin**: the scheme, host and port of a URL; two URLs are same-origin only when all three match ([09 §5] (../modules/09-web-networking-storage-security.md#5-the-same-origin-policy-and-cors)).
+  - 10: **origin**: where a style sheet comes from: user agent, user or author ([10 §2] (../modules/10-css-essentials.md#2-the-cascade-origins-specificity-and-layers)).
+- `origin check` X-04 (2)
+  - 33: **`Origin` check**: the server comparing a request's `Origin` header with the app's own and rejecting a foreign one on state changes ([33 §9] (../modules/33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support))
+  - 43: **origin check**: the server comparing the handshake's `Origin` header with its own origin or an allowed list, answering 403 otherwise (RFC 6455 §10.2); it guards browsers only ([43 §7] (../modules/43-fullstack-realtime.md#7-authentication-on-the-handshake-cookies-tokens-in-the-connect-frame-origin-checks-and-csrf-in-spring-security))
+- `output` X-02 (2)
+  - 19: **output**: an event a child announces and the parent handles with `(x)`; not a DOM event and it does not bubble ([19 §1] (../modules/19-component-communication-and-projection.md#1-inputs-outputs-and-two-way-binding-the-parent-and-child-contract))
+  - 38: **output**: an event a component emits with `output()` for its parent to handle ([38 §2] (../modules/38-architecture-and-production-structure.md#2-smart-container-and-presentational-components))
+- `partial compilation` X-02 (2)
+  - 12: **partial compilation**: the `compilationMode: "partial"` output for npm libraries, `ɵɵngDeclare*` declarations with a `minVersion` ([12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)).
+  - 39: **partial compilation**: the library publishing format, an intermediate form that the application's build finishes ([39 §5] (../modules/39-version-history-and-migrations.md#5-the-version-matrix-part-2-v9-to-v15-from-ivy-to-standalone); owner [12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it))
+- `peer dependency` X-02 (5)
+  - 12: **peer dependency**: a package a library requires but the consumer installs, so one shared copy is used rather than a bundled one ([12 §1] (../modules/12-angular-how-it-works.md#1-what-a-framework-does-and-angulars-philosophy)).
+  - 36: **peer dependency**: a package a library expects the app to install itself, within the range its `peerDependencies` names; Material and Aria name the CDK at an exact version ([36 §1] (../modules/36-material-and-cdk.md#1-material-the-cdk-and-angular-aria-styled-components-behavior-primitives-and-headless-patterns))
+  - 38: **peer dependency**: a package range the consumer's app must install itself, such as `@angular/core` ([38 §5] (../modules/38-architecture-and-production-structure.md#5-angular-cli-libraries-ng-generate-library-ng-packagr-and-consuming-the-build))
+  - 39: **peer dependency**: a version range a library lists for a package it expects you to provide ([39 §7] (../modules/39-version-history-and-migrations.md#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide))
+  - 40: **peer dependency**: a package the consumer installs, shared rather than bundled; its version range states which core versions a package accepts (owner [39 §7] (../modules/39-version-history-and-migrations.md#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide); [40 §6] (../modules/40-framework-comparisons.md#6-routing-forms-data-fetching-tooling-and-testing-first-party-or-ecosystem))
+- `pendingtasks` X-02 (2)
+  - 18: **`PendingTasks`**: Angular's counter of unfinished work that tests and the server wait for ([18 §5] (../modules/18-control-flow-and-defer.md#5-defer-blocks-and-states-placeholder-loading-error-minimum-and-after))
+  - 21: **`PendingTasks`**: the service whose `add()` and `run()` keep the app unstable until a task is done ([21 §5] (../modules/21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks))
+- `performance budget` X-04 (2)
+  - 31: **performance budget**: a size limit the build enforces so a regression fails before it ships ([31 §1] (../modules/31-performance.md#1-measure-first-the-loop-lab-versus-field-and-what-each-tool-answers))
+  - 45: **performance budget**: a limit on what a screen may cost, in bytes, requests or time ([45 §6] (../modules/45-frontend-system-design-method.md#6-performance-and-accessibility-as-design-steps-budgets-a-loading-plan-long-lists-and-keyboard-and-pointer-paths))
+- `pipe` X-02 (2)
+  - 14: **pipe**: a function the template calls with `value | name: arg`, with a cache of one result per place it is used ([14 §5] (../modules/14-directives-and-pipes.md#5-pipes-pure-and-impure-custom-pipes-injection-and-imports)).
+  - 22: **`pipe`**: applies operators left to right; the method `source.pipe(...)` applies them to a source, the standalone `pipe(...)` composes them into one operator ([22 §5] (../modules/22-rxjs-foundations.md#5-pipeable-operators-and-writing-your-own))
+- `platformlocation` X-03 (2)
+  - 24: **`PlatformLocation`**: the layer under the strategies that reaches the browser's History API ([24 §10] (../modules/24-routing.md#10-the-router-and-the-platform-history-api-navigation-api-and-location-strategies))
+  - 29: **`PlatformLocation`**: the service the router reads the URL through; `TestBed` provides a fake one ([29 §4] (../modules/29-testing-angular.md#4-testbed-the-testing-module-inject-runininjectioncontext-overrides-and-teardown))
+- `plural category` X-02 (2)
+  - 14: **plural category**: the label (`=0`, `=1`, `other`) that `i18nPlural` matches against the number ([14 §6] (../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
+  - 34: **plural category**: the label `zero`, `one`, `two`, `few`, `many` or `other` that a language's plural rule gives a number; the names are labels, not quantities ([34 §2] (../modules/34-i18n.md#2-the-platforms-intl-apis-dates-numbers-plurals-lists-collation-and-display-names))
+- `polling` X-03 (2)
+  - 23: **polling**: asking again for the same data on a schedule, here one request per tick or one request a fixed delay after each response ([23 §8] (../modules/23-rxjs-in-depth.md#8-angular-patterns-typeahead-polling-cache-then-network-and-racing-requests))
+  - 43: **polling**: the client asks the server again every N seconds, and nothing stays open between asks ([43 §1] (../modules/43-fullstack-realtime.md#1-choosing-a-transport-polling-long-polling-server-sent-events-websockets-and-web-push-when-no-tab-is-open))
+- `polyfill` X-01 (2)
+  - 05: **polyfill**: code that adds a missing standard API at run time; syntax cannot be polyfilled, only compiled ([05 §8] (../modules/05-js-modules-memory-modern-features.md#8-modern-features-by-edition-es2015-to-es2026)).
+  - 34: **polyfill**: a script the build runs to add a global that code expects, such as `@angular/localize/init` adding `$localize` ([34 §4] (../modules/34-i18n.md#4-marking-text-for-translation-i18n-attributes-metadata-ids-and-localize-in-code))
+- `port` X-03 (2)
+  - 29: **port**: the interface or `InjectionToken` that names what a unit needs from a collaborator, so a double can implement it ([29 §7] (../modules/29-testing-angular.md#7-test-doubles-fakes-stubs-spies-and-mocks-vifn-provider-overrides-and-over-mocking))
+  - 38: **port**: a token that names what a class needs from an outside source, such as `ORDERS_API` ([38 §3] (../modules/38-architecture-and-production-structure.md#3-facades-and-the-data-access-layer))
+- `presence` X-05 (2)
+  - 43: **presence**: which users are connected on which instance; each instance knows only its own until the user registry broadcast shares it ([Q43.19] (../modules/43-fullstack-realtime.md#q43-19))
+  - 46: **presence**: who is currently active in a document ([46 §7] (../modules/46-system-design-case-studies.md#7-a-notifications-center-and-an-editing-indicator-delivery-unread-counts-across-tabs-and-presence-with-a-time-to-live))
+- `presentational component` X-04 (2)
+  - 38: **presentational component**: a component that gets data through inputs, sends events through outputs and injects no data services ([38 §2] (../modules/38-architecture-and-production-structure.md#2-smart-container-and-presentational-components))
+  - 45: **presentational component**: a component that takes inputs and emits outputs and fetches nothing ([45 §4] (../modules/45-frontend-system-design-method.md#4-component-architecture-data-model-and-data-flow-from-screens-to-a-component-tree-and-a-client-side-model))
+- `producer / consumer` X-02 (2)
+  - 17: **producer / consumer**: a node that is read (a signal, a computed) versus a node that reads (a computed, an effect, a template view) ([17 §1] (../modules/17-signals.md#1-why-signals-exist), [§9] (../modules/17-signals.md#9-under-the-hood-the-reactive-graph)).
+  - 22: **producer / consumer**: the producer is the function that creates an Observable's values, the consumer is the code that receives them ([22 §1] (../modules/22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness))
+- `provide* function` X-02 (2)
+  - 16: **`provide*` function**: a function such as `provideBilling()` that returns `EnvironmentProviders` to configure a feature in one call ([16 §9] (../modules/16-dependency-injection.md#9-di-patterns-testing-and-the-spring-container)).
+  - 15: **`provide*` function**: a function such as `provideRouter` that returns the `EnvironmentProviders` one feature needs, replacing a provider-carrying NgModule ([15 §3] (../modules/15-standalone-and-ngmodules.md#3-bootstrapping-and-providers-without-modules-bootstrapapplication-provide-functions-and-importprovidersfrom)).
+- `push service` X-04 (2)
+  - 37: **push service**: the browser vendor's server that delivers push messages to a browser ([37 §7] (../modules/37-elements-pwa-errors-ecosystem.md#7-push-notifications-and-installability-swpush-notification-clicks-and-the-manifest))
+  - 43: **push service**: the browser vendor's server that receives an application server's push request and delivers it to the browser ([43 §1] (../modules/43-fullstack-realtime.md#1-choosing-a-transport-polling-long-polling-server-sent-events-websockets-and-web-push-when-no-tab-is-open))
+- `reducer` X-03 (2)
+  - 28: **reducer**: a pure function `(state, action) => nextState` that changes state only by returning a new object ([28 §4] (../modules/28-state-management.md#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks))
+  - 41: **reducer**: a pure function from a state and an event to the next state; Exercise 47.2's variant b uses one for the list query ([47 Exercise 47.2] (../modules/47-behavioral-and-interview-craft.md#ex47-2))
+- `renderer2` X-02 (2)
+  - 14: **`Renderer2`**: Angular's abstract class for writing to elements; per its typings it gives no extra security over direct DOM access ([14 §1] (../modules/14-directives-and-pipes.md#1-directives-and-attribute-directives-host-inputs-elementref-and-renderer2)).
+  - 39: **`Renderer2`**: the service components call to change DOM nodes; it replaced `Renderer` ([39 §4] (../modules/39-version-history-and-migrations.md#4-the-version-matrix-part-1-v2-to-v8))
+- `resource` X-02 (2)
+  - 17: **resource**: a signal-shaped view of an async read, with `params`, a `loader`, and `value`, `status`, `error` and `isLoading` signals ([17 §6] (../modules/17-signals.md#6-resources-async-data-as-signals)).
+  - 45: **resource**: a thing the API names by URL ([45 §5] (../modules/45-frontend-system-design-method.md#5-state-and-api-design-where-each-piece-of-state-lives-and-the-api-the-screens-need))
+- `retryable error` X-03 (2)
+  - 23: **retryable error**: a failure a later attempt may not meet (a 503), unlike one that fails the same way every time (a 400) ([23 §4] (../modules/23-rxjs-in-depth.md#4-retrying-and-repeating-retry-with-backoff-and-repeat))
+  - 27: **retryable error**: a failure worth another attempt: status 0, 429 or a 5xx ([27 §5] (../modules/27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter))
+- `reverse proxy` X-04 (3)
+  - 39: **reverse proxy**: a server in front of several apps that forwards each request to one of them by path ([39 §9] (../modules/39-version-history-and-migrations.md#9-from-angularjs-to-angular-ngupgrade-hybrids-the-strangler-fig-and-rewrites))
+  - 41: **reverse proxy**: a server in front of both the app and the API that serves them under one origin in production (owner [44] (../modules/44-fullstack-delivery-and-operations.md); [41 §1] (../modules/41-fullstack-api-contracts.md#1-cors-on-both-sides-springs-corsconfigurationsource-spring-security-preflight-caching-credentials-and-the-dev-proxy))
+  - 44: **reverse proxy**: a server that forwards a client's requests to other servers and returns their answers ([44 §1] (../modules/44-fullstack-delivery-and-operations.md#1-where-the-api-calls-go-direct-calls-a-same-origin-reverse-proxy-an-api-gateway-or-a-backend-for-frontend))
+- `route injector` X-02 (2)
+  - 16: **route injector**: the environment injector a route creates when it lists `providers`; siblings get separate ones and a revisit reuses it, routing owned by module 24 ([16 §5] (../modules/16-dependency-injection.md#5-the-injector-tree-platform-root-route-and-element-injectors-and-the-modifiers)).
+  - 24: **route injector**: the environment injector the router creates once for a route that lists `providers`, and keeps unless auto cleanup destroys it ([24 §4] (../modules/24-routing.md#4-lazy-loading-in-depth-loaders-canmatch-and-route-injectors))
+- `roving tabindex` X-01 (2)
+  - 11: **roving tabindex**: a composite-widget technique where exactly one item has `tabindex="0"` and arrow keys move that stop ([11 §4] (../modules/11-accessibility.md#4-keyboard-focus-order-roving-tabindex-and-focus-traps)).
+  - 37: **roving tabindex**: a group of controls with exactly one tab stop that moves with the arrow keys ([37 Exercise 37.2] (../modules/37-elements-pwa-errors-ecosystem.md#ex37-2))
+- `scheduler` X-03 (2)
+  - 22: **scheduler**: the object that decides when RxJS work runs; timing operators default to `asyncScheduler`, which uses `setInterval` (module 23) ([22 §8] (../modules/22-rxjs-foundations.md#8-timing-operators-debouncetime-throttletime-audittime-and-sampletime))
+  - 23: **scheduler**: the piece that decides when work runs and supplies the clock (`now()`); RxJS has `queueScheduler`, `asapScheduler`, `asyncScheduler` and `animationFrameScheduler` ([23 §9] (../modules/23-rxjs-in-depth.md#9-schedulers-queue-asap-async-and-animation-frame-observeon-and-subscribeon))
+- `schematic` X-02 (3)
+  - 12: **schematic**: a code generator or rewriter that edits a virtual file tree ([12 §2] (../modules/12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)).
+  - 18: **schematic**: a code generator or code rewriter that the Angular CLI runs, such as `ng generate @angular/core:control-flow` ([18 §8] (../modules/18-control-flow-and-defer.md#8-migrating-with-ng-generate-angularcorecontrol-flow))
+  - 29: **schematic**: a generator the Angular CLI runs to create or rewrite files, such as `refactor-jasmine-vitest` ([29 §3] (../modules/29-testing-angular.md#3-karma-jasmine-and-jest-the-legacy-and-alternative-runners-and-migrating-to-vitest))
+- `scope` X-04 (2)
+  - 38: **scope**: who owns a project's code, such as `orders`, `catalog` or `shared` ([38 §4] (../modules/38-architecture-and-production-structure.md#4-layers-library-types-and-dependency-rules))
+  - 42: **scope**: a permission granted to the client, carried in a token's `scope` or `scp` claim ([42 §5] (../modules/42-fullstack-authentication.md#5-spring-security-as-a-resource-server-validating-jwts-and-turning-scopes-into-authorities))
+- `selector` X-02 (2)
+  - 13: **selector**: the restricted CSS pattern (element, attribute or class, `:not()`, comma lists) that picks the elements a component is bound to ([13 §1] (../modules/13-components-and-templates.md#1-component-anatomy-selector-template-styles-imports-and-the-v22-file-convention)).
+  - 28: **selector**: a `computed` over a store's state that components read; it re-runs after every write to the state it reads, and its dependants stop when its result is equal ([28 §2] (../modules/28-state-management.md#2-the-service-with-signals-store-state-shape-derived-selectors-methods-and-async-loads))
+- `semantic versioning` X-04 (2)
+  - 38: **semantic versioning**: major.minor.patch numbers where a breaking change needs a new major ([38 §6] (../modules/38-architecture-and-production-structure.md#6-public-api-surfaces-public-apits-exports-secondary-entry-points-and-versioning))
+  - 39: **semantic versioning**: version numbers `major.minor.patch` where the level of the number says how much a release may change ([39 §3] (../modules/39-version-history-and-migrations.md#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy))
+- `service worker` X-01 (2)
+  - 09: **service worker**: a script that runs between page and network with its own lifecycle and no DOM access, able to answer requests from a cache ([09 §9] (../modules/09-web-networking-storage-security.md#9-service-workers-and-the-pwa-manifest)).
+  - 37: **service worker**: a script the browser runs apart from the page to handle its requests; Angular's build supplies a ready-made one ([37 §4] (../modules/37-elements-pwa-errors-ecosystem.md#4-angularservice-worker-registration-ngsw-configjson-and-the-generated-ngswjson))
+- `session cookie` X-04 (2)
+  - 33: **session cookie**: a cookie holding an id the server maps to a signed-in user ([33 §8] (../modules/33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend))
+  - 42: **session cookie**: the cookie carrying a server session's id ([42 §3] (../modules/42-fullstack-authentication.md#3-where-the-oauth-client-runs-a-browser-only-client-a-token-mediating-backend-or-a-backend-for-frontend-with-spring))
+- `setinput` X-02 (2)
+  - 21: **`setInput`**: `ComponentRef.setInput`, which sets a component input from code and marks the component's view ([21 §2] (../modules/21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty))
+  - 29: **`setInput`**: `ComponentRef.setInput(name, value)`, which sets a component input from outside the template and schedules a render ([29 §6] (../modules/29-testing-angular.md#6-component-tests-dom-queries-componentfixture-signal-inputs-with-setinput-and-bindings-outputs-and-onpush))
+- `shared cache` X-04 (2)
+  - 32: **shared cache**: a cache between the server and many users (a CDN or reverse proxy) that can give one stored response to everyone ([32 §9] (../modules/32-ssr-ssg-hydration.md#9-deploying-ssr-node-and-other-runtimes-static-output-caching-rendered-pages-and-allowed-hosts))
+  - 45: **shared cache**: a cache that serves many users, such as a CDN ([45 §7] (../modules/45-frontend-system-design-method.md#7-rendering-strategy-and-caching-layers-a-rendering-choice-per-route-and-every-cache-from-the-cdn-to-the-component))
+- `signal` X-02 (5)
+  - 17: **signal**: a getter function with a reactive node attached, which records who reads it and notifies them when its value changes ([17 §1] (../modules/17-signals.md#1-why-signals-exist)).
+  - 39: **signal**: a value that tracks its readers ([39 §6] (../modules/39-version-history-and-migrations.md#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default); owner [17 §1] (../modules/17-signals.md#1-why-signals-exist))
+  - 40: **signal**: a value container that records who reads it and notifies them on write (owner [17 §1] (../modules/17-signals.md#1-why-signals-exist); [40 §4] (../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
+  - 44: **signal**: a notice the kernel delivers to a process, such as SIGTERM or SIGKILL; a process may handle, ignore or take the default action ([44 §6] (../modules/44-fullstack-delivery-and-operations.md#6-serving-ssr-apps-in-containers-the-node-server-as-pid-1-graceful-shutdown-health-probes-and-what-nginx-or-a-cdn-still-serves))
+  - 45: **signal**: the data that reports a failure, such as an error report, a trace or a count ([45 §8] (../modules/45-frontend-system-design-method.md#8-under-the-hood-failure-modes-observability-offline-levels-and-consistency-choices))
+- `signal forms` X-03 (2)
+  - 26: **Signal Forms**: the third Angular forms API (`@angular/forms/signals`, stable since 22.0): a form built from a writable model signal with `form()` ([26 §1] (../modules/26-signal-forms.md#1-why-a-third-forms-api-model-first-signals-end-to-end))
+  - 39: **Signal Forms**: forms built from a model signal ([39 §6] (../modules/39-version-history-and-migrations.md#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default); owner [26 §1] (../modules/26-signal-forms.md#1-why-a-third-forms-api-model-first-signals-end-to-end))
+- `singleton` X-02 (2)
+  - 16: **singleton (as used in 16)**: one instance shared by every consumer of an injector, because the injector caches it ([16 §1] (../modules/16-dependency-injection.md#1-why-dependency-injection-containers-constructor-injection-and-inject)).
+  - 38: **singleton**: a shared dependency of which only one instance is loaded at run time ([38 §8] (../modules/38-architecture-and-production-structure.md#8-micro-frontends-module-federation-native-federation-and-when-they-are-justified))
+- `slot` X-01 (3)
+  - 08: **slot**: a placeholder in a shadow tree that displays light DOM children, by name or by default ([08 §5] (../modules/08-browser-rendering-dom-events.md#5-web-components-custom-elements-shadow-dom-and-templates)).
+  - 12: **slot**: a numbered position in a view's storage that holds a node or a binding's last value ([12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)).
+  - 19: **slot**: one `<ng-content>` placeholder of a component ([19 §3] (../modules/19-component-communication-and-projection.md#3-content-projection-ng-content-slots-ngprojectas-fallback-content-and-the-lifecycle-trap))
+- `snapshot` X-04 (2)
+  - 35: **snapshot**: the static image of the page (or of a named element) the browser takes before and after the update ([35 §10] (../modules/35-animations.md#10-view-transitions-with-the-router-withviewtransitions-view-transition-name-and-onviewtransitioncreated))
+  - 43: **snapshot**: the whole current state, loaded over HTTP, which later deltas are applied to ([43 §8] (../modules/43-fullstack-realtime.md#8-from-streams-to-signals-one-shared-connection-tosignal-and-rxresource-bursts-and-connection-state))
+- `source of truth` X-03 (2)
+  - 28: **source of truth**: the one place whose value wins when copies of the same data disagree ([28 §1] (../modules/28-state-management.md#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs))
+  - 45: **source of truth**: the one place whose value wins when copies disagree ([45 §5] (../modules/45-frontend-system-design-method.md#5-state-and-api-design-where-each-piece-of-state-lives-and-the-api-the-screens-need))
+- `spa fallback` X-03 (2)
+  - 30: **SPA fallback**: a server rule that answers app routes with `index.html` so the client router can handle deep links ([30 §1] (../modules/30-e2e-and-testing-strategy.md#1-what-belongs-at-the-end-to-end-level-journeys-cost-and-a-strategy-across-levels))
+  - 44: **SPA fallback**: `try_files $uri $uri/ /index.html`: an unknown path gets `index.html`, so the client-side router handles it ([44 §3] (../modules/44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli))
+- `specificity` X-01 (2)
+  - 10: **specificity**: the A-B-C weight (ids, classes/attributes/pseudo-classes, types/pseudo-elements) of a selector, compared column by column ([10 §2] (../modules/10-css-essentials.md#2-the-cascade-origins-specificity-and-layers)).
+  - 13: **specificity** (as used in 13): the weight that decides which of two matching rules wins; owner [10 §2] (../modules/10-css-essentials.md#2-the-cascade-origins-specificity-and-layers) ([13 §9] (../modules/13-components-and-templates.md#9-view-encapsulation-emulated-shadowdom-and-none-and-what-the-compiler-does-to-your-css)).
+- `ssg (static site generation, prerendering)` X-04 (2)
+  - 31: **SSG (static site generation, prerendering)**: the HTML is rendered once at build time and served as a file ([31 §10] (../modules/31-performance.md#10-rendering-strategy-as-a-performance-decision-csr-ssr-and-ssg))
+  - 32: **SSG (static site generation, prerendering)**: Angular renders the page once at build time and the server sends that file ([32 §1] (../modules/32-ssr-ssg-hydration.md#1-why-render-on-the-server-csr-ssr-ssg-and-hybrid-rendering-and-what-each-costs))
+- `ssr (server-side rendering)` X-04 (2)
+  - 31: **SSR (server-side rendering)**: the server renders the HTML for each request ([31 §10] (../modules/31-performance.md#10-rendering-strategy-as-a-performance-decision-csr-ssr-and-ssg))
+  - 32: **SSR (server-side rendering)**: the server runs Angular for each request and sends finished HTML ([32 §1] (../modules/32-ssr-ssg-hydration.md#1-why-render-on-the-server-csr-ssr-ssg-and-hybrid-rendering-and-what-each-costs))
+- `stale-while-revalidate` X-03 (2)
+  - 23: **stale-while-revalidate**: serving the stored value while a fresh one loads, and replacing it when it arrives ([23 §8] (../modules/23-rxjs-in-depth.md#8-angular-patterns-typeahead-polling-cache-then-network-and-racing-requests))
+  - 28: **stale-while-revalidate**: serving the cached copy while fetching a fresh one ([28 §11] (../modules/28-state-management.md#11-alternatives-and-the-decision-framework-ngxs-elf-tanstack-query-and-when-a-store-library-is-justified))
+- `standalone component` X-02 (2)
+  - 15: **standalone component**: a component that lists its own template dependencies in `imports` and needs no NgModule; the default since v19.0 ([15 §2] (../modules/15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array)).
+  - 39: **standalone component**: a component that lists its own imports instead of being declared in an NgModule ([39 §10] (../modules/39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints); owner [15 §2] (../modules/15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array))
+- `state` X-03 (2)
+  - 28: **state**: the data a screen depends on and that changes while the app runs ([28 §1] (../modules/28-state-management.md#1-kinds-of-state-server-cache-ui-form-url-and-session-state-and-where-each-belongs))
+  - 42: **state**: a random request value returned unchanged, tying the callback to the request ([42 §2] (../modules/42-fullstack-authentication.md#2-oauth-20-and-openid-connect-for-a-single-page-app-authorization-code-with-pkce-and-why-the-implicit-flow-is-gone))
+- `sticky session` X-05 (2)
+  - 42: **sticky session**: load-balancer routing that sends one client to the same instance every time, so that instance's memory holds the client's session ([42 §1] (../modules/42-fullstack-authentication.md#1-sessions-versus-tokens-what-the-server-keeps-what-each-request-carries-revocation-and-scaling))
+  - 43: **sticky session**: a load balancer sending one client to the same instance every time ([43 §9] (../modules/43-fullstack-realtime.md#9-scaling-out-and-under-the-hood-sticky-sessions-the-broker-relay-backpressure-and-one-message-traced-across-two-instances), [42 §1] (../modules/42-fullstack-authentication.md#1-sessions-versus-tokens-what-the-server-keeps-what-each-request-carries-revocation-and-scaling))
+- `stricttemplates` X-01 (3)
+  - 07: **`strictTemplates`**: Angular's strictest template type-checking mode; it turns on `strictContextGenerics`, among other flags ([07 §9] (../modules/07-ts-advanced-types-and-decorators.md#9-typing-patterns-in-angular-code)).
+  - 12: **`strictTemplates`**: the compiler option for strict template type checking; defaults to `true` since v22 ([12 §7] (../modules/12-angular-how-it-works.md#7-aot-versus-jit-and-template-type-checking)).
+  - 19: **`strictTemplates`**: the compiler option that type-checks template bindings against the declared types ([19 §1] (../modules/19-component-communication-and-projection.md#1-inputs-outputs-and-two-way-binding-the-parent-and-child-contract))
+- `structured clone` X-01 (3)
+  - 03: **structured clone**: the HTML algorithm behind `structuredClone` and `postMessage`, which copies cycles, `Date`, `Map` and `Set` but not functions, symbols or prototypes ([03 §6] (../modules/03-js-objects-prototypes-classes.md#6-copying-shallow-deep-and-structured)).
+  - 09: **structured clone**: the browser's deep-copy algorithm for plain data (`Date`, `Map`, typed arrays), used by `structuredClone()` and IndexedDB; functions cannot be cloned ([09 §7] (../modules/09-web-networking-storage-security.md#7-browser-storage-what-each-is-safe-for)).
+  - 31: **structured clone**: the algorithm that copies a message's data between contexts; functions and DOM nodes make it throw `DataCloneError` ([31 §9] (../modules/31-performance.md#9-off-the-main-thread-web-workers-in-angular-and-runoutsideangular-in-zone-apps))
+- `subpath` X-04 (2)
+  - 34: **`subPath`**: a locale's URL segment in `angular.json`'s `i18n` block; its output folder name and base `href`, the locale code by default ([34 §7] (../modules/34-i18n.md#7-compile-time-localization-one-build-per-locale-subpath-lang-and-dir))
+  - 38: **subpath**: a package-name suffix such as `ui-lib/testing` that an `exports` entry maps to a file ([38 §6] (../modules/38-architecture-and-production-structure.md#6-public-api-surfaces-public-apits-exports-secondary-entry-points-and-versioning))
+- `subscription` X-02 (2)
+  - 14: **subscription**: the live connection between a source and the code that listens to it; to dispose it is to close it; owner [22] (../modules/22-rxjs-foundations.md) ([14 §8] (../modules/14-directives-and-pipes.md#8-the-async-pipe-under-the-hood)).
+  - 22: **subscription**: the handle returned by `subscribe` that stops one run of the producer ([22 §1] (../modules/22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness))
+- `support window` X-05 (2)
+  - 44: **support window**: how long the old contract must keep working, bounded by how long old tabs and cached bundles may still run ([44 §7] (../modules/44-fullstack-delivery-and-operations.md#7-cicd-for-both-layers-one-image-promoted-through-stages-a-monorepo-or-separate-repositories-and-versioning-the-contract))
+  - 47: **support window**: how long a major Angular version receives fixes ([39 §3] (../modules/39-version-history-and-migrations.md#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy), [47 §6] (../modules/47-behavioral-and-interview-craft.md#6-questions-to-ask-about-the-front-end-practice-versions-and-updates-testing-the-design-system-and-accessibility-performance-contracts-and-releases-and-how-to-read-the-answers))
+- `target` X-02 (2)
+  - 12: **target**: a named job of a project (`build`, `serve`, `test`) with a builder, options and configurations ([12 §2] (../modules/12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)).
+  - 34: **target**: the translated text a translator adds to a trans-unit; the build inlines it for that locale ([34 §6] (../modules/34-i18n.md#6-extraction-and-translation-files-ng-extract-i18n-formats-and-message-ids))
+- `teardown` X-02 (3)
+  - 20: **teardown**: what runs when a component is destroyed: its `ngOnDestroy`, its `DestroyRef` callbacks and its effect cleanups ([20 §5] (../modules/20-lifecycle-and-render-hooks.md#5-teardown-ngondestroy-destroyref-and-takeuntildestroyed))
+  - 22: **teardown**: the cleanup function a producer may return, run when its subscription ends ([22 §1] (../modules/22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness))
+  - 23: **teardown**: the cleanup run when a subscription ends; `switchMap` completes before the inner's teardown, `mergeMap` after it ([23 §1] (../modules/23-rxjs-in-depth.md#1-higher-order-observables-switchmap-mergemap-concatmap-and-exhaustmap))
+- `template` X-02 (2)
+  - 13: **template**: the HTML a component renders inside its host element ([13 §1] (../modules/13-components-and-templates.md#1-component-anatomy-selector-template-styles-imports-and-the-v22-file-convention)).
+  - 40: **template**: a restricted language the compiler parses ahead of time, so it knows which nodes are static and which bindings can change ([40 §2] (../modules/40-framework-comparisons.md#2-templates-jsx-and-single-file-components-what-the-compiler-knows))
+- `templateref` X-02 (2)
+  - 13: **`TemplateRef`**: a handle on the content of an `<ng-template>`; a reference on that element holds one ([13 §6] (../modules/13-components-and-templates.md#6-template-reference-variables-and-let)).
+  - 14: **`TemplateRef`**: the stencil: a compiled `<ng-template>` that renders nothing until an embedded view is created from it ([14 §2] (../modules/14-directives-and-pipes.md#2-structural-directives-ng-template-templateref-viewcontainerref-and-the-microsyntax)).
+- `test runner` X-03 (2)
+  - 29: **test runner**: the tool that finds `describe` and `it`, runs them and reports; here Vitest ([29 §2] (../modules/29-testing-angular.md#2-the-runner-vitest-through-angularbuildunit-test-jsdom-and-browser-mode))
+  - 40: **test runner**: the program that finds and runs your tests, such as Vitest ([40 §6] (../modules/40-framework-comparisons.md#6-routing-forms-data-fetching-tooling-and-testing-first-party-or-ecosystem))
+- `testbed` X-02 (4)
+  - 13: **TestBed**: Angular's test harness, which creates a component in a test ([13 §9] (../modules/13-components-and-templates.md#9-view-encapsulation-emulated-shadowdom-and-none-and-what-the-compiler-does-to-your-css)).
+  - 14: **`TestBed` (as used in 14)**: Angular's test harness, which creates a component in a test and rethrows application errors by default; owner [13 §9] (../modules/13-components-and-templates.md#9-view-encapsulation-emulated-shadowdom-and-none-and-what-the-compiler-does-to-your-css) ([14 §8] (../modules/14-directives-and-pipes.md#8-the-async-pipe-under-the-hood)).
+  - 16: **`TestBed` (as used in 16)**: Angular's testing harness; its providers and `overrideProvider` replace a root service, and only `overrideComponent` reaches a component's own `providers`; owner module 29 ([16 §9] (../modules/16-dependency-injection.md#9-di-patterns-testing-and-the-spring-container)).
+  - 15: **`TestBed`**: Angular's test harness, which builds a testing module and creates components in a test; owner module 29 ([15 §6] (../modules/15-standalone-and-ngmodules.md#6-interop-ngmodule-libraries-in-standalone-apps-and-standalone-pieces-in-ngmodule-apps))
+- `throttle` X-01 (2)
+  - 02: **throttle**: run at most once per interval while calls continue ([02 §6] (../modules/02-js-scope-closures-this.md#6-higher-order-functions-currying-partial-application-debounce-and-throttle)).
+  - 22: **throttle**: emit a value, then ignore the source for `d`; with `trailing` also emit the last value of the window ([22 §8] (../modules/22-rxjs-foundations.md#8-timing-operators-debouncetime-throttletime-audittime-and-sampletime))
+- `tick` X-02 (3)
+  - 19: **`tick`**: the `ApplicationRef` method that runs one change-detection pass ([19 §7] (../modules/19-component-communication-and-projection.md#7-dynamic-components-viewcontainerrefcreatecomponent-createcomponent-and-bindings))
+  - 21: **tick**: one change detection run over the views attached to the `ApplicationRef` ([21 §3] (../modules/21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default))
+  - 29: **tick**: one change-detection pass of the whole application; `TestBed.tick()` forces one in a test ([29 §5] (../modules/29-testing-angular.md#5-zoneless-fixtures-whenstable-testbedtick-detectchanges-and-automatic-change-detection))
+- `tiebreaker` X-05 (2)
+  - 41: **tiebreaker**: a unique last sort key, such as `id`, that orders rows whose other sort keys are equal ([41 §6] (../modules/41-fullstack-api-contracts.md#6-pagination-sorting-and-filtering-offset-versus-cursor-and-how-spring-data-serializes-a-page))
+  - 46: **tiebreaker**: a unique key, such as the id, that ends every sort so rows with equal sort values keep one order ([46 §4] (../modules/46-system-design-case-studies.md#4-a-large-data-grid-server-side-filtering-sorting-and-pagination-the-query-in-the-url-and-keyset-cursors))
+- `top layer` X-01 (2)
+  - 10: **top layer**: the browser-managed layer above everything else that holds fullscreen elements, modal `<dialog>`s and popovers ([10 §4] (../modules/10-css-essentials.md#4-positioning-stacking-contexts-and-z-index)).
+  - 36: **top layer**: the browser's layer above every stacking context, which holds shown popovers, modal dialogs and fullscreen elements ([36 §5] (../modules/36-material-and-cdk.md#5-portals-and-overlays-where-floating-ui-renders-how-it-is-positioned-and-how-it-closes))
+- `trace table` X-04 (3)
+  - 40: **trace table**: one change followed through several runtimes in the columns notify, schedule, re-run, compare and write ([40 §9] (../modules/40-framework-comparisons.md#9-under-the-hood-one-state-change-traced-through-angular-react-vue-and-solid))
+  - 41: **trace table**: a list of one request's hops, each with what it reads and what it can return ([41 §10] (../modules/41-fullstack-api-contracts.md#10-under-the-hood-one-failed-request-through-springs-filters-and-handlers-and-angulars-backend))
+  - 42: **trace table**: a list of one login's hops, each with what it reads and what it writes ([42 §9] (../modules/42-fullstack-authentication.md#9-under-the-hood-one-bff-login-and-the-first-api-call-through-spring-securitys-filters))
+- `track` X-01 (2)
+  - 10: **track**: a grid column or grid row ([10 §3] (../modules/10-css-essentials.md#3-flexbox-grid-and-subgrid)).
+  - 39: **track**: an independent sequence of migrations with its own pull requests ([39 §10] (../modules/39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints))
+- `transitive dependency` X-04 (2)
+  - 33: **transitive dependency**: a package your dependencies need, which you did not choose and a lockfile pins ([33 §11] (../modules/33-security.md#11-dependency-and-supply-chain-security-lockfiles-npm-audit-install-scripts-and-subresource-integrity))
+  - 40: **transitive dependency**: a dependency of a dependency, so one install can download many packages ([40 §7] (../modules/40-framework-comparisons.md#7-ecosystem-size-release-policies-and-breaking-changes))
+- `tree-shaking` X-02 (2)
+  - 16: **tree-shaking**: the build dropping code that nothing reaches; for a root service, the docs promise it when the code never uses it, and one scratch build kept unused classes reached through an index ([16 §3] (../modules/16-dependency-injection.md#3-providedin-service-scopes-and-tree-shaking)).
+  - 31: **tree-shaking**: removing exports nothing uses, only when the bundler can prove removal changes nothing ([31 §6] (../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
+- `trust boundary` X-04 (2)
+  - 33: **trust boundary**: where data passes from a less trusted side to a more trusted one; in a single-page app, the line between the browser and the API ([33 §1] (../modules/33-security.md#1-threat-model-of-an-angular-single-page-app-what-the-attacker-controls-what-runs-where-and-where-each-defense-lives))
+  - 45: **trust boundary**: where data reaches a more trusted side ([33 §1] (../modules/33-security.md#1-threat-model-of-an-angular-single-page-app-what-the-attacker-controls-what-runs-where-and-where-each-defense-lives))
+- `two-way binding` X-02 (2)
+  - 13: **two-way binding**: `[(x)]="y"`, syntax for the property binding `[x]` plus the listener `(xChange)` that assigns the emitted value back to `y` ([13 §5] (../modules/13-components-and-templates.md#5-event-binding-and-two-way-binding)).
+  - 39: **two-way binding**: a template edit writes the model and a model change rewrites the template ([39 §1] (../modules/39-version-history-and-migrations.md#1-angularjs-scopes-watchers-and-the-digest-cycle))
+- `typeahead` X-03 (2)
+  - 23: **typeahead**: a search box that queries as the user types, which needs a rate limit, a change filter, cancellation of the older query and a per-query recovery ([23 §8] (../modules/23-rxjs-in-depth.md#8-angular-patterns-typeahead-polling-cache-then-network-and-racing-requests))
+  - 46: **typeahead**: a search box that suggests results while you type ([46 §2] (../modules/46-system-design-case-studies.md#2-autocomplete-and-typeahead-search-a-request-policy-a-prefix-cache-ranking-on-the-server-and-an-accessible-combobox))
+- `unhandled rejection` X-01 (2)
+  - 04: **unhandled rejection**: a rejected promise with no handler after a microtask checkpoint; browsers report it, Node crashes by default ([04 §8] (../modules/04-js-async-event-loop.md#8-unhandled-rejections-queuemicrotask-and-starvation)).
+  - 37: **unhandled rejection**: a promise that rejects with no handler (defined in [04 §8] (../modules/04-js-async-event-loop.md#8-unhandled-rejections-queuemicrotask-and-starvation), forwarded in [37 §8] (../modules/37-elements-pwa-errors-ecosystem.md#8-errorhandler-and-global-listeners-what-reaches-the-handler-and-what-does-not))
+- `urltree` X-03 (2)
+  - 24: **`UrlTree`**: the parsed form of a URL: segment groups, segments with matrix parameters, one query and one fragment ([24 §2] (../modules/24-routing.md#2-route-parameters-path-matrix-query-and-fragment-inheritance-and-component-input-binding))
+  - 29: **`UrlTree`**: the router's parsed, immutable representation of a URL; a guard returns one to redirect, and `String(urlTree)` prints it ([29 §9] (../modules/29-testing-angular.md#9-testing-guards-interceptors-forms-effects-resources-and-stores))
+- `version skew` X-05 (2)
+  - 44: **version skew**: one tab holding files from two releases, such as `index.html` from one and a chunk from another ([44 §8] (../modules/44-fullstack-delivery-and-operations.md#8-feature-flags-with-openfeature-and-canary-releases-providers-evaluation-context-sticky-rollout-kill-switches-and-version-skew))
+  - 47: **version skew**: one tab's `index.html` and chunks from two releases ([44 §8] (../modules/44-fullstack-delivery-and-operations.md#8-feature-flags-with-openfeature-and-canary-releases-providers-evaluation-context-sticky-rollout-kill-switches-and-version-skew), [47 §2] (../modules/47-behavioral-and-interview-craft.md#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture))
+- `view` X-02 (4)
+  - 12: **view**: one rendered instance of a template, with its own nodes and binding slots ([12 §8] (../modules/12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)).
+  - 13: **view**: the DOM a component's template renders, inside its host element ([13 §1] (../modules/13-components-and-templates.md#1-component-anatomy-selector-template-styles-imports-and-the-v22-file-convention)).
+  - 16: **view**: the template a component declares; its counterpart is content ([16 §6] (../modules/16-dependency-injection.md#6-providers-versus-viewproviders-and-per-instance-state)).
+  - 20: **view**: the runtime record of one template instance, split into a static `TView` and a live `LView` (both internal) ([20 §7] (../modules/20-lifecycle-and-render-hooks.md#7-under-the-hood-hook-lists-the-view-refresh-and-the-render-hook-queue))
+- `viewcontainerref` X-02 (2)
+  - 14: **`ViewContainerRef`**: the place on the page, anchored by a comment node, where embedded views are created; their root elements become its siblings ([14 §2] (../modules/14-directives-and-pipes.md#2-structural-directives-ng-template-templateref-viewcontainerref-and-the-microsyntax)).
+  - 35: **`ViewContainerRef`**: an anchor in a view that holds views and components created at run time ([35 §6] (../modules/35-animations.md#6-function-callbacks-and-the-v22-leave-semantics-animationcallbackevent-animationcomplete-and-nested-leaves))
+- `violation report` X-01 (2)
+  - 09: **violation report**: the report a browser sends (to `report-to`) when a CSP rule blocks, or in report-only mode would block, something ([09 §8] (../modules/09-web-networking-storage-security.md#8-content-security-policy-and-trusted-types)).
+  - 33: **violation report**: the JSON body a browser posts to a policy's reporting endpoint when something breaks the policy ([33 §5] (../modules/33-security.md#5-content-security-policy-with-angular-nonces-csp_nonce-and-autocsp))
+- `visual regression test` X-03 (2)
+  - 30: **visual regression test**: a test that compares a screenshot with a baseline image and fails when the pixel diff passes a tolerance ([30 §6] (../modules/30-e2e-and-testing-strategy.md#6-visual-regression-and-accessibility-checks-in-end-to-end-tests))
+  - 38: **visual regression test**: a test that compares screenshots with stored ones ([38 §10] (../modules/38-architecture-and-production-structure.md#10-storybook-for-component-development))
+- `vitest` X-01 (2)
+  - 06: **Vitest**: the test runner the labs use; it transforms files with a per-file tool, so it does not type-check ([06 header] (../modules/06-ts-type-system-essentials.md)).
+  - 13: **Vitest**: the test runner that `ng test` uses ([13] (../modules/13-components-and-templates.md)).
+- `web app manifest` X-01 (2)
+  - 09: **web app manifest**: a JSON file (`name`, `icons`, `start_url`, `display`) that tells the browser how to install a site as an app ([09 §9] (../modules/09-web-networking-storage-security.md#9-service-workers-and-the-pwa-manifest)).
+  - 37: **web app manifest**: the JSON file describing an installable site (named in [09 §9] (../modules/09-web-networking-storage-security.md#9-service-workers-and-the-pwa-manifest), tested for the lab in [37 §7] (../modules/37-elements-pwa-errors-ecosystem.md#7-push-notifications-and-installability-swpush-notification-clicks-and-the-manifest))
+- `web worker` X-01 (2)
+  - 04: **Web Worker**: a script that runs on its own thread and talks to the page by messages ([04 §1] (../modules/04-js-async-event-loop.md#1-the-event-loop-tasks-microtasks-and-rendering)).
+  - 31: **Web Worker**: a separate thread with its own global scope and no DOM, which talks to the page only by messages ([31 §9] (../modules/31-performance.md#9-off-the-main-thread-web-workers-in-angular-and-runoutsideangular-in-zone-apps))
+- `zone.js` X-02 (2)
+  - 17: **zone.js**: the library that patches the browser's async APIs so Angular learns *that* something may have changed; not used by zoneless apps ([17 §1] (../modules/17-signals.md#1-why-signals-exist)).
+  - 39: **zone.js**: a library that patches the browser's async APIs so Angular knows when code finished ([39 §2] (../modules/39-version-history-and-migrations.md#2-why-angular-was-rewritten-and-what-carried-over); owner [21 §3] (../modules/21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default))
+- `zoneless` X-02 (4)
+  - 17: **zoneless**: an Angular app without zone.js, where signal notifications and template events schedule rendering; the default for new projects since v21 ([17 §1] (../modules/17-signals.md#1-why-signals-exist)).
+  - 15: **zoneless (as used in 15)**: change detection without zone.js; `bootstrapModule` builds its root injector with the zoneless providers first; owner [module 21] (../modules/21-change-detection.md) ([15 §3] (../modules/15-standalone-and-ngmodules.md#3-bootstrapping-and-providers-without-modules-bootstrapapplication-provide-functions-and-importprovidersfrom))
+  - 20: **zoneless**: change detection driven by signals and explicit notifications instead of zone.js patching browser events; how the lab's TestBed runs ([20 §1] (../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
+  - 39: **zoneless**: change detection that runs without zone.js ([39 §6] (../modules/39-version-history-and-migrations.md#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default); owner [21 §5] (../modules/21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks))
+
+## 5. Header consistency
+
+- X-01 03 Prerequisites extra against SYLLABUS: 01
+- X-01 05 Prerequisites extra against SYLLABUS: 02
+- X-01 06 Prerequisites extra against SYLLABUS: 01, 05
+- X-01 07 Prerequisites extra against SYLLABUS: 03
+- X-01 07 lists 03 as prerequisite, but 03 Leads to omits 07
+- X-01 08 Prerequisites extra against SYLLABUS: 04, 03
+- X-01 08 lists 04 as prerequisite, but 04 Leads to omits 08
+- X-01 08 lists 03 as prerequisite, but 03 Leads to omits 08
+- X-02 13 Prerequisites extra against SYLLABUS: 08, 10
+- X-02 14 Prerequisites extra against SYLLABUS: 17
+- X-02 14 lists 17 as prerequisite, but 17 Leads to omits 14
+- X-02 20 Prerequisites extra against SYLLABUS: 17
+- X-02 20 lists 17 as prerequisite, but 17 Leads to omits 20
+- X-03 24 Prerequisites extra against SYLLABUS: 15
+- X-03 24 lists 19 as prerequisite, but 19 Leads to omits 24
+- X-03 25 Prerequisites extra against SYLLABUS: 16, 07, 11
+- X-03 25 lists 16 as prerequisite, but 16 Leads to omits 25
+- X-03 27 Prerequisites extra against SYLLABUS: 22, 17
+- X-03 27 lists 17 as prerequisite, but 17 Leads to omits 27
+- X-03 28 Prerequisites extra against SYLLABUS: 19, 22
+- X-03 28 lists 19 as prerequisite, but 19 Leads to omits 28
+- X-03 28 lists 22 as prerequisite, but 22 Leads to omits 28
+- X-03 29 Prerequisites extra against SYLLABUS: 16, 19
+- X-03 29 lists 16 as prerequisite, but 16 Leads to omits 29
+- X-03 29 lists 19 as prerequisite, but 19 Leads to omits 29
+- X-03 30 Prerequisites extra against SYLLABUS: 11
+- X-04 31 Prerequisites extra against SYLLABUS: 08
+- X-04 31 lists 18 as prerequisite, but 18 Leads to omits 31
+- X-04 34 Prerequisites extra against SYLLABUS: 10, 01
+- X-04 34 lists 01 as prerequisite, but 01 Leads to omits 34
+- X-04 35 Prerequisites extra against SYLLABUS: 08, 13, 24
+- X-04 35 lists 18 as prerequisite, but 18 Leads to omits 35
+- X-04 35 lists 08 as prerequisite, but 08 Leads to omits 35
+- X-04 35 lists 24 as prerequisite, but 24 Leads to omits 35
+- X-04 36 Prerequisites extra against SYLLABUS: 10, 29
+- X-04 36 lists 29 as prerequisite, but 29 Leads to omits 36
+- X-04 37 lists 16 as prerequisite, but 16 Leads to omits 37
+- X-04 37 lists 27 as prerequisite, but 27 Leads to omits 37
+- X-04 39 Prerequisites extra against SYLLABUS: 12
+- X-04 40 Prerequisites extra against SYLLABUS: 12
+- X-04 40 lists 17 as prerequisite, but 17 Leads to omits 40
+- X-04 40 lists 21 as prerequisite, but 21 Leads to omits 40
+- X-04 40 lists 12 as prerequisite, but 12 Leads to omits 40
+- X-05 41 Prerequisites extra against SYLLABUS: 09
+- X-05 42 Prerequisites extra against SYLLABUS: 27
+- X-05 44 Prerequisites extra against SYLLABUS: 12, 09
+- X-05 44 lists 09 as prerequisite, but 09 Leads to omits 44
+- X-05 47 Prerequisites extra against SYLLABUS: 45, 46
+
+**Applies to** lines:
+
+- X-01 01: ECMAScript 2026, TypeScript 6.0 (labs), Node.js 24 (lab runtime)
+- X-01 02: ECMAScript 2026 (ECMA-262, 17th edition), TypeScript 6.0 for the labs; verified on Node 24.21 (V8 13.6)
+- X-01 03: ECMAScript 2026, TypeScript 6.0, Node 24 (the lab runtime)
+- X-01 04: ECMAScript 2026, the HTML Living Standard, Node.js 24, TypeScript 6.0
+- X-01 05: ECMAScript 2026 (and the ES2027 features already finished), Node.js 24, the HTML Living Standard, TypeScript 6.0
+- X-01 06: TypeScript 6.0 (6.0.3), with notes on TypeScript 7.0; Node.js 24; Angular 22
+- X-01 07: TypeScript 6.0 (6.0.3), Zod 4.6, Angular 22
+- X-01 08: the HTML and DOM Living Standards as of 2026-10; Baseline status from MDN; jsdom 30.1 in the labs
+- X-01 09: the Fetch, HTML and Service Workers standards, RFC 9110/9111/9113/9114 and CSP Level 3 as of 2026-10; Baseline status from MDN; Node 24 and jsdom 30.1 in the labs
+- X-01 10: CSS Cascade Level 5, Selectors Level 4, Flexbox, Grid Levels 1 and 2, Containment Level 3 and CSS Nesting as of 2026-10; Baseline status from MDN; jsdom 30.1 in the labs; Dart Sass 1.104 in a throwaway probe only
+- X-01 11: WCAG 2.2, WAI-ARIA, HTML Accessibility API Mappings and the Accessible Name and Description Computation as of 2026-10 (versions and statuses confirmed by the section tasks); jsdom 30.1 (a JavaScript implementation of the DOM for Node.js) in the labs; axe-core 4.14 in a throwaway probe only; Angular CDK (Component Dev Kit) 22.2 and `@angular/aria` 22.2 read from their typings, not installed
+- X-02 12: Angular 22.2 (`@angular/core`, `@angular/compiler-cli`, `@angular/build`, `@angular/cli` 22.2.1), TypeScript 6.0, Node 24
+- X-02 13: Angular 22.2 (`@angular/core`, `@angular/compiler`, `@angular/compiler-cli`, `@angular/platform-browser` 22.2.1), TypeScript 6.0, Node 24
+- X-02 14: Angular 22.2 (`@angular/core`, `@angular/common`, `@angular/compiler-cli` 22.2.1), TypeScript 6.0, Node 24
+- X-02 15: Angular 22.2 (`@angular/core`, `@angular/compiler-cli`, `@angular/router`, `@angular/cli` 22.2.1), TypeScript 6.0, Node 24
+- X-02 16: Angular 22.2 (`@angular/core`, `@angular/compiler-cli` 22.2.1), TypeScript 6.0, Node 24
+- X-02 17: Angular 22.2, TypeScript 6.0, RxJS 7.8 (interop only)
+- X-02 18: Angular 22.2 (`@angular/core`, `@angular/compiler-cli`, `@angular/cli` 22.2.1), TypeScript 6.0, Node 24
+- X-02 19: Angular 22.2 (`@angular/core`, `@angular/compiler-cli`, `@angular/cli` 22.2.1), TypeScript 6.0, Node 24
+- X-02 20: Angular 22.2 (`@angular/core`, `@angular/compiler-cli`, `@angular/cli` 22.2.1), TypeScript 6.0, RxJS 7.8, Node 24
+- X-02 21: Angular 22.2 (`@angular/core` 22.2.1), zone.js 0.16.3 (only where a section says so), TypeScript 6.0, RxJS 7.8, Node 24
+- X-03 22: Angular 22.2 (`@angular/core` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
+- X-03 23: Angular 22.2 (`@angular/core` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
+- X-03 24: Angular 22.2 (`@angular/router` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
+- X-03 25: Angular 22.2 (`@angular/forms` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
+- X-03 26: Angular 22.2 (`@angular/forms` 22.2.1), TypeScript 6.0, Node 24
+- X-03 27: Angular 22.2 (`@angular/common` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
+- X-03 28: Angular 22.2 (`@angular/core` 22.2.1), NgRx 22.0.1 (`@ngrx/store`, `@ngrx/effects`, `@ngrx/entity`, `@ngrx/router-store`, `@ngrx/store-devtools`, `@ngrx/component-store`, `@ngrx/signals`, `@ngrx/operators`), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
+- X-03 29: Angular 22.2 (`@angular/core` and `@angular/build` 22.2.1), Vitest 5.0.3 with jsdom 30.1.1, TypeScript 6.0, Node 24; installed for section 11 and Exercise 29.5: `@angular/cdk` 22.2.1, `@testing-library/angular` 19.5.0 with `@testing-library/dom` 10.4.2; documented, not installed: Karma 6.4.4 with Jasmine 7.0.2, Jest 30.5.2 with `jest-preset-angular` 17.0.1
+- X-03 30: Playwright 1.63.0 (`@playwright/test`, Chromium only) with `@axe-core/playwright` 4.13.0, Angular 22.2 (CLI 22.2.1), TypeScript 6.0, Node 24; lab mode, so every observed claim is a committed spec; documented, not installed: Cypress 16.1.1, MSW 3.0.3, Pact 17.1.4
+- X-04 31: Angular 22.2 (CLI 22.2.1), `@angular/cdk` 22.2.1, TypeScript 6.0, Node 24; Playwright 1.63.0 on Chromium 153 for browser measurements; Lighthouse 13.5.0 and `web-vitals` 6.2.3, both installed and observed in the `labs/e2e` lab; documented only: source-map-explorer 2.5.3
+- X-04 32: Angular 22.2 (CLI 22.2.1), `@angular/ssr` and `@angular/platform-server` 22.2.1 and Express 5.2.1, TypeScript 6.0, Node 24; Playwright 1.63.0 on Chromium 153 for server and browser behavior, the Angular packages and Express installed in `labs/angular`, Playwright in `labs/e2e`, so all are observed; documented only: edge runtimes, CDNs, crawlers and the development-mode hydration log
+- X-04 33: Angular 22.2 (CLI 22.2.1), `@angular/build` 22.2.1, TypeScript 6.0, Node 24 and npm 11.19.0; Playwright 1.63.0 on Chromium 153 for CSP, Trusted Types, cookies and SRI, `ng test` (jsdom) for the sanitizer, so all are observed; documented only: `npm audit` results, other browsers, CDN headers
+- X-04 34: Angular 22.2 (CLI 22.2.1), `@angular/localize` 22.2.1, `@angular/build` 22.2.1, `@angular/cdk` 22.2.1, Transloco 8.4.0, ngx-translate 18.0.0, TypeScript 6.0, Node 24 (ICU 78.3, CLDR 48.0); Playwright 1.63.0 on Chromium 153 for the per-locale builds, the runtime build and RTL layout, so all are observed; documented only: server-rendered locales, other browsers
+- X-04 35: Angular 22.2 (CLI 22.2.1), `@angular/core`, `@angular/router`, `@angular/platform-browser` 22.2.1, `@angular/animations` 22.2.1 (deprecated; legacy build only), TypeScript 6.0, Node 24; Playwright 1.63.0 on Chromium 153 for everything on screen, so it is observed; documented only: other browsers
+- X-04 36: Angular 22.2 (CLI 22.2.1), `@angular/material`, `@angular/cdk` and `@angular/aria` 22.2.1, TypeScript 6.0, Sass 1.104 (through `@angular/build`), Node 24; Playwright 1.63.0 on Chromium 153 for everything on screen, so it is observed; documented only: other browsers and screen-reader speech
+- X-04 37: Angular 22.2 (CLI 22.2.1), `@angular/elements` and `@angular/service-worker` 22.2.1, TypeScript 6.0, Node 24; Playwright 1.63.0 on Chromium 153 for everything on screen, so it is observed; documented only: other browsers, real push services, install prompts and third-party libraries
+- X-04 38: Angular 22.2 (CLI 22.2.1), ng-packagr 22.2.1, Prettier 3.9.9, TypeScript 6.0, Node 24; `ng test` with jsdom and Vitest in Node for everything observed; documented only: Nx 23.3, angular-eslint 22.6, ESLint 10, Storybook 10.6, Module Federation and Native Federation, commit hooks and CI services
+- X-04 39: Angular 22.2 (CLI 22.2.1), `@angular-devkit/schematics` 22.2.1, TypeScript 6.0, Node 24; `ng test` with jsdom and Vitest in Node for everything observed; documented only: AngularJS 1.8.3, `@angular/upgrade` 22.2.1, every version before 22.2.1 through its changelog, the Update Guide
+- X-04 40: Angular 22.2 (the owners' labs); documented only: `react` and `react-dom` 19.3.1, `babel-plugin-react-compiler` 1.0.0, `vue` 3.5.44, `solid-js` 1.9.17, `svelte` 5.57.2, `@preact/signals-core` 1.14.4, `@builder.io/qwik` 1.20.2; Vitest in Node with jsdom for our models; registry reads 2026-10-19 and 2026-10-20
+- X-05 41: Angular 22.2 (labs); Vitest and Zod 4.6.5 in Node; documented only: Spring Boot 4.1.1, Framework 7.0.9, Security 7.1.1, Data Commons 4.1.1, Jackson 3.1.5, springdoc 3.1.1, `ng-openapi-gen` 1.1.0, `@orval/angular` 8.43.0, `@openapitools/openapi-generator-cli` 2.42.0; reads 2026-10-20
+- X-05 42: Angular 22.2 (labs); TypeScript 6.0 and Node 24 WebCrypto in `labs/ts-js`; documented only: Spring Boot 4.1.1, Spring Security 7.1.1 (with Spring Authorization Server 7.1.1), Spring Session 4.1.1, Spring Cloud 2025.1.3 (Gateway 5.0.3), `angular-oauth2-oidc` 22.0.2, `angular-auth-oidc-client` 22.0.2; reads 2026-10-20
+- X-05 43: Angular 22.2 (`@angular/core` and `@angular/common` 22.2.1, RxJS 7.8.2 in `labs/angular`); TypeScript 6.0 and Node 24 streams in `labs/ts-js`; documented only: Spring Boot 4.1.1, Spring Framework 7.0.9, Spring Security 7.1.1, `@stomp/rx-stomp` 2.4.0, `@stomp/stompjs` 7.5.0; the WHATWG HTML Living Standard, RFC 6455 and STOMP 1.2; reads 2026-10-21
+- X-05 44: Angular 22.2 (`@angular/core`, `@angular/build`, `@angular/ssr` 22.2.1 in `labs/angular`); TypeScript 6.0 and Node 24 in `labs/ts-js`; documented only: Nginx 1.30.6 and 1.31.8, the nginx and Node images, Spring Boot 4.1.1, Spring Framework 7.0.9, Spring Cloud Gateway 5.0.3, OpenTelemetry JS `sdk-trace-web` 2.12.0, `@openfeature/web-sdk` 1.10.0, `@sentry/angular` 11.8.0; W3C Trace Context (2021); reads 2026-10-22
+- X-05 45: Angular 22.2 facts as their owner modules state them, `@angular/ssr` 22.2.1 `RenderMode` typings; TypeScript 6.0 and Node 24 in `labs/ts-js`; documented only: Lighthouse 13.5.0 throttling profiles, WCAG 2.2, RFC 9110, MDN, the C4 model; reads 2026-10-22
+- X-05 46: Angular 22.2 and `@angular/aria` 22.2.1 facts as their owner modules state them; TypeScript 6.0 and Node 24 in `labs/ts-js`; documented only: the IETF Idempotency-Key Internet-Draft (draft-08), RFC 9110, Stripe's API docs (one vendor), the WAI-ARIA Authoring Practices (informative), MDN; reads 2026-10-22 and 2026-10-23
+- X-05 47: Angular 22.2 facts as their owner modules state them; TypeScript 6.0 and Node 24 in `labs/ts-js`; documented only: this repository's backend guide, the Google SRE book chapter "Postmortem Culture: Learning from Failure", the Retrospective Wiki's quote of the Prime Directive, Wikipedia on characterization tests; reads 2026-10-23
+

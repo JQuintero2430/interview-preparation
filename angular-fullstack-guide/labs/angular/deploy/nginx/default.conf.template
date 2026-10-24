@@ -1,0 +1,116 @@
+# labs/angular/deploy/nginx/default.conf.template — documented only, not built: Docker is not run in the labs
+# The Dockerfile copies this file to /etc/nginx/templates/; the image's entrypoint writes it to /etc/nginx/conf.d/
+# without the .template suffix when the container starts (section 5). It is one server block inside nginx's http block.
+# Section 4 adds a map block before the server block (map is allowed only in the http context) and three proxy locations.
+
+# Sets the Connection header for the WebSocket location: "upgrade" when the client sent an Upgrade header, else "close".
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+server {
+    # The unprivileged image listens on 8080 (section 2).
+    listen 8080;
+    root /usr/share/nginx/html;
+
+    # Security headers, sent once here. "always" adds them whatever the status: without it add_header acts only on
+    # 200, 201, 204, 206, 301, 302, 303, 304, 307 and 308, so a 404 or a 500 page would go out without them.
+    # nosniff makes the browser refuse a script or stylesheet whose Content-Type does not match.
+    add_header X-Content-Type-Options "nosniff" always;
+    # frame-ancestors works only in a header, never in a <meta> tag; module 33 section 5 owns the rest of the policy.
+    add_header Content-Security-Policy "frame-ancestors 'self'" always;
+    # Every location below sets its own Cache-Control, and a level with any add_header normally drops all inherited
+    # ones. merge (nginx 1.29.3 and later; this image is 1.31.8) appends these two to each location's own. Chosen over
+    # repeating them in every location, because a location added later cannot forget them; on an older nginx, repeat them.
+    add_header_inherit merge;
+
+    # gzip compresses text/html only until gzip_types lists more types (names as in nginx's mime.types).
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    # Vary: Accept-Encoding, so a shared cache keeps the compressed and the plain copy apart.
+    gzip_vary on;
+    # Send file.gz instead of file when it exists and the client accepts gzip; a build step must write the .gz files,
+    # because the Angular builder writes none. The nginx.org packages this image installs include this module.
+    gzip_static on;
+    # No brotli directives: Brotli is not part of nginx open source. It needs the third-party ngx_brotli module
+    # (brotli and brotli_static), which this image does not install.
+
+    # index.html names the current hashed files, so the browser revalidates it on every load.
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    # Hashed build output: a changed file gets a new name, so a cached copy never goes stale. A missing name answers 404,
+    # not index.html: an old tab asking for a deleted chunk then gets a real error instead of HTML with status 200.
+    # The hash is 8 characters of A-Z, a-z, 0-9, "_" or "-" (@angular/build 22.2.1). Hashed .js and .css sit at the
+    # root and hashed media under media/; other root files (favicon.ico, the public/ folder) keep their names.
+    location ~ "^/(?:[^/]+-[A-Za-z0-9_-]{8}\.(?:js|css)|media/[^/]+-[A-Za-z0-9_-]{8}\.[A-Za-z0-9]+)$" {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    # Runtime configuration (section 5): read again on every load, never stored. The unprivileged image runs as UID 101
+    # and its Dockerfile does not change the owner of /usr/share/nginx/html, so 40-write-config.sh writes the file under
+    # /tmp and alias serves that path for this one URI (the same directory as OUTPUT_DIR in the script).
+    location = /config.json {
+        alias /tmp/app-config/config.json;
+        add_header Cache-Control "no-store";
+    }
+
+    # Section 4: the API. proxy_pass has no URI after the address, so the request URI goes on as the client sent it and
+    # /api/orders reaches Spring as /api/orders. ^~ keeps the regular-expression location above from taking an /api/ path.
+    # Nginx adds no Cache-Control here: the API sets its own (module 9 section 4). Nginx does not pass Host or Connection,
+    # so Host is set. proxy_set_header is inherited only by a level that sets none, so every proxied location lists all of
+    # them. Each one replaces the field of that name, so a client's value never reaches Spring: $remote_addr replaces a
+    # client's X-Forwarded-For ($proxy_add_x_forwarded_for would append to it), and "" removes the standard Forwarded.
+    # $scheme is the scheme this Nginx received: https only where it terminates TLS, which this file does not do itself.
+    # Spring Boot reads these with server.forward-headers-strategy (section 4); the host name "spring" is this lab's own.
+    location ^~ /api/ {
+        proxy_pass http://spring:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Forwarded "";
+    }
+
+    # Server-Sent Events: the longest prefix beats /api/ above. proxy_buffering off passes each event to the browser as it
+    # arrives instead of collecting it in buffers (the backend can ask for the same with X-Accel-Buffering: no).
+    # proxy_read_timeout counts only the silence between two reads and defaults to 60s; a quiet stream needs a higher value,
+    # and the heartbeat comment every 15 seconds (module 43 section 3) still has to be sent, because a write is how the
+    # server notices a client that left.
+    location ^~ /api/events {
+        proxy_pass http://spring:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Forwarded "";
+        proxy_buffering off;
+        proxy_read_timeout 1h;
+    }
+
+    # WebSocket: Upgrade is a hop-by-hop header, so Nginx does not pass it; Upgrade and Connection are set explicitly
+    # (Connection through the map above). No proxy_http_version: 1.1 is the default since nginx 1.29.7, and this image is
+    # 1.31.8; an older nginx needs proxy_http_version 1.1. The default 60s read timeout would close a quiet socket, so it is
+    # raised; the backend can instead send WebSocket ping frames (nginx.org, WebSocket proxying).
+    location ^~ /ws {
+        proxy_pass http://spring:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header Forwarded "";
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_read_timeout 1h;
+    }
+
+    # The SPA fallback: a file or folder if one exists, otherwise index.html, so the Angular router handles the path.
+    # The internal redirect to /index.html is matched again and lands in the exact location above.
+    location / {
+        add_header Cache-Control "no-cache";
+        try_files $uri $uri/ /index.html;
+    }
+}

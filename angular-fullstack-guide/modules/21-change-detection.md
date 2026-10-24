@@ -117,7 +117,7 @@ class Pair {
 
 - *"Change detection re-renders the template."* It evaluates every binding of a refreshed view and writes only the ones that differ. The myth exists because "render" names the whole pass.
 - *"Angular is slow because it checks everything."* What a notification costs depends on how many views it refreshes ([section 4](#4-the-tree-walk-global-and-targeted-refreshes)). The myth exists because in the zone-era story every event ran a global pass ([17 §1](17-signals.md#1-why-signals-exist)).
-- *"It is the same as React's virtual DOM diff."* Angular compares each binding with the value stored in its view, and the code read here builds no second tree. The myth exists because both compare, then update ([Module 40](40-framework-comparisons.md)).
+- *"It is the same as React's virtual DOM diff."* Angular compares each binding with the value stored in its view, and the code read here builds no second tree. The myth exists because both compare, then update ([Module 40](40-framework-comparisons.md#9-under-the-hood-one-state-change-traced-through-angular-react-vue-and-solid)).
 
 Drilled in [Q21.01](#q21-01) and [Q21.02](#q21-02); modelled in [Exercise 21.6](#ex21-6).
 
@@ -2707,5 +2707,5 @@ It renders the view at once; the notification stays missing, so the next plain-f
 ## Connections
 
 - **Builds on:** [17 §9](17-signals.md#9-under-the-hood-the-reactive-graph) (the reactive graph that marks a consumer view), [20 §7](20-lifecycle-and-render-hooks.md#7-under-the-hood-hook-lists-the-view-refresh-and-the-render-hook-queue) (hooks run inside the refresh), [04 §1](04-js-async-event-loop.md#1-the-event-loop-tasks-microtasks-and-rendering) (the tasks zone.js patches) and [12 §8](12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it) (the compiled update pass).
-- **Read next:** [22. RxJS foundations](22-rxjs-foundations.md) (the streams the `async` pipe subscribes to), [29. Testing Angular](29-testing-angular.md) (zoneless `TestBed`), [31. Performance](31-performance.md) (OnPush as a lever), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md) (server stability) and [39. Version history and migrations](39-version-history-and-migrations.md) (the AngularJS digest, the version matrix).
+- **Read next:** [22. RxJS foundations](22-rxjs-foundations.md) (the streams the `async` pipe subscribes to), [29. Testing Angular](29-testing-angular.md) (zoneless `TestBed`), [31. Performance](31-performance.md) (OnPush as a lever), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md) (server stability) and [39. Version history and migrations](39-version-history-and-migrations.md#1-angularjs-scopes-watchers-and-the-digest-cycle) (the AngularJS digest, the version matrix).
 - **Uses these ideas later:** [22](22-rxjs-foundations.md), [25](25-forms-reactive-and-template-driven.md), [26](26-signal-forms.md), [29](29-testing-angular.md), [31](31-performance.md), [32](32-ssr-ssg-hydration.md), [35](35-animations.md), [37](37-elements-pwa-errors-ecosystem.md), [39](39-version-history-and-migrations.md) and [40](40-framework-comparisons.md).

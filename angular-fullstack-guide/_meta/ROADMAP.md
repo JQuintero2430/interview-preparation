@@ -46,15 +46,15 @@ Source: SYLLABUS §6. The parallel batches are dissolved: one module at a time, 
 | 31 | 36 `material-and-cdk` | D | NG | reviewed and fixed (CLOSE-M36, REVIEW-M36, FIX-M36-01..02 2026-10-17; 19,637 prose words, 25 Q (Output 8), 4 Ex; HOUSE-34 added `@angular/material` and `@angular/aria` 22.2.1, HOUSE-35 added `labs/angular/projects/material-lab`) |
 | 32 | 37 `elements-pwa-errors-ecosystem` | D | NG | reviewed and fixed (CLOSE-M37, REVIEW-M37, FIX-M37-01..03 2026-10-17; 20,226 prose words, 25 Q (Output 7), 4 Ex; HOUSE-37 added `@angular/elements` and `@angular/service-worker` 22.2.1, HOUSE-38 added `labs/angular/projects/elements-lab` on port 4900) |
 | 33 | 38 `architecture-and-production-structure` | D | NG | written and closed (CLOSE-M38 2026-10-18; 20,030 prose words, 29 Q (Output 5), 4 Ex; HOUSE-39 added `ng-packagr` 22.2.1, HOUSE-40 added `labs/angular/projects/ui-lib`); REVIEW-M38 next |
-| 34 | 39 `version-history-and-migrations` | D | NG | planned (PLAN-M39 2026-10-18; skeleton 1,879 words, 25 Q, 4 Ex, 22 markers; no HOUSE task; plan 19,489 words) |
-| 35 | 40 `framework-comparisons` | D | — | not started |
-| 36 | 41 `fullstack-api-contracts` | E | — | not started |
-| 37 | 42 `fullstack-authentication` | E | — | not started |
-| 38 | 43 `fullstack-realtime` | E | — | not started |
-| 39 | 44 `fullstack-delivery-and-operations` | E | — | not started |
-| 40 | 45 `frontend-system-design-method` | F | — | not started |
-| 41 | 46 `system-design-case-studies` | F | — | not started |
-| 42 | 47 `behavioral-and-interview-craft` | G | — | not started |
+| 34 | 39 `version-history-and-migrations` | D | NG | done (CLOSE-M39 2026-10-19, REVIEW-M39 and FIX-M39-01..03 2026-10-20; 19,449 prose words, 25 Q (Output 4), 4 Ex; no HOUSE task) |
+| 35 | 40 `framework-comparisons` | D | — | closed (CLOSE-M40 2026-10-20, REVIEW-M40 next; 13,326 prose words, 16 Q (Output 1), 2 Ex; no HOUSE task, nothing installed) |
+| 36 | 41 `fullstack-api-contracts` | E | — | done (CLOSE-M41 2026-10-20, REVIEW-M41 and FIX-M41-01..03 2026-10-20; 9,273 prose words, 21 Q (Output 2), 3 Ex; no HOUSE task, nothing installed) |
+| 37 | 42 `fullstack-authentication` | E | — | done (CLOSE-M42 2026-10-20, REVIEW-M42 and FIX-M42-01..03 2026-10-21; 9,831 prose words, 23 Q (Output 2), 3 Ex; no HOUSE task, nothing installed) |
+| 38 | 43 `fullstack-realtime` | E | — | done (CLOSE-M43 2026-10-22, REVIEW-M43 and FIX-M43-01..03 2026-10-22; 9,664 prose words, 21 Q (Output 3), 3 Ex; no HOUSE task, nothing installed) |
+| 39 | 44 `fullstack-delivery-and-operations` | E | — | closed (CLOSE-M44 2026-10-22), reviewed and fixed (REVIEW-M44, FIX-M44-01..03, 2026-10-22, S20261022-1316-claudecode; 9,793 prose words, 21 Q (Output 3), 3 Ex; no HOUSE task, nothing installed, `labs/angular/deploy/` documented only) |
+| 40 | 45 `frontend-system-design-method` | F | — | closed (CLOSE-M45 2026-10-22), reviewed and fixed (REVIEW-M45, FIX-M45-01..03, 2026-10-22, S20261022-1759-claudecode; 8,242 prose words, 17 Q (Output 3), 2 Ex; no HOUSE task, nothing installed, labs/ts-js only) |
+| 41 | 46 `system-design-case-studies` | F | — | closed (CLOSE-M46 2026-10-23, S20261022-2051-claudecode), reviewed and fixed (REVIEW-M46, FIX-M46-01..03, 2026-10-23, S20261023-1732-claudecode; 14,588 prose words); plan `_meta/modules/M46.md`: 8 sections (a case template, then typeahead, feed, grid, wizard, dashboard, notifications and presence, money transfer), 26 Q (Output 7), 5 Ex; 14,474 prose words, within the CLOSE limit 14,474; labs/ts-js only, nothing installed, no HOUSE task) |
+| 42 | 47 `behavioral-and-interview-craft` | G | — | closed (CLOSE-M47 2026-10-23, S20261023-2049-claudecode), reviewed and fixed (REVIEW-M47, FIX-M47-01..03, 2026-10-24, S20261024-0835-claudecode; 9,209 prose words; 15 Q (Output 1), 2 Ex; no HOUSE task, nothing installed, labs/ts-js only) |
 
 Each module's lifecycle: `PLAN` → `SEC`/`QB`/`EX` tasks → `CLOSE` → `REVIEW` (different session) → `FIX` → done. Prerequisite order is respected by construction: every module's prerequisites (SYLLABUS §1) appear earlier in this list (16 is placed before 15 because 15 depends on it; SYLLABUS §6 only grouped them in one batch).
 

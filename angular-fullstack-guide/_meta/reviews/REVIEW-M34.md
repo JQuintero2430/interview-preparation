@@ -215,8 +215,8 @@ Stay file-level (headers, Leads to, Read next, Uses these ideas later, as REVIEW
 - **N-2:** Q34.18 full explanation (1427) ends with the §7 link followed by `)).`: one `)` too many. Delete it (+0).
 - **N-3 (C1):** Q34.23 (1546): "`toFixed(2)` gives `1234567.50`, while `{{ 1235 | currency: 'JPY' }}` prints `¥1,235` (`Section 10: yen and Chilean pesos have no minor digits`)." → "`(1234567.5).toFixed(2)` gives `1234567.50`, with no grouping or symbol (`Section 10: adding prices as floats drifts while integer minor units do not`), while `{{ 1235 | currency: 'JPY' }}` prints `¥1,235` (`Section 10: yen and Chilean pesos have no minor digits`)." (+14). The `toFixed` value is asserted in `section-10-money.test.ts` 17, not in the yen test.
 - **N-4 (C14):** Q34.03's second follow-up (1085) cites a Chromium test as evidence of a difference, but that test shows Chromium printing U+0020, as Node does. "Not guaranteed: each ships its own ICU data (`Section 2: …`)." → "Not guaranteed, since each ships its own ICU data; for the `en-US` short time both print U+0020 (`Section 2: …`)." (+7)
-- **N-5 (C7):** §7 Serving (567). After "(read, not run; deployment: 32 §9)." add `` Serving the folders in production is [44](44-fullstack-delivery-and-operations.md)'s.`` (+8)
-- **N-6 (C7):** §10 (820). After "while `10 + 20` cents is `30`" add `` ([Q01.09](01-js-values-types-coercion.md#q01-09) owns money in JavaScript)`` (+6).
+- **N-5 (C7):** §7 Serving (567). After "(read, not run; deployment: 32 §9)." add `` Serving the folders in production is [44](../../modules/44-fullstack-delivery-and-operations.md)'s.`` (+8)
+- **N-6 (C7):** §10 (820). After "while `10 + 20` cents is `30`" add `` ([Q01.09](../../modules/01-js-values-types-coercion.md#q01-09) owns money in JavaScript)`` (+6).
 - **N-7 (SOURCES, +0 module words):** the `## Module 34` outputs line begins "Questions Q34.01-Q34.20 output code" but covers Q34.21-25 and the e2e outputs spec too. Change it to "Questions Q34.01-Q34.25 output code".
 
 ## Judged acceptable

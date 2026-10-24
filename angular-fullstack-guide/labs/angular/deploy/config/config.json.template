@@ -1,0 +1,6 @@
+{
+  "apiUrl": "${API_URL}",
+  "featureFlagsUrl": "${FEATURE_FLAGS_URL}",
+  "release": "${RELEASE}",
+  "traceSampleRate": ${TRACE_SAMPLE_RATE}
+}

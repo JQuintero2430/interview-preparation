@@ -928,7 +928,7 @@ The sample is `legacy/migration-sample/`: structural directives and explicit imp
 })
 ```
 
-The migration path is the command above. Planning it across a whole codebase belongs to [39](39-version-history-and-migrations.md).
+The migration path is the command above. Planning it across a whole codebase belongs to [39](39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints).
 
 > [!WARNING]
 > A `*ngFor` with no `trackBy` becomes `track item`, and a list of new objects then recreates every row ([section 2](#2-for-track-context-variables-empty-and-what-angular-can-iterate)). The schematic also rewrites layout, and the CLI's Prettier pass can reformat whole files.
@@ -1930,7 +1930,7 @@ After each run, review:
 4. formatting churn: without the lab's `.prettierrc` the run came back double-quoted (observed 2026-10-08), so use the repository's Prettier config;
 5. the build and the tests.
 
-Whole-codebase planning is [39](39-version-history-and-migrations.md).
+Whole-codebase planning is [39](39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints).
 
 **Follow-ups an interviewer will ask.**
 - *Why start from a clean working tree?* The diff is then only the migration.
@@ -2607,5 +2607,5 @@ One also used outside the block, named in a `viewChild`, or declared in an NgMod
 ## Connections
 
 - **Builds on:** [13 §6](13-components-and-templates.md#6-template-reference-variables-and-let) (`@let` mechanics), [14 Q14.16](14-directives-and-pipes.md#q14-16) (why blocks replaced the directives), [17 §3](17-signals.md#3-computed-signals) (signals the blocks read), [15 §4](15-standalone-and-ngmodules.md#4-lazy-loading-without-modules-loadcomponent-and-loadchildren-with-route-arrays) (lazy routes) and [12 §8](12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it) (emitted template code; [section 9](#9-under-the-hood-what-the-blocks-compile-to-how-for-reconciles-and-how-defer-moves-between-states) here).
-- **Read next:** [19. Component communication and projection](19-component-communication-and-projection.md) (`ng-template`), [21. Change detection](21-change-detection.md) (ticks), [29. Testing Angular](29-testing-angular.md) (`TestBed` beyond [section 7](#7-what-lands-in-a-chunk-testing-deferred-blocks-and-the-ssr-pointer)) and [39. Version history and migrations](39-version-history-and-migrations.md) (planning the [section 8](#8-migrating-with-ng-generate-angularcorecontrol-flow) migration).
+- **Read next:** [19. Component communication and projection](19-component-communication-and-projection.md) (`ng-template`), [21. Change detection](21-change-detection.md) (ticks), [29. Testing Angular](29-testing-angular.md) (`TestBed` beyond [section 7](#7-what-lands-in-a-chunk-testing-deferred-blocks-and-the-ssr-pointer)) and [39. Version history and migrations](39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints) (planning the [section 8](#8-migrating-with-ng-generate-angularcorecontrol-flow) migration).
 - **Uses these ideas later:** [31](31-performance.md) (measuring `@defer`), [32](32-ssr-ssg-hydration.md) (`hydrate on`), [35](35-animations.md#7-animating-lists-for-enter-leave-reorder-and-stagger) (animating `@if` and `@for`) and [37](37-elements-pwa-errors-ecosystem.md#9-error-boundaries-boundary-error-reset-onviewerror-and-onerror) (`@boundary`).

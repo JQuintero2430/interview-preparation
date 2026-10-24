@@ -3,10 +3,10 @@
 > **What this covers:** where Angular came from and how to move a codebase forward: AngularJS scopes and the digest cycle, and why Angular was rewritten; how Angular versions, ships and deprecates; the version matrix from v2 to v22, with what each major changed and why; updating with `ng update`, its migration schematics and the Update Guide, one major at a time; moving an AngularJS application with ngUpgrade or a strangler fig; and planning the modernization of an old Angular codebase (standalone, control flow, signal APIs, zoneless, Vitest, the application builder) in a safe order.
 > **Prerequisites:** [15. Migrating with `ng generate @angular/core:standalone`](15-standalone-and-ngmodules.md#7-migrating-with-ng-generate-angularcorestandalone-three-passes-hybrid-apps-and-common-failures), [21. Migrating a zone-based app to zoneless](21-change-detection.md#6-migrating-a-zone-based-app-to-zoneless), [12. The CLI and the workspace: schematics and `ng update`](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)
 > **Leads to:** [40. Framework comparisons](40-framework-comparisons.md), [44. Full-stack delivery and operations](44-fullstack-delivery-and-operations.md)
-> **Applies to:** <!-- PLACEHOLDER: Applies to (CLOSE-M39) -->
+> **Applies to:** Angular 22.2 (CLI 22.2.1), `@angular-devkit/schematics` 22.2.1, TypeScript 6.0, Node 24; `ng test` with jsdom and Vitest in Node for everything observed; documented only: AngularJS 1.8.3, `@angular/upgrade` 22.2.1, every version before 22.2.1 through its changelog, the Update Guide
 > **Study time:** ~4 hours reading + ~4 hours exercises
-> **Short on time:** <!-- PLACEHOLDER: Short on time: 2-4 section links, 3-6 question IDs, then the Summary (CLOSE-M39) -->
-> **Labs:** `labs/angular/src/app/modules/39-version-history-and-migrations/` and `labs/ts-js/src/modules/39-version-history-and-migrations/` <!-- relink: ../labs/angular/src/app/modules/39-version-history-and-migrations/ and ../labs/ts-js/src/modules/39-version-history-and-migrations/ (CLOSE-M39 turns both paths into links and writes the run commands: from labs/angular, npx ng test --watch=false --include='src/app/modules/39-version-history-and-migrations/**/*.spec.ts'; from labs/ts-js, npx vitest run src/modules/39-version-history-and-migrations) -->
+> **Short on time:** read [§3](#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy), [§6](#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default), [§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide) and [§10](#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints), then [Q39.04](#q39-04), [Q39.09](#q39-09), [Q39.12](#q39-12), [Q39.15](#q39-15), [Q39.18](#q39-18) and [Q39.20](#q39-20), then the [Summary](#summary).
+> **Labs:** [`labs/angular/src/app/modules/39-version-history-and-migrations/`](../labs/angular/src/app/modules/39-version-history-and-migrations/) and [`labs/ts-js/src/modules/39-version-history-and-migrations/`](../labs/ts-js/src/modules/39-version-history-and-migrations/). Run (Node 24): from `labs/angular`, `npx ng test --watch=false --include='src/app/modules/39-version-history-and-migrations/**/*.spec.ts'`; from `labs/ts-js` (after `npm ci` in `labs/angular`, which its tests read), `npx vitest run src/modules/39-version-history-and-migrations`.
 
 ## Contents
 
@@ -36,7 +36,7 @@
 
 An AngularJS screen with 3,000 bindings lags on every keystroke. A value assigned in a `setTimeout` never appears. Another page dies with "10 $digest() iterations reached. Aborting!". Interviewers ask why Angular left this model.
 
-**AngularJS** is the 1.x framework, whose support officially ended in January 2022 (npm deprecation notice for `angular`, read 2026-10-18; documented only, never run here). A **digest** is the loop behind that error.
+**AngularJS** is the 1.x framework, whose support officially ended in January 2022 (AngularJS `README.md` and its version-support page, read 2026-10-18; npm marks `angular` deprecated; documented only, never run here). A **digest** is the loop behind that error.
 
 ### Mental model
 
@@ -70,7 +70,7 @@ What to notice: success needs a pass where nothing changed, so a listener that w
 - `Section 1: our model stops after 10 unstable loops with an infdig-style error` finds the watcher read 11 times before the throw.
 - `Section 1: our model does not see a change made outside apply until the next digest` finds the listener silent until `apply` runs.
 
-**Against Angular.** Its templates compile to code checked from the root on a tick, with zone.js as the noise detector ([21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)).
+**Against Angular.** Its templates compile to code checked from the root on a tick, with **zone.js**, a library that patches the browser's async APIs, as the noise detector ([21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)).
 
 ### Code
 
@@ -156,7 +156,7 @@ What to notice: each arrow replaces a mechanism, not a name, so no step is a fin
 
 ### How it actually works
 
-**Change detection.** A 1.8.3 digest re-walks every watcher until stable (§1). The angular.io upgrade guide (16.2.0 source, read 2026-10-18) says that in Angular "no one needs to call `scope.$apply()`": **zone.js**, a library that patches the browser's async APIs, told Angular when code finished ([21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)). Templates compile to code with **one-way data flow**: property bindings carry values from component to DOM, event bindings from DOM to component, checked once per tick.
+**Change detection.** A 1.8.3 digest re-walks every watcher until stable (§1). The angular.io upgrade guide (16.2.0 source, read 2026-10-18) says that in Angular "no one needs to call `scope.$apply()`": zone.js told Angular when code finished ([21 §3](21-change-detection.md#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)). Templates compile to code with **one-way data flow**: property bindings carry values from component to DOM, event bindings from DOM to component, checked once per tick.
 
 **Dependency injection.** Read, not run, in 1.8.3 (`angular.js`): with no `$inject` list, the internal `extractArgs` matches the parameter list in `Function.prototype.toString`'s output, and `annotate` (public as `$injector.annotate`) records each name. Its doc comment warns this "does not work with minification, and obfuscation tools since these tools change the argument names" (**minification**: shrinking code by renaming locals). A **minification-safe DI annotation** lists the names as strings (`fn.$inject`, or an array ending with the function), because strings survive renaming. The upgrade guide contrasts tokens that "are always strings" in "exactly one injector" with Angular tokens that "are often classes" in "a tree hierarchy of injectors" ([16 §2](16-dependency-injection.md#2-providers-and-tokens-useclass-usevalue-usefactory-and-useexisting)).
 
@@ -250,7 +250,7 @@ What to notice: v20's and v21's LTS start the day the next major is released, so
 
 **Support windows.** Majors are "typically supported for 24 months", but the table gives v22 24 months and v20 and v21 18 and 19, so plan from the table. An LTS fix needs a newly found security vulnerability or a regression caused since LTS began by a third party, such as a new browser version.
 
-**How a deprecation reaches you.** It is announced in the changelog, struck through in the API docs, and marked with the **`@deprecated` JSDoc tag**, which editors read to flag uses. Removal happens only in a major, and the API stays "in at least the next major". In the installed `@angular/core` 22.2.1 typings, `ChangeDetectionStrategy.Default` is deprecated and "due to be removed"; `Eager` is its alias, added in 21.2.0 (changelog). The changelog names no release for the tag, so no version marker is shown.
+**How a deprecation reaches you.** It is announced in the changelog, struck through in the API docs, and marked with the **`@deprecated` JSDoc tag**, which editors read to flag uses. Removal happens only in a major, and the API stays "in at least the next major". In the installed `@angular/core` 22.2.1 typings, `ChangeDetectionStrategy.Default` is deprecated and "due to be removed"; `Eager` [Added in v21.2] is its alias (21.2.0 changelog). The changelog names no release for the tag, so no version marker is shown.
 
 **Why not jump from v19 to v22.** `ng update` needs a supported target and a source "within one major version" of it; v19 is unsupported and three majors back. The policy keeps a deprecated API only through the next major, so one hop is what it covers (our reading; the page gives no reason). Hops: [§8](#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop); mechanics: [12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update).
 
@@ -301,7 +301,7 @@ function stageOn(row: SupportRow, date: string): Stage {
 - *"LTS means new features are backported."* LTS gets only critical fixes and security patches. The word "support" sounds like active-phase care.
 - *"A developer preview API follows semantic versioning."* The policies do not apply to it, and it can change in a patch. It ships in a stable release, so the version looks like a promise.
 
-Drilled in [Q39.04](#q39-04) and [Q39.05](#q39-05).
+Drilled in [Q39.04](#q39-04) and [Q39.05](#q39-05); practised in [Exercise 39.2](#ex39-2).
 
 ## 4. The version matrix, part 1: v2 to v8
 
@@ -324,7 +324,7 @@ timeline
     2019-05-28 : v8.0 : differential loading : import() routes
 ```
 
-What to notice: majors come five to seven months apart, and the only gap in the numbers is between v2 and v4.
+What to notice: majors come about six months apart (five and a half to seven and a half), and the only gap in the numbers is between v2 and v4.
 
 ### How it actually works
 
@@ -379,7 +379,7 @@ Drilled in [Q39.06](#q39-06) and [Q39.10](#q39-10).
 
 ### The problem it solves
 
-Interviewers ask what **Ivy** was (the compiler and runtime that replaced **View Engine**, the pair before v9; internals in [12 §8](12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)), why old libraries break on v16 and when standalone arrived. Code that compiled through v21 can still fail in v22: an injected `ComponentFactoryResolver` no longer exists (Legacy below).
+Interviewers ask what **Ivy** was (the compiler and runtime that replaced **View Engine**, the pair before v9; internals in [12 §8](12-angular-how-it-works.md#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it)), why old libraries break on v16 and when **standalone** components (listing their own imports instead of being declared in an NgModule, [15 §2](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array)) arrived. Code that compiled through v21 can still fail in v22: an injected `ComponentFactoryResolver` no longer exists (Legacy below).
 
 ### Mental model
 
@@ -403,7 +403,7 @@ What to notice: every arrow keeps old libraries working until the last one, whic
 |---|---|---|
 | v9 (2020-02-06) | Ivy is the default for applications; library authors keep View Engine; `TestBed.get` [Deprecated since v9.0 — use `TestBed.inject`] · [Removed in v20.0] | View Engine libraries stay compatible "with default v9 applications that use Ivy" |
 | v10 (2020-06-24) | `ModuleWithProviders` needs its type argument; a `--strict` option and an `angular.json` "strict setting" | the generic "has always been required" for Ivy; a v10 migration fixes application code |
-| v11 (2020-11-11) | `ViewEncapsulation.Native` removed | none stated; `ng update` rewrites it to `ShadowDom` |
+| v11 (2020-11-11) | `ViewEncapsulation.Native` [Removed in v11.0] | none stated; `ng update` rewrites it to `ShadowDom` |
 | v12 (2021-05-12) | `@schematics/angular`: "strict mode by default"; "remove usage of deprecated View Engine compiler"; new libraries "published in Ivy partial mode"; `??` in templates | none stated |
 | v13 (2021-11-03) | libraries migrated "from ViewEngine to Ivy Partial compilation"; IE 11 polyfills and differential loading removed; 13.2.0: `ComponentFactoryResolver` [Deprecated since v13.2 — use `createComponent`] · [Removed in v22.0] | "Since Ivy, there is no need to resolve Component factories"; "no browsers officially supported by Angular … require ES5 code" |
 | v14 (2022-06-02) | standalone components and directives [Developer preview since v14.0]; typed forms ([25 §3](25-forms-reactive-and-template-driven.md#3-typed-forms-formbuilder-and-nonnullableformbuilder)); 14.1.0: `inject()` options object [Added in v14.1], `canMatch` [Added in v14.1] | untyped classes remain "to opt-out of the new, stricter behavior" |
@@ -468,25 +468,25 @@ timeline
     2026-06-03 : v22.0 : OnPush default : fetch default
 ```
 
-What to notice: a default arrives one to three majors after a feature (zoneless: experimental in v18, default in v21), and only v22 changes a default old code already uses.
+What to notice: a default arrives one to three majors after a feature (zoneless: experimental in v18, default in v21), and v19 (`standalone`) and v22 (OnPush, `strictTemplates`) also flip defaults that old code relies on, with `ng update` writing the old value back both times.
 
 ### How it actually works
 
-A **signal** is a value that tracks its readers ([17](17-signals.md#1-why-signals-exist)). **Zoneless** change detection runs without zone.js ([21 §5](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks); why zone left the default: [Q21.12](21-change-detection.md#q21-12)). **OnPush** checks a component only when something marks it dirty ([21 §2](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)). **Signal Forms** build a form from a model signal ([26](26-signal-forms.md#1-why-a-third-forms-api-model-first-signals-end-to-end)). The **application builder** is `@angular/build:application` ([12 §3](12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)).
+A **signal** is a value that tracks its readers ([17](17-signals.md#1-why-signals-exist)). **Zoneless** change detection runs without zone.js ([21 §5](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks); why zone left the default: [Q21.12](21-change-detection.md#q21-12)). **OnPush** checks a component only when something marks it dirty ([21 §2](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)). **Signal Forms** build a form from a model signal ([26](26-signal-forms.md#1-why-a-third-forms-api-model-first-signals-end-to-end)). The **application builder** is `@angular/build:application` ([12 §3](12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)). A **migration** is a schematic `ng update` runs to rewrite code for one version step ([12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)). **Incremental hydration** keeps parts of the server-rendered page dehydrated until a trigger ([32 §6](32-ssr-ssg-hydration.md#6-incremental-hydration-defer-blocks-with-hydrate-triggers)). **`strictTemplates`** turns on full type checking of templates ([12 §7](12-angular-how-it-works.md#7-aot-versus-jit-and-template-type-checking)).
 
 | Version | Introduced | Stable | Default for new projects | Deprecated or removed |
 |---|---|---|---|---|
 | v16 | `signal` [Developer preview since v16]; `DestroyRef` [Added in v16.0] | none | none | `ngcc`; `entryComponents` |
 | v17 | built-in control flow | `signal`, `computed` [Stable since v17] | `ng new`: application builder, standalone, `--ssr` | Material legacy components |
-| v18 | zoneless provider, "experimental" | control flow [Stable since v18]; Material 3 ([36 §3](36-material-and-cdk.md#3-theming-with-material-3-mattheme-system-variables-and-light-and-dark-with-color-scheme)) | none | `HttpClientModule` [Deprecated since v18 — use `provideHttpClient`] |
-| v19 | `linkedSignal` | `input()`, `output()`, signal queries, `@let` [Stable since v19.0] | `standalone` is `true` [Changed in v19.0] | `APP_INITIALIZER` [Deprecated since v19 — use `provideAppInitializer`]; Protractor |
-| v20 | zoneless [Developer preview since v20.0] | `linkedSignal`, `toSignal`, incremental hydration [Stable since v20.0]; zoneless [Stable since v20.2] | file names drop `.component` [Changed in v20.0] | `*ngIf`, `*ngFor`, `*ngSwitch` [Deprecated since v20.0 — use `@if`, `@for`, `@switch`]; `@angular/animations` [Deprecated since v20.2 — use `animate.enter`, `animate.leave`] ([35 §9](35-animations.md#9-migrating-from-angularanimations-to-native-css-and-animateenteranimateleave)) |
-| v21 | Signal Forms [Experimental since v21.0]; `ChangeDetectionStrategy.Eager` (21.2.0) | none | zoneless [Changed in v21.0]; Vitest | none |
-| v22 | `@Service` [Added in v22.0] | Signal Forms [Stable since v22.0] | OnPush [Changed in v22.0]; fetch backend; `strictTemplates` [Changed in v22] | `ChangeDetectionStrategy.Default` (deprecated in the 22.2.1 typings); `provideRoutes()`; HammerJS; webpack builders; TypeScript before 6.0 |
+| v18 | zoneless provider [Experimental since v18.0] | control flow [Stable since v18]; Material 3 ([36 §3](36-material-and-cdk.md#3-theming-with-material-3-mattheme-system-variables-and-light-and-dark-with-color-scheme)) | none | `HttpClientModule` [Deprecated since v18 — use `provideHttpClient`] |
+| v19 | `linkedSignal` | `input()`, `output()`, signal queries, `@let` [Stable since v19.0] | `standalone` is `true` [Changed in v19.0: components are standalone unless `standalone: false`] | `APP_INITIALIZER` [Deprecated since v19 — use `provideAppInitializer`]; Protractor |
+| v20 | zoneless [Developer preview since v20.0] | `linkedSignal`, `toSignal`, incremental hydration [Stable since v20.0]; zoneless [Stable since v20.2] | file names drop `.component` [Changed in v20.0: generated file names have no `.component` suffix] | `*ngIf`, `*ngFor`, `*ngSwitch` [Deprecated since v20.0 — use `@if`, `@for`, `@switch`]; `@angular/animations` [Deprecated since v20.2 — use `animate.enter` and `animate.leave`] ([35 §9](35-animations.md#9-migrating-from-angularanimations-to-native-css-and-animateenteranimateleave)) |
+| v21 | Signal Forms [Experimental since v21.0]; `ChangeDetectionStrategy.Eager` [Added in v21.2] | none | zoneless [Changed in v21.0: new applications are zoneless]; Vitest | none |
+| v22 | `@Service` [Added in v22.0] | Signal Forms [Stable since v22.0] | OnPush [Changed in v22.0: a component without `changeDetection` is OnPush]; fetch backend; `strictTemplates` [Changed in v22.0: defaults to `true`] | `ChangeDetectionStrategy.Default` (deprecated in the 22.2.1 typings); `provideRoutes()` [Removed in v22.0]; HammerJS integration [Removed in v22.0]; webpack builders [Deprecated since v22.0 — use `@angular/build`]; TypeScript before 6.0 |
 
-Each cell rests on a changelog entry under that version's heading ([SOURCES.md](../SOURCES.md)); the rest come from owners ([17](17-signals.md), [15](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array), [12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)).
+A cell rests on a changelog entry under that version's heading ([SOURCES.md](../SOURCES.md)) or, where none was read, on its owner ([17](17-signals.md), [15](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array), [12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update)).
 
-**New default versus what `ng update` keeps.** The 22.0.0 entry says "Component with undefined `changeDetection` property are now `OnPush` by default. Specify `changeDetection: ChangeDetectionStrategy.Eager` to keep the previous behavior." The installed `@angular/core` 22.2.1 `schematics/migrations.json` holds eight migrations, all at 22.0.0, among them `change-detection-eager` ("Adds `ChangeDetectionStrategy.Eager` to all components.") and `strict-templates-default` ("Adds 'strictTemplates: false' in tsconfig.json when not set."). A new default therefore applies to new code, while the update writes the old value into old code ([§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior) says what each migration writes; `ng update` itself: [Q12.05](12-angular-how-it-works.md#q12-05)).
+**New default versus what `ng update` keeps.** The 22.0.0 entry says "Component with undefined `changeDetection` property are now `OnPush` by default. Specify `changeDetection: ChangeDetectionStrategy.Eager` to keep the previous behavior." The installed `@angular/core` 22.2.1 `schematics/migrations.json` holds eight migrations, all at 22.0.0, among them `change-detection-eager` ("Adds `ChangeDetectionStrategy.Eager` to all components.") and `strict-templates-default` ("Adds 'strictTemplates: false' in tsconfig.json when not set."; the run writes the build target's tsconfig, [§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)). A new default therefore applies to new code, while the update writes the old value into old code ([§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior) says what each migration writes; `ng update` itself: [Q12.05](12-angular-how-it-works.md#q12-05)).
 
 **What the installed packages require.** `Section 6: the installed 22.2.1 packages require the Node and TypeScript ranges of the 22.0.x compatibility row` reads the manifests: both packages declare Node `^22.22.3 || ^24.15.0 || >=26.0.0`, and `@angular/compiler-cli` peers on TypeScript `>=6.0 <6.1`. The compatibility page (read 2026-10-18) writes `^26.0.0` and `>=6.0.0 <6.1.0`; the test expects the package values.
 
@@ -551,7 +551,7 @@ What to notice: each step that changes the tree ends in a commit, so a failure r
 
 **Why `ng update` prompts** (read in `@angular/cli` 22.2.1, `migration.js`; mechanism: [Q12.05](12-angular-how-it-works.md#q12-05)). `Section 7: @angular/core 22.2.1 ships eight migrations, all for 22.0.0 and none optional`: all run unasked. `Section 7: @angular/cli 22.2.1 takes its migrations from @schematics/angular, two of them optional and one recommended`: three run unasked; the prompt "Select the migrations that you'd like to run" ticks an item when it is `recommended`, here `use-application-builder`, not `migrate-karma-to-vitest`. `Section 7: core, common, router, forms and upgrade are in one package group`: core's list names 16 packages, and the installed `common`, `router` and `forms` carry it too.
 
-**What `--force` changes** (read, not run, `@angular/cli` 22.2.1). Its text is "Ignore peer dependency version mismatches." In `update-resolver.js`, the internal `_validateUpdatePackages` logs each mismatch as an error and throws "Incompatible peer dependencies found" only when `force` is false. `--force` removes the stop, not the mismatch: the library is installed outside its own range. It does not lift the refusal to cross several majors, which `cli.js` checks first. For npm 7 and later, the internal `shouldForcePackageManager` already makes the install ignore peer ranges (a source comment blames npm "incorrectly resolving peer dependencies").
+**What `--force` changes** (read, not run, `@angular/cli` 22.2.1). Its text is "Ignore peer dependency version mismatches." In `update-resolver.js`, the internal `_validateUpdatePackages` has its peer checks log each mismatch as an error, then throws "Incompatible peer dependencies found" only when `force` is false. `--force` removes the stop, not the mismatch: the library is installed outside its own range. It does not lift the refusal to cross several majors, which `cli.js` checks first. For npm 7 and later, the internal `shouldForcePackageManager` already makes the install ignore peer ranges (a source comment blames npm "incorrectly resolving peer dependencies").
 
 **What the Update Guide adds.** Its source ([update.component.ts](https://raw.githubusercontent.com/angular/angular/main/adev/src/app/features/update/update.component.ts), read 2026-10-18) asks for an app level (basic, medium or advanced) and options such as `ngUpgrade`; how it picks steps: [§12](#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist). A library can ship its own migrations in the same `ng-update` field ([38 §6](38-architecture-and-production-structure.md#6-public-api-surfaces-public-apits-exports-secondary-entry-points-and-versioning)).
 
@@ -596,7 +596,7 @@ function migrationsOf(collection: unknown): MigrationRow[] {
 - *"`ng update` updates every dependency."* It updates the packages you name and their package group; with no names it only reports what could be updated. The name suggests everything.
 - *"Optional migrations are unimportant."* `use-application-builder` is optional and recommended, and §6 lists the webpack builders as deprecated in v22. The word "optional" reads as "skip".
 
-Drilled in Q39.11 <!-- relink: #q39-11 -->, Q39.12 <!-- relink: #q39-12 -->, Q39.13 <!-- relink: #q39-13 --> and Q39.14 <!-- relink: #q39-14 -->; practised in [Exercise 39.2](#ex39-2).
+Drilled in [Q39.11](#q39-11), [Q39.12](#q39-12), [Q39.13](#q39-13) and [Q39.14](#q39-14); practised in [Exercise 39.2](#ex39-2).
 
 ## 8. Skipping versions safely: one major per hop, Node and TypeScript ranges, and libraries that block a hop
 
@@ -625,7 +625,7 @@ What to notice: every arrow is one major with a higher TypeScript floor, and Nod
 
 ### How it actually works
 
-**The refusal** (read, not run: `@angular/cli` 22.2.1, `src/commands/update/cli.js`). For an `@angular/…` package, when the target major minus the installed major exceeds 1, the command logs "Updating multiple major versions of '${name}' at once is not supported. Please migrate each major version individually." and returns 1. From installed v6 on it adds "Run 'ng update ${name}@${nextMajorVersionFromCurrent}' in your workspace directory to update to latest '${nextMajorVersionFromCurrent}.x' version of '${name}'." (abridged: placeholders, then a link). The check never reads `force` ([§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide)). Each hop installs its own major because `@angular/core` 22.2.1 ships only 22.0.0 migrations ([§6](#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default), [§12](#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist)),.
+**The refusal** (read, not run: `@angular/cli` 22.2.1, `src/commands/update/cli.js`). For an `@angular/…` package, when the target major minus the installed major exceeds 1, the command logs "Updating multiple major versions of '${name}' at once is not supported. Please migrate each major version individually." and returns 1. From installed v6 on it adds "Run 'ng update ${name}@${nextMajorVersionFromCurrent}' in your workspace directory to update to latest '${nextMajorVersionFromCurrent}.x' version of '${name}'." (abridged: placeholders, then a link). The check never reads `force` ([§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide)). Each hop installs its own major because `@angular/core` 22.2.1 ships only 22.0.0 migrations ([§6](#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default), [§12](#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist)).
 
 **Node and TypeScript per hop.** `Section 8: v13 to v22 takes nine hops in our planner` returns hops to 14 through 22, and our range check on the copied rows drops Node 12 at the 14.0.x row, Node 14 at 16.0.x, Node 16 at 17.0.x, Node 18 at 20.0.x and Node 20 at 22.0.x, and raises the TypeScript lower bound on every hop, 4.4.3 to 6.0.0. `Section 8: the Node baseline of the 22.0 row excludes Node 20` returns false, in our check, for Node 20.19.0 against `^22.22.3 || ^24.15.0 || ^26.0.0`, though the 21.0.x row accepts it.
 
@@ -679,7 +679,7 @@ ng update @angular/cli@^15 @angular/core@^15 --create-commits
 - *"You must install every minor."* The check compares majors only; the CLI recommends the next major's latest patch. "One at a time" is heard as every release.
 - *"A fresh `ng new` and a copy is always faster."* The copy leaves behind each migration's rewrite and your history. A clean start looks cheap; Q39.16 weighs both.
 
-Drilled in Q39.15 <!-- relink: #q39-15 --> and Q39.16 <!-- relink: #q39-16 -->; practised in [Exercise 39.2](#ex39-2).
+Drilled in [Q39.15](#q39-15) and [Q39.16](#q39-16); practised in [Exercise 39.2](#ex39-2).
 
 ## 9. From AngularJS to Angular: ngUpgrade hybrids, the strangler fig and rewrites
 
@@ -786,7 +786,7 @@ angular.module('shop').directive('orderBadge', downgradeComponent({ component: O
 - *"A hybrid app can run zoneless."* 22.2.1's `UpgradeModule` provides zone change detection (the internal `ɵinternalProvideZoneChangeDetection`) and has a `NoopNgZone` branch that syncs on `afterTick`; nothing read here says more. The myth comes from zoneless being the v22 default ([§6](#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default)).
 - *"The strangler fig needs micro-frontends."* Two whole apps behind one reverse proxy need no runtime composition ([38 §8](38-architecture-and-production-structure.md#8-micro-frontends-module-federation-native-federation-and-when-they-are-justified)). The myth comes from both splitting one product into several apps.
 
-Drilled in Q39.17 <!-- relink: #q39-17 -->, Q39.18 <!-- relink: #q39-18 --> and Q39.19 <!-- relink: #q39-19 -->.
+Drilled in [Q39.17](#q39-17), [Q39.18](#q39-18) and [Q39.19](#q39-19).
 
 ## 10. A migration program for an old Angular codebase: order, dependencies and checkpoints
 
@@ -915,11 +915,11 @@ export class LabM39LegacyOrderPanel {
 
 ### Misconceptions and traps
 
-- *"Run every schematic at once to get it over with."* Run one at a time and verify between runs (standalone docs); a combined run hides which step broke a test. The myth comes from schematics being automatic, so batching looks free.
+- *"Run every schematic at once to get it over with."* The standalone docs run its three steps in order, "verifying that your code builds and runs between each step"; one schematic per commit applies that to the program (our recommendation), and a combined run hides which step broke a test. The myth comes from schematics being automatic, so batching looks free.
 - *"Zoneless is just removing zone.js from polyfills."* Code waiting on `NgZone.onStable` never continues, and silent updates stop rendering (21 §6). The myth comes from the removal being the docs' last step.
 - *"The order does not matter."* Run standalone first: `route-lazy-loading` converts only standalone components, so run first it changes nothing. The myth comes from each schematic being runnable alone.
 
-Drilled in Q39.20 <!-- relink: #q39-20 --> and Q39.21 <!-- relink: #q39-21 -->; practised in [Exercise 39.3](#ex39-3) and [39.4](#ex39-4).
+Drilled in [Q39.20](#q39-20) and [Q39.21](#q39-21); practised in [Exercise 39.3](#ex39-3) and [39.4](#ex39-4).
 
 ## 11. The v22 upgrade: what `ng update` changes and why each migration keeps the old behavior
 
@@ -993,10 +993,10 @@ export const appConfig: ApplicationConfig = {
 ### Misconceptions and traps
 
 - *"The migrations modernize your code."* They write the old behavior back (22.2.1 `migrations.json`); the name suggests progress.
-- *"`$safeNavigationMigration` is a runtime helper to import."* It is a compiler marker, because it reads like a call.
+- *"`$safeNavigationMigration` is a runtime helper to import."* It is a compiler marker that does not exist at runtime. The myth comes from it reading like a call.
 - *"Delete the `Eager` lines right after updating."* OnPush is the new default, so review each component first ([21 §2](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)); the lines look like noise.
 
-Drilled in Q39.22 <!-- relink: #q39-22 --> and Q39.23 <!-- relink: #q39-23 -->.
+Drilled in [Q39.22](#q39-22) and [Q39.23](#q39-23); practised in [Exercise 39.4](#ex39-4).
 
 ## 12. Under the hood: how `ng update` selects migrations and how the Update Guide builds its checklist
 
@@ -1094,13 +1094,19 @@ export function selectMigrations(entries: readonly MigrationEntry[], from: strin
 
 - *"`ng update` runs the migrations of every version you skipped."* The range filters the target's collection, which holds only its own major's entries; `>from` sounds open-ended.
 - *"Migrations run in file order."* They run sorted by version, required first, ties in name order; the JSON reads like a script.
-- *"The Update Guide lists every change between two versions."* It filters by level, options and `from`, because a long checklist looks exhaustive.
+- *"The Update Guide lists every change between two versions."* It filters by level, options and `from`. The myth comes from a long checklist looking exhaustive.
 
-Drilled in Q39.14 <!-- relink: #q39-14 -->, Q39.24 <!-- relink: #q39-24 --> and Q39.25 <!-- relink: #q39-25 -->.
+Drilled in [Q39.14](#q39-14), [Q39.24](#q39-24) and [Q39.25](#q39-25).
 
 ## Summary
 
-<!-- TASK: CLOSE-M39 -->
+A scope holds the model, each binding is a watcher, and a digest re-checks every watcher until a full pass changes nothing, at most 10 loops ([§1](#1-angularjs-scopes-watchers-and-the-digest-cycle)). Angular was a rewrite with no in-place path: change detection, injection and templates each got a new mechanism, and the sources give mechanisms, not motives ([§2](#2-why-angular-was-rewritten-and-what-carried-over)). Versions are `major.minor.patch`; the policy gives a major 12 months active and 12 in LTS, but v20 and v21 got 18 and 19 months, so plan from the table; a deprecated API stays through at least the next major ([§3](#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy)).
+
+The matrix reads in time order: v2 to v8 has no v3 and brings `Renderer2` and `HttpClient` ([§4](#4-the-version-matrix-part-1-v2-to-v8)); v9 to v15 swaps View Engine for Ivy and adds standalone ([§5](#5-the-version-matrix-part-2-v9-to-v15-from-ivy-to-standalone)); v16 to v22 gives each feature an introduced, a stable and a default date, and v22 makes OnPush the default for components with no strategy ([§6](#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default)).
+
+`ng update` moves packages in order with a commit per step, runs required migrations unasked and offers optional ones, and `--force` ignores a peer mismatch without fixing it ([§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide)). A hop is one major, with its own Node and TypeScript range, and a blocking library stops it ([§8](#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop)). An AngularJS app moves by hybrid, strangler fig or rewrite ([§9](#9-from-angularjs-to-angular-ngupgrade-hybrids-the-strangler-fig-and-rewrites)).
+
+A migration program splits the work into small changes; only standalone before lazy routes and no `NgZone` stability code before zoneless are required edges ([§10](#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints)). The v22 migrations write the old behavior back, so the diff is a choice list, not noise ([§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)). Underneath, `ng update` keeps the target's migrations in `>from <=to`, and the Update Guide filters steps by level, options and `from` ([§12](#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist)).
 
 ## Question bank
 
@@ -1185,7 +1191,7 @@ $scope.$watch('count', function (n) { $scope.doubled = n * 2; });  // 2
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** Semantic versioning: a major may break code, a minor adds backward-compatible features, a patch fixes bugs. Since v22 a major arrives every 12 months with 4-6 minors; before, every 6 months with 1-3. A major is active for 12 months, then in LTS for 12 more, with only critical and security fixes. A deprecated API stays for at least the next major.
+**Short answer (30 seconds).** Semantic versioning: a major may break code, a minor adds backward-compatible features, a patch fixes bugs. Since v22 a major arrives every 12 months with 4-6 minors; before, every 6 months with 1-3. The policy gives a major 12 months active, then 12 in LTS with only critical and security fixes; the table gives v20 and v21 less. A deprecated API stays for at least the next major.
 
 **Full explanation.** The releases page (angular.dev, read 2026-10-18) says "typically supported for 24 months", but its table gives v22 24 months, v21 19 and v20 18, so plan from the table (`Section 3: our support table puts v22 in active support and v20 and v21 in LTS on 2026-10-18`). A deprecation is announced in the changelog, struck through in the API docs and tagged `@deprecated`; removal comes only in a major, after 12 months or more. Preview and experimental APIs sit outside these promises ([§3](#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy)).
 
@@ -1263,7 +1269,7 @@ $scope.$watch('count', function (n) { $scope.doubled = n * 2; });  // 2
 
 **Follow-ups an interviewer will ask.**
 - *Was `inject()` new in v14.1?* Only the options object: the entry deprecates the old "bit field signature", so the function predates it; its first version was not read.
-- *Did stable mean new projects used it?* No: `standalone` became the default in v19 [Changed in v19.0]; introduced, stable and default are three dates.
+- *Did stable mean new projects used it?* No: `standalone` became the default in v19 [Changed in v19.0: standalone by default]; introduced, stable and default are three dates.
 
 **Trap to avoid.** Calling v17 the stable control-flow release: v18 stabilized it.
 
@@ -1305,56 +1311,331 @@ $scope.$watch('count', function (n) { $scope.doubled = n * 2; });  // 2
 
 </details>
 
-<!-- TASK: QB-M39-03 -->
-
 <a id="q39-11"></a>
 ### Q39.11 · Trade-off · Update every major, every other major, or only when support ends: what does each cost, given the support windows and one-major-at-a-time updates?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Every major costs one hop a year, inside support. Every other major is still two hops, with no stop between. Waiting for the end of support turns them into a program with a deadline. Skipping removes no hop: the CLI refuses to cross two majors.
+
+**Full explanation.** The releases page table (read 2026-10-18; `Section 3: our support table puts v22 in active support and v20 and v21 in LTS on 2026-10-18`) ends v20's LTS on 2026-11-28. Since v22 a major comes yearly. *Every other major* saves no `ng update`, and a deprecated API is promised only "in at least the next major", so a warning ignored in the middle can be a removal at the end ([§3](#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy)). *Only at the end* piles hops up: after 2026-11-28 a v20 application is unsupported and still two majors behind v22, and each hop raises a Node or TypeScript floor (`Section 8: v13 to v22 takes nine hops in our planner`; [§8](#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop)).
+
+**Follow-ups an interviewer will ask.**
+- *Does skipping skip migrations?* They never run: the target ships only its own, and `@angular/core` 22.2.1 ships only 22.0.0 ones (`Section 7: @angular/core 22.2.1 ships eight migrations, all for 22.0.0 and none optional`).
+- *What if a library lags?* Its peer range, say an invented `^21.0.0`, rejects 22.
+
+**Trap to avoid.** Calling "every other major" a skip: only the checkpoints are gone.
+
+</details>
 
 <a id="q39-12"></a>
 ### Q39.12 · Design · Plan the update of one application from v21 to v22: what you do before, during and after `ng update`, and what you check at each step.
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Before: read the Update Guide for 21.0 to 22.0, move Node and TypeScript to the 22.0.x row (Node 20 is out), check each library's peer range, and start from green tests. During: update the CLI and core, answer the prompt, then Material and each library, one commit per step. After: review the migration commits and remove one opt-out kind per pull request.
+
+**Full explanation.** *Before.* The 22.0.x row needs Node `^22.22.3 || ^24.15.0 || ^26.0.0` and TypeScript `>=6.0.0 <6.1.0` (`Section 8: the Node baseline of the 22.0 row excludes Node 20`). Material 22.2.1 peers on core `^22.0.0 || ^23.0.0`, so core goes first ([§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide)). *During.* The prompt ticks only `use-application-builder`, not `migrate-karma-to-vitest` (`Section 7: @angular/cli 22.2.1 takes its migrations from @schematics/angular, two of them optional and one recommended`); build and test after each commit. *After.* The core migrations write v21 behavior back ([§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)): search for `Eager`, `strictTemplates: false`, `withNoIncrementalHydration()` and the `?.` marker. `strictTemplates` errors: [Q12.22](12-angular-how-it-works.md#q12-22).
+
+**Code.**
+
+```sh
+# Partial: illustrative, not run; options as read in @angular/cli 22.2.1, src/commands/update/cli.js
+ng update @angular/cli@^22 @angular/core@^22 --create-commits
+ng update @angular/material@^22 --create-commits
+```
+
+**Follow-ups an interviewer will ask.**
+- *What if it stops on a peer error?* Take the library's next major, replace it or wait; not `--force` ([Q39.13](#q39-13)).
+- *Why not delete `Eager` at once?* A component that mutates fields stops refreshing under the OnPush default.
+
+**Trap to avoid.** Running `npm install @angular/core@22` and calling it an update: no migration runs.
+
+</details>
+
 <a id="q39-13"></a>
 ### Q39.13 · Bug hunt · An update log: `ng update` refuses with "Updating multiple major versions … is not supported", `npm install` fails on a third-party peer range, and someone reran it with `--force`. What went wrong, and what is the fix?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Three faults. The jump crossed more than one major, which the CLI refuses whatever the flags. A library's peer range excludes the target. And `--force` skips only the peer check, so the library is installed outside its range and the refusal stays. The fix: one hop per major, then the library's next major, a replacement or waiting.
+
+**Full explanation.** Read, not run, 2026-10-19: `@angular/cli` 22.2.1, `cli.js` and `update-resolver.js`. (1) For `@angular/…` packages, a target more than one major ahead logs "Updating multiple major versions of '${name}' at once is not supported. Please migrate each major version individually." and returns 1, never reading `force`. (2) The peer checks under the internal `_validateUpdatePackages` log `Package "<library>" has an incompatible peer dependency to "@angular/core" (requires "^21.0.0", would install "22.2.1").` (invented range) and throws "Incompatible peer dependencies found. See above for details. You can bypass this check using the --force option." only when `force` is false. (3) So `--force` removes the stop, not the mismatch ([§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide)).
+
+**Follow-ups an interviewer will ask.**
+- *Did `--force` fix the first error?* No: that check runs before resolution and never reads the flag ([§8](#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop)).
+- *Is a library outside its range broken?* No source read says so; the range is its author's declaration, and your tests now carry the proof.
+
+**Trap to avoid.** Treating `--force` as a fix: it silences the check, and the conflict stays.
+
+</details>
 
 <a id="q39-14"></a>
 ### Q39.14 · Output · Updating `@angular/cli` from 21.2.x to 22.2.1: which of its migrations run without a prompt, which are offered, which are pre-selected, and in what order?
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Our selector, which mirrors the CLI's `executeMigrations`, over the installed `@schematics/angular` 22.2.1 collection runs three unasked, in this order: `add-istanbul-instrumenter`, `trust-proxy-headers`, `update-workspace-config`. It offers `migrate-karma-to-vitest` (not pre-selected), then `use-application-builder` (pre-selected). All five are `22.0.0`, inside `(21.2.x, 22.2.1]`; required ones run first, and only `recommended` ones are ticked.
+
+**Full explanation.** `@angular/cli` 22.2.1 names the collection in `ng-update.migrations`, `@schematics/angular/migrations/migration-collection.json` (`Q39.14 our selector runs three migrations unasked and offers two, with use-application-builder pre-selected`). Read, not run, 2026-10-19: `executeMigrations` (internal) keeps versions in `>from <=to` and sorts each list with `compareMigrations`: `return semver.compare(a.version, b.version);`. Names come from `listSchematicNames`, `@angular-devkit/schematics` 22.2.1 `src/engine/engine.js`: `return [...new Set(names)].sort();`. The sort is stable, so equal versions keep name order ([§12](#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist)); the file lists `use-application-builder` first (`Q39.14 the ties among the 22.0.0 entries follow name order, not the order of the collection file`). `getOptionalMigrationsToRun` (internal) prompts only when `isTTY` is true, and `src/utilities/tty.js` says "In a CI environment, this will also be `false` unless `NG_FORCE_TTY` is set"; otherwise it prints `ng update @angular/cli --name <migration>` for each and runs none.
+
+**Code.**
+
+```ts
+// Excerpt of labs/ts-js/src/modules/39-version-history-and-migrations/outputs/q39-outputs.test.ts
+    const selection = selectMigrations(entries, '21.2.3', '22.2.1');
+    expect(selection.required).toEqual(['add-istanbul-instrumenter', 'trust-proxy-headers', 'update-workspace-config']);
+    expect(selection.optional).toEqual([
+      { name: 'migrate-karma-to-vitest', checked: false },
+      { name: 'use-application-builder', checked: true },
+    ]);
+```
+
+**Follow-ups an interviewer will ask.**
+- *What runs in CI?* The three required ones; the optional two are only listed.
+- *Does updating `@angular/core` run these?* No: its eight come from its own collection ([§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide)).
+
+**Trap to avoid.** Reading the order from the JSON file: it differs, and the recommended one is ticked.
+
+</details>
+
 <a id="q39-15"></a>
 ### Q39.15 · Design · Bring a v13 application to v22: the hop plan, the Node and TypeScript changes, libraries that block a hop, and where to stop and stabilize.
 
-<!-- TASK: QB-M39-04 -->
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Nine hops, 14 through 22, each an `ng update`, then build, tests and a commit. In the compatibility table Node 12 leaves at the 14.0.x row, 14 at 16.0.x, 16 at 17.0.x, 18 at 20.0.x and 20 at 22.0.x, and the TypeScript floor rises each hop, from 4.4.3 to 6.0.0. View Engine libraries block the hop to 16, Material legacy components the hop to 17. Stabilize at v16, v17, v22.
+
+**Full explanation.** The table is angular.dev's "Version compatibility" (read 2026-10-18), read by our planner and range check, not npm's (`Section 8: v13 to v22 takes nine hops in our planner`). Move Node and TypeScript to each target row first ([§8](#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop)). The CLI's 16.0.0 entry says "NGCC integration has been removed and as a result Angular View Engine libraries will no longer work."; the Components 17.0.0 entry lists "prevent updates to v17 if project uses legacy components"; read each library's peer range before the first hop. The stops are our recommendation. Practise: [Exercise 39.2](#ex39-2).
+
+**Follow-ups an interviewer will ask.**
+- *Can one `ng update` reach 22?* No: the CLI refuses ([Q39.13](#q39-13)).
+- *A library has no v16 release?* Replace it before the hop; a fork leaves you every later hop.
+
+**Trap to avoid.** Planning by calendar: majors fix the hops; Node and TypeScript decide when each can run.
+
+</details>
 
 <a id="q39-16"></a>
 ### Q39.16 · Trade-off · Update hop by hop in place, or generate a fresh v22 workspace and move the code across: when does each win?
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** In place wins when the app mostly builds: each hop runs that major's migrations, which exist only in that major's packages. A fresh workspace wins when the app is small and its configuration is the larger job. Copying skips every migration, so you find each changed default and removed API by hand.
+
+**Full explanation.** `@angular/core` 22.2.1 ships only 22.0.0 migrations (`Section 7: @angular/core 22.2.1 ships eight migrations, all for 22.0.0 and none optional`), so earlier majors' migrations come only from a hop through each ([§8](#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop)). Code copied from v13 takes the new defaults unrewritten: components are standalone by default since 19.0.0 ("Specify `standalone: false`", changelog read 2026-10-19), so one declared in an NgModule needs the flag, and one with no `changeDetection` is OnPush in v22, where an update would have written `Eager` ([§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)). `ComponentFactoryResolver` is removed in v22 (VERSIONS.md). A fresh workspace does give today's `angular.json` and builder (`@schematics/angular` 22.2.1 `application/index.js` writes `@angular/build:application`, read, not run). Which wins is our judgement.
+
+**Follow-ups an interviewer will ask.**
+- *Which wins for a v21 app?* In place: one hop, and the 22.0.0 migrations run.
+- *Does a fresh workspace remove a blocking library?* No: its peer range still applies.
+
+**Trap to avoid.** Treating a fresh workspace as clean: old code carries old behavior, and nothing rewrites it.
+
+</details>
+
 <a id="q39-17"></a>
 ### Q39.17 · Concept · How does ngUpgrade run AngularJS and Angular in one page: `UpgradeModule`, `downgradeComponent`, `downgradeInjectable`, `UpgradeComponent` and `downgradeModule`?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `UpgradeModule` boots AngularJS inside the Angular zone and runs a `$digest` after Angular work. `downgradeComponent` and `downgradeInjectable` expose Angular pieces to AngularJS; `UpgradeComponent` is the base of a directive wrapping an AngularJS component for Angular templates. `downgradeModule` boots Angular lazily and keeps no digest in step.
+
+**Full explanation.** Read, not run (C14): `@angular/upgrade` 22.2.1, `types/static.d.ts` and `fesm2022/static.mjs`, read 2026-10-19. `@angular/upgrade/static` exports `UpgradeComponent`, `UpgradeModule`, `downgradeComponent`, `downgradeInjectable`, `downgradeModule`, `getAngularJSGlobal` and `setAngularJSGlobal`; `ɵ` exports are internal. In `UpgradeModule.bootstrap` a `synchronize` function runs `$rootScope.$digest()` inside `ngZone.run`, subscribed to `onMicrotaskEmpty`, or to `applicationRef.afterTick` for a `NoopNgZone`. If `$rootScope.$$phase` (AngularJS-internal) is set, it logs "A digest was triggered while one was already in progress. This may mean that something is triggering digests outside the Angular zone." in development, then calls `$evalAsync()`. In the other direction `downgradeComponent` defaults `propagateDigest` to `true` and adds a scope watcher calling `detectChanges`. Of `downgradeModule` the typings say it does not bootstrap inside the zone or run a `$digest()`, and "You cannot use `downgradeModule()` and `UpgradeModule` in the same hybrid application." ([§9](#9-from-angularjs-to-angular-ngupgrade-hybrids-the-strangler-fig-and-rewrites)).
+
+**Follow-ups an interviewer will ask.**
+- *Who owns a DOM element?* "Each DOM element on the page is owned exactly by one framework."
+- *What does it cost?* The typings say `UpgradeModule` apps "will run change detection more frequently".
+
+**Trap to avoid.** Expecting `downgradeModule` to keep both loops in step: it does not, and syncing is yours.
+
+</details>
 
 <a id="q39-18"></a>
 ### Q39.18 · Trade-off · An AngularJS application in 2026: an ngUpgrade hybrid, a strangler fig by route, or a rewrite. Which, and when?
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** AngularJS support ended in January 2022, so every option ends with it gone. A hybrid fits when screens share components inside one page. A strangler fig fits when routes separate cleanly behind a reverse proxy. A rewrite fits a small or short-lived app, because nothing ships from it until the cut-over. This is our judgement; no source ranks them.
+
+**Full explanation.** The AngularJS docs (`misc/version-support-status.ngdoc`, read 2026-10-18) say "AngularJS support has officially ended as of January 2022", and `npm view angular` marks the package deprecated (read 2026-10-18; [§9](#9-from-angularjs-to-angular-ngupgrade-hybrids-the-strangler-fig-and-rewrites)). *Hybrid:* two change-detection loops in one page, and `@angular/upgrade` 22.2.1 peers on the deprecated `@angular/platform-browser-dynamic` at exactly 22.2.1 (read, not run). *Strangler:* each route has one owner at the proxy, but a shared session needs one host and `Path=/`, styles are duplicated, and links across the boundary load a page. *Rewrite:* no coupling, and no new features until the switch.
+
+**Follow-ups an interviewer will ask.**
+- *Does a hybrid get you off AngularJS?* Only when its last piece moves; until then the unsupported framework stays in the page.
+- *What do you write first?* The exit criteria: last route moved, AngularJS and `@angular/upgrade` removed. Route-by-route detail: [Q39.19](#q39-19).
+
+**Trap to avoid.** Picking a hybrid to avoid choosing: it is the only option that couples two frameworks in one page.
+
+</details>
+
 <a id="q39-19"></a>
 ### Q39.19 · Design · Strangle an AngularJS application route by route: the routing split, the shared session, shared styles, and the exit criteria.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A reverse proxy sends migrated paths to the Angular app and everything else to AngularJS. One host and a cookie at `Path=/` share the session. Styles are duplicated until the old app goes. Exit when the last route has moved and the catch-all is gone.
+
+**Full explanation.** *Routing.* The lab maps `orders` and `orders/:id` to migrated pages and sends `**` to a component that hands `Router.url` to an injected navigator. `Section 9: the migrated paths render Angular components` finds both pages and no handoff; `Section 9: every other path is handed to the legacy navigator with its full URL` records `/customers/42?tab=notes#top`, `/` and `/orders/42/edit`. *Session.* A cookie without `Domain` goes only to the host that set it, and `Path` defaults to the request's directory (MDN Set-Cookie, read 2026-10-18), so use one host and `Path=/`. *Styles.* Each app ships its own; the lab does not test this. *Exit.* The catch-all has no traffic and AngularJS is removed ([§9](#9-from-angularjs-to-angular-ngupgrade-hybrids-the-strangler-fig-and-rewrites)).
+
+**Code.**
+
+```ts
+// Excerpt of labs/angular/src/app/modules/39-version-history-and-migrations/concepts/section-9-strangler.ts
+  { path: '**', component: LabM39LegacyHandoff },
+```
+
+**Follow-ups an interviewer will ask.**
+- *How does Angular reach a legacy page?* `pushState` does not load the URL (MDN, read 2026-10-18), so hand off with a document load such as `Location.assign()`.
+- *How do you test the split?* Provide a recording navigator instead of touching `window.location`, as the lab does.
+
+**Trap to avoid.** Navigating to a legacy path with the Angular router: the proxy never sees it.
+
+</details>
 
 <a id="q39-20"></a>
 ### Q39.20 · Design · Modernize a 300-component v15 NgModule application: in which order do you run standalone, control flow, `inject()`, signal inputs and queries, OnPush, zoneless, Vitest and the application builder, and why?
 
-<!-- TASK: QB-M39-05 -->
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** First reach v22, one hop per major. Then run standalone, then lazy-route conversion. Control flow and `inject()` have no prerequisite. Run the signal schematics, then review OnPush, remove `NgZone` waits, then go zoneless. Move the builder and the test runner in their own pull requests.
+
+**Full explanation.** Read 2026-10-19 ([§10](#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints)): only two edges are required. `route-lazy-loading` converts only standalone components, so standalone first ([Q15.22](15-standalone-and-ngmodules.md#q15-22) for folders). Zoneless needs the app to "remove uses of" `NgZone.onStable` and its siblings, and OnPush is "a recommended step" ([Q21.22](21-change-detection.md#q21-22)). Signals before OnPush is our recommendation, since signals are one way a component asks to be checked. `signals` runs the input, output and query migrations ([Q19.23](19-component-communication-and-projection.md#q19-23)); folder-by-folder control flow: [Q18.23](18-control-flow-and-defer.md#q18-23). On v22 the OnPush review deletes the `Eager` that the update added. `use-application-builder` and `migrate-karma-to-vitest` are optional ([Q12.09](12-angular-how-it-works.md#q12-09), [Q29.06](29-testing-angular.md#q29-06)). `Section 10: the migrated folder has no NgModule, structural directive, decorator input or constructor injection` is the leftover scan.
+
+**Follow-ups an interviewer will ask.**
+- *Which order is free?* Control flow, `inject()`, builder and tests have no edge; keep one schematic per commit.
+- *Why separate pull requests for the builder and the runner?* Each changes how everything builds or runs, so a failure should point at one change.
+
+**Trap to avoid.** Running every schematic in one commit: nothing says which step broke a test.
+
+</details>
 
 <a id="q39-21"></a>
 ### Q39.21 · Bug hunt · A migration pull request ran six schematics in one commit, removed zone.js while code still waits on `NgZone.onStable`, and moved from Karma to Vitest together with the builder change. What goes wrong, and how do you split it?
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Three faults. Six schematics in one commit leave a failing test with six suspects, and the order has hard edges. Removing zone.js while code waits on `NgZone.onStable` means that code never continues. Changing the test runner and the builder together makes one red suite ambiguous. Split into one schematic per commit, remove the `NgZone` waits before zoneless, and give the builder and the runner their own pull requests.
+
+**Full explanation.** Read 2026-10-19 ([§10](#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints)). The standalone docs verify the build "between each step" of their own three steps; one schematic per commit applies that to the program (our recommendation). Two edges are required: `route-lazy-loading` converts only standalone components, so run first it changes nothing, and the zoneless guide says apps "need to remove uses of" `NgZone.onMicrotaskEmpty`, `onUnstable` and `onStable`: "These observables will never emit", so a waiter never resumes ([21 §6](21-change-detection.md#6-migrating-a-zone-based-app-to-zoneless)). `use-application-builder` and `migrate-karma-to-vitest` are separate optional migrations in `@schematics/angular` 22.2.1, and each changes how everything builds or runs ([29 §3](29-testing-angular.md#3-karma-jasmine-and-jest-the-legacy-and-alternative-runners-and-migrating-to-vitest)).
+
+**Follow-ups an interviewer will ask.**
+- *Which order is fixed?* Standalone before lazy routes, and the `NgZone` waits removed before zoneless; signals before the OnPush review is our recommendation.
+- *What does each commit need?* A build, the tests and a render check, then a commit: the checkpoint of §10.
+
+**Trap to avoid.** Treating "automatic" as "safe in bulk": even the standalone docs verify the build between their own three steps.
+
+</details>
+
 <a id="q39-22"></a>
 ### Q39.22 · Output · The v22 `change-detection-eager` and `strict-templates-default` migrations run on a v21 workspace: what changes in a component with no `changeDetection`, in one with `ChangeDetectionStrategy.Default`, and in `tsconfig.json`?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** In our in-memory run (`@angular/core` 22.2.1) a component with no `changeDetection` gains `changeDetection: ChangeDetectionStrategy.Eager,` before its last decorator property, and `ChangeDetectionStrategy` joins its `@angular/core` import. One with `ChangeDetectionStrategy.Default` now reads `ChangeDetectionStrategy.Eager`, and nothing else moves. `strictTemplates: false` goes under `angularCompilerOptions` in the build `tsconfig.app.json`, and `tsconfig.json` is unchanged. v22 made OnPush and `strictTemplates` the defaults; each migration writes the old value back.
+
+**Full explanation.** `Q39.22 change-detection-eager and strict-templates-default write the v21 behavior back into code and the build tsconfig` runs both on a workspace of ours: two components, and a `tsconfig.app.json` extending `tsconfig.json`. Read 2026-10-19 (`schematics/bundles/*.cjs`): the component migration inserts `.Eager` where `changeDetection` is missing and rewrites a `Default` initializer; the two are the same value. `strict-templates-default` walks the tsconfig of each Angular-builder target, skips a file with no `compilerOptions`, and writes only when `strictTemplates` is set nowhere in the `extends` chain, so the file the question names is read, not changed ([§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)).
+
+**Code.**
+
+```ts
+// Excerpt of labs/ts-js/src/modules/39-version-history-and-migrations/outputs/q39-outputs.test.ts
+    expect(angularCompilerOptions(after['/tsconfig.app.json'])).toEqual({ strictTemplates: false });
+    expect(after['/tsconfig.json']).toBe(workspace['/tsconfig.json']);
+```
+
+**Follow-ups an interviewer will ask.**
+- *What if the app already sets `strictTemplates`?* Nothing is written, in the file or in one it extends (`Section 11: strict-templates-default writes strictTemplates false only when it is not set`).
+- *Is the component now OnPush-safe?* No: `Eager` keeps the old checking; remove it per component, with tests.
+
+**Trap to avoid.** Expecting the migrations to modernize: they pin the old behavior until you remove it. Nor look for `strictTemplates: false` in `tsconfig.json`: it lands in the build target's tsconfig.
+
+</details>
 
 <a id="q39-23"></a>
 ### Q39.23 · Output · The v22 `incremental-hydration` and `safe-optional-chaining` migrations run on a v21 application: what do `provideClientHydration()` and a template's `user?.name` become, and why?
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** In our in-memory run `provideClientHydration()` becomes `provideClientHydration(withNoIncrementalHydration())`, with `withNoIncrementalHydration` added to the `@angular/platform-browser` import. In a template, `{{ user?.name }}` is unchanged, and `{{ user?.name === null }}` becomes `{{ $safeNavigationMigration(user?.name) === null }}`. v22 made incremental hydration the default and `?.` return `undefined`; both migrations keep the v21 behavior, and only a comparison with `null` can tell the two results apart.
+
+**Full explanation.** `Q39.23 incremental-hydration adds the opt-out and safe-optional-chaining wraps only the null-sensitive user?.name` runs both on an application of ours. Read 2026-10-19 (`schematics/bundles/*.cjs`): `incremental-hydration` appends the opt-out to a `provideClientHydration(…)` call that has neither `withIncrementalHydration` nor `withNoIncrementalHydration`. `safe-optional-chaining` wraps a `?.` only where its consumer is null-sensitive; the source comment on interpolation says it "coerces to string, so null and undefined produce identical output", while a strict comparison with a nullish literal is sensitive. The 22.0.0 changelog (read 2026-10-19) lists incremental hydration as the default and `?.` returning `undefined`. `$safeNavigationMigration` (internal) is a compiler marker that "doesn't exist at runtime" ([§11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)).
+
+**Code.**
+
+```ts
+// Excerpt of labs/ts-js/src/modules/39-version-history-and-migrations/outputs/q39-outputs.test.ts
+    expect(config).toContain('providers: [provideClientHydration(withNoIncrementalHydration())],');
+    expect(user).toContain("template: '<p>{{ user?.name }}</p><p>{{ $safeNavigationMigration(user?.name) === null }}</p>',");
+```
+
+**Follow-ups an interviewer will ask.**
+- *Which other positions are wrapped?* The source treats a regular property binding such as `[title]="user?.name"` as null-sensitive (read, not run).
+- *Do you import the marker?* No: it exists only for the compiler.
+
+**Trap to avoid.** Removing the opt-out or the marker straight after the update: each restores a v22 behavior your code may not expect.
+
+</details>
+
 <a id="q39-24"></a>
 ### Q39.24 · Output · The Update Guide from v19.0 to v21.0 for a medium application: given five steps with `possibleIn`, `necessaryAsOf` and `level`, which land before, during and after the update?
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Our classifier, which mirrors the Guide's `showUpdatePath` and is not the Guide, files step A before, B during and C after; D and E are dropped. It keeps a step whose level fits and whose `necessaryAsOf` is after `from`: before if `possibleIn <= from`, during if `possibleIn > from` and `necessaryAsOf <= to`, after if `possibleIn <= to`.
+
+**Full explanation.** `Q39.24 our classifier files the five invented steps from 19.0 to 21.0 at the medium level` uses `from` 1900, `to` 2100 and level 2. A (1800, 2000) was possible by `from` and is due after it: before. B (2000, 2100) becomes possible after `from` and is due by `to`: during. C (2100, 2200) is possible by `to` and due later: after. D is level 3, above medium: dropped. E (1700, 1900) is due at `from`, not after it: dropped. The rules are read from `update.component.ts` (read 2026-10-19), not a run of the Guide ([§12](#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist)).
+
+**Code.**
+
+```ts
+// Excerpt of labs/ts-js/src/modules/39-version-history-and-migrations/outputs/update-guide-steps.ts
+export const guideSteps: readonly GuideStep[] = [
+  { step: 'A: possible in 18.0, due in 20.0', possibleIn: 1800, necessaryAsOf: 2000, level: 2 },
+  { step: 'B: possible in 20.0, due in 21.0', possibleIn: 2000, necessaryAsOf: 2100, level: 2 },
+  { step: 'C: possible in 21.0, due in 22.0', possibleIn: 2100, necessaryAsOf: 2200, level: 2 },
+  { step: 'D: advanced only', possibleIn: 2000, necessaryAsOf: 2100, level: 3 },
+  { step: 'E: possible in 17.0, due in 19.0', possibleIn: 1700, necessaryAsOf: 1900, level: 2 },
+];
+```
+
+**Follow-ups an interviewer will ask.**
+- *What else drops a step?* An option it needs and you did not select, such as `ngUpgrade`; the Section 12 test has such a step absent.
+- *Where does a step possible only after `to` land?* Nowhere: none of the three tests passes.
+
+**Trap to avoid.** Reading `necessaryAsOf` as when a step becomes possible: it is when the change becomes required.
+
+</details>
+
 <a id="q39-25"></a>
 ### Q39.25 · Concept · Under the hood: how does `ng update` choose the packages that move together and the migrations that run, and why does an installed `@angular/core` carry only its own major's migrations?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `ng update` adds the members of each named package's `ng-update.packageGroup` that are in your dependencies, at the target version, so core, common, router and forms move together. It then runs each updated package's migrations whose version is in `>from <=to`. Core carries only its own major's because its collection lists only that release's: 22.2.1 has eight, all `22.0.0`.
+
+**Full explanation.** Read, not run, 2026-10-19: `@angular/cli` 22.2.1, `update-resolver.js` and `cli.js`. The internal `_addPackageGroup` gives each name of a list-form group the target version (an object-form group names each member's version) and adds a member only when it is in your dependencies. `cli.js` resolves each package's migration collection and calls `executeMigrations` with `from` and `to` ([§12](#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist)). `Section 7: core, common, router, forms and upgrade are in one package group` shows the 16-name list. From 20.x no 21 entry exists to match, which is why each major is installed in turn ([§8](#8-skipping-versions-safely-one-major-per-hop-node-and-typescript-ranges-and-libraries-that-block-a-hop)). No source read says why older entries are not kept.
+
+**Follow-ups an interviewer will ask.**
+- *Why did a migration not run?* Its version is outside `(from, to]`, its package was not updated, or it was optional and unselected; replay with `--migrate-only` ([Q12.05](12-angular-how-it-works.md#q12-05)).
+- *Does updating core touch Material?* No: Material has its own group.
+
+**Trap to avoid.** Expecting `ng update` to replay the migrations of every version you skipped: the target never ships them.
+
+</details>
 
 ## Hands-on exercises
 
@@ -1478,7 +1759,7 @@ The approach: one loop over majors, one injected choice of row.
 **How each criterion is met.** Ten tests run, five per variant through `describe.each`.
 - Refusal: 13 to 22 names `ng update @angular/core@14` and the link `?v=13.0-14.0`; 13 to 14 gives nothing.
 - One hop per major: 13 to 22 returns hops to 14 through 22, each passing the refusal.
-- Node: with Node 18.19.1, hops 14, 20, 21 and 22 are outside their rows; with 22.12.0, only hop 22.
+- Node: from 13 to 22 with Node 18.19.1, hops 14, 20, 21 and 22 are outside their rows; from 20 to 22 with Node 22.12.0, only hop 22 (the 21.x row accepts `^22.12.0`).
 - TypeScript: hop 17 is `>=5.2.0 <5.3.0` in a and `>=5.2.0 <5.5.0` in b; hop 20 differs the same way.
 - Downgrade: 15 to 13 throws, while the CLI's own check lets it pass.
 
@@ -1497,7 +1778,7 @@ The approach: one loop over majors, one injected choice of row.
 
 **Problem.** Write a scheduler that takes a migration program (migrations with prerequisites, folders with component counts, a cap per pull request) and returns the pull requests in run order, each with a checkpoint ([section 10](#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints)). Build it twice behind one contract: Kahn's algorithm and a depth-first order.
 
-**Constraints.** Plain TypeScript. The fixture is ours: 11 migrations, five folders of 127 components, a cap of 50, and section 10's four edges. Three come from angular.dev's migration and zoneless docs (read 2026-10-19) and carry `docs`; signal APIs before the OnPush review is the guide's `recommendation`. No clock, no `git`. Not covered: unknown ids, folders above the cap.
+**Constraints.** Plain TypeScript. The fixture is ours: 11 migrations, five folders of 127 components, a cap of 50, and section 10's four edges. Three come from angular.dev's migration and zoneless docs (read 2026-10-19) and carry `docs`, one of them the zoneless guide's "recommended step"; signal APIs before the OnPush review is the guide's `recommendation`. No clock, no `git`. Not covered: unknown ids, folders above the cap.
 
 **Acceptance criteria.**
 - [ ] schedules every migration after its prerequisites
@@ -1560,7 +1841,7 @@ The approach: each variant orders the migrations; one shared module turns an ord
 
 **Problem.** Run `@angular/core` 22.2.1's own schematics on the lab's legacy order panel ([section 10](#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints)) inside a Vitest test, then report what they left. Build it twice behind one contract: one schematic per step, and the combined `signals` schematic. [19 §6](19-component-communication-and-projection.md#6-decorator-based-inputs-outputs-and-queries-and-the-migration-schematics) owns what each converts.
 
-**Constraints.** The runner is `support/run-schematic.ts` ([section 11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)) over an in-memory tree: the text of `legacy/`, read-only, plus our `angular.json` and tsconfig files. No disk write, clock, `git` or `ng`. Not covered: `control-flow` ([18 §8](18-control-flow-and-defer.md#8-migrating-with-ng-generate-angularcorecontrol-flow)) and `inject`. Read, not run, from the 22.2.1 bundles: both call `createMigrationProgram`, whose `parseTsconfigFile` reads the tsconfig through `ts.sys.readFile`, from disk relative to `process.cwd()`; the input and output schematics read the tree through `runMigrationInDevkit`.
+**Constraints.** The runner is `support/run-schematic.ts` ([section 11](#11-the-v22-upgrade-what-ng-update-changes-and-why-each-migration-keeps-the-old-behavior)) over an in-memory tree: the text of `legacy/`, read-only, plus our `angular.json` and tsconfig files. No disk write, clock, `git` or `ng`. Not covered: `control-flow` ([18 §8](18-control-flow-and-defer.md#8-migrating-with-ng-generate-angularcorecontrol-flow)) and `inject`. Read, not run, from the 22.2.1 bundles: both call the internal `createMigrationProgram`, whose internal `parseTsconfigFile` reads the tsconfig through `ts.sys.readFile`, from disk relative to `process.cwd()`; the input and output schematics read the tree through the internal `runMigrationInDevkit`.
 
 **Acceptance criteria.**
 - [ ] replaces decorator outputs with output()
@@ -1599,7 +1880,7 @@ export const modernize: Modernize = async (files, options = {}) => {
 
 **How each criterion is met.** Ten tests run, five per variant through `describe.each`.
 - Outputs: only the panel changes; `@Output() selected = new EventEmitter<string>();` becomes `readonly selected = output<string>();`, and the import trades `EventEmitter, Input, Output` for `Input, output`.
-- TODO: with `insertTodos`, `orders` keeps its decorator under a TODO ending "migrating would break narrowing currently". Read, not run: the analysis marks a template read likely to narrow as `PotentiallyNarrowedInTemplateButNoSupportYet`.
+- TODO: with `insertTodos`, `orders` keeps its decorator under a TODO ending "migrating would break narrowing currently". Read, not run: the analysis marks a template read likely to narrow as the internal `PotentiallyNarrowedInTemplateButNoSupportYet`.
 - Best effort: `bestEffortMode` drops that incompatibility; the field becomes `readonly orders = input.required<LabM39LegacyOrder[]>();` and the template reads `orders()`.
 - Scanner: the untouched feature shows all four kinds; after best effort, the NgModule, constructor injection and structural directives remain.
 - Second run: the default pass applied again returns an identical tree.
@@ -1616,8 +1897,53 @@ export const modernize: Modernize = async (files, options = {}) => {
 
 ## Check your understanding
 
-<!-- PLACEHOLDER: Explain it back (3-6 prompts naming a listener) and Flashcards (5-10) (CLOSE-M39) -->
+**Explain it back.**
+1. Explain to a colleague who maintains an AngularJS app why a value set in a `setTimeout` never appears and what the "10 $digest() iterations" error means.
+2. Explain to a manager who wants to go from v19 to v22 in one step why `ng update` refuses and what the plan is.
+3. Explain to a new teammate why the v22 diff is full of `ChangeDetectionStrategy.Eager` and `strictTemplates: false`, and whether to delete them.
+4. Explain to a product owner with an AngularJS app in 2026 how a hybrid, a strangler fig and a rewrite differ.
+
+**Flashcards.**
+
+<details><summary>Predict: a digest whose listener always changes the model. When does it throw?</summary>
+
+At the end of the eleventh dirty pass, because the limit is 10.
+
+</details>
+
+<details><summary>Why does a View Engine library fail from v16?</summary>
+
+v16 removed `ngcc`, the converter, so nothing makes it usable.
+
+</details>
+
+<details><summary>How many majors may one `ng update` cross?</summary>
+
+One; it refuses a larger gap, so a v13 app takes nine hops.
+
+</details>
+
+<details><summary>Does `--force` fix a peer-range mismatch?</summary>
+
+No; it installs the library outside its range and does not lift the multi-major refusal.
+
+</details>
+
+<details><summary>What does `change-detection-eager` write, and why?</summary>
+
+`Eager` on components with no strategy, so they keep the old checking under v22's OnPush default.
+
+</details>
+
+<details><summary>Which migration-order edges are required?</summary>
+
+Standalone before lazy-route conversion, and no `NgZone` stability code once zone.js is gone.
+
+</details>
 
 ## Connections
 
-<!-- PLACEHOLDER: Builds on, Read next, Uses these ideas later, Comparisons (CLOSE-M39) -->
+- **Builds on:** [15 §7](15-standalone-and-ngmodules.md#7-migrating-with-ng-generate-angularcorestandalone-three-passes-hybrid-apps-and-common-failures) (standalone schematic), [21 §6](21-change-detection.md#6-migrating-a-zone-based-app-to-zoneless) (zoneless steps), [12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update) (`ng update` basics), [18 §8](18-control-flow-and-defer.md#8-migrating-with-ng-generate-angularcorecontrol-flow) (control flow), [19 §6](19-component-communication-and-projection.md#6-decorator-based-inputs-outputs-and-queries-and-the-migration-schematics) (signal APIs) and [29 §3](29-testing-angular.md#3-karma-jasmine-and-jest-the-legacy-and-alternative-runners-and-migrating-to-vitest) (Vitest).
+- **Read next:** [40. Framework comparisons](40-framework-comparisons.md#7-ecosystem-size-release-policies-and-breaking-changes) (how other frameworks handled breaking changes) and [44. Full-stack delivery and operations](44-fullstack-delivery-and-operations.md#7-cicd-for-both-layers-one-image-promoted-through-stages-a-monorepo-or-separate-repositories-and-versioning-the-contract) (automating updates in CI).
+- **Uses these ideas later:** [40](40-framework-comparisons.md#8-choosing-a-framework-balanced-trade-offs-and-how-to-answer-why-angular) (migration cost), [44](44-fullstack-delivery-and-operations.md) (update pipelines) and [46](46-system-design-case-studies.md) (legacy modernization), all file-level.
+- **Comparisons:** [Q12.05](12-angular-how-it-works.md#q12-05) (the mechanism under [§7](#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide)), [Q15.22](15-standalone-and-ngmodules.md#q15-22) and [Q18.23](18-control-flow-and-defer.md#q18-23) (batching one migration), [Q21.22](21-change-detection.md#q21-22) (the zoneless plan) and [Q38.17](38-architecture-and-production-structure.md#q38-17) (shipping migrations with a library).

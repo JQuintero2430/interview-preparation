@@ -123,7 +123,7 @@ That is 8 links (6 distinct contexts beyond the two axe lines). Stay file-level 
 
 **T-2 · Minor (B9) · Four terms are used before their gloss or never glossed (basis: read).**
 - "tenant" first appears in §1's steps (64, "Set a tenant cookie of its own") and §4/§7 code, and is defined only in §8 705. Fix at 64: "Set a cookie that names its own tenant (the server's per-test slice of data, `[§8](#8-ci-strategy-for-end-to-end-tests-workers-sharding-retries-policy-and-test-data)`) and reset that tenant's todos …" (+10); §8's bold definition stays.
-- "jsdom" (58) is unglossed. Fix: "A component test in jsdom (a simulated DOM in Node, [29 §2](29-testing-angular.md#2-the-runner-vitest-through-angularbuildunit-test-jsdom-and-browser-mode)) checks …" (+7).
+- "jsdom" (58) is unglossed. Fix: "A component test in jsdom (a simulated DOM in Node, [29 §2](../../modules/29-testing-angular.md#2-the-runner-vitest-through-angularbuildunit-test-jsdom-and-browser-mode)) checks …" (+7).
 - "the Chrome DevTools Protocol" (141) is unglossed. Fix: "the Chrome DevTools Protocol (Chromium's remote-debugging protocol) is Chromium-only" (+3).
 - `fullyParallel` (701) is used before §9 explains groups. Fix: "Without `fullyParallel` (the option that runs the tests of one file in parallel too; by default a file's tests run in order in one worker, `types/test.d.ts`) a group is a file" (+20; basis: package source, `types/test.d.ts` 318-324).
 

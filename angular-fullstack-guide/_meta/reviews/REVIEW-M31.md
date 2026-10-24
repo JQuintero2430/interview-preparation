@@ -181,7 +181,7 @@ Stay file-level: headers, Leads to, Read next and Uses these ideas later (05:168
 
 **T-6 · Nit (C1 wording).** Q31.16 short answer "Their numbers can differ because they are produced by different mechanisms" → "Their numbers can differ: one maps minified bytes back through a source map, the other is the bundler's own per-input count, rewritten after the chunk pass." (+10)
 
-**T-7 · Minor (For Jorge 4 of M31.md).** 08:362 "no lab can produce these numbers" is stale. Proposed: "jsdom has no `PerformanceObserver` and no layout, so the unit labs cannot produce these numbers; [31 §2](31-performance.md#2-lab-metrics-in-a-real-browser-performance-observers-devtools-protocol-counters-and-lighthouse-in-ci) reads them in Chromium." (about +10 in 08)
+**T-7 · Minor (For Jorge 4 of M31.md).** 08:362 "no lab can produce these numbers" is stale. Proposed: "jsdom has no `PerformanceObserver` and no layout, so the unit labs cannot produce these numbers; [31 §2](../../modules/31-performance.md#2-lab-metrics-in-a-real-browser-performance-observers-devtools-protocol-counters-and-lighthouse-in-ci) reads them in Chromium." (about +10 in 08)
 
 **Judged acceptable:** SEC-M31-02 replaced the planned "headless numbers equal headed numbers" misconception with "The LCP entry list ends with the biggest element"; the duration point survives in §1's best practice and C6.
 

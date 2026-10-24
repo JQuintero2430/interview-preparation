@@ -263,7 +263,7 @@ What to notice: freshness decides whether the network is touched, a validator ho
 - **Hashed assets.** A content hash in the file name allows a year-long `max-age` with `immutable`; the HTML naming the files stays `no-cache`.
 
 > [!NOTE]
-> **Framework vs platform.** `ng build` emits hashed file names (observed for the stylesheet in [08 §1](08-browser-rendering-dom-events.md#1-the-critical-rendering-path-from-bytes-to-pixels)); headers come from your server or CDN ([44](44-fullstack-delivery-and-operations.md)), and `HttpClient` has no cache ([27](27-http-client.md#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)). Caching shapes LCP ([Q08.16](08-browser-rendering-dom-events.md#q08-16)).
+> **Framework vs platform.** `ng build` emits hashed file names (observed for the stylesheet in [08 §1](08-browser-rendering-dom-events.md#1-the-critical-rendering-path-from-bytes-to-pixels)); headers come from your server or CDN ([44](44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli)), and `HttpClient` has no cache ([27](27-http-client.md#6-cancellation-and-caching-unsubscribing-aborts-cache-interceptors-sharereplay-and-the-ssr-transfer-cache)). Caching shapes LCP ([Q08.16](08-browser-rendering-dom-events.md#q08-16)).
 
 ### Code
 
@@ -339,7 +339,7 @@ What to notice: the server always answers; the browser decides what the script m
 - **Errors and redirects.** The check runs on every response, so a `500` or a redirect without the headers fails too; not all browsers follow a redirect after a preflight (MDN).
 
 > [!TIP]
-> **Coming from the backend.** Spring's `CorsConfigurationSource` (owner [41](41-fullstack-api-contracts.md)) emits these headers. **Where the analogy breaks:** a server-side CORS filter blocks nothing for non-browser clients; only the browser decides what script may read.
+> **Coming from the backend.** Spring's `CorsConfigurationSource` (owner [41](41-fullstack-api-contracts.md#1-cors-on-both-sides-springs-corsconfigurationsource-spring-security-preflight-caching-credentials-and-the-dev-proxy 09-web-networking-storage-security:367:1-cors-on-both-sides-springs-corsconfigurationsource-spring-security-preflight-caching-credentials-and-the-dev-proxy 01-js-values-types-coercion:486:2-dto-contracts-what-crosses-the-wire-absent-versus-null-and-checking-responses-at-the-boundary 01-js-values-types-coercion:907:2-dto-contracts-what-crosses-the-wire-absent-versus-null-and-checking-responses-at-the-boundary 06-ts-type-system-essentials:1583:2-dto-contracts-what-crosses-the-wire-absent-versus-null-and-checking-responses-at-the-boundary 07-ts-advanced-types-and-decorators:1365:2-dto-contracts-what-crosses-the-wire-absent-versus-null-and-checking-responses-at-the-boundary 30-e2e-and-testing-strategy:481:3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen 30-e2e-and-testing-strategy:1121:3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen 30-e2e-and-testing-strategy:1460:3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen 30-e2e-and-testing-strategy:1527:3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen 07-ts-advanced-types-and-decorators:1199:4-evolving-the-contract-compatible-changes-api-versioning-in-spring-framework-7-and-deprecation-headers 04-js-async-event-loop:491:5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular 27-http-client:541:5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular 27-http-client:1552:5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular 27-http-client:1620:5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular 27-http-client:2578:5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular 28-state-management:1084:5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular 33-security:2129:7-validation-on-both-layers-bean-validation-angular-validators-and-server-errors-on-form-fields 01-js-values-types-coercion:704:9-dates-time-zones-decimals-and-money-across-the-wire 01-js-values-types-coercion:767:9-dates-time-zones-decimals-and-money-across-the-wire 01-js-values-types-coercion:1400:9-dates-time-zones-decimals-and-money-across-the-wire 34-i18n:821:9-dates-time-zones-decimals-and-money-across-the-wire 34-i18n:1547:9-dates-time-zones-decimals-and-money-across-the-wire)) emits these headers. **Where the analogy breaks:** a server-side CORS filter blocks nothing for non-browser clients; only the browser decides what script may read.
 
 ### Code
 
@@ -364,7 +364,7 @@ The tests check the headers, that Node reads a response without CORS headers, an
 
 - **Allow-list exact origins**, because reflecting any `Origin` lets every site read credentialed responses.
 - **Send `Vary: Origin` with a dynamic origin**, because a cache may reuse one origin's answer for another.
-- **Prefer a same-origin proxy** ([41](41-fullstack-api-contracts.md), [44](44-fullstack-delivery-and-operations.md)), because then nothing is cross-origin.
+- **Prefer a same-origin proxy** ([41](41-fullstack-api-contracts.md#1-cors-on-both-sides-springs-corsconfigurationsource-spring-security-preflight-caching-credentials-and-the-dev-proxy), [44](44-fullstack-delivery-and-operations.md#1-where-the-api-calls-go-direct-calls-a-same-origin-reverse-proxy-an-api-gateway-or-a-backend-for-frontend)), because then nothing is cross-origin.
 
 ### Misconceptions and traps
 
@@ -401,10 +401,10 @@ What to notice: one gate when storing, one on every request; `SameSite` is only 
 - **`Secure`, `HttpOnly`, prefixes.** `Secure` limits sending to `https:`. `HttpOnly` hides the cookie from `document.cookie` but it is "still sent with JavaScript-initiated requests" ([MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)). `__Secure-` requires `Secure`; `__Host-` also forbids `Domain` and requires `Path=/`, so subdomains cannot overwrite it (`Section 6: __Host- needs…`).
 - **`SameSite`.** A request is cross-site when initiator and target differ in **site** ([section 5](#5-the-same-origin-policy-and-cors)). `Strict` sends only same-site; `Lax` adds top-level navigations using a safe method; `None` needs `Secure`. Schemeful same-site treats `http` and `https` of one domain as cross-site; Chrome offered it behind a flag from 86 ([web.dev](https://web.dev/articles/schemeful-samesite), 2020-11-20); it gives no default-on date.
 - **Third-party and CHIPS.** A **third-party cookie** belongs to a site other than the one in the address bar. `Partitioned` (CHIPS, Cookies Having Independent Partitioned State) keeps one jar per top-level site and needs `Secure`; MDN: Baseline 2025, since December 2025 ([MDN](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Privacy_sandbox/Partitioned_cookies)).
-- **CSRF** (defined in [section 5](#5-the-same-origin-policy-and-cors)): `SameSite` is defense in depth; see [33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support), [42](42-fullstack-authentication.md) ([Q09.17](#q09-17)).
+- **CSRF** (defined in [section 5](#5-the-same-origin-policy-and-cors)): `SameSite` is defense in depth; see [33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support), [42](42-fullstack-authentication.md#6-csrf-with-cookiecsrftokenrepository-and-angulars-xsrf-support-csrfspa-in-spring-security-7) ([Q09.17](#q09-17)).
 
 > [!TIP]
-> **Coming from the backend.** Spring's `ResponseCookie` and `server.servlet.session.cookie.*` set these attributes ([42](42-fullstack-authentication.md)). **Where the analogy breaks:** the server only requests them; the browser decides.
+> **Coming from the backend.** Spring's `ResponseCookie` and `server.servlet.session.cookie.*` set these attributes ([42](42-fullstack-authentication.md#3-where-the-oauth-client-runs-a-browser-only-client-a-token-mediating-backend-or-a-backend-for-frontend-with-spring)). **Where the analogy breaks:** the server only requests them; the browser decides.
 
 ### Code
 
@@ -890,7 +890,7 @@ console.log(third.status, await third.text(), third.headers.get('etag') === etag
 
 **Short answer (30 seconds).** `index.html`: `no-cache`, so every deploy is picked up and a `304` is still possible. Content-hashed bundles: `public, max-age=31536000, immutable`, since a changed file gets a new name. Personalized JSON: `private, no-cache` with an `ETag`.
 
-**Full explanation.** Freshness is safe only where the URL changes with the content; the HTML is the one fixed name pointing at the rest. `private` keeps account data out of shared caches; public JSON may add `s-maxage`. The server or CDN sets them ([section 4](#4-http-caching), owner [44](44-fullstack-delivery-and-operations.md)).
+**Full explanation.** Freshness is safe only where the URL changes with the content; the HTML is the one fixed name pointing at the rest. `private` keeps account data out of shared caches; public JSON may add `s-maxage`. The server or CDN sets them ([section 4](#4-http-caching), owner [44](44-fullstack-delivery-and-operations.md#3-nginx-for-a-single-page-app-location-matching-the-try_files-fallback-caching-headers-for-hashed-assets-and-gzip-or-brotli)).
 
 **Code.**
 
@@ -1039,7 +1039,7 @@ console.log(jar.getCookieStringSync(page));
 
 **Follow-ups an interviewer will ask.**
 - *Is `app` calling `api` a CORS request?* Yes: cross-origin, though same-site.
-- *CSRF?* `SameSite` is defense in depth ([33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support), [42](42-fullstack-authentication.md)).
+- *CSRF?* `SameSite` is defense in depth ([33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support), [42](42-fullstack-authentication.md#6-csrf-with-cookiecsrftokenrepository-and-angulars-xsrf-support-csrfspa-in-spring-security-7)).
 
 **Trap to avoid.** Mixing up origin and site.
 

@@ -1,0 +1,37 @@
+# labs/angular/deploy/Dockerfile.ssr — documented only, not built: Docker is not run in the labs
+# Build context: labs/angular, so the paths below are relative to that folder: docker build -f deploy/Dockerfile.ssr .
+# Run it with --init: docker run --init -p 4000:4000 <image>. Docker's docker-init (backed by tini) is then PID 1, forwards signals to Node and reaps processes.
+
+# Build stage: the same install-then-build order as deploy/Dockerfile (section 2), for the ssr-lab project.
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+# Only what an ssr-lab build reads: Docker would look for Dockerfile.ssr.dockerignore, which does not exist, so COPY . . would bring the host's node_modules.
+COPY angular.json tsconfig.json ./
+COPY projects/ssr-lab/ ./projects/ssr-lab/
+# outputMode "server" writes dist/ssr-lab/browser and dist/ssr-lab/server. @angular/build bundles the server's dependencies (externalDependencies defaults to []), so the runtime stage needs no node_modules.
+RUN npx ng build ssr-lab
+
+# Runtime stage: Node and the built files only, with no npm install and no CLI.
+FROM node:24-alpine
+# nodejs/docker-node's best practices: run with NODE_ENV set to production.
+ENV NODE_ENV=production
+# The generated server listens on PORT, or 4000 when it is unset.
+ENV PORT=4000
+WORKDIR /app
+# server.mjs finds the browser folder at ../browser, so both folders keep their layout. In production Nginx or a CDN serves browser/ (section 6).
+# The files stay owned by root: the node user only reads them.
+COPY --from=build /app/dist/ssr-lab/ ./dist/ssr-lab/
+# The node image's non-root user (UID 1000).
+USER node
+EXPOSE 4000
+# Liveness only: /livez answers without rendering or calling another service, so slow rendering under load does not fail it.
+# /livez is added by section 6's Partial snippet; projects/ssr-lab's server.ts does not have it.
+# Docker's defaults (Dockerfile reference): --interval=30s --timeout=30s --start-period=0s --start-interval=5s --retries=3.
+HEALTHCHECK --interval=10s --timeout=2s --start-period=10s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:4000/livez').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+# Exec form: the image's docker-entrypoint.sh ends with exec "$@", so Node replaces it and receives the stop signal itself.
+# A shell-form CMD runs under /bin/sh -c: a shell that forks stays PID 1 and Node never gets the signal; busybox ash (Alpine's shell) execs a lone command instead, so rely on neither.
+# npm start would put npm and a shell between the signal and Node: npm 11 forwards SIGTERM to that shell, and what the shell does varies the same way.
+CMD ["node", "dist/ssr-lab/server/server.mjs"]

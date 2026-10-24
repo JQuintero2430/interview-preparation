@@ -1170,11 +1170,269 @@ Module 39 (PLAN-M39; plan in `_meta/modules/M39.md`, written by S20261018-1411).
 | EX-M39-04 | M | done | EX-M39-03 | S20261019-0411-claudecode (writer subagent claude-opus-5-5, two probe rounds run by main; source re-read, checks and bookkeeping by main claude-opus-5-5) |
 | QB-M39-01 | M | done | EX-M39-04 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5; spot-check, checks and bookkeeping by main claude-opus-5-5) |
 | QB-M39-02 | M | done | QB-M39-01 | S20261019-0411-claudecode (writer subagent claude-sonnet-5-5; one claim re-based on a source read, checks and bookkeeping by main claude-opus-5-5) |
-| QB-M39-03 | M | in_progress | QB-M39-02 |  |
-| QB-M39-04 | M | todo | QB-M39-03 |  |
-| QB-M39-05 | M | todo | QB-M39-04 |  |
-| CLOSE-M39 | M | todo | QB-M39-05 |  |
-| REVIEW-M39 | L | todo | CLOSE-M39 |  |
+| QB-M39-03 | M | done | QB-M39-02 | S20261019-2139-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M39-04 | M | done | QB-M39-03 | S20261019-2139-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M39-05 | M | done | QB-M39-04 | S20261019-2139-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| CLOSE-M39 | M | done | QB-M39-05 | S20261019-2139-claudecode (closer claude-sonnet-5-5; full verification claude-opus-5-5) |
+| REVIEW-M39 | L | done | CLOSE-M39 | S20261020-0458-claudecode (reviewer subagent claude-opus-5-5; re-runs and bookkeeping by main claude-opus-5-5) |
+| FIX-M39-01 | M | done | REVIEW-M39 | S20261020-0458-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M39-02 | S | done | REVIEW-M39 | S20261020-0458-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M39-03 | S | done | REVIEW-M39 | S20261020-0458-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+
+Module 40 (PLAN-M40; plan in `_meta/modules/M40.md`, written by S20261019-2139). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 39), then REVIEW-M40 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part D, the pilot's depth (RUN.md §9, QUALITY-BAR G1), scaled to 9 sections, 16 questions and 2 exercises (ceilings 16 / 2; floor 15 / 2, kind "—"): plan 13,585 module words (skeleton 1,349 + sections 6,750 + exercises 1,080 + bank 3,656 + closing 750), CLOSE at most 13,585, ceiling 14,085 after REVIEW fixes. **No HOUSE task: nothing is installed** (M40.md Lab decision 1): React, Vue, Solid, Svelte, Preact and Qwik are documented only (npm tarball reads with file and function, dated docs and registry reads); what runs is our own models in `labs/ts-js` (Vitest, jsdom where a DOM is needed), named as ours in every sentence (C8); Angular's side links its owners' committed tests; no `labs/angular` file. Writers: Opus for SEC-M40-03, SEC-M40-04, SEC-M40-08, SEC-M40-09 and EX-M40-01, Sonnet for the rest; CLOSE-M40 Sonnet; REVIEW-M40 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| PLAN-M40 | M | done | CLOSE-M39 | S20261019-2139-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+| SEC-M40-01 | M | done | PLAN-M40 | S20261019-2139-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M40-02 | M | done | SEC-M40-01 | S20261019-2139-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M40-03 | M | done | SEC-M40-02 | S20261019-2139-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M40-04 | M | done | SEC-M40-03 | S20261019-2139-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M40-05 | M | done | SEC-M40-04 | S20261020-0458-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M40-06 | M | done | SEC-M40-05 | S20261020-0458-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M40-07 | M | done | SEC-M40-06 | S20261020-0458-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M40-08 | M | done | SEC-M40-07 | S20261020-0458-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M40-09 | M | done | SEC-M40-08 | S20261020-0458-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M40-01 | M | done | SEC-M40-09 | S20261020-0657-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M40-02 | M | done | EX-M40-01 | S20261020-0657-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M40-01 | M | done | EX-M40-02 | S20261020-0657-claudecode (writer claude-sonnet-5-5; checks and marker fix claude-opus-5-5) |
+| QB-M40-02 | M | done | QB-M40-01 | S20261020-0657-claudecode (writer claude-sonnet-5-5; checks and anchor fix claude-opus-5-5) |
+| QB-M40-03 | M | done | QB-M40-02 | S20261020-0657-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| CLOSE-M40 | M | done | QB-M40-03 | S20261020-0657-claudecode (writer claude-sonnet-5-5; full verification, PROGRESS fix and bookkeeping claude-opus-5-5) |
+| REVIEW-M40 | L | done | CLOSE-M40 | S20261020-1038-claudecode (reviewer subagent claude-opus-5-5; bookkeeping claude-opus-5-5) |
+| FIX-M40-01 | S | done | REVIEW-M40 | S20261020-1038-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M40-02 | M | done | REVIEW-M40 | S20261020-1038-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M40-03 | S | done | REVIEW-M40 | S20261020-1038-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+
+Module 41 (PLAN-M41; plan in `_meta/modules/M41.md`, written 2026-10-20). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 40), then REVIEW-M41 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part E, 8,000-10,000 prose words (RUN.md §9, QUALITY-BAR G1), with 10 sections, 21 questions and 3 exercises (ceilings 32 / 5; floor 15 / 2, kind "—"): plan 9,300 module words (skeleton 1,635 + sections 3,760 + exercises 1,160 + bank 2,245 + closing 500), CLOSE at most 9,300, ceiling 9,800 after REVIEW fixes (hard cap 10,000). **No HOUSE task: nothing is installed** (M41.md Lab decision 1): the Spring side (Boot 4.1.1, Framework 7.0.9, Security 7.1.1, Data Commons 4.1.1, Jackson 3.1.5, springdoc 3.1.1) is documented only, with illustrative Java snippets under the Spring banner, checked against the sources read at their release tags; the generators (openapi-generator, orval, ng-openapi-gen) are documented only from their tarballs; what runs is the Angular side in `labs/angular` (`HttpTestingController`, or the real fetch backend over `vi.stubGlobal('fetch', …)` as 27's specs do) and framework-free kernels in `labs/ts-js` (Zod 4.6.5 is already there). Writers: Opus for SEC-M41-01, SEC-M41-03, SEC-M41-05, SEC-M41-10, EX-M41-02 and EX-M41-03, Sonnet for the rest; CLOSE-M41 Sonnet; REVIEW-M41 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| PLAN-M41 | M | done | CLOSE-M40 | S20261020-0657-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+| SEC-M41-01 | M | done | PLAN-M41 | S20261020-1038-claudecode (claude-opus-5-5) |
+| SEC-M41-02 | M | done | SEC-M41-01 | S20261020-1038-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M41-03 | M | done | SEC-M41-02 | S20261020-1038-claudecode (writer claude-opus-5-5; tsc fix and checks claude-opus-5-5) |
+| SEC-M41-04 | M | done | SEC-M41-03 | S20261020-1038-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M41-05 | M | done | SEC-M41-04 | S20261020-1038-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M41-06 | M | done | SEC-M41-05 | S20261020-1253-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M41-07 | M | done | SEC-M41-06 | S20261020-1253-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M41-08 | M | done | SEC-M41-07 | S20261020-1253-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M41-09 | M | done | SEC-M41-08 | S20261020-1253-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M41-10 | M | done | SEC-M41-09 | S20261020-1253-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M41-01 | M | done | SEC-M41-10 | S20261020-1253-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| EX-M41-02 | M | done | EX-M41-01 | S20261020-1253-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M41-03 | M | done | EX-M41-02 | S20261020-1345-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| QB-M41-01 | M | done | EX-M41-03 | S20261020-1345-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M41-02 | M | done | QB-M41-01 | S20261020-1345-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M41-03 | M | done | QB-M41-02 | S20261020-1345-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| CLOSE-M41 | M | done | QB-M41-03 | S20261020-1345-claudecode (writer claude-sonnet-5-5; full verification claude-opus-5-5) |
+| REVIEW-M41 | L | done | CLOSE-M41 | S20261020-1532-claudecode (reviewer claude-opus-5-5; checks claude-opus-5-5) |
+| FIX-M41-01 | S | done | REVIEW-M41 | S20261020-1532-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M41-02 | M | done | REVIEW-M41 | S20261020-1532-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M41-03 | S | done | REVIEW-M41 | S20261020-1532-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| PLAN-M42 | M | done | CLOSE-M41 | S20261020-1345-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+
+Module 42 (PLAN-M42; plan in `_meta/modules/M42.md`, written 2026-10-20). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 41), then REVIEW-M42 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part E, 8,000-10,000 prose words (RUN.md §9, QUALITY-BAR G1), with 9 sections, 23 questions and 3 exercises (ceilings 38 / 5; floor 15 / 2, kind "—"): plan 9,359 module words (skeleton 1,719 + sections 3,640 + exercises 1,160 + bank 2,340 + closing 500), CLOSE at most 9,359, ceiling 9,850 after REVIEW fixes (hard cap 10,000). **No HOUSE task: nothing is installed** (M42.md Lab decision 1): the Spring side (Boot 4.1.1, Security 7.1.1 with Spring Authorization Server 7.1.1, Spring Session 4.1.1, Spring Cloud 2025.1.3 with Gateway 5.0.3) is documented only, with illustrative Java and YAML under the Spring banner, checked against the sources read at their release tags; both OIDC libraries (`angular-oauth2-oidc` and `angular-auth-oidc-client` 22.0.2) are documented only from their tarballs; what runs is framework-free kernels in `labs/ts-js` (WebCrypto JWTs, PKCE, our token-family and XOR-mask models, `BroadcastChannel`, `navigator.locks`) and the Angular side in `labs/angular` (`HttpTestingController`, Angular's XSRF interceptor, Vitest fake timers). Writers: Opus for SEC-M42-03, SEC-M42-04, SEC-M42-05, SEC-M42-06, SEC-M42-09, EX-M42-02 and EX-M42-03, Sonnet for the rest; CLOSE-M42 Sonnet; REVIEW-M42 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| SEC-M42-01 | M | done | PLAN-M42 | S20261020-1532-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M42-02 | M | done | SEC-M42-01 | S20261020-1532-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M42-03 | M | done | SEC-M42-02 | S20261020-1532-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M42-04 | M | done | SEC-M42-03 | S20261020-1532-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M42-05 | M | done | SEC-M42-04 | S20261020-1532-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M42-06 | M | done | SEC-M42-05 | S20261020-1754-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M42-07 | M | done | SEC-M42-06 | S20261020-1754-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M42-08 | M | done | SEC-M42-07 | S20261020-1754-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M42-09 | M | done | SEC-M42-08 | S20261020-1754-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M42-01 | M | done | SEC-M42-09 | S20261020-1754-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| EX-M42-02 | M | done | EX-M42-01 | S20261020-1754-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M42-03 | M | done | EX-M42-02 | S20261020-1850-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| QB-M42-01 | M | done | EX-M42-03 | S20261020-1850-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M42-02 | M | done | QB-M42-01 | S20261020-1850-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M42-03 | M | done | QB-M42-02 | S20261020-1850-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| CLOSE-M42 | M | done | QB-M42-03 | S20261020-1850-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| REVIEW-M42 | L | done | CLOSE-M42 | S20261021-0748-claudecode (reviewer claude-opus-5-5; checks claude-opus-5-5) |
+| FIX-M42-01 | S | done | REVIEW-M42 | S20261021-0748-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M42-02 | M | done | REVIEW-M42 | S20261021-0748-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M42-03 | S | done | REVIEW-M42 | S20261021-0748-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| PLAN-M43 | M | done | REVIEW-M42 | S20261021-0748-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+
+Module 43 (PLAN-M43; plan in `_meta/modules/M43.md`, written 2026-10-21). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 42), then REVIEW-M43 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part E, 8,000-10,000 prose words (RUN.md §9, QUALITY-BAR G1), with 9 sections, 21 questions and 3 exercises (ceilings 24 / 3; floor 15 / 2, kind "—"): plan 9,231 module words (skeleton 1,681 + sections 3,560 + exercises 1,160 + bank 2,350 + closing 480), CLOSE at most 9,231, ceiling 9,850 after REVIEW fixes (hard cap 10,000). **No HOUSE task: nothing is installed** (M43.md Lab decision 1): the Spring side (Boot 4.1.1, Framework 7.0.9 with `SseEmitter`, WebFlux and STOMP messaging, Security 7.1.1 message security) is documented only, with illustrative Java under the Spring banner, checked against the sources read at their release tags; `@stomp/rx-stomp` 2.4.0 and `@stomp/stompjs` 7.5.0 are documented only from their tarballs; no test opens a real connection; what runs is framework-free kernels in `labs/ts-js` (our event-stream parser and reconnection loop over test-built streams, our STOMP frame codec and heart-beat negotiation, our handshake guard and broker model) and the Angular side in `labs/angular` (RxJS `webSocket` and an `EventSource` wrapper over our fakes, a zoneless stream-to-signal store, Vitest fake timers). Writers: Opus for SEC-M43-02, SEC-M43-05, SEC-M43-07, SEC-M43-09, EX-M43-02 and EX-M43-03, Sonnet for the rest; CLOSE-M43 Sonnet; REVIEW-M43 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| SEC-M43-01 | M | done | PLAN-M43 | S20261021-0748-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M43-02 | M | done | SEC-M43-01 | S20261021-0748-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M43-03 | M | done | SEC-M43-02 | S20261021-0748-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M43-04 | M | done | SEC-M43-03 | S20261021-0748-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M43-05 | M | done | SEC-M43-04 | S20261021-0929-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M43-06 | M | done | SEC-M43-05 | S20261021-0929-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M43-07 | M | done | SEC-M43-06 | S20261021-0929-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| SEC-M43-08 | M | done | SEC-M43-07 | S20261021-0929-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| SEC-M43-09 | M | done | SEC-M43-08 | S20261021-0929-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M43-01 | M | done | SEC-M43-09 | S20261021-0929-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| EX-M43-02 | M | done | EX-M43-01 | S20261021-1100-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| EX-M43-03 | M | done | EX-M43-02 | S20261021-1100-claudecode (writer claude-opus-5-5; checks claude-opus-5-5) |
+| QB-M43-01 | M | done | EX-M43-03 | S20261021-1100-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M43-02 | M | done | QB-M43-01 | S20261021-1100-claudecode (writer claude-sonnet-5-5; checks claude-opus-5-5) |
+| QB-M43-03 | M | done | QB-M43-02 | S20261022-0514-claudecode (writer claude-sonnet-5-5 dispatched by S20261021-1100-claudecode, finished in this job; audit writer claude-sonnet-5-5; Q43.16 completion, checks and bookkeeping claude-opus-5-5) |
+| CLOSE-M43 | M | done | QB-M43-03 | S20261022-0514-claudecode (writer claude-sonnet-5-5; full verification and bookkeeping claude-opus-5-5) |
+| REVIEW-M43 | L | done | CLOSE-M43 | S20261022-0737-claudecode (reviewer subagent claude-opus-5-5, fresh; checks and bookkeeping claude-opus-5-5) |
+| FIX-M43-01 | S | done | REVIEW-M43 | S20261022-0737-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M43-02 | S | done | REVIEW-M43 | S20261022-0737-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M43-03 | S | done | REVIEW-M43 | S20261022-0737-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| PLAN-M44 | M | done | REVIEW-M43 | S20261022-0737-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+
+Module 44 (PLAN-M44; plan in `_meta/modules/M44.md`, written 2026-10-22). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 43), then REVIEW-M44 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part E, 8,000-10,000 prose words (RUN.md §9, QUALITY-BAR G1), with 10 sections, 21 questions and 3 exercises (ceilings 30 / 4; floor 15 / 2, kind "—"): plan 9,298 module words (skeleton 1,793 + sections 3,680 + exercises 1,140 + bank 2,245 + closing 440), CLOSE at most 9,298, ceiling 9,850 after REVIEW fixes (hard cap 10,000). **No HOUSE task: nothing is installed** (M44.md Lab decision 1): Docker is not on the machine, so the `labs/angular/deploy/` files (Dockerfile, Nginx template, runtime config template and entrypoint script, SSR Dockerfile) are written as documented-only text and never built; Nginx, Docker, the nginx and Node images, Spring Boot 4.1.1, Spring Framework 7.0.9 and Spring Cloud Gateway 5.0.3 are documented only, with illustrative Java and YAML checked against sources read at their release tags or dated docs reads; OpenTelemetry web, OpenFeature, Sentry and `web-vitals` are documented only from their tarballs; what runs is our models in `labs/ts-js` (topologies, Docker build cache, Nginx `location`/`try_files`/headers/`gzip_static`, the proxy, the nginx image's template step, graceful shutdown, releases, flags and canaries, `traceparent`) tested against the committed deploy files read as text, and the Angular side in `labs/angular` (the beacon queue, trace correlation, flags in a zoneless app). Writers: Opus for SEC-M44-03, SEC-M44-06, SEC-M44-10, EX-M44-02 and EX-M44-03, Sonnet for the rest; CLOSE-M44 Sonnet; REVIEW-M44 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| SEC-M44-01 | M | done | PLAN-M44 | S20261022-0928-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-02 | M | done | SEC-M44-01 | S20261022-0928-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-03 | M | done | SEC-M44-02 | S20261022-0928-claudecode (writer subagent claude-opus-5-5; checks, one test fix and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-04 | M | done | SEC-M44-03 | S20261022-0928-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-05 | M | done | SEC-M44-04 | S20261022-0928-claudecode (writer subagent claude-sonnet-5-5; checks, excerpt fix, test rename and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-06 | M | done | SEC-M44-05 | S20261022-0928-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-07 | M | done | SEC-M44-06 | S20261022-0928-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-08 | M | done | SEC-M44-07 | S20261022-0928-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-09 | M | done | SEC-M44-08 | S20261022-1119-claudecode (writer subagent claude-sonnet-5-5; checks, CLOSE-limit decision and bookkeeping by main claude-opus-5-5) |
+| SEC-M44-10 | M | done | SEC-M44-09 | S20261022-1119-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| EX-M44-01 | M | done | SEC-M44-10 | S20261022-1119-claudecode (writer subagent claude-sonnet-5-5; checks, two lab fixes, the release-manifest definition and bookkeeping by main claude-opus-5-5) |
+| EX-M44-02 | M | done | EX-M44-01 | S20261022-1119-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| EX-M44-03 | M | done | EX-M44-02 | S20261022-1119-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| QB-M44-01 | M | done | EX-M44-03 | S20261022-1244-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| QB-M44-02 | M | done | QB-M44-01 | S20261022-1244-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| QB-M44-03 | M | done | QB-M44-02 | S20261022-1244-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| CLOSE-M44 | M | done | QB-M44-03 | S20261022-1244-claudecode (writer subagent claude-sonnet-5-5; full verification and bookkeeping by main claude-opus-5-5) |
+| REVIEW-M44 | L | done | CLOSE-M44 | S20261022-1316-claudecode (reviewer subagent claude-opus-5-5, fresh; checks and bookkeeping claude-opus-5-5) |
+| FIX-M44-01 | S | done | REVIEW-M44 | S20261022-1316-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M44-02 | S | done | REVIEW-M44 | S20261022-1316-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M44-03 | S | done | REVIEW-M44 | S20261022-1316-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| PLAN-M45 | M | done | REVIEW-M44 | S20261022-1345-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+
+Module 45 (PLAN-M45; plan in `_meta/modules/M45.md`, written 2026-10-22). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 44), then REVIEW-M45 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part F, "as deep as the topic needs" (RUN.md §9, QUALITY-BAR G1; no hard cap), with 8 sections, 17 questions and 2 exercises (ceilings 18 / 2; floor 15 / 2, kind "—"): plan 7,910 module words (skeleton 1,400 + sections 3,380 + exercises 780 + bank 1,910 + closing 440), CLOSE at most 7,910, ceiling 8,460 after REVIEW fixes (the plan's own ceiling). **No HOUSE task: nothing is installed** (M45.md Lab decision 1): `labs/ts-js` only, no Angular lab code; what runs is our framework-free models (time plan, transfer-time estimator over Lighthouse 13.5.0's profiles, client-model shapes, state placement, a bytes budget, cache layers, write policies with RFC 9110's precondition outcomes) and two framework-free exercises; every Angular fact is its owner module's (28, 31, 32, 37, 38), linked; WCAG 2.2, RFC 9110, MDN, c4model.com, Lighthouse's tarball and `@angular/ssr` 22.2.1 typings are documented reads; claims about interviews are advice, this repository's backend guide §7, or one named, dated third-party site (M45.md C1). Running example: a team task board (not one of 46's case studies). Writers: Opus for SEC-M45-08 and EX-M45-02, Sonnet for the rest; CLOSE-M45 Sonnet; REVIEW-M45 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| SEC-M45-01 | M | done | PLAN-M45 | S20261022-1345-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M45-02 | M | done | SEC-M45-01 | S20261022-1345-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M45-03 | M | done | SEC-M45-02 | S20261022-1345-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M45-04 | M | done | SEC-M45-03 | S20261022-1345-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M45-05 | M | done | SEC-M45-04 | S20261022-1345-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M45-06 | M | done | SEC-M45-05 | S20261022-1345-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M45-07 | M | done | SEC-M45-06 | S20261022-1345-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| SEC-M45-08 | M | done | SEC-M45-07 | S20261022-1609-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| EX-M45-01 | M | done | SEC-M45-08 | S20261022-1609-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| EX-M45-02 | M | done | EX-M45-01 | S20261022-1609-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| QB-M45-01 | M | done | EX-M45-02 | S20261022-1609-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| QB-M45-02 | M | done | QB-M45-01 | S20261022-1609-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| QB-M45-03 | M | done | QB-M45-02 | S20261022-1609-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping by main claude-opus-5-5) |
+| CLOSE-M45 | M | done | QB-M45-03 | S20261022-1609-claudecode (writer subagent claude-sonnet-5-5; full verification and bookkeeping by main claude-opus-5-5) |
+| REVIEW-M45 | L | done | CLOSE-M45 | S20261022-1759-claudecode (reviewer subagent claude-opus-5-5, fresh; checks and bookkeeping claude-opus-5-5) |
+| FIX-M45-01 | S | done | REVIEW-M45 | S20261022-1759-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M45-02 | S | done | REVIEW-M45 | S20261022-1759-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M45-03 | S | done | REVIEW-M45 | S20261022-1759-claudecode (fixer claude-haiku-5-5; checks claude-opus-5-5) |
+| PLAN-M46 | M | done | REVIEW-M45 | S20261022-1759-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+
+Module 46 (PLAN-M46; plan in `_meta/modules/M46.md`, written 2026-10-22). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 45), then REVIEW-M46 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region. Size: Part F, "as deep as the topic needs" (RUN.md §9, QUALITY-BAR G1; no hard cap), with 8 sections (a case template, then seven cases: typeahead, feed, grid, wizard, dashboard, notifications and presence (the stretch case), money transfer), 26 questions and 5 exercises (ceilings 30 / 6; floor 15 / 2, kind "—"): plan 11,067 module words (skeleton 1,907 + sections 3,760 + exercises 2,020 + bank 2,900 + closing 480), CLOSE at most 11,067, ceiling 11,620 after REVIEW fixes (the plan's own ceiling). **No HOUSE task: nothing is installed** (M46.md Lab decision 1): `labs/ts-js` only, no Angular or RxJS lab code; what runs is one framework-free kernel per case (prefix cache, feed pager, canonical grid query with keyset pages, wizard steps and draft migration, dashboard aggregation and staleness, unread set and presence TTL, a transfer intent against our idempotency server) and five framework-free exercises; every Angular and RxJS fact is its owner module's (23, 28, 31, 36, 41, 43, 45), linked; the IETF Idempotency-Key Internet-Draft (draft-08, 2026-10-22), RFC 9110, Stripe's API docs (one vendor), the WAI-ARIA Authoring Practices (informative), MDN and `@angular/aria` 22.2.1 typings are documented reads; claims about interviews and products are advice (M46.md C1). Module 45's canonical statements are linked, never restated; field p75 targets and lab budgets are never fused (M46.md lesson 3, REVIEW-M45 F-1). Writers: Opus for SEC-M46-08 and EX-M46-05, Sonnet for the rest; QB and CLOSE-M46 Sonnet; REVIEW-M46 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| SEC-M46-01 | M | done | PLAN-M46 | S20261022-1759-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M46-02 | M | done | SEC-M46-01 | S20261022-1759-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M46-03 | M | done | SEC-M46-02 | S20261022-1759-claudecode (writer subagent claude-sonnet-5-5; checks, two corrections and bookkeeping claude-opus-5-5) |
+| SEC-M46-04 | M | done | SEC-M46-03 | S20261022-1759-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M46-05 | M | done | SEC-M46-04 | S20261022-1914-claudecode (writer subagent claude-sonnet-5-5; checks, one diagram correction and bookkeeping claude-opus-5-5) |
+| SEC-M46-06 | M | done | SEC-M46-05 | S20261022-1914-claudecode (writer subagent claude-sonnet-5-5; checks, one excerpt correction and bookkeeping claude-opus-5-5) |
+| SEC-M46-07 | M | done | SEC-M46-06 | S20261022-1914-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M46-08 | M | done | SEC-M46-07 | S20261022-1914-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| EX-M46-01 | M | done | SEC-M46-08 | S20261022-1914-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| EX-M46-02 | M | done | EX-M46-01 | S20261022-1914-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| EX-M46-03 | M | done | EX-M46-02 | S20261022-1914-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| EX-M46-04 | M | done | EX-M46-03 | S20261022-1914-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| EX-M46-05 | M | done | EX-M46-04 | S20261022-2051-claudecode (writer claude-opus-5-5, main claude-opus-5-5) |
+| QB-M46-01 | M | done | EX-M46-05 | S20261022-2051-claudecode (writer claude-sonnet-5-5, main claude-opus-5-5) |
+| QB-M46-02 | M | done | QB-M46-01 | S20261022-2051-claudecode (writer claude-sonnet-5-5, main claude-opus-5-5) |
+| QB-M46-03 | M | done | QB-M46-02 | S20261022-2051-claudecode (writer claude-sonnet-5-5, main claude-opus-5-5) |
+| QB-M46-04 | M | done | QB-M46-03 | S20261022-2051-claudecode (writer claude-sonnet-5-5, main claude-opus-5-5) |
+| CLOSE-M46 | M | done | QB-M46-04 | S20261022-2051-claudecode (writer claude-sonnet-5-5, main claude-opus-5-5) |
+| REVIEW-M46 | L | done | CLOSE-M46 | S20261023-1732-claudecode (reviewer subagent claude-opus-5-5, fresh; checks and bookkeeping claude-opus-5-5) |
+| FIX-M46-01 | S | done | REVIEW-M46 | S20261023-1732-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M46-02 | S | done | REVIEW-M46 | S20261023-1732-claudecode (fixer claude-sonnet-5-5; checks claude-opus-5-5) |
+| FIX-M46-03 | S | done | REVIEW-M46 | S20261023-1732-claudecode (fixer claude-haiku-5-5; checks claude-opus-5-5) |
+| PLAN-M47 | M | done | REVIEW-M46 | S20261023-1732-claudecode (planner subagent claude-opus-5-5; verification and bookkeeping by main claude-opus-5-5) |
+
+Module 47 (PLAN-M47; plan in `_meta/modules/M47.md`, written 2026-10-23). Run in this order: **SEC, EX, QB, CLOSE** (as modules 14 to 46; QB after EX because Q47.09's Output test imports Exercise 47.1's legacy file), then REVIEW-M47 in another session: every task edits the same module file, each only inside its own `<!-- TASK: <ID> -->` marker region (EX-M47-01 also replaces §3's planned Code fence, as declared). Size: Part G, "as deep as the topic needs" (RUN.md §9, QUALITY-BAR G1; no hard cap), with 7 sections (the behavioral round and STAR, four front-end story types, legacy and migrations without blame, live coding an Angular task, take-homes, questions to ask about the front-end practice, and the follow-up ladder), 15 questions and 2 exercises (ceilings 15 / 2 equal the floors, kind "—"): plan 8,686 module words from measured per-part costs in modules 45 and 46 (skeleton 1,366 + sections 3,960 + exercises 1,000 + bank 1,840 + closing 520), CLOSE at most 8,686, ceiling 9,300 after REVIEW fixes (the plan's own; M47.md Budget). **No HOUSE task: nothing is installed** (M47.md Lab decision 1): `labs/ts-js` only, no Angular lab code; what runs is Exercise 47.1 (characterization tests over our legacy price-label function and two refactors), Exercise 47.2 (our list core in two designs) and Q47.09's Output test; sections hold no lab. The backend guide's §9 and §10 are linked, not duplicated (SYLLABUS ⇢); the Google SRE book chapter, the Retrospective Wiki and Wikipedia are dated reads; every claim about interviews, interviewers or companies is advice worded as advice (M47.md C1), and every sample story and number is labeled ours. Writers: Opus for SEC-M47-02 and SEC-M47-07, Sonnet for the rest; QB and CLOSE-M47 Sonnet; REVIEW-M47 Opus in another session.
+
+| ID | Size | Status | Deps | Done by |
+|---|---|---|---|---|
+| SEC-M47-01 | M | done | PLAN-M47 | S20261023-1732-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M47-02 | M | done | SEC-M47-01 | S20261023-1732-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M47-03 | M | done | SEC-M47-02 | S20261023-1732-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M47-04 | M | done | SEC-M47-03 | S20261023-1732-claudecode (writer subagent claude-sonnet-5-5; checks, one fix and bookkeeping claude-opus-5-5) |
+| SEC-M47-05 | M | done | SEC-M47-04 | S20261023-1921-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M47-06 | M | done | SEC-M47-05 | S20261023-1921-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| SEC-M47-07 | M | done | SEC-M47-06 | S20261023-1921-claudecode (writer subagent claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| EX-M47-01 | M | done | SEC-M47-07 | S20261023-1921-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| EX-M47-02 | M | done | EX-M47-01 | S20261023-1921-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| QB-M47-01 | M | done | EX-M47-02 | S20261023-1921-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| QB-M47-02 | M | done | QB-M47-01 | S20261023-1921-claudecode (writer subagent claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| CLOSE-M47 | M | done | QB-M47-02 | S20261023-2049-claudecode (writer subagent claude-sonnet-5-5; full verification, checks and bookkeeping claude-opus-5-5) |
+| REVIEW-M47 | L | done | CLOSE-M47 | S20261024-0835-claudecode (reviewer subagent claude-opus-5-5) |
+| FIX-M47-01 | S | done | REVIEW-M47 | S20261024-0835-claudecode (fixer claude-sonnet-5-5) |
+| FIX-M47-02 | S | done | REVIEW-M47 | S20261024-0835-claudecode (fixer claude-sonnet-5-5) |
+| FIX-M47-03 | S | done | REVIEW-M47 | S20261024-0835-claudecode (fixer claude-haiku-5-5) |
+| PLAN-FINISH | M | done | REVIEW-M47, FIX-M47-01..03 | S20261024-0835-claudecode (planner subagent claude-opus-5-5) |
+| HOUSE-43 | S | done | PLAN-FINISH | S20261024-0835-claudecode (fixer claude-haiku-5-5) |
+| HOUSE-41 | S | done | PLAN-FINISH | S20261024-0835-claudecode (writer claude-sonnet-5-5) |
+| HOUSE-42 | S | done | HOUSE-41 | S20261024-0835-claudecode (writer claude-sonnet-5-5) |
+| HOUSE-45 | S | done | PLAN-FINISH | S20261024-0835-claudecode (writer claude-sonnet-5-5) |
+| HOUSE-46 | S | done | PLAN-FINISH | S20261024-0835-claudecode (writer claude-sonnet-5-5) |
+| FIN-01 | S | done | PLAN-FINISH | S20261024-0835-claudecode (writer claude-haiku-5-5) |
+| REVIEW-X-01 | L | done | HOUSE-42 | S20261024-0835-claudecode (reviewer subagent claude-opus-5-5) |
+| REVIEW-X-02 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
+| REVIEW-X-03 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
+| REVIEW-X-04 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
+| REVIEW-X-05 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
+| REVIEW-X-06 | M | in_progress | REVIEW-X-01..05 |  |
+| HOUSE-44 | S | todo | Jorge's ruling J1 (FINISH.md), REVIEW-X-06 and its FIX-X tasks |  |
+| FIN-02 | S | todo | HOUSE-45, REVIEW-X-06 and its FIX-X tasks |  |
+| FIN-03 | S | todo | HOUSE-43, HOUSE-46, REVIEW-X-06 and its FIX-X tasks |  |
+| FIN-04 | M | todo | FIN-01, REVIEW-X-06 and its FIX-X tasks |  |
+| FIN-05 | M | todo | FIN-04 |  |
+| FIN-06 | M | todo | FIN-05 |  |
+| FIN-07 | M | todo | FIN-06 |  |
+| FIN-08 | M | todo | FIN-07 |  |
+| FIN-09 | M | todo | FIN-01, REVIEW-X-06 and its FIX-X tasks |  |
+| FIN-10 | M | todo | FIN-09 |  |
+| FIN-11 | M | todo | FIN-10 |  |
+| FIN-12 | M | todo | FIN-11 |  |
+| FIN-13 | M | todo | FIN-12 |  |
+| FIN-14 | M | todo | FIN-01, FIN-02, FIN-03, REVIEW-X-06 and its FIX-X tasks |  |
+| FIN-15 | M | todo | FIN-14, FIN-08, FIN-13 |  |
+| FIN-16 | S | todo | FIN-15 |  |
+| REVIEW-X-07 | L | todo | FIN-02, FIN-03, FIN-08, FIN-13, FIN-15 |  |
+| FIX-X-01 | S | todo | REVIEW-X-06 |  |
+| FIX-X-02 | S | todo | REVIEW-X-06 |  |
+| FIX-X-03 | S | todo | REVIEW-X-06 |  |
+| FIX-X-04 | S | todo | REVIEW-X-06 |  |
+| FIX-X-05 | S | todo | REVIEW-X-06 |  |
+| FIX-X-06 | S | todo | REVIEW-X-06 |  |
+| FIX-X-07 | M | todo | REVIEW-X-06 |  |
+| FIX-X-08 | S | todo | REVIEW-X-06 |  |
+| FIX-X-09 | S | todo | REVIEW-X-06 |  |
+| FIX-X-10 | S | todo | REVIEW-X-06 |  |
+| FIX-X-11 | M | todo | REVIEW-X-06 |  |
+| FIX-X-12 | M | todo | REVIEW-X-06 |  |
+| FIX-X-13 | S | todo | REVIEW-X-06 |  |
+| FIX-X-14 | S | todo | REVIEW-X-06 |  |
+| FIX-X-15 | S | todo | REVIEW-X-06 |  |
+| FIX-X-16 | S | todo | REVIEW-X-06 |  |
+| FIX-X-17 | S | todo | REVIEW-X-06 |  |
+| FIX-X-18 | S | todo | REVIEW-X-06 |  |
+| FIX-X-19 | M | todo | FIX-X-01..18 |  |
+| FINAL-VERIFY | M | todo | every row above, HOUSE-44, every FIX-X task |  |
 
 ## Task details
 
@@ -1314,7 +1572,7 @@ Module 39 (PLAN-M39; plan in `_meta/modules/M39.md`, written by S20261018-1411).
 
 ### SEC-M05-04 · M · Garbage collection and memory leaks
 - Files: module §4; `section-4-gc-leaks.test.ts`; `fixtures/section-4/…`; SOURCES.md; GLOSSARY-TERMS.md.
-- Do: M05.md §4 with the reachability diagram and *Coming from the backend* (JVM); the closure leak is one sentence + [Q02.08](02-js-scope-closures-this.md#q02-08), not re-taught; an `--expose-gc` fixture that shows an object kept alive by an interval and collectable after `clearInterval` (run it 20 times first; if the output is not stable, assert only the stable part and say so); V8 generational details cited from v8.dev.
+- Do: M05.md §4 with the reachability diagram and *Coming from the backend* (JVM); the closure leak is one sentence + [Q02.08](../modules/02-js-scope-closures-this.md#q02-08), not re-taught; an `--expose-gc` fixture that shows an object kept alive by an interval and collectable after `clearInterval` (run it 20 times first; if the output is not stable, assert only the stable part and say so); V8 generational details cited from v8.dev.
 - Acceptance: common rules; the GC claims say "observed in Node 24.21, not guaranteed by the specification".
 
 ### SEC-M05-05 · M · Weak references
@@ -6313,3 +6571,1815 @@ Common rules for each task: only the declared files change; no git writes; the m
 ### REVIEW-M39 · L · independent review of module 39
 - Model: Opus (judgment-heavy: independent review in a fresh session).
 - As `REVIEW-M38`. Must run in a session that authored no task of module 39 except PLAN-M39, and not in a continuation of their conversations. Findings become `FIX-M39-nn` tasks appended to this file. Module-specific checks: every version, date and status in the matrix (§4-§6, Q39.06-Q39.10) traced to F9-F15, F20 or a dated C1 read, and no row written from memory (C1); no motive for the rewrite without a source (C3); AngularJS and ngUpgrade never worded as observed, and our digest model, selector and classifier named as ours (C9, C14); the migration lists, orders and edits of §7, §11, Q39.14, Q39.22-Q39.24 and Exercise 39.4 against a re-run of the committed tests (or `PLAN-M39-B`'s source reads); no network, `git`, `npm` or `ng` call and no clock in any test (Lab decision 5); the cross-lab read fails with the C10 message when `labs/angular/node_modules` is missing; no duration and no library-lag claim (C6, C11); docs-versus-package differences stated as C12 says; the handoff lines into 39 (M39.md "Handoffs into 39") honored, Q18.23 not re-asked, with an anchor proposal per file-level link (M39.md anchor candidates) for a FIX task; prose at most 20,189 after fixes.
+
+### FIX-M39-01 · M · Factual fixes, terms, internal names, cause clauses and nits (F-1..F-5, T-2..T-4, N-1..N-11)
+- Files: `modules/39-version-history-and-migrations.md`; `SOURCES.md` (lines under `## Module 39`: angular CHANGELOG.md 19.0.0 standalone-by-default entry (F-1); `angular/angular.js` `README.md` and `docs/content/misc/version-support-status.ngdoc` "officially ended as of January 2022", and the section 1 `npm view angular deprecated` line corrected so it no longer implies the date (F-3); `@angular/cli@22.2.1` `update-resolver.js` `_validateForwardPeerDependencies` and `_validateReversePeerDependencies` (N-3)); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M39.md` (Factual findings F-1..F-5, Teaching findings T-2..T-4, Nits N-1..N-11); for T-2, the owner sections 15 §2, 12 §2, 12 §7 and 32 §6 (keep the owner's wording where it differs).
+- Do: apply each fix text in REVIEW-M39, finding each line by its quoted text: F-1 (§6 What to notice), F-2 (§10 misconception, Q39.21 explanation and trap), F-3 (§1 end-of-support basis), F-4 (Exercise 39.2 Node account), F-5 (Summary, Q39.04 short answer), T-2 (zone.js moved from §2 to §1; standalone in §5; migration, incremental hydration, `strictTemplates` in §6), T-3 (four internal names in Exercise 39.4), T-4 (§11 and §12 misconceptions), N-1..N-11. No lab file, no heading or anchor change; M39.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 39` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/39-version-history-and-migrations.md`: `grep -c 'only v22 changes a default'` = 0, `grep -c 'verify between runs'` = 0, `grep -c 'npm deprecation notice for'` = 0, `grep -c 'with 22.12.0, only hop 22'` = 0, `grep -c 'a major lasts 12 months active'` = 0, `grep -c 'A major is active for 12 months'` = 0, `grep -c 'with zone.js as the noise detector'` = 0, `grep -c 'the internal `createMigrationProgram`'` = 1, `grep -c 'the internal `PotentiallyNarrowedInTemplateButNoSupportYet`'` = 1, `grep -c 'because it reads like a call'` = 0, `grep -c 'because a long checklist looks exhaustive'` = 0, `grep -c 'five to seven months apart'` = 0, `grep -c ')),\.'` = 0, `grep -c 'D and E are absent'` = 0, `grep -c '](#ex39-2)'` ≥ 4, `grep -c '](#ex39-4)'` ≥ 3; no line ends in a space; `<details>` count and the 12 Mermaid diagrams unchanged; prose at most +230 over the count just before and at most 20,189, both counts in the LOG line.
+- Model: **Sonnet** (every text is prescribed in the review).
+
+### FIX-M39-02 · S · Status markers in the STYLE-GUIDE §3.2 forms (T-1)
+- Files: `modules/39-version-history-and-migrations.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M39.md` T-1 (eleven replacements and their bases); STYLE-GUIDE §3.2.
+- Do: apply T-1's replacements in §3 (`Eager`), §5 (v11 row), §6 (v18-v22 rows) and Q39.08's follow-up, finding each by its quoted text. Disjoint lines from FIX-M39-01; run in either order.
+- Acceptance: `node labs/tools/check-snippets.mjs . 39` and `node labs/tools/check-links.mjs --planned` exit 0; `grep -cE '\[Changed in v[0-9.]+\]' modules/39-version-history-and-migrations.md` = 0; `grep -c '\[Added in v21.2\]'` ≥ 1, `grep -c '\[Removed in v22.0\]'` ≥ 2, `grep -c '\[Removed in v11.0\]'` ≥ 1, `grep -c '\[Experimental since v18.0\]'` ≥ 1; the §6 table still renders (same column count per row); prose at most +60 over the count just before and at most 20,189, both counts in the LOG line.
+- Model: **Sonnet** (texts and bases prescribed).
+
+### FIX-M39-03 · S · Anchors for the file-level links into 39 (+0 words)
+- Files: link targets only in `modules/12-angular-how-it-works.md`, `15-standalone-and-ngmodules.md`, `17-signals.md`, `18-control-flow-and-defer.md`, `19-component-communication-and-projection.md`, `21-change-detection.md`, `35-animations.md`, `36-material-and-cdk.md`, `37-elements-pwa-errors-ecosystem.md`, `38-architecture-and-production-structure.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M39.md` § Handoffs.
+- Do: apply the Handoffs table (21 rows: 21:2710 → §1; 37:2106 → §3; 35:1990, 36:2315 → §6; 12:919, 12:1861, 38:428, 38:1428, 38:2040 → §7; 12:123 → §8; 15:695, 15:1620, 15:1638, 15:2255, 17:1882, 18:931, 18:1933, 18:2610, 19:2527, 35:1991 → §10; 38:2041 → §12; find each line by its context text, not the line number). Only the link target changes (`39-version-history-and-migrations.md` → `39-version-history-and-migrations.md#<slug>`). Verify each slug against module 39's `## N.` headings. Leave the stay-file-level lines alone (12:5, 15:5, 18:5, 21:5, 35:5, 36:5, 38:5, 21:2711). No heading changes in FIX-M39-01 or -02, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '39-version-history-and-migrations.md#'` across the ten files totals 21 (0 before); `git diff --stat` touches only those ten files (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+- Model: **Sonnet** (mechanical; slugs listed).
+
+### Module 40 tasks (PLAN-M40) · common rules
+- Inputs for every task: `_meta/modules/M40.md` (its section, question or exercise rows, the budget, "Handoffs into 40", "What other modules already teach", "Lab decision", "Facts established while planning" F1-F19, "Could not be read" C1-C15, the owner map), STYLE-GUIDE §3-§8, QUALITY-BAR B-E, SYLLABUS §4 (40), the module skeleton, the pilot `modules/17-signals.md` and the finished `modules/39-version-history-and-migrations.md` for Part D depth (read a section, answer or exercise of the same kind before writing; never copy), and `_meta/reviews/REVIEW-M38.md` § Findings (and `_meta/reviews/REVIEW-M39.md` once it exists). Re-verify every fact the task uses before writing (lab > package source > official docs/changelog/registry) and record the basis next to the claim; every "Could not be read" item for the task is read first, or the claim is dropped. Tarballs are `npm pack`ed into the job scratchpad, read and deleted before the task ends; nothing is installed.
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics (C9, C14): no re-teaching of framework versus library (12 §1, Q12.01, Q12.02), the compiler's output and instruction-based rendering versus a virtual DOM (12 §8, Q12.27, Exercise 12.4), Proxy reactivity (03 §5, Q03.14, Exercise 03.2), Angular DI (16, Q16.35), Angular signals and their graph (17 §1, §9, Q17.01, Q17.33, Exercise 17.6), the TC39 proposal (Q17.38), change detection (21 §1, §4, §9, Q21.01, Q21.34), routing (24), forms (25, 26), store choice (28 §11), testing (29), SSR and hydration (32), animations (35), Elements and library evaluation (37), architecture (38), the rewrite and Angular's release policy (39 §2, §3, Q39.03); each gets one sentence and a link (planned modules 45, 46, 47 file-level). **Other frameworks are documented only** (Lab decision 1): React, Vue, Solid, Svelte, Preact, Qwik and their routers, stores and meta-frameworks are stated from the tarballs named in F5-F14 and F18 (package, version, file, function) and from dated docs and registry reads, never as observed; **our models are named as ours** in every sentence that reports their output (C8). **No status markers on other frameworks' APIs** (C10). **No benchmark, survey, popularity, market or "faster" claim** beyond dated npm download counts with their caveats (C6); philosophy and motive only from each project's own text (C7).
+- Every task adds its sources under `## Module 40 · Framework comparisons` in `SOURCES.md` (after the last module section present; package reads as `<pkg>@<version>, <file>, <function>, read <date>`; docs as `<repo> <path>, read <date>` or the URL with the date; registry reads as `npm view <pkg> <fields>, read <date>` or `api.npmjs.org/downloads/point/last-week/<pkg>, week <start> to <end>, read <date>`) and its inline-defined terms under `## Module 40` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** Vitest specs only under `labs/ts-js/src/modules/40-framework-comparisons/` and the Output test under `labs/ts-js/src/outputs/40-framework-comparisons/` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only); a test that needs a DOM starts with `// @vitest-environment jsdom` (jsdom 30.1.1 is already a devDependency) and counts DOM writes with a `MutationObserver` or explicit counters, never with timings; **no test calls `git`, `npm` or the network, reads the clock or reads another lab's `node_modules`**; no file under `labs/angular` or `labs/e2e`; no duration or benchmark asserted (C6, C12).
+- **Shared files (C13):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `src/outputs/capture.ts`, VERSIONS.md or another module's folder or file. `concepts/mini-rerender.ts` is created by SEC-M40-03 and `concepts/mini-fine-grained.ts` by SEC-M40-04; both are read-only to later tasks.
+- **Code:** strict TypeScript, no `any`, no `as` outside a type test; low branching; our models are small (M40.md gives each a line budget) and say in a header comment which source they mirror and that they are not the framework; no internal symbol of any framework imported (C11). React (JSX/TSX), Vue SFC, Svelte and Solid snippets are **Partial** with a first line naming what they illustrate and the version read (`// Partial: React 19.3.1 component (not run in the labs)`); Angular snippets are Excerpts of an owner's lab file or Partial.
+- **First-time-pass rules (from REVIEW-M14 to M38; named so they do not recur):** every recorded version, date, export, option, message and download count is checked against the named file or dated read before writing; every "in the lab, X" names a test (`Section N: …`, `Q40.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its package, version, file and function, or a dated docs or registry read; quotes verbatim from the named file, version or URL and date, a shortened quote carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M40.md names followed by a line starting `What to notice`, parsed with the mermaid parser; **every Misconceptions bullet gives the correction and a cause clause** (M40.md names each cause); **terms defined at first use** (M40.md lists them per section), checked by a first-use script; **internal names marked internal at first use in each section** (C11); each `### Code` has numbered steps; each mechanism answers one "why" from a source read; the Output short answer gives the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups**; **every question and exercise is linked from the body** ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors.
+- **Prose budget** (deltas over the module count measured just before the task; M40.md "Budget"): skeleton 1,349 measured 2026-10-19 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps: SEC-M40-01..09 = 800 / 650 / 850 / 800 / 650 / 750 / 700 / 800 / 750 (6,750); EX-M40-01 = 560 (intro included), EX-M40-02 = 520 (1,080); QB-M40-01 = 1,170 (intro included), QB-M40-02 = 1,130, QB-M40-03 = 1,356 (3,656); CLOSE-M40 = 750. 1,349 + 6,750 + 1,080 + 3,656 + 750 = 13,585. **CLOSE at most 13,585 words; REVIEW ceiling 14,085.** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a diagram, a trap's cause or a "because"). Answer parts average at most 226 words per QB chunk, none above 290.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M40-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker (QB-M40-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M40-01 also writes the exercise intro at its placeholder). CLOSE-M40's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M40, and the header's Labs line carries a relink comment for CLOSE-M40. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q40-NN -->` (or `#ex40-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/ts-js` file changed: from `labs/ts-js` (Node 24), `npx vitest run src/modules/40-framework-comparisons src/outputs/40-framework-comparisons` and `npx tsc --noEmit` exit 0; from the guide root, `node labs/tools/check-snippets.mjs . 40` and `node labs/tools/check-links.mjs --planned` exit 0; `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line); every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`; `node_modules/` is ignored); the task's marker is gone; no scratch, tarball or temporary file left; the LOG line gives both prose counts.
+
+### SEC-M40-01 · M · Library, framework, progressive framework: what each project decides for you
+- Model: Sonnet (facts F3, F5, F7, F9, F11, F12, F16, F17 named in M40.md §1).
+- Files: module §1 and the verification paragraph (its placeholder before §1); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §1, F1, F3, F5, F7 (re-read `reactjs/react.dev` `src/content/learn/creating-a-react-app.md` with the date), F9, F11 (re-read `vuejs/docs` `src/guide/introduction.md`), F12, F16, F17, F18; 12 §1, Q12.01.
+- Do: M40.md §1 (delta 800 including the paragraph) with `flowchart LR`; each position stated from the project's own words (C7); meta-frameworks as the frameworks built on libraries; link 12 §1 and Q12.01 once each, never re-asked; link Q40.01 (relink comment until written); the verification paragraph (80-110 words) as M40.md §1 lists.
+- Acceptance: common rules; no lab file.
+
+### SEC-M40-02 · M · Templates, JSX and single-file components: what the compiler knows
+- Model: Sonnet (facts F5, F10, F11, F12 named in M40.md §2).
+- Files: module §2; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §2, F5, F10 (re-read `@vue/shared` 3.5.44 `PatchFlagNames` and `@vue/compiler-core` 3.5.44 around `patchFlag` from an `npm pack` into the job scratchpad, deleted after; state static hoisting only if read there), F11 (`guide/extras/rendering-mechanism.md`, the "compiler-informed virtual DOM" passage), F12; 12 §7, §8, Q12.27.
+- Do: M40.md §2 (delta 650) with `flowchart TD`; JSX and SFC snippets Partial; Angular's compiled output linked to 12 §8 (no re-derivation); link 12 §7, §8 and Q12.27 once each; link Q40.02.
+- Acceptance: common rules; no lab file.
+
+### SEC-M40-03 · M · React's model: re-rendering, reconciliation, memoization and the React Compiler
+- Model: Opus (judgment-heavy: React's bailout rules read from `react-dom` 19.3.1 and mirrored exactly by our model).
+- Files: module §3; `labs/ts-js/src/modules/40-framework-comparisons/concepts/{mini-rerender.ts,section-3-rerender.test.ts}` (new; `mini-rerender.ts` read-only to later tasks); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §3, F2, F5, F6 (re-read `react-dom@19.3.1` `cjs/react-dom-client.development.js` `beginWork`, `updateMemoComponent`, `updateSimpleMemoComponent`, `shallowEqual`, `dispatchSetStateInternal`, `propagateContextChanges`, `placeChild`), F7 (re-read `learn/react-compiler/introduction.md`, `blog/2025/10/07/react-compiler-1.md` and `CHANGELOG.md` 16.8.0), F8, C1 (automatic batching only after its read; compiled output only if read); 12 §8, Q12.27, 21 §1, Q21.34.
+- Do: M40.md §3 (delta 850) with `flowchart TD`; `mini-rerender.ts` (about 60 lines: function components of props, `useState` with an `Object.is` eager bailout, `memo` with a shallow `Object.is` compare, one context with readers; a render log; header comment "our model of react-dom 19.3.1's bailout rules, not React", C8) and the five `Section 3: …` tests; internal names marked (C11); React snippets Partial; link Q12.27 and Q21.34 once each; link Q40.03, Q40.04, Q40.05 and Exercise 40.1 (relink comments).
+- Acceptance: common rules.
+
+### SEC-M40-04 · M · Signals beyond Angular: Vue refs, Solid, Svelte runes, Preact and Qwik
+- Model: Opus (judgment-heavy: four signal systems compared from their shipped source).
+- Files: module §4; `labs/ts-js/src/modules/40-framework-comparisons/concepts/{mini-fine-grained.ts,section-4-fine-grained.test.ts}` (new; `mini-fine-grained.ts` read-only to later tasks); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §4, F9, F10 (re-read `@vue/reactivity` and `@vue/runtime-core` 3.5.44: `RefImpl`, `toReactive`, `refreshComputed`, `setupRenderEffect`, `queueJob`), F11 ("Connection to Signals"), F12 (re-read `solid-js@1.9.17` `dist/solid.js` `createComponent`, `writeSignal`, `runUpdates` and `web/dist/web.js` `insert`), F13, F14, F15, F17, C2 (Svelte `$state` docs read before stating deep proxying), C3, C4, C5; 03 §5, Q03.14, 17 §1, §8, §9, Q17.33, Q17.38, 21 §1, §5, Q21.34; 22 §1.
+- Do: M40.md §4 (delta 800) with `flowchart LR`; the five-axis comparison table, every cell sourced; `mini-fine-grained.ts` (about 50 lines; header comment "our model of solid-js 1.9.17's update path, not Solid", C8) and the three `Section 4: …` tests (`// @vitest-environment jsdom`); the Framework vs platform callout linking Q17.38 once; the M22 pointer sentence (RxJS is not part of React or Vue, F5, F9; link 17 §8 once); link Q03.14 and Q17.33 once each; link Q40.06, Q40.07.
+- Acceptance: common rules.
+
+### SEC-M40-05 · M · Dependency injection and shared state: injectors, context and provide/inject
+- Model: Sonnet (facts F5, F6, F10, F12, F13 named in M40.md §5).
+- Files: module §5; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §5, F5 (`createContext`), F6 (`propagateContextChanges`), F10 (`provide`, `inject`), F12 (`useContext`), F13 (`context.js`); `reactjs/react.dev` `reference/react/createContext.md` and `useContext.md` (read with the date); Vue Test Utils' `mount` `global.provide` only if read (else omitted); 16 §1, §5, §9, Q16.35, 29.
+- Do: M40.md §5 (delta 650) with `flowchart TD`; React and Vue snippets Partial; link 16 §1, §5 and Q16.35 once each and 29 once; link Q40.08.
+- Acceptance: common rules; no lab file.
+
+### SEC-M40-06 · M · Routing, forms, data fetching, tooling and testing: first-party or ecosystem
+- Model: Sonnet (facts F1, F5, F7, F11, F18 named in M40.md §6).
+- Files: module §6; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §6, F1, F5, F7, F11 (routing, state management, testing, tooling, `built-ins/transition.md`), F18 (re-read `react-router@8.5.0` and `vue-router@5.4.0` `package.json`, including `peerDependenciesMeta`), C1 (`<ViewTransition>` status), C2 (Svelte `transition:` docs); 12 §1, 24 §1, 25 §1, 26 §1, 28 §11, 29 §2, 32 §1, 35 §1, 39 §7.
+- Do: M40.md §6 (delta 750) with `flowchart LR`; the concern-by-framework table, each cell with its maintainer and source; the motion paragraph (handoff 35); link each Angular owner once; link Q40.09.
+- Acceptance: common rules; no lab file.
+
+### SEC-M40-07 · M · Ecosystem size, release policies and breaking changes
+- Model: Sonnet (facts F2, F4, F5, F7, F11, F17 named in M40.md §7).
+- Files: module §7; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §7, F2, F4 (re-read `api.npmjs.org/downloads/point/last-week/<pkg>` for the same packages on the task's date and state that week; read npm's download-count documentation before saying what the numbers include, C6), F5, F7 (`Component.md`, `CHANGELOG.md` 16.8.0, `versions.md`), F11 (`about/releases.md`, `v2.vuejs.org/eol/`), F17; 37 §12, 39 §2, §3.
+- Do: M40.md §7 (delta 700) with `timeline`; downloads with their week and caveats, no ranking beyond them (C6); the React class-versus-function snippet Partial; link 37 §12 and 39 §2, §3 once each; link Q40.10, Q40.11.
+- Acceptance: common rules; no lab file.
+
+### SEC-M40-08 · M · Choosing a framework: balanced trade-offs and how to answer "why Angular?"
+- Model: Opus (judgment-heavy: the choice framing, balanced, every criterion sourced).
+- Files: module §8; SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §8, §1-§7 of the module as written, F4, F16, F17, C1 (`reference/react/useSyncExternalStore.md`, read with the date), C6, C7; 08 §5, 12 §1, Q12.02, 16 §9, 32 §1, 37 §1, 38 §3, 39 §10.
+- Do: M40.md §8 (delta 800) with `flowchart TD`; constraints, weighted criteria and sensitivity; the "why Angular?" structure with the costs stated; the optional Coming from the backend callout with "Where the analogy breaks"; the portable-core pattern (Partial snippets); link Q12.02 once (not re-asked) and each other owner once; link Q40.12-Q40.15 and Exercise 40.2.
+- Acceptance: common rules; no lab file.
+
+### SEC-M40-09 · M · Under the hood: one state change traced through Angular, React, Vue and Solid
+- Model: Opus (judgment-heavy: the deepest section, one change traced through four runtimes from source).
+- Files: module §9; `labs/ts-js/src/modules/40-framework-comparisons/concepts/section-9-one-change.test.ts` (new; imports `mini-rerender.ts` and `mini-fine-grained.ts` read-only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M40.md §9, F6, F9, F10, F12, F16; 21 §1 (its committed test), §9, Q21.01, Q21.34.
+- Do: M40.md §9 (delta 750) with `sequenceDiagram` (or four `flowchart LR` rows, parsed); the trace table (notify, schedule, re-run, compare, write), every cell sourced; internal names marked (C11); the two `Section 9: …` tests with the counts the run shows; Angular's row linked to 21 §1's test, never re-run here; link Q21.01 and Q21.34 once each; link Q40.16 (and Q40.04).
+- Acceptance: common rules.
+
+### EX-M40-01 · M · Exercise 40.1 · A miniature virtual-DOM runtime: render functions, keyed reconciliation and memo bailouts
+- Model: Opus (two reconciliation algorithms mirrored from React's and Vue's source, with per-variant move counts).
+- Files: module exercise region and the exercise intro (its placeholder); `labs/ts-js/src/modules/40-framework-comparisons/exercise-1-vdom/`; SOURCES.md.
+- Inputs: M40.md Exercises 1, §3, §9, F6 (`placeChild`, `lastPlacedIndex`), F10 (`patchKeyedChildren`, `getSequence`); Exercises 12.4, 17.6 and 03.2 (linked from the intro, not rebuilt, C14).
+- Do: full E1 anatomy (delta 560 with the intro, at most 40 words); six criteria over both variants (`describe.each`), the move-count criterion with its per-variant expected value; `// @vitest-environment jsdom`; our code modeled on the read sources (C8); at least two answered follow-ups; restore section links to Exercise 40.1.
+- Acceptance: common rules.
+
+### EX-M40-02 · M · Exercise 40.2 · A framework decision record: must-have gates, weighted criteria, ties and sensitivity
+- Model: Sonnet (criteria named in M40.md Exercises 2).
+- Files: module exercise region; `labs/ts-js/src/modules/40-framework-comparisons/exercise-2-decision/`; SOURCES.md.
+- Inputs: M40.md Exercises 2, §8 (and §1-§7 as evidence keys), C6, C7.
+- Do: full E1 anatomy (delta 520); six criteria over both variants (weighted sum and Borda count), per-variant expected values where the methods differ, as the run shows; the fixture labeled as one example team's judgments, every score citing a section of this module; no clock, no network; at least two answered follow-ups; restore section links to Exercise 40.2.
+- Acceptance: common rules.
+
+### QB-M40-01 · M · Q40.01-Q40.05 and the bank intro
+- Model: Sonnet (routine question writing; facts, tests and links named in M40.md "Question notes"; one Output answer from a run).
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); `labs/ts-js/src/outputs/40-framework-comparisons/q40-04.test.ts` (new; `captureLogs`, imports `concepts/mini-rerender.ts` read-only); section links in §1-§3 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 226 words across the chunk, none above 290, at least two answered follow-ups each; Q40.01 links 12 §1 and Q12.01 once; Q40.02 links 12 §7, §8 and Q12.27 once; Q40.03 links Q21.34 once; Q40.04 through our model, the result and its reason, worded as our model mirroring `react-dom` 19.3.1 (C8), lines as the run shows; Q40.05 links Q17.33 once.
+- Acceptance: common rules; D1 counts equal 5; chunk at most +1,170 words (5% tolerance); the Output test passes.
+
+### QB-M40-02 · M · Q40.06-Q40.10
+- Model: Sonnet (as QB-M40-01).
+- Files: module Question bank (its marker region); section links in §4-§7; SOURCES.md.
+- Do: as QB-M40-01; Q40.06 links Q03.14 and Q17.38 once each; Q40.07 reads Vue's `reactive()` destructuring limitation in `vuejs/docs` `src/guide/essentials/reactivity-fundamentals.md` with the date before stating it, and links the owner 17 question or section on in-place mutation once; Q40.08 links Q16.35 once; Q40.10 states downloads with their week and caveats (C6) and links 37 §12 once.
+- Acceptance: common rules; D1 counts equal 5; chunk at most +1,130 words.
+
+### QB-M40-03 · M · Q40.11-Q40.16
+- Model: Sonnet (as QB-M40-01; six questions).
+- Files: module Question bank (its marker region); section links in §7-§9; SOURCES.md.
+- Do: as QB-M40-01; Q40.11 links 39 §2 and §3 once each; Q40.12 links Q12.02 once and 32 §1 once and does not re-ask Q12.02; Q40.13 states Angular's costs as plainly as its strengths (no advocacy, C6, C7); Q40.14 links 39 §10 and 38 §3 once each; Q40.15 rests on the `useSyncExternalStore` docs read (C1); Q40.16 links Q21.01 and Q21.34 once each; then D3 and D5 for the whole bank and a link check into 03, 12, 16, 17, 21, 24-29, 32, 35, 37, 38 and 39.
+- Acceptance: common rules; D1 counts equal 6; chunk at most +1,356 words; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M40 · M · Close module 40
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Files: module header (Applies to, Short on time, Labs line with links), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 40, totals); `_meta/ROADMAP.md` (its row for 40).
+- Do: as CLOSE-M39: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M40.md's breadth table against the finished module (all four checkboxes); run the full verification (Standard checks, `check-snippets.mjs . 01 … 40`, `module-stats.mjs` and the python one-liner); trim named repeats if above 13,585; no other module is edited: record in the LOG line the file-level links into 40 (M40.md anchor candidates), the VERSIONS.md rows of For Jorge 1, and the open points C1-C5.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/40-framework-comparisons.md` is 0; prose at most 13,585.
+
+### REVIEW-M40 · L · independent review of module 40
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- As `REVIEW-M39`. Must run in a session that authored no task of module 40 except PLAN-M40, and not in a continuation of their conversations. Findings become `FIX-M40-nn` tasks appended to this file. Module-specific checks: every claim about React, Vue, Solid, Svelte, Preact or Qwik traced to a tarball read (package, version, file, function), a dated docs read or a dated registry read, re-reading at least ten of them; our models (`mini-rerender.ts`, `mini-fine-grained.ts`, Exercise 40.1's runtimes) checked against the source they mirror (F6, F10, F12) and named as ours in every sentence (C8); Q40.04's answer against a re-run of its test; no benchmark, survey, popularity or market claim beyond dated download counts with caveats (C6); philosophy and motives only from each project's own text (C7); balance in §8 and Q40.12-Q40.14 (Angular's costs stated); no Angular-style status marker on another framework's API (C10); no network, clock or install in any test (C12); the handoff lines into 40 (M40.md "Handoffs into 40") honored, Q12.02, Q12.27, Q03.14, Q17.38, Q21.01 and Q21.34 not re-asked, with an anchor proposal per file-level link (M40.md anchor candidates) for a FIX task; prose at most 14,085 after fixes.
+
+### FIX-M40-01 · S · Factual fixes and attributions (F-1..F-4)
+- Files: `modules/40-framework-comparisons.md`; `SOURCES.md` (lines under `## Module 40`: the `@vue/compiler-core@3.5.44` `walk` line corrected (F-1); a new `react-dom@19.3.1` `flushSync` / `flushSyncWork$1` line (F-3); the `sveltejs/svelte` `02-$state.md` line gains the "every reference to `count` is transformed by the Svelte compiler" quote (F-4)); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M40.md` (Factual findings F-1..F-4, with the source lines read).
+- Do: apply each fix text in REVIEW-M40, finding each line by its quoted text: F-1 (§2 static hoisting, also defines the term), F-2 (§8 costs: "(Q12.02)" → 39 §8 link), F-3 (Q40.16 follow-up "Only Solid"), F-4 (§4 Svelte misconception). No lab file, no heading or anchor change; M40.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 40` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/40-framework-comparisons.md`: `grep -c 'hoists its constant props'` = 0, `grep -c 'context.cache'` ≥ 1, `grep -c 'holds an upgrade back (Q12.02)'` = 0, `grep -c 'Only Solid, in the read source'` = 0, `grep -c 'flushSync'` ≥ 1, `grep -c "reactivity during compilation\" (Vue's docs)"` = 0; the 9 Mermaid diagrams unchanged; prose at most +60 over the count just before and at most 14,085, both counts in the LOG line.
+- Model: **Sonnet** (every text and source is prescribed in the review).
+
+### FIX-M40-02 · M · Terms, internal names and nits (T-1, T-2, N-1..N-9)
+- Files: `modules/40-framework-comparisons.md`; `_meta/GLOSSARY-TERMS.md` (`## Module 40`: virtual DOM, peer dependency if missing); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M40.md` (T-1, T-2, Nits N-1..N-9).
+- Do: apply T-1 (virtual DOM in §2 Mental model; peer in §1; SemVer range in §3; fiber in Q40.07; lanes in the §9 table), T-2 (`RefImpl` and `componentUpdateFn` marked internal in §4; §9's blanket sentence excepts `insert` and `createRenderEffect`), N-1 (period after the nine "Drilled in" lines), N-2 (double parenthesis in §5), N-3 (Partial line on §7's second JSX fence), N-4 (verification paragraph: owner tests 21, 16, 29 and the full read list), N-5 (Applies to dates), N-6 (Q40.05 quote marks), N-7 (Q40.11 ngUpgrade hybrids, 39 §9 link), N-8 (Exercise 40.2 gate account), N-9 ("judgement" → "judgment", "favourite" → "favorite"). Disjoint lines from FIX-M40-01 (F-1 already defines static hoisting); run in either order. No heading or anchor change.
+- Acceptance: `node labs/tools/check-snippets.mjs . 40` and `node labs/tools/check-links.mjs --planned` exit 0; in the module: `grep -c '^Drilled in.*)$'` = 0, `grep -c '(the recipe))'` = 0, `grep -c 'A \*\*virtual DOM\*\*'` ≥ 2, `grep -c 'Only when the fiber has no pending update'` = 0, `grep -c '(`RefImpl`, internal)'` = 1, `grep -cw 'judgement'` = 0, `grep -c 'favourite'` = 0, `grep -c '\[17\](17-signals.md), \[21\]'` = 0, `grep -c '#9-from-angularjs-to-angular-ngupgrade-hybrids-the-strangler-fig-and-rewrites'` = 1; Q40.11's answer part stays at most 290 words; `<details>` count (28) and the 9 Mermaid diagrams unchanged; prose at most +120 over the count just before and at most 14,085, both counts in the LOG line.
+- Model: **Sonnet** (every text is prescribed in the review).
+
+### FIX-M40-03 · S · Anchors for the file-level links into 40 (+0 words)
+- Files: link targets only in `modules/03-js-objects-prototypes-classes.md`, `12-angular-how-it-works.md`, `17-signals.md`, `21-change-detection.md`, `35-animations.md`, `39-version-history-and-migrations.md` (allowed through this FIX, RUN.md §10, including `17-signals.md`); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M40.md` § Handoffs.
+- Do: apply the Handoffs table (13 rows: 12:88 → §1; 12:701, 12:1463, 12:1792 → §3; 03:1700, 17:1829 → §4; 12:1862, 35:1991 → §6; 39:1947 → §7; 12:851, 39:1948 → §8; 17:2433, 21:120 → §9; find each line by its context text, not the line number). Only the link target changes (`40-framework-comparisons.md` → `40-framework-comparisons.md#<slug>`). Verify each slug against module 40's `## N.` headings. Leave 35:5, 39:5 and 21:2711 file-level. No heading changes in FIX-M40-01 or -02, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '40-framework-comparisons.md#'` across the six files totals 13 (0 before); `git diff --stat` touches only those six files (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+- Model: **Sonnet** (mechanical; slugs listed).
+
+### Module 41 tasks (PLAN-M41) · common rules
+- Inputs for every task: `_meta/modules/M41.md` (its section, question or exercise rows, the budget, "Handoffs into 41", "What other modules already teach", "Lab decision", "Facts established while planning" F1-F21 (with F6b), "Could not be read" C1-C20, the owner map), STYLE-GUIDE §3-§8 (§7.2 for the Spring banner), QUALITY-BAR B-E, SYLLABUS §4 (41) and §7 decision 2, the module skeleton, and for Part E depth `modules/09-web-networking-storage-security.md` (Part C sizing: 22 questions, about 10,000 words) and `modules/27-http-client.md` (the Angular HTTP owner; read a section, answer or exercise of the same kind before writing; never copy), and `_meta/reviews/REVIEW-M39.md` § Findings (and `_meta/reviews/REVIEW-M40.md` once it exists). Re-verify every fact the task uses before writing (lab > package or framework source > official docs, RFC or registry) and record the basis next to the claim; every "Could not be read" item for the task is read first, or the claim is dropped. Spring and Jackson sources are read on GitHub at their release tags (`spring-framework` `v7.0.9`, `spring-boot` `v4.1.1`, `spring-security` `7.1.1`, `spring-data-commons` `4.1.1`, `springdoc-openapi` `v3.1.1`, `jackson-databind` `jackson-databind-3.1.5`) into the job scratchpad and deleted before the task ends; tarballs are `npm pack`ed there too; nothing is installed.
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics: the browser's CORS rules (09 §5, Q09.12-Q09.14, Exercise 09.1), HTTP semantics and `ETag` (09 §1, §4, Q09.01), `HttpClient` requests, interceptors, errors, retry, progress, `httpResource` and testing (27 §3-§5, §9-§11, Q27.15, Q27.16, Q27.18, Q27.28, Q27.29, Exercises 27.1, 27.5, 27.6), Zod and guards (07 §8, Q07.16, Q07.17), branded IDs and money types (07 §6, Q07.12, Q01.09, Exercise 01.3), numbers and `null` (01 §2, §7, Q01.08), forms validators and error display (25 §5, §8, Exercise 25.4), Signal Forms rules and submission errors (26 §4, §7, Q26.12, Q26.21, Exercise 26.4), optimistic updates (28 §10, Q28.28), network mocking and where contract tests take over (30 §5, Q30.10), guards are UX (33 §10, Q33.26), display of dates and money (34 §10, Q34.03, Q34.23), error UX (37 §10, Q37.21), facades (38 §3); each gets one sentence and a link (planned modules 42, 43, 44 file-level). **The Spring side is documented only** (SYLLABUS §7 decision 2): every Java snippet's first line is `// Spring Boot 4.1 — illustrative, not compiled in labs`, every annotation, class, method and property in it is read in the named source before writing, and no sentence says the server "did" something in the lab. **Generators are documented only** (C9): "read, not run". **Our fixtures and models are named as ours** (C18). **No Angular-style status markers on Spring, Jackson or generator facts** (C16).
+- Every task adds its sources under `## Module 41 · Full-stack API contracts` in `SOURCES.md` (after the last module section present; framework sources as `<repo> <tag> <path>, read <date>`; Maven POMs as their URL and date; RFCs and the Fetch Standard with URL and date; package reads as `<pkg>@<version>, <file>, <function>, read <date>`; registry reads as `npm view <pkg> <fields>, read <date>`) and its inline-defined terms under `## Module 41` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** Angular specs only under `labs/angular/src/app/modules/41-fullstack-api-contracts/` (`concepts/`, `outputs/`, `exercise-N-*/`), using `HttpTestingController` or the real fetch backend with `vi.stubGlobal('fetch', …)` returning prepared `Response` objects (and `vi.unstubAllGlobals()` after each test), as 27's specs do; plain TypeScript tests only under `labs/ts-js/src/modules/41-fullstack-api-contracts/` and the Output test under `labs/ts-js/src/outputs/41-fullstack-api-contracts/` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only); **no test calls `git`, `npm` or the network, reads the clock (`Date.now()`, `new Date()` without an argument) or depends on the machine's time zone** (every formatting call passes `timeZone`); no file under `labs/e2e`; no `labs/spring-backend/` (C19).
+- **Shared files (C20):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `angular.json`, `src/outputs/capture.ts`, VERSIONS.md or another module's folder or file. Read-only to later tasks once created: labs/angular `concepts/problem-details.ts` (SEC-M41-05), `concepts/page-params.ts` (SEC-M41-06), `concepts/json-pointer.ts` (SEC-M41-07); labs/ts-js `concepts/wire-codecs.ts` (SEC-M41-09).
+- **Code:** modern Angular (standalone, `inject()`, signals, functional interceptors, built-in control flow, no `changeDetection`), at most four injected dependencies per class, low branching, strict TypeScript, no `any`, no `as` outside a type test; v22 file names (no `.component` suffix). Angular internals (`FetchBackend.parseBody`, `_maybeConvertBody`) are read, never imported (C17). Java snippets illustrative under the banner; `proxy.conf.json`, YAML and OpenAPI JSON fences are non-TS fences; generated code shown is Partial (M41.md "Lab decision").
+- **First-time-pass rules (from REVIEW-M14 to M39; named so they do not recur):** every recorded version, default, property, class name, message and header is checked against the named file or dated read before writing; every "in the lab, X" names a test (`Section N: …`, `Q41.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its artifact, version, file and class, or a dated docs, RFC or registry read; quotes verbatim from the named file, version or URL and date, a shortened quote carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M41.md names followed by a line starting `What to notice`, parsed with the mermaid parser; **every Misconceptions bullet gives the correction and a cause clause** (M41.md names each cause); **terms defined at first use** (M41.md lists them per section), checked by a first-use script; **internal names marked internal at first use in each section** (C17); each `### Code` has numbered steps; each mechanism answers one "why" from a source read; the Output short answer gives the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups**; **every question and exercise is linked from the body** ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors.
+- **Prose budget** (deltas over the module count measured just before the task; M41.md "Budget"): skeleton 1,635 measured 2026-10-20 by the QUALITY-BAR python one-liner (main confirms with `node labs/tools/module-stats.mjs`). Caps: SEC-M41-01..10 = 480 / 350 / 400 / 340 / 420 / 330 / 360 / 360 / 340 / 380 (3,760); EX-M41-01 = 400 (intro included), EX-M41-02 = 380, EX-M41-03 = 380 (1,160); QB-M41-01 = 775 (intro included), QB-M41-02 = 735, QB-M41-03 = 735 (2,245); CLOSE-M41 = 500. 1,635 + 3,760 + 1,160 + 2,245 + 500 = 9,300. **CLOSE at most 9,300 words; REVIEW ceiling 9,800; hard cap 10,000.** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a diagram, a trap's cause or a "because"). Answer parts average at most 105 words per QB chunk, none above 140.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M41-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker (QB-M41-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M41-01 also writes the exercise intro at its placeholder). CLOSE-M41's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M41, and the header's Labs line carries a relink comment for CLOSE-M41. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q41-NN -->` (or `#ex41-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/angular` file changed: from `labs/angular` (Node 24), `npx ng test --watch=false --include='src/app/modules/41-fullstack-api-contracts/**/*.spec.ts'` and `npx tsc -p tsconfig.spec.json --noEmit` exit 0 (and `npx ng build` when non-spec code was added); when a `labs/ts-js` file changed: from `labs/ts-js`, `npx vitest run src/modules/41-fullstack-api-contracts src/outputs/41-fullstack-api-contracts` and `npx tsc --noEmit` exit 0; from the guide root, `node labs/tools/check-snippets.mjs . 41` and `node labs/tools/check-links.mjs --planned` exit 0; `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line); every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`; `node_modules/` is ignored); the task's marker is gone; no scratch, tarball or temporary file left; the LOG line gives both prose counts. The main session runs every check serially; writers report readiness.
+
+### SEC-M41-01 · M · CORS on both sides: Spring's `CorsConfigurationSource`, Spring Security, preflight caching, credentials and the dev proxy
+- Model: Opus (judgment-heavy: CORS across Spring MVC and Spring Security 7 read from source, the auto-configuration condition and the credential rules must be exact).
+- Files: module §1 and the verification paragraph (its placeholder before §1); `labs/angular/src/app/modules/41-fullstack-api-contracts/concepts/section-1-cors.spec.ts` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §1, F2, F3 (re-read `spring-web` 7.0.9 `CorsConfiguration.java` and the `maxAge` guard in `DefaultCorsProcessor.java`), F4 (re-read Spring Security 7.1.1 `cors.adoc`), F5 (re-read `adev/src/content/tools/cli/serve.md` with the date), F6b, F21; C1 (Boot 4.1.1 `web/spring-security.adoc` and Security 7.1.1 `servlet/architecture.adoc` before naming any filter order), C4; 09 §5, Q09.12-Q09.14; 27 §1-§2 specs (the `vi.stubGlobal('fetch', …)` pattern).
+- Do: M41.md §1 (delta 480 including the paragraph) with `sequenceDiagram`; Java `UrlBasedCorsConfigurationSource` bean and `SecurityFilterChain` with `.cors(withDefaults())` under the banner (F2-F4 only); `proxy.conf.json` and `proxyConfig` (F5); the Coming from the backend callout with where it breaks; the three `Section 1: …` tests (the credentials value as the run shows); link 09 §5 and Q09.12-Q09.14 once each, never re-asked; 42 and 44 file-level once; link Q41.01-Q41.03 (relink comments); the verification paragraph (80-110 words) as M41.md §1 lists.
+- Acceptance: common rules.
+
+### SEC-M41-02 · M · DTO contracts: what crosses the wire, absent versus `null`, and checking responses at the boundary
+- Model: Sonnet (facts F14, F21 and owners named in M41.md §2).
+- Files: module §2; `labs/ts-js/src/modules/41-fullstack-api-contracts/concepts/{order-dto.ts,section-2-dto-boundary.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §2, F14 (re-read `DeserializationFeature.java` at `jackson-databind-3.1.5`), C7 (Boot's Jackson defaults before saying "unless Boot changes it"), F21; 01 §7 and 01:486, 07 §8, Q07.16, Q07.17; RFC 7386 only if the task names JSON Merge Patch.
+- Do: M41.md §2 (delta 350) with `flowchart LR`; Java DTO record and mapper under the banner; Zod response schema (Complete) and PATCH body builder (Excerpt); the four `Section 2: …` tests; link 01 §7, 07 §8, Q07.16 and Q07.17 once each; link Q41.04 (relink comment).
+- Acceptance: common rules.
+
+### SEC-M41-03 · M · OpenAPI with springdoc and generated TypeScript clients: openapi-generator, orval and ng-openapi-gen
+- Model: Opus (judgment-heavy: three generators compared from their shipped templates and docs, and our drift checker's design).
+- Files: module §3; `labs/ts-js/src/modules/41-fullstack-api-contracts/concepts/{fixtures/orders-openapi.json,contract-drift.ts,section-3-contract-drift.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §3, F17 (re-read springdoc `v3.1.1` `README.md` and `SpringDocConfigProperties.java`), F18 (re-`npm pack` `ng-openapi-gen@1.1.0` and `@orval/angular@8.43.0` into the job scratchpad: `templates/fn.handlebars`, `apiService.handlebars`, `ng-openapi-gen-schema.json`, `README.md`; `dist/index.mjs`; deleted after), C2, C9 (openapi-generator's `typescript-angular` docs page with the date); 30 §5, Q30.10, 38 §3.
+- Do: M41.md §3 (delta 400) with `flowchart LR`; the three-row generator table, every cell sourced, "read, not run"; the fixture written in springdoc's OpenAPI 3.1.0 shape and labeled ours in `info.description` (C18); `contract-drift.ts` (about 50 lines; header comment "our checker, not a generator") and the three `Section 3: …` tests; Partial ng-openapi-gen output shape; link 30 §5, Q30.10 and 38 §3 once each; 44 file-level once (CI); link Q41.05-Q41.07.
+- Acceptance: common rules.
+
+### SEC-M41-04 · M · Evolving the contract: compatible changes, API versioning in Spring Framework 7 and deprecation headers
+- Model: Sonnet (facts F8, F10, F11, F14 named in M41.md §4; C3 read before any configurer code).
+- Files: module §4; `labs/angular/src/app/modules/41-fullstack-api-contracts/concepts/{api-version.interceptor.ts,section-4-versioning.spec.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §4, F8, F10 (re-read the three Spring 7.0.9 pages), F11, F14, C3 (`ApiVersionConfigurer.java` and `org/springframework/web/accept/*` in `spring-web`/`spring-webmvc` 7.0.9), C16 (the `@since` of `ApiVersionStrategy` before any "added in 7.0" phrasing); 37 §6, Q38.17, 07:1199.
+- Do: M41.md §4 (delta 340) with `flowchart TD`; Java `@GetMapping(..., version = "1.2+")` and the YAML properties under the banner; the version interceptor (Complete) and unknown-enum fallback (Excerpt); the three `Section 4: …` tests; reading `Deprecation` cross-origin needs it exposed (link §1); link 37 §6 and Q38.17 once each; link Q41.08, Q41.09.
+- Acceptance: common rules.
+
+### SEC-M41-05 · M · Error contracts with `ProblemDetail` (RFC 9457) and mapping them in Angular
+- Model: Opus (judgment-heavy: Spring's defaults read from `spring-web` 7.0.9 and Angular's `parseBody` read from 22.2.1; the module's most-probed mechanism).
+- Files: module §5; `labs/angular/src/app/modules/41-fullstack-api-contracts/concepts/{problem-details.ts,section-5-problem-details.spec.ts}` (new; `problem-details.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §5, F6, F7 (re-read `ProblemDetail.java`, `MethodArgumentNotValidException.java`, `MaxUploadSizeExceededException.java`, and `ResponseEntityExceptionHandler.java`'s `handleMethodArgumentNotValid` signature at `v7.0.9`), F8, F9 (re-read RFC 9457 §3), F16 (412, RFC 6901), F19 (re-read `@angular/common` 22.2.1 `fesm2022/_module-chunk.mjs` `parseBody`), F21, C13, C15; 27 §5, Q27.15, Q27.16, Q27.18, 28 §10, Q28.28, 09 §4, 04:491, 27:1552, 27:1620, 28:1084.
+- Do: M41.md §5 (delta 420) with `sequenceDiagram`; Java advice under the banner adding `errors` with pointers and a `type` URI; `problem-details.ts` (`isProblemDetail`, `readProblem` for object, string and `Blob`; Complete) and the five `Section 5: …` tests over the real fetch backend with stubbed `fetch` (bodies shaped from F7/F9, labeled ours, C18); Framework vs platform and Coming from the backend callouts; one sentence that 27's `fields` is this contract's `errors`; link Q27.15, Q27.16, Q27.18 and Q28.28 once each; link Q41.10-Q41.12 and Exercise 41.1.
+- Acceptance: common rules.
+
+### SEC-M41-06 · M · Pagination, sorting and filtering: offset versus cursor, and how Spring Data serializes a `Page`
+- Model: Sonnet (facts F8, F12, F13 named in M41.md §6).
+- Files: module §6; `labs/angular/src/app/modules/41-fullstack-api-contracts/concepts/{page-params.ts,section-6-pagination.spec.ts}` (new; `page-params.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §6, F8 (`DataWebProperties.java` at `v4.1.1`), F12 (re-read `core-extensions-web.adoc`, `EnableSpringDataWebSupport.java`, `PagedModel.java` at `4.1.1`), F13 (`scrolling.adoc`, `ScrollPosition.java`), C11; 27 §3.
+- Do: M41.md §6 (delta 330) with `flowchart TD`; Java `VIA_DTO` and a `PagedModel<OrderDto>` controller under the banner; `toPageParams` (Complete) and the response mappers (Excerpt); the four `Section 6: …` tests (`HttpTestingController`); link 27 §3 once; link Q41.13, Q41.14 and Exercise 41.3.
+- Acceptance: common rules.
+
+### SEC-M41-07 · M · Validation on both layers: Bean Validation, Angular validators and server errors on form fields
+- Model: Sonnet (facts F9, F15, F16 named in M41.md §7; owners 25 and 26 hold the forms mechanics).
+- Files: module §7; `labs/angular/src/app/modules/41-fullstack-api-contracts/concepts/{json-pointer.ts,section-7-validation.spec.ts}` (new; `json-pointer.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §7, F9, F15 (re-read `ann-validation.adoc` at `v7.0.9`), F16 (RFC 6901 §4), C8 (springdoc/swagger-core constraint mapping before any "derive from OpenAPI" claim; Jakarta Validation 3.1 javadoc for constraint names), C10; 25 §5, §8, 26 §4, §7, Q26.12, Q26.21, 33 §10.
+- Do: M41.md §7 (delta 360) with `flowchart LR`; Java DTO with constraints and nested `@Valid` under the banner; `parsePointer` (Complete) and the reactive resolver helper (Excerpt); the four `Section 7: …` tests; the required Coming from the backend callout (`@Size`/`@Pattern` versus `Validators`) with where it breaks; link 25 §5, 26 §7 and 33 §10 once each; link Q41.15, Q41.16 and Exercise 41.2.
+- Acceptance: common rules.
+
+### SEC-M41-08 · M · Files: multipart and chunked uploads, progress, and downloads with `Content-Disposition` and streaming
+- Model: Sonnet (facts F6b, F7, F8, F16, F19 named in M41.md §8).
+- Files: module §8; `labs/angular/src/app/modules/41-fullstack-api-contracts/concepts/{content-disposition.ts,chunk-plan.ts,section-8-files.spec.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §8, F6b (Fetch Standard, dated), F7 (413), F8 (`MultipartProperties.java`), F16 (re-read `multipart-forms.adoc`, `return-types.adoc`, `ContentDisposition.java` at `v7.0.9`; RFC 6266 §4.3), F19, C5; 27 §3, §9, Q27.29, Exercise 27.5.
+- Do: M41.md §8 (delta 360) with `sequenceDiagram`; Java upload and streaming download under the banner (signatures read first), YAML limits; `parseContentDisposition` (Complete) and the chunk planner (Excerpt; "our protocol" unless C5 is read); the five `Section 8: …` tests; Framework vs platform callout (`fetch` streams, `HttpClient`'s `Blob` arrives whole); 43 file-level once; link 27 §9, Q27.29 and Exercise 27.5 once each; link Q41.17, Q41.18 and Q41.03.
+- Acceptance: common rules.
+
+### SEC-M41-09 · M · Dates, time zones, decimals and money across the wire
+- Model: Sonnet (facts F14, F21 named in M41.md §9; C7 read before any Jackson number claim).
+- Files: module §9; `labs/ts-js/src/modules/41-fullstack-api-contracts/concepts/{wire-codecs.ts,section-9-wire-codecs.test.ts}` (new; `wire-codecs.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §9, F14 (re-read `DateTimeFeature.java` at `jackson-databind-3.1.5` and Boot 4.1.1 `features/json.adoc`), C6, C7, C12; 01 §2, Q01.08, Q01.09, Exercise 01.3, 34 §10 (its `Section 10: …` tests linked), Q34.23, 01:704, 01:767, 01:1400.
+- Do: M41.md §9 (delta 340) with `flowchart LR`; Java DTO under the banner (`@JsonFormat(shape = STRING)` only after C7); the codecs (Complete) and the four `Section 9: …` tests (no clock, no machine time zone); "Once true … until Jackson 3.0" from F14's source comment; link 01 §2, Q01.09, 34 §10 and Q34.23 once each; link Q41.19, Q41.20.
+- Acceptance: common rules.
+
+### SEC-M41-10 · M · Under the hood: one failed request through Spring's filters and handlers and Angular's backend
+- Model: Opus (judgment-heavy: the deepest section; one failed request traced through both stacks, each hop sourced or tested).
+- Files: module §10; `labs/angular/src/app/modules/41-fullstack-api-contracts/concepts/section-10-trace.spec.ts` (new; imports `problem-details.ts` and `json-pointer.ts` read-only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M41.md §10, F4, F6, F7, F10, F15, F19, C1 (filter order only if read); §1, §5, §7 as written; 27 §4, Q27.15, 09 §5.
+- Do: M41.md §10 (delta 380) with `sequenceDiagram` and the trace table; the three `Section 10: …` tests; every Spring hop "read, not run" with its source, every Angular hop asserted; link 27 §4 and Q27.15 once each; link Q41.21.
+- Acceptance: common rules.
+
+### EX-M41-01 · M · Exercise 41.1 · A problem-details client: read `application/problem+json` from JSON and `Blob` error bodies and map problem types to UI errors
+- Model: Sonnet (criteria and files named in M41.md Exercises 1).
+- Files: module exercise region and the exercise intro (its placeholder); `labs/angular/src/app/modules/41-fullstack-api-contracts/exercise-1-problem-details/` (new); SOURCES.md.
+- Inputs: M41.md Exercises 1, §5, §10, F7, F9, F19, F21, C13, C18; Exercises 27.1, 26.4 and 27.5 (linked from the intro, not rebuilt).
+- Do: full E1 anatomy (delta 400 with the intro, at most 40 words); six criteria over both variants (`describe.each(['a', 'b'])`: a service function in `catchError` and a normalizing interceptor), titles equal to the criteria; real fetch backend over stubbed `fetch` for the JSON and `Blob` bodies; at least two answered follow-ups; restore section links to Exercise 41.1.
+- Acceptance: common rules; `npx ng build` exits 0 (non-spec code added).
+
+### EX-M41-02 · M · Exercise 41.2 · Server errors on form fields: resolve RFC 9457 pointers onto a nested reactive form and a Signal Forms submission
+- Model: Opus (judgment-heavy: RFC 6901 pointers resolved onto two forms APIs with identical criteria; the Signal Forms side must match 22.2.1's submission-error shape).
+- Files: module exercise region; `labs/angular/src/app/modules/41-fullstack-api-contracts/exercise-2-form-errors/` (new; imports `concepts/json-pointer.ts` read-only); SOURCES.md.
+- Inputs: M41.md Exercises 2, §7, §5, F9, F16, C10 (read 26's lab and `@angular/forms` 22.2.1 typings first); 25 §5, §8, 26 §7, Exercise 26.4.
+- Do: full E1 anatomy (delta 380); six criteria over both variants (reactive `FormGroup` with a nested group and a `FormArray`; Signal Forms through `submit()`), titles equal to the criteria; the same model and field order for both; at least two answered follow-ups; restore section links to Exercise 41.2.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### EX-M41-03 · M · Exercise 41.3 · A list client for two pagination contracts: offset pages and cursor windows, with sort, filter and checked responses
+- Model: Opus (judgment-heavy: two pagination contracts behind one list client, a per-variant expected value, and integration of §2, §5, §6 and §9).
+- Files: module exercise region; `labs/angular/src/app/modules/41-fullstack-api-contracts/exercise-3-paged-list/` (new; imports `concepts/page-params.ts` and `concepts/problem-details.ts` read-only); SOURCES.md.
+- Inputs: M41.md Exercises 3, §6, §2, §5, §9, F12, F13, F14; 27 §10, Exercise 27.6 (linked, not rebuilt).
+- Do: full E1 anatomy (delta 380); six criteria over both variants (`describe.each(['a', 'b'])`: offset `PagedModel` source and cursor source), the duplicates criterion with its per-variant expected value (`a` 1, `b` 0, as the run confirms); the store uses signals and `inject()` with at most four dependencies; `HttpTestingController`; at least two answered follow-ups; restore section links to Exercise 41.3.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### QB-M41-01 · M · Q41.01-Q41.07 and the bank intro
+- Model: Sonnet (routine question writing; facts, tests and links named in M41.md "Question notes").
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); section links in §1-§3 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 105 words across the chunk, none above 140, at least two answered follow-ups each; Q41.01 links Q09.12 and Q09.13 once; Q41.03 links Q09.14 once and quotes F3's exception text abridged; Q41.04 links 01 §7 once; Q41.05 and Q41.07 link 38 §3 and Q30.10 once each; Q41.06 is "read, not run" throughout (C9).
+- Acceptance: common rules; D1 counts equal 7; chunk at most +775 words (5% tolerance).
+
+### QB-M41-02 · M · Q41.08-Q41.14
+- Model: Sonnet (as QB-M41-01; one Output answer from a run).
+- Files: module Question bank (its marker region); `labs/angular/src/app/modules/41-fullstack-api-contracts/outputs/q41-11.spec.ts` (new; real fetch backend over stubbed `fetch`); section links in §4-§6; SOURCES.md.
+- Do: as QB-M41-01; Q41.09 rests on C3's read; Q41.10 and Q41.12 link Q27.16 once (the client mapping layer is 27's); Q41.11 through its test (`it('Q41.11 …')`), the three `error` values and the reason from `parseBody` (F19, internal), values as the run shows, links Q27.15 once; Q41.12 links Q28.28 and Q27.18 once each and labels the idempotency header as our example contract (C15); Q41.14 rests on F8 and F12.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +735 words; the Output test passes.
+
+### QB-M41-03 · M · Q41.15-Q41.21
+- Model: Sonnet (as QB-M41-01; one Output answer from a run).
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/41-fullstack-api-contracts/q41-19.test.ts` (new; `captureLogs`); section links in §7-§10; SOURCES.md.
+- Do: as QB-M41-01; Q41.15 rests on C8's read and does not re-ask Q26.12; Q41.16 links Q26.21 and 25 §5 once each; Q41.17 and Q41.18 link Q27.29 and Exercise 27.5 once; Q41.18's chunk protocol is ours unless C5 was read; Q41.19 through its test (`it('Q41.19 …')`), lines as the run shows, links Q01.08 once; Q41.20 links Q01.09 and Q34.23 once each; Q41.21 links 27 §4 once; then D3 and D5 for the whole bank and a link check into 01, 07, 09, 25-28, 30, 33, 34, 37 and 38.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +735 words; `module-stats.mjs` shows no D3 flag; the Output test passes.
+
+### CLOSE-M41 · M · Close module 41
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Files: module header (Applies to, Short on time, Labs line with links and both run commands), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 41, totals); `_meta/ROADMAP.md` (its row for 41).
+- Do: as CLOSE-M40: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M41.md's breadth table against the finished module (all seven checkboxes); run the full verification (Standard checks, `check-snippets.mjs . 01 … 41`, `module-stats.mjs` and the python one-liner); trim named repeats if above 9,300; no other module is edited: record in the LOG line the file-level links into 41 (M41.md anchor candidates), the VERSIONS.md rows of For Jorge 1, and the open points C1-C15.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/41-fullstack-api-contracts.md` is 0; prose at most 9,300.
+
+### REVIEW-M41 · L · independent review of module 41
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- As `REVIEW-M40`. Must run in a session that authored no task of module 41 except PLAN-M41, and not in a continuation of their conversations. Findings become `FIX-M41-nn` tasks appended to this file. Module-specific checks: every Spring Boot, Spring Framework, Spring Security, Spring Data, Jackson and springdoc claim traced to a source read at its release tag or a dated docs read, re-reading at least ten of them (the Security 7.1 auto-configuration condition, `MethodArgumentNotValidException`'s default body, `ProblemDetail`'s unset `type`, the `DIRECT` page default, Jackson 3's `WRITE_DATES_AS_TIMESTAMPS` and `FAIL_ON_UNKNOWN_PROPERTIES` defaults, the multipart limits, the API versioning resolution rules among them); every Java snippet carries the banner and uses only read APIs; generators "read, not run" (C9); Q41.11 and Q41.19 against re-runs of their tests; `FetchBackend.parseBody`'s behavior (F19) matches what §5 and Q41.11 say; our fixtures and models named as ours (C18); no Angular-style status marker on a Spring, Jackson or generator fact (C16); no network, clock or time-zone dependence in any test (C19); the handoff lines into 41 (M41.md "Handoffs into 41") honored, Q09.12-Q09.14, Q27.15, Q27.16, Q26.21, Q07.16, Q07.17, Q30.10 and Q34.23 not re-asked, with an anchor proposal per file-level link (M41.md anchor candidates) for a FIX task; prose at most 9,800 after fixes (hard cap 10,000).
+
+### FIX-M41-01 · S · Factual fixes and attributions (F-1..F-5)
+- Files: `modules/41-fullstack-api-contracts.md`; `SOURCES.md` (lines under `## Module 41 · Full-stack API contracts`: the `@orval/angular@8.43.0` line gains the `builder` default and a new `orval@8.43.0` options line (F-1); new `HttpSecurityConfiguration.java` and `ServletWebSecurityAutoConfiguration.java` lines (F-2); the `DefaultCorsProcessor.java` line "(internal)" → "(public class)" and the section-8 `FetchBackend` line "(internal: …" → "(public class; internal `doRequest`: …" (F-3); the `ProblemDetail.java` line gains `getTitle()` (F-5)); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M41.md` (Factual findings F-1..F-5, with the sources read).
+- Do: apply each fix text in REVIEW-M41, finding each line by its quoted text, not its number: F-1 (§3 table orval cell, with 27's `httpResource` marker; Q41.06 short answer), F-2 (§1 "Boot 4.1.1's security page omits CORS: declare it." sentence; §1 best practice on the bean name; Q41.01 full explanation), F-3 (§1 `DefaultCorsProcessor`, §5 `ProblemDetailJacksonMixin`, §8 and Q41.17 `FetchBackend`, §10 `FilterOrderRegistration`), F-4 (Q41.19's cited test title), F-5 (Q41.10 short answer). No lab file, no heading or anchor change; M41.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 41` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/41-fullstack-api-contracts.md`: `grep -c 'for GETs, `HttpClient` services for writes'` = 0, `grep -c 'emits `httpResource()` for GETs, services for writes'` = 0, `grep -c "retrievalClient: 'httpResource'"` = 1, `grep -c 'omits CORS'` = 0, `grep -c 'applyCorsIfAvailable\|HttpSecurityConfiguration.java'` ≥ 1, `grep -c 'internal `DefaultCorsProcessor`\|internal `ProblemDetailJacksonMixin`\|internal `FetchBackend` '` = 0, `grep -c 'internal (package-private) `FilterOrderRegistration`'` = 1, `grep -c 'rounds numbers to doubles'` = 0, `grep -c 'its reason phrase as `title`'` = 1; the 10 Mermaid diagrams and 13 Java banners unchanged; prose at most +90 over the count just before and at most 9,800, both counts (`module-stats.mjs` and the QUALITY-BAR one-liner) in the LOG line.
+- Model: **Sonnet** (every text and source is prescribed in the review).
+
+### FIX-M41-02 · M · Teaching fixes and nits (T-1..T-5, N-1..N-6)
+- Files: `modules/41-fullstack-api-contracts.md`; `SOURCES.md` (`## Module 41`: `CorsUtils.isCorsRequest` for T-2's §1 callout); `_meta/GLOSSARY-TERMS.md` (`## Module 41`: CORS-safelisted header, facade, interceptor if missing); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M41.md` (T-1..T-5, Nits N-1..N-6); for T-5 the lab files `labs/angular/src/app/modules/41-fullstack-api-contracts/exercise-1-problem-details/problem.ts` and `exercise-2-form-errors/b/apply-to-signal-forms.ts` (read-only).
+- Do: apply T-1 (corrections in §7's three and §8's first Misconceptions bullet; §1's proxy cause), T-2 (Coming from the backend in §1, §6, §9), T-3 (follow-ups in Q41.06, Q41.12, Q41.13, Q41.19, Q41.21; Q41.07's trap), T-4 (CORS-safelisted in §1, JPA in §2, facade in §3's What to notice, interceptor in §5's callout), T-5 (Exercise 41.1 and 41.2 Excerpts replaced by whole functions copied verbatim, header line kept), N-1 (Q41.09 path resolver), N-2 (Q41.11 stray space), N-3 (Applies to), N-4 (Signal Forms marker moved from Exercise 41.2 to Q41.16), N-5 (Summary double parenthesis), N-6 (blank lines in Exercise 41.3). Find each line by its quoted text. Disjoint lines from FIX-M41-01 (F-2 edits §1's bullet at 65 and best practice at 122, T-2 the callout at 117, T-4 the bullet at 68); run in either order. No heading or anchor change.
+- Acceptance: `node labs/tools/check-snippets.mjs . 41` and `node labs/tools/check-links.mjs --planned` exit 0; in the module: `grep -c "curl's pass"` = 0, `grep -c 'Cause: it feels like one'` = 0, `grep -c 'Mostly the toolchain'` = 0, `grep -c '^\*\*Trap to avoid.\*\* One layer alone.'` = 0, `grep -c 'Kinds share one'` = 0, `grep -c 'No response existed'` = 0, `grep -c 'non-safelisted'` = 0, `grep -c 'CORS-safelisted'` ≥ 1, `grep -c 'wraps the bytes \.'` = 0, `grep -c 'Data Commons 4.1.1'` ≥ 1, `grep -c 'Signal Forms \[Stable since v22.0\]'` = 1 (in Q41.16), `grep -c 'export async function toUiError'` = 1, `grep -c 'export async function submitWithServerErrors'` = 1; `awk '/^### Misconceptions/{b=1;next} /^(### |## |Drilled)/{b=0} b && /^- /' modules/41-fullstack-api-contracts.md | grep -c '\." Cause:'` = 0 (4 before; no bullet goes straight from the myth to its cause); `<details>` count (32) and the 10 Mermaid diagrams unchanged; prose at most +270 over the count just before and at most 9,800, both counts in the LOG line.
+- Model: **Sonnet** (every text is prescribed in the review; T-5 is a verbatim copy).
+
+### FIX-M41-03 · S · Anchors for the file-level links into 41 (+0 words)
+- Files: link targets only in `modules/01-js-values-types-coercion.md`, `04-js-async-event-loop.md`, `06-ts-type-system-essentials.md`, `07-ts-advanced-types-and-decorators.md`, `09-web-networking-storage-security.md`, `27-http-client.md`, `28-state-management.md`, `30-e2e-and-testing-strategy.md`, `33-security.md`, `34-i18n.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M41.md` § Handoffs.
+- Do: apply the Handoffs table (23 rows: 09:342, 09:367 → §1; 01:486, 01:907, 06:1583, 07:1365 → §2; 30:481, 30:1121, 30:1460, 30:1527 → §3; 07:1199 → §4; 04:491, 27:541, 27:1552, 27:1620, 27:2578, 28:1084 → §5; 33:2129 → §7; 01:704, 01:767, 01:1400, 34:821, 34:1547 → §9; find each line by its context text, not the line number). Only the link target changes (`41-fullstack-api-contracts.md` → `41-fullstack-api-contracts.md#<slug>`). Verify each slug against module 41's `## N.` headings. Leave the `:5` header lines (06, 07, 09, 27, 30, 34) and 01:1486, 09:1606, 27:2579, 29:2999, 30:1704, 34:1944 file-level. No heading changes in FIX-M41-01 or -02, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '41-fullstack-api-contracts.md#'` across the ten files totals 23 (0 before); `git diff --stat` touches only those ten files (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+- Model: **Sonnet** (mechanical; slugs listed).
+
+### Module 42 tasks (PLAN-M42) · common rules
+- Inputs for every task: `_meta/modules/M42.md` (its section, question or exercise rows, the budget, "Handoffs into 42", "What other modules already teach", "Lab decision", "Facts established while planning" F1-F26 (with F4b), "Could not be read" C1-C20, the owner map), STYLE-GUIDE §3-§8 (§7.2 for the Spring banner), QUALITY-BAR B-E, SYLLABUS §4 (42) and §7 decision 2, the module skeleton, and for Part E depth `modules/41-fullstack-api-contracts.md` (the previous Part E module: read a section, answer or exercise of the same kind before writing; never copy), `modules/33-security.md` (the browser-side security owner) and `modules/27-http-client.md` (the Angular HTTP owner), and `_meta/reviews/REVIEW-M40.md` § Findings (and `_meta/reviews/REVIEW-M41.md` once it exists). Re-verify every fact the task uses before writing (lab > package or framework source > official docs, RFC or registry) and record the basis next to the claim; every "Could not be read" item for the task is read first, or the claim is dropped. Spring sources are read on GitHub at their release tags (`spring-security` `7.1.1`, which includes `oauth2/oauth2-authorization-server`; `spring-boot` `v4.1.1`; `spring-session` `4.1.1`; `spring-cloud-gateway` `v5.0.3`) into the job scratchpad and deleted before the task ends; RFCs from rfc-editor.org and OpenID specs from openid.net with the date; tarballs are `npm pack`ed there too; nothing is installed.
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics: cookie attributes and the `__Host-` prefix (09 §6, Q09.15, Q09.17), browser storage (09 §7, Q09.18), app initializers (16 §7), functional guards and `RedirectCommand` (24 §5, Q24.14, Q24.19, Exercise 24.3), interceptors and `withInterceptorsFromDi()` (27 §4), attaching tokens and the 401 refresh queue (27 §7, Q27.22-Q27.24, Exercise 27.4), Angular's XSRF interceptor (27 §8, Q27.25-Q27.27), session state (28 §1), testing guards and interceptors and fake timers (29 §9, §10), the transfer cache and `Authorization` (32 §8, Q32.23), the threat model, token storage, SPA CSRF and guards as UX (33 §1, §8, §9, §10, Q33.21-Q33.26, Exercises 33.3, 33.4), error UX (37 §10), CORS and problem details on the Spring side (41 §1, §5, §10, Q41.01, Q41.03); each gets one sentence and a link (planned modules 43, 44, 46 file-level). **The Spring side is documented only** (SYLLABUS §7 decision 2): every Java snippet's first line is `// Spring Boot 4.1 — illustrative, not compiled in labs`, every annotation, class, method and property in it (and every YAML property) is read in the named source before writing, and no sentence says the server "did" something in the lab. **Both OIDC libraries are documented only** (F20, F21): "read, not run"; their setup snippets are Partial. **Our models and fixtures are named as ours** (C18). **No Angular-style status markers on Spring, Nimbus, library or RFC facts** (C16); browser APIs get a marker only from a dated MDN read (C14). **Every MUST/SHOULD is quoted from its RFC with the section number**, and no pattern is called "secure" without naming the threat it addresses and the one it does not.
+- Every task adds its sources under `## Module 42 · Full-stack authentication` in `SOURCES.md` (after the last module section present; framework sources as `<repo> <tag> <path>, read <date>`; Maven POMs and metadata as their URL and date; start.spring.io metadata with URL and date; RFCs and OpenID specs with URL and date; package reads as `<pkg>@<version>, <file>, <function>, read <date>`; registry reads as `npm view <pkg> <fields>, read <date>`) and its inline-defined terms under `## Module 42` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** Angular specs only under `labs/angular/src/app/modules/42-fullstack-authentication/` (`concepts/`, `exercise-3-bff-session/`), using `HttpTestingController` (and `provideHttpClient()` with its default XSRF interceptor where §6 needs it); full-page navigation is an injected function, never a real page load; plain TypeScript tests only under `labs/ts-js/src/modules/42-fullstack-authentication/` (`concepts/`, `exercise-1-pkce-client/`, `exercise-2-refresh-rotation/`) and the Output tests under `labs/ts-js/src/outputs/42-fullstack-authentication/` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only); **no test calls `git`, `npm` or the network, reads the clock (`Date.now()`, `new Date()` without an argument) or depends on the machine's time zone** (validators and models take `now`); keys are generated in the test with WebCrypto, never committed; random values come from an injected source; timers are Vitest fake timers; no file under `labs/e2e`; no `labs/spring-backend/` (C19).
+- **Shared files (C20):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `angular.json`, `src/outputs/capture.ts`, VERSIONS.md or another module's folder or file. Read-only to later tasks once created: labs/ts-js `concepts/jwt.ts` (SEC-M42-01), `concepts/pkce.ts` (SEC-M42-02), `concepts/token-family.ts` (SEC-M42-04), `concepts/jwt-validator.ts` (SEC-M42-05); labs/angular `concepts/csrf-session.ts` (SEC-M42-06), `concepts/auth-session.ts` (SEC-M42-07).
+- **Code:** modern Angular (standalone, `inject()`, signals, functional guards and interceptors, built-in control flow, no `changeDetection`), at most four injected dependencies per class, low branching, strict TypeScript, no `any`, no `as` outside a type test; v22 file names (no `.component` suffix). Internal names (`SpaCsrfTokenRequestHandler`, `FilterOrderRegistration`, `isPublicClientForAuthorizationCodeGrant`, `createDefaultStorage`, `legacyInterceptorFnFactory`) are read, never imported, and marked internal at first use in each section (C17). Java snippets illustrative under the banner; YAML fences are non-TS fences; library setup shown is Partial (M42.md "Lab decision").
+- **First-time-pass rules (from REVIEW-M14 to M40; named so they do not recur):** every recorded version, default, property, class name, message and header is checked against the named file or dated read before writing; every "in the lab, X" names a test (`Section N: …`, `Q42.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its artifact, version, file and class, or a dated docs, RFC or registry read; quotes verbatim from the named file, version or URL and date, a shortened quote carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M42.md names followed by a line starting `What to notice`, parsed with the mermaid parser; **every Misconceptions bullet gives the correction and a cause clause** (M42.md names each cause); **terms defined at first use** (M42.md lists them per section), checked by a first-use script; **internal names marked internal at first use in each section** (C17); each `### Code` has numbered steps; each mechanism answers one "why" from a source read; the Output short answer gives the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups**; **every question and exercise is linked from the body** ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors.
+- **Prose budget** (deltas over the module count measured just before the task; M42.md "Budget"): skeleton 1,719 measured 2026-10-20 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps: SEC-M42-01..09 = 500 / 420 / 400 / 400 / 400 / 380 / 400 / 360 / 380 (3,640); EX-M42-01 = 400 (intro included), EX-M42-02 = 380, EX-M42-03 = 380 (1,160); QB-M42-01 = 840 (intro included), QB-M42-02 = 800, QB-M42-03 = 700 (2,340); CLOSE-M42 = 500. 1,719 + 3,640 + 1,160 + 2,340 + 500 = 9,359. **CLOSE at most 9,359 words; REVIEW ceiling 9,850; hard cap 10,000.** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a diagram, a trap's cause or a "because"). Answer parts average at most 100 words per QB chunk, none above 135.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M42-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker (QB-M42-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M42-01 also writes the exercise intro at its placeholder). CLOSE-M42's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M42, and the header's Labs line carries a relink comment for CLOSE-M42. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q42-NN -->` (or `#ex42-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/angular` file changed: from `labs/angular` (Node 24), `npx ng test --watch=false --include='src/app/modules/42-fullstack-authentication/**/*.spec.ts'` and `npx tsc -p tsconfig.spec.json --noEmit` exit 0 (and `npx ng build` when non-spec code was added); when a `labs/ts-js` file changed: from `labs/ts-js`, `npx vitest run src/modules/42-fullstack-authentication src/outputs/42-fullstack-authentication` and `npx tsc --noEmit` exit 0; from the guide root, `node labs/tools/check-snippets.mjs . 42` and `node labs/tools/check-links.mjs --planned` exit 0; `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line); every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`; `node_modules/` is ignored); the task's marker is gone; no scratch, tarball or temporary file left; the LOG line gives both prose counts. The main session runs every check serially; writers report readiness.
+
+### SEC-M42-01 · M · Sessions versus tokens: what the server keeps, what each request carries, revocation and scaling
+- Model: Sonnet (facts F2, F14, F17 and owners named in M42.md §1; C3, C4 read before naming cookie properties or a session store).
+- Files: module §1 and the verification paragraph (its placeholder before §1); `labs/ts-js/src/modules/42-fullstack-authentication/concepts/{jwt.ts,session-store.ts,section-1-sessions-tokens.test.ts}` (new; `jwt.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §1, F1, F2 (re-read Boot 4.1.1 `Session.java` and Security 7.1.1 `session-management.adoc`), F14, F17, C3, C4, C18, C19; 33 §8 (the JWT bullet and RFC 7519 §3), 33 §9, 24:1946.
+- Do: M42.md §1 (delta 500 including the paragraph) with `flowchart LR`; Java `SessionCreationPolicy.STATELESS` and the YAML timeout under the banner; `jwt.ts` (our signer and verifier over WebCrypto; header comment "our model, not Spring's code") and `session-store.ts`; the four `Section 1: …` tests (`now` passed in); the required Coming from the backend callout with where it breaks; link 33 §8 and 33 §9 once each; link Q42.01-Q42.03 (relink comments); the verification paragraph (80-110 words) as M42.md §1 lists.
+- Acceptance: common rules.
+
+### SEC-M42-02 · M · OAuth 2.0 and OpenID Connect for a single-page app: Authorization Code with PKCE, and why the implicit flow is gone
+- Model: Sonnet (facts F4b, F5, F6, F7, F8 named in M42.md §2; C13 read before any "PKCE prevents CSRF" sentence).
+- Files: module §2; `labs/ts-js/src/modules/42-fullstack-authentication/concepts/{pkce.ts,section-2-pkce.test.ts}` (new; `pkce.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §2, F4b (re-read RFC 7636 §4.1, §4.2, Appendix B), F5 (RFC 9700 §2.1.1, §2.1.2; RFC 9207), F6 (RFC 10017 §7.2), F7 (OIDC Core `nonce`), F8 (re-read `client/core.adoc` and `ClientRegistration.java` at `7.1.1`), C13; 27:711, 27:1708.
+- Do: M42.md §2 (delta 420) with `sequenceDiagram`; `pkce.ts` (Complete) and the authorization URL builder (Excerpt); the YAML public-client registration under the banner (F8 only); the four `Section 2: …` tests (RFC 7636's vector; randomness injected); the Coming from the backend callout with where it breaks; "Once true: the implicit flow …" from F5/F6 only; link Q42.04-Q42.07 and Exercise 42.1 (relink comments).
+- Acceptance: common rules.
+
+### SEC-M42-03 · M · Where the OAuth client runs: a browser-only client, a token-mediating backend or a backend-for-frontend with Spring
+- Model: Opus (judgment-heavy: RFC 10017's three architectures, Spring's `oauth2Login` session and Gateway's `TokenRelay`; the BFF trade-offs and cookie rules must match the sources exactly).
+- Files: module §3; `labs/angular/src/app/modules/42-fullstack-authentication/concepts/{bff-client.ts,section-3-bff.spec.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §3, F2, F6 (re-read RFC 10017 §6.1-§6.3 and §6.1.3.2), F8, F9 (re-read Gateway `v5.0.3` `tokenrelay.adoc`), F16, F17, C3, C5 (the authorization base URI, the request repository and a 401 entry point for XHRs, read in 7.1.1 source first), C11; 33 §8, Q33.21, Q33.22, 09 §6, 41 §1; 09:407, 33:1575, 33:2055.
+- Do: M42.md §3 (delta 400) with `flowchart LR`; Java `SecurityFilterChain` with `oauth2Login`, `csrf.spa()` and a 401 entry point for `/api/**`, and the Gateway YAML route with `TokenRelay=` and session cookie attributes, under the banner (read APIs only); `bff-client.ts` (Complete; navigation injected) and the three `Section 3: …` tests (`HttpTestingController`); the required Coming from the backend callout with where it breaks; one sentence that the Spring side is documented and Exercise 42.3 builds the browser half; link 33 §8, 09 §6 and 41 §1 once each; 44 file-level once; link Q42.08, Q42.09.
+- Acceptance: common rules; `npx ng build` exits 0 (non-spec code added).
+
+### SEC-M42-04 · M · Refresh tokens: rotation, reuse detection, silent renew and refreshing across tabs
+- Model: Opus (judgment-heavy: RFC 9700's rotation and reuse rule against what Spring Authorization Server 7.1.1 actually does; our model must mirror the RFC and the text must not credit Spring with it).
+- Files: module §4; `labs/ts-js/src/modules/42-fullstack-authentication/concepts/{token-family.ts,section-4-refresh.test.ts}` (new; `token-family.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §4, F5 (re-read RFC 9700 §2.2.2 and §4.14), F6 (RFC 10017 silent-flow and third-party-cookie sentences), F11, F12, F13 (re-read `TokenSettings`, `OAuth2RefreshTokenAuthenticationProvider`, `OAuth2RefreshTokenGenerator` at `7.1.1`), F20, F21 (re-`npm pack` both libraries into the job scratchpad for the renewal options; deleted after), F25, C6, C7, C14, C15; 27 §7, Q27.23, 09 §6, 33:2004.
+- Do: M42.md §4 (delta 400) with `stateDiagram-v2`; `token-family.ts` (our model of RFC 9700 §4.14; header comment "our model, not Spring's code") and the four `Section 4: …` tests (`now` passed in; the Web Locks test as C14's run decides); the YAML `reuse-refresh-tokens: false` under the banner; Framework vs platform and Coming from the backend callouts; Spring's reuse behavior stated only as C6 reads it; link 27 §7 and Q27.23 once each; link Q42.10-Q42.12 and Exercise 42.2.
+- Acceptance: common rules.
+
+### SEC-M42-05 · M · Spring Security as a resource server: validating JWTs and turning scopes into authorities
+- Model: Opus (judgment-heavy: the default validators read from `JwtValidators`, `JwtTypeValidator`, `JwtTimestampValidator` and `NimbusJwtDecoder`, and Boot's auto-configuration; skew, `aud`, `typ` and algorithm defaults must be exact).
+- Files: module §5; `labs/ts-js/src/modules/42-fullstack-authentication/concepts/{jwt-validator.ts,authorities.ts,section-5-resource-server.test.ts}` (new; imports `jwt.ts` read-only; `jwt-validator.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §5, F14 (re-read `jwt.adoc` and the validator classes at `7.1.1`, `OAuth2ResourceServerProperties.java` at `v4.1.1`), F15, F17, C8 (Boot 4.1.1 `OAuth2ResourceServerJwtConfiguration` before the `aud` and `at+jwt` consequences), C9, C10; 33:651, 33:884, Q33.26.
+- Do: M42.md §5 (delta 400) with `flowchart TD`; YAML `issuer-uri` and `audiences`, Java `JwtAuthenticationConverter` and `@PreAuthorize` under the banner (read APIs only); `jwt-validator.ts` (our mirror of F14's policy, labeled ours) and `authorities.ts` (Complete); the five `Section 5: …` tests (keys generated in the test; the audience test as C8 decides); the required Coming from the backend callout with where it breaks; 43 file-level once; link Q42.13-Q42.16.
+- Acceptance: common rules.
+
+### SEC-M42-06 · M · CSRF with `CookieCsrfTokenRepository` and Angular's XSRF support: `csrf.spa()` in Spring Security 7
+- Model: Opus (judgment-heavy: `csrf.spa()`, BREACH masking and deferred tokens read from `CsrfConfigurer` and the handlers; the module's subtlest Spring mechanism, split across two labs).
+- Files: module §6; `labs/angular/src/app/modules/42-fullstack-authentication/concepts/{csrf-session.ts,section-6-csrf.spec.ts}` (new; `csrf-session.ts` read-only afterwards); `labs/ts-js/src/modules/42-fullstack-authentication/concepts/{csrf-mask.ts,section-6-csrf-mask.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §6, F3, F16 (re-read `csrf.adoc`, `CsrfConfigurer.java`, `CsrfTokenRequestAttributeHandler.java`, `XorCsrfTokenRequestAttributeHandler.java` at `7.1.1`), F17, C1 (the 6.5.x SPA configuration before any "Once true" bullet), C2 (`CsrfFilter`, `CookieCsrfTokenRepository.saveToken` and its cookie defaults); 27 §8, Q27.26, Q27.27, 33 §9, Q33.24, Exercise 33.3; 09:404, 09:1042, 33:779, 33:1934, 41:93, 41:131.
+- Do: M42.md §6 (delta 380) with `sequenceDiagram`; Java `csrf.spa()` and a token endpoint under the banner (our endpoint, C18); `csrf-session.ts` (Complete) and the two Angular `Section 6: …` tests with the real XSRF interceptor; `csrf-mask.ts` (our model of the XOR handler; header comment "our model, not Spring's code") and its two `Section 6: …` tests; the required Coming from the backend callout with where it breaks; `#### Legacy` only if C1 was read; link 27 §8, 33 §9 and Exercise 33.3 once each; link Q42.17, Q42.18.
+- Acceptance: common rules; `npx ng build` exits 0 (non-spec code added).
+
+### SEC-M42-07 · M · The Angular side: an auth state at startup, guards as UX, interceptors, and `angular-oauth2-oidc` versus `angular-auth-oidc-client`
+- Model: Sonnet (facts F20, F21 and owners 16, 24, 27, 33 named in M42.md §7; the library table cells are all sourced).
+- Files: module §7; `labs/angular/src/app/modules/42-fullstack-authentication/concepts/{auth-session.ts,auth.guard.ts,auth.interceptor.ts,section-7-angular-side.spec.ts}` (new; `auth-session.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §7, F17 (`ExceptionTranslationFilter` and the request cache), F20, F21 (re-`npm pack` `angular-oauth2-oidc@22.0.2` and `angular-auth-oidc-client@22.0.2` into the job scratchpad: `fesm2022/*.mjs`, `types/*.d.ts` or `index.d.ts`, `README.md`; deleted after; `npm view` for versions and peers with the date); 16 §7, 24 §5, Q24.14, Q24.19, 27 §4, Q27.22, 28 §1, 33 §10, Q33.26; 24:538, 24:1763, 24:2562.
+- Do: M42.md §7 (delta 400) with `flowchart TD`; `auth-session.ts` (Complete), the guard and the 401 interceptor (Excerpts); the two-library table, every cell sourced, "read, not run"; the Partial library setups; the four `Section 7: …` tests; the Coming from the backend callout with where it breaks; link 16 §7, 24 §5, 27 §4, 33 §10 and Q33.26 once each; link Q42.19, Q42.20 and Exercise 42.3.
+- Acceptance: common rules; `npx ng build` exits 0 (non-spec code added).
+
+### SEC-M42-08 · M · Logout everywhere and session timeout UX
+- Model: Sonnet (facts F2, F3, F4, F7 named in M42.md §8; C12 and C14 read before the claims that need them).
+- Files: module §8; `labs/angular/src/app/modules/42-fullstack-authentication/concepts/{idle-timer.ts,section-8-timeout.spec.ts}` (new); `labs/ts-js/src/modules/42-fullstack-authentication/concepts/{tab-logout.ts,section-8-tab-logout.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §8, F2, F3 (re-read `logout.adoc` at `7.1.1`), F4 (re-read `login/logout.adoc` and the OpenID RP-Initiated and Back-Channel Logout specs with the date), F7 (RFC 7009), C12, C14 (MDN pages for `BroadcastChannel` and `Clear-Site-Data`, dated; Node 24 same-thread delivery decided by the first run); 29 §10, 37 §10; the root guide's Part I (A07:2021).
+- Do: M42.md §8 (delta 360) with `sequenceDiagram`; Java logout with `OidcClientInitiatedLogoutSuccessHandler`, `Clear-Site-Data` and `oidcLogout().backChannel(…)` under the banner; `idle-timer.ts` (Excerpt) and `tab-logout.ts` (Complete); the three Angular and one ts-js `Section 8: …` tests (fake timers); Framework vs platform and Coming from the backend callouts; link the root guide's Part I once, 29 §10 and 37 §10 once each; link Q42.21, Q42.22 and Exercise 42.3.
+- Acceptance: common rules; `npx ng build` exits 0 (non-spec code added).
+
+### SEC-M42-09 · M · Under the hood: one BFF login and the first API call through Spring Security's filters
+- Model: Opus (judgment-heavy: the deepest section; one login traced through the filter order, the authorization server, the gateway and the resource server, each hop sourced or tested).
+- Files: module §9; `labs/angular/src/app/modules/42-fullstack-authentication/concepts/section-9-trace.spec.ts` (new; imports `csrf-session.ts` and `auth-session.ts` read-only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M42.md §9, F2, F8, F9, F14-F17, C5 (filter details only if read); §3, §5-§7 as written; 41 §10.
+- Do: M42.md §9 (delta 380) with `sequenceDiagram` and the trace table; the three `Section 9: …` tests; every Spring hop "read, not run" with its source, every Angular hop asserted; link 41 §10 once; link Q42.23.
+- Acceptance: common rules.
+
+### EX-M42-01 · M · Exercise 42.1 · An Authorization Code + PKCE client core: the authorization URL, the callback checks and the ID token's `nonce`
+- Model: Sonnet (criteria and files named in M42.md Exercises 1).
+- Files: module exercise region and the exercise intro (its placeholder); `labs/ts-js/src/modules/42-fullstack-authentication/exercise-1-pkce-client/` (new; imports `concepts/pkce.ts` and `concepts/jwt.ts` read-only); SOURCES.md.
+- Inputs: M42.md Exercises 1, §2, §5, F4b, F5 (RFC 9207), F7, C13, C18, C19; Exercises 27.4, 33.4 and 24.3 (linked from the intro, not rebuilt).
+- Do: full E1 anatomy (delta 400 with the intro, at most 40 words); six criteria over both variants (`describe.each(['a', 'b'])`: a `KeyValueStore` keyed by `state` and a single in-memory pending request), titles equal to the criteria; the token endpoint is a stubbed function; randomness injected; at least two answered follow-ups; restore section links to Exercise 42.1.
+- Acceptance: common rules.
+
+### EX-M42-02 · M · Exercise 42.2 · Refresh token rotation with reuse detection, and a client that refreshes once for many callers
+- Model: Opus (judgment-heavy: reuse detection over our model plus a client under concurrency in one tab and across tabs, with a per-variant expected value).
+- Files: module exercise region; `labs/ts-js/src/modules/42-fullstack-authentication/exercise-2-refresh-rotation/` (new; imports `concepts/token-family.ts` read-only); SOURCES.md.
+- Inputs: M42.md Exercises 2, §4, F5, F11-F13, F21, F25, C6, C14; 27 §7, Exercise 27.4 (linked, not rebuilt).
+- Do: full E1 anatomy (delta 380); six criteria over both variants (`describe.each(['a', 'b'])`: promise single flight and `navigator.locks`), the two-clients criterion with its per-variant expected value (`a` 2, `b` 1, as the run confirms); `now` passed in; at least two answered follow-ups; restore section links to Exercise 42.2.
+- Acceptance: common rules.
+
+### EX-M42-03 · M · Exercise 42.3 · A BFF session in Angular: a startup check, a guard with a return URL, one redirect on 401 and logout across tabs
+- Model: Opus (judgment-heavy: the Angular integration exercise over §3, §6, §7 and §8, two variants with identical criteria).
+- Files: module exercise region; `labs/angular/src/app/modules/42-fullstack-authentication/exercise-3-bff-session/` (new; imports `concepts/csrf-session.ts` read-only); SOURCES.md.
+- Inputs: M42.md Exercises 3, §3, §6, §7, §8, C14; 16 §7, 24 §5, 27 §10 (`httpResource`), 29 §9.
+- Do: full E1 anatomy (delta 380); six criteria over both variants (`describe.each(['a', 'b'])`: a signals store and `httpResource`), titles equal to the criteria; `inject()` with at most four dependencies; `HttpTestingController` and a fake `TabChannel`; at least two answered follow-ups; restore section links to Exercise 42.3.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### QB-M42-01 · M · Q42.01-Q42.08 and the bank intro
+- Model: Sonnet (routine question writing; facts, tests and links named in M42.md "Question notes").
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); `labs/ts-js/src/outputs/42-fullstack-authentication/q42-05.test.ts` (new; `captureLogs`; imports `concepts/pkce.ts` read-only); section links in §1-§3 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 100 words across the chunk, none above 135, at least two answered follow-ups each; Q42.05 through its test (`it('Q42.05 …')`), values as the run shows; the overlap links M42.md names for Q42.01, Q42.03 and Q42.08; Q42.07 quotes RFC 9700 §2.1.2 and RFC 10017 §7.2 with section numbers.
+- Acceptance: common rules; D1 counts equal 8; chunk at most +840 words (5% tolerance); the Output test passes.
+
+### QB-M42-02 · M · Q42.09-Q42.16
+- Model: Sonnet (as QB-M42-01; one Output answer from a run).
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/42-fullstack-authentication/q42-14.test.ts` (new; `captureLogs`; imports `concepts/jwt.ts` and `concepts/jwt-validator.ts` read-only); section links in §3-§5; SOURCES.md.
+- Do: as QB-M42-01; Q42.09 rests on F6, F8, F9 and C5's read; Q42.10 and Q42.12 state Spring Authorization Server's behavior only as SEC-M42-04 recorded it (C6, C7); Q42.12 links Q27.23 and Q33.23 once each; Q42.14 through its test (`it('Q42.14 …')`), lines as the run shows, the third token dropped if C8 did not confirm the `aud` default (say so in the LOG line); Q42.15 links Q33.26 once; Q42.16 rests on C9.
+- Acceptance: common rules; D1 counts equal 8; chunk at most +800 words; the Output test passes.
+
+### QB-M42-03 · M · Q42.17-Q42.23
+- Model: Sonnet (as QB-M42-01).
+- Files: module Question bank (its marker region); section links in §6-§9; SOURCES.md.
+- Do: as QB-M42-01; Q42.17 links Q27.26 once; Q42.18 links Q27.27 and Q33.24 once each and asks only the Spring half; Q42.19 links Q24.14, Q24.19 and Q27.22 once each; Q42.20 is "read, not run" throughout and links 27 §4 once; Q42.21 rests on C12's read; Q42.22 links 37 §10 once; Q42.23 links 41 §10 once; then D3 and D5 for the whole bank and a link check into 09, 16, 24, 27, 28, 29, 32, 33, 37 and 41.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +700 words; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M42 · M · Close module 42
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Files: module header (Applies to, Short on time, Labs line with links and both run commands), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 42, totals); `_meta/ROADMAP.md` (its row for 42).
+- Do: as CLOSE-M41: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M42.md's breadth table against the finished module (all eight checkboxes, the logout row linking the root guide's Part I); run the full verification (Standard checks, `check-snippets.mjs . 01 … 42`, `module-stats.mjs` and the python one-liner); trim named repeats if above 9,359; no other module is edited: record in the LOG line the file-level links into 42 (M42.md anchor candidates), the VERSIONS.md rows of For Jorge 1, and the open points C1-C15.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/42-fullstack-authentication.md` is 0; prose at most 9,359.
+
+### REVIEW-M42 · L · independent review of module 42
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- As `REVIEW-M41`. Must run in a session that authored no task of module 42 except PLAN-M42, and not in a continuation of their conversations. Findings become `FIX-M42-nn` tasks appended to this file. Module-specific checks: every Spring Boot, Spring Security, Spring Authorization Server, Spring Session and Spring Cloud Gateway claim traced to a source read at its release tag or a dated docs read, re-reading at least ten of them (`csrf.spa()` and its handler, the CSRF token cleared on login and logout, `reuseRefreshTokens(true)`, no refresh token for public clients, reuse handling in `OAuth2RefreshTokenAuthenticationProvider`, the 60 s clock skew, `aud` unchecked without `audiences`, `JwtTypeValidator.jwt()`, `SCOPE_` mapping, `requireProofKey`, the 30-minute session timeout, POST-only logout among them); every RFC MUST/SHOULD quoted with its section; every Java and YAML snippet carries the banner and uses only read APIs; both libraries "read, not run" and the two-library table re-checked against the 22.0.2 tarballs (F20, F21); Q42.05 and Q42.14 against re-runs of their tests; our models named as ours (C18); no Angular-style status marker on a Spring, library or RFC fact (C16); no network, clock or committed key in any test (C19); the handoff lines into 42 (M42.md "Handoffs into 42") honored, Q09.15, Q09.17, Q09.18, Q24.14, Q24.19, Q27.22-Q27.27, Q33.21-Q33.26, Q41.01 and Q41.03 not re-asked, with an anchor proposal per file-level link (M42.md anchor candidates) for a FIX task; prose at most 9,850 after fixes (hard cap 10,000).
+
+### FIX-M42-01 · S · Factual fixes and attributions (F-1..F-4, N-3, N-5)
+- Model: **Sonnet** (every text and source is prescribed in the review).
+- Status: done. Depends: REVIEW-M42.
+- Files: `modules/42-fullstack-authentication.md`; `SOURCES.md` (under `## Module 42 · Full-stack authentication`: append to the RFC 9207 line for Exercise 42.1, the one starting "- RFC 9207 (March 2022), https://www.rfc-editor.org/rfc/rfc9207.txt", the F-4 note); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M42.md` (Factual findings F-1..F-4; Nits N-3, N-5).
+- Do: apply each fix text in REVIEW-M42, finding each line by its quoted text, not its number: F-1 (§6 "headers as sent, a `_csrf` parameter unmasked."), F-2 (§6 "**Why refresh after logout?** …" bullet; §9 "**Why a new CSRF token?** …" bullet, keeping its §6 link), F-3 (§9 `nonce` bullet), F-4 (Exercise 42.1 "(a missing `iss` fails too)."), N-3 (§8 Java: drop `throws Exception`), N-5 (§1 Spring Session sentence). No lab file, no heading or anchor change; M42.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 42` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/42-fullstack-authentication.md`: `grep -c 'parameter unmasked'` = 0, `grep -c 'must still be masked'` = 1, `grep -c 'acts only if the request carried a token'` = 1, `grep -c 'The callback carried the old'` = 1, `grep -c "stored value's SHA-256 hash"` = 0, `grep -c 'invalid_nonce'` = 1, `grep -c 'a missing `iss` fails too'` = 0, `grep -c 'throws Exception'` = 0, `grep -c 'a shared database or Redis'` = 1; the 9 Mermaid diagrams and 11 Java/YAML banners unchanged; prose at most +90 over the count just before, both counts (`module-stats.mjs` and the QUALITY-BAR one-liner) in the LOG line.
+
+### FIX-M42-02 · M · Teaching fixes and nits (T-1..T-3, N-1, N-2, N-4)
+- Model: **Sonnet** (every text is prescribed in the review).
+- Status: done. Depends: REVIEW-M42.
+- Files: `modules/42-fullstack-authentication.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M42.md` (T-1..T-3; Nits N-1, N-2, N-4).
+- Do: apply T-1 (33 follow-up and trap replacements in Q42.01-Q42.23), T-2 (five Misconceptions in §1, §4, §6 ×2, §8), T-3 (the step lists in §5, §6, §8), N-1 (Q42.14 Output snippet `log(` → `console.log(`), N-2 (both "In light of" quotes, §4 and Q42.11, lowercased), N-4 (§1 problem: drop the Q24.19 link). Find each line by its quoted text; keep every existing link target. Disjoint lines from FIX-M42-01; run in either order. No heading or anchor change. If the measured module count passes 9,850, shorten only the clauses this task adds (never a cause, a "because" or a link) until it is at most 9,850.
+- Acceptance: `node labs/tools/check-snippets.mjs . 42` and `node labs/tools/check-links.mjs --planned` exit 0; in the module: `grep -c '^- \*A JWT in a cookie: a session?\* No\.$'` = 0, `grep -c '^- \*Always a JWT?\* No\.$'` = 0, `grep -c '^- \*Introspect a JWT?\* Yes\.$'` = 0, `grep -c 'Masked, so it fails'` = 0, `grep -c 'Cause: it just worked'` = 0, `grep -c 'Cause: the name\.'` = 0, `grep -c 'Cause: RFC 9700 describes it'` = 0, `grep -c '^1\. Spring\.$'` = 0, `grep -c '^  log(`'` = 0, `grep -c '"In light of'` = 0, `grep -c 'logout ends nothing (\[Q24.19'` = 0; D1 counts still 23 each; `<details>` count and the 9 Mermaid diagrams unchanged; prose at most +450 over the count just before and at most 9,850 (hard cap 10,000), both counts in the LOG line.
+
+### FIX-M42-03 · S · Anchors for the file-level links into 42 (+0 words)
+- Model: **Sonnet** (mechanical; slugs listed).
+- Status: done. Depends: REVIEW-M42.
+- Files: link targets only in `modules/09-web-networking-storage-security.md`, `24-routing.md`, `27-http-client.md`, `33-security.md`, `41-fullstack-api-contracts.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M42.md` § Handoffs.
+- Do: apply the Handoffs table (17 rows: 24:1946, 33:651 → §1; 27:711, 27:1708 → §2; 09:407, 33:1575, 33:2055 → §3; 33:2004 → §4; 33:884 → §5; 09:404, 09:1042, 33:779, 33:1934, 41:131 → §6; 24:538, 24:1763, 24:2562 → §7; find each line by its context text, not the line number). Only the link target changes (`42-fullstack-authentication.md` → `42-fullstack-authentication.md#<slug>`). Verify each slug against module 42's `## N.` headings. Leave the `:5` header lines (09, 24, 27, 33, 41) and 09:1606, 24:2978, 24:2979, 27:2578, 27:2579, 33:2128, 33:2129, 41:2046 file-level. FIX-M42-01 and -02 change no heading, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '42-fullstack-authentication.md#'` across the five files totals 17 (0 before); `git diff --stat` touches only those five files (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+
+### Module 43 tasks (PLAN-M43) · common rules
+- Inputs for every task: `_meta/modules/M43.md` (its section, question or exercise rows, the budget, "Handoffs into 43", "What other modules already teach", "Lab decision", "Facts established while planning" F1-F31, "Could not be read" C1-C18, the owner map, and "Corrections found while writing"), STYLE-GUIDE §3-§8 (§7.2 for the Spring banner), QUALITY-BAR B-E, SYLLABUS §4 (43) and §7 decision 2, the module skeleton, and for Part E depth `modules/42-fullstack-authentication.md` (the previous Part E module: read a section, answer or exercise of the same kind before writing; never copy), `modules/23-rxjs-in-depth.md` (the RxJS owner) and `modules/41-fullstack-api-contracts.md`, and `_meta/reviews/REVIEW-M42.md` § Findings (T-1, T-2, T-3 and F-1 are the patterns this plan heads off). Re-verify every fact the task uses before writing (lab > package or framework source > official spec, RFC, docs or registry) and record the basis next to the claim; every "Could not be read" item for the task is read first, or the claim is dropped. Spring sources are read on GitHub at their release tags (`spring-framework` `v7.0.9`, `spring-security` `7.1.1`, `spring-boot` `v4.1.1`) into the job scratchpad and deleted before the task ends; the WHATWG HTML Living Standard from html.spec.whatwg.org, RFCs from rfc-editor.org, STOMP 1.2 from stomp.github.io and MDN pages with the date; `@stomp/rx-stomp@2.4.0` and `@stomp/stompjs@7.5.0` are `npm pack`ed there too; RxJS and Angular are read in `labs/angular/node_modules` (read only); nothing is installed.
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics: fetch streams and `getReader` (09 §2, Q09.04), HTTP/2 multiplexing (09 §3), origin and CORS (09 §5, 41 §1), cookies (09 §6), resources and interop (17 §6, §8), render hooks and teardown (20 §4, §5), zoneless scheduling (21 §5, Q21.10, Q21.17), hot and cold, subjects and RxJS-versus-Reactor backpressure (22 §3, §4, Q22.10, Q22.14), retry, backoff and `repeat` (23 §4, Q23.14-Q23.16), `share` and `shareReplay` (23 §5, Q23.17-Q23.19), unsubscription (23 §6, Q23.20), `toSignal` and `rxResource` decision rules (23 §7, Q23.24-Q23.26), polling (23 §8, Q23.29, Exercise 23.6), HttpClient versus fetch, cancellation and progress (27 §1, §6, §9), fake timers (29 §10), browser-only code (32 §7), SPA CSRF and `csrf.spa()` (33 §9, 42 §6, Q42.17), the resource server (42 §5), push subscriptions (37 §7, Q37.15), streaming downloads (41 §8); each gets one sentence and a link (planned modules 44, 46 file-level). **The Spring side is documented only** (SYLLABUS §7 decision 2): every Java snippet's first line is `// Spring Boot 4.1 — illustrative, not compiled in labs`, every annotation, class, method and property in it (and every YAML property) is read in the named source before writing, and no sentence says the server "did" something in the lab. **rx-stomp and stompjs are documented only** (F2, F3): "read, not run"; their setup snippets are Partial. **Our models and fakes are named as ours** (C16). **No Angular-style status markers on Spring, RxJS, stompjs, rx-stomp, WHATWG or RFC facts** (C13); browser APIs get a marker only from a dated MDN read (C7). **Every MUST/SHOULD is quoted from its RFC or spec with the section number**, and no pattern is called "secure" without naming the threat it addresses and the one it does not. **No Spring Web Push API exists** (F14): §1's paragraph names none.
+- Every task adds its sources under `## Module 43 · Full-stack real time` in `SOURCES.md` (after the last module section present; framework sources as `<repo> <tag> <path>, read <date>`; specs, RFCs and MDN pages with URL and date; package reads as `<pkg>@<version>, <file>, <function>, read <date>`; registry reads as `npm view <pkg> <fields>, read <date>`) and its inline-defined terms under `## Module 43` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** Angular specs only under `labs/angular/src/app/modules/43-fullstack-realtime/` (`concepts/`, `outputs/`, `exercise-2-resilient-socket/`, `exercise-3-live-board/`), zoneless `TestBed`, our fakes from `concepts/testing/`; plain TypeScript tests only under `labs/ts-js/src/modules/43-fullstack-realtime/` (`concepts/`, `exercise-1-resumable-sse/`) and the Output tests under `labs/ts-js/src/outputs/43-fullstack-realtime/` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only); `labs/ts-js` has no RxJS, so nothing there imports it; **no test opens a real connection** (Node's and jsdom's `WebSocket` are never constructed with a URL; every socket is our fake passed as `WebSocketCtor` or a factory; every `fetch` is injected and returns a `Response` over a test-built `ReadableStream`), **calls `git`, `npm` or the network, reads the clock (`Date.now()`, `new Date()` without an argument) or depends on the machine's time zone**; timers are Vitest fake timers; jitter and CSRF masks come from an injected random source; no file under `labs/e2e`; no `labs/spring-backend/` (C17).
+- **Shared files (C18):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `angular.json`, `src/outputs/capture.ts`, VERSIONS.md or another module's folder or file. Read-only to later tasks once created: labs/ts-js `concepts/sse-parser.ts` (SEC-M43-02), `concepts/stomp-frame.ts` (SEC-M43-05); labs/angular `concepts/testing/fake-event-source.ts` (SEC-M43-04), `concepts/testing/fake-web-socket.ts` and `concepts/live-socket.ts` (SEC-M43-06).
+- **Code:** modern Angular (standalone, `inject()`, signals, built-in control flow, no `changeDetection`, zoneless), at most four injected dependencies per class, low branching, strict TypeScript, no `any`, no `as` outside a type test; v22 file names (no `.component` suffix); connections open only in the browser (C8). Internal names (`WebSocketMessageBrokerSecurityConfiguration`, `SseEventBuilderImpl`, `_resetState`, `HTTP_FETCH_MAX_RESPONSE_SIZE`, the user-destination suffix) are read, never imported, and marked internal at first use in each section (C14). Java snippets illustrative under the banner; YAML fences and wire text (`text` fences) are non-TS fences; rx-stomp setup shown is Partial (M43.md "Lab decision").
+- **First-time-pass rules (from REVIEW-M14 to M42; named so they do not recur):** every recorded version, default, property, class name, message and header is checked against the named file or dated read before writing; every "in the lab, X" names a test (`Section N: …`, `Q43.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its artifact, version, file and class, or a dated spec, RFC, MDN or registry read; quotes verbatim from the named file, version or URL and date, a shortened quote carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M43.md names followed by a line starting `What to notice`, parsed with the mermaid parser; **every Misconceptions bullet gives the correction and a cause clause that says why the belief is natural** (a name, a hidden default, a demo that works, an older spec; never "it just worked" or a restatement, REVIEW-M42 T-2); **terms defined at first use** (M43.md lists them per section), checked by a first-use script; **internal names marked internal at first use in each section** (C14); **each `### Code` has numbered steps, and every step says what the code does and why that way, not only which file it is** (REVIEW-M42 T-3); each mechanism answers one "why" from a source read; **direction facts (masked versus raw token, who sends and who checks heart-beats, which close codes an endpoint may send, which responses stop `EventSource`) are re-read at their source just before the sentence is written, and the task's LOG line names the file or section for each** (REVIEW-M42 F-1); the Output short answer gives the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups, and every follow-up answer and every trap gives its reason ("because …"), not only a fact or an instruction** (REVIEW-M42 T-1; a follow-up that cannot carry its reason is replaced, not shortened); **every question and exercise is linked from the body** ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors.
+- **Prose budget** (deltas over the module count measured just before the task; M43.md "Budget"): skeleton 1,681 measured 2026-10-21 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps: SEC-M43-01..09 = 480 / 380 / 380 / 380 / 400 / 360 / 400 / 380 / 400 (3,560); EX-M43-01 = 400 (intro included), EX-M43-02 = 380, EX-M43-03 = 380 (1,160); QB-M43-01 = 810 (intro included), QB-M43-02 = 770, QB-M43-03 = 770 (2,350); CLOSE-M43 = 480. 1,681 + 3,560 + 1,160 + 2,350 + 480 = 9,231. **CLOSE at most 9,231 words; REVIEW ceiling 9,850; hard cap 10,000.** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a diagram, a trap's cause, a follow-up's reason or a "because"). Answer parts average at most 110 words per QB chunk, none above 145.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M43-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker (QB-M43-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M43-01 also writes the exercise intro at its placeholder). CLOSE-M43's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M43, and the header's Labs line carries a relink comment for CLOSE-M43. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q43-NN -->` (or `#ex43-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/angular` file changed: from `labs/angular` (Node 24), `npx ng test --watch=false --include='src/app/modules/43-fullstack-realtime/**/*.spec.ts'` and `npx tsc -p tsconfig.spec.json --noEmit` exit 0 (and `npx ng build` when non-spec code was added); when a `labs/ts-js` file changed: from `labs/ts-js`, `npx vitest run src/modules/43-fullstack-realtime src/outputs/43-fullstack-realtime` and `npx tsc --noEmit` exit 0; from the guide root, `node labs/tools/check-snippets.mjs . 43` and `node labs/tools/check-links.mjs --planned` exit 0; `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line); every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`; `node_modules/` is ignored); the task's marker is gone; no scratch, tarball or temporary file left; the LOG line gives both prose counts. The main session runs every check serially; writers report readiness.
+
+### SEC-M43-01 · M · Choosing a transport: polling, long polling, Server-Sent Events, WebSockets, and Web Push when no tab is open
+- Model: Sonnet (facts F9, F11, F13-F15, F17 and owners named in M43.md §1; C1 read before any timeout number; C7 before a Baseline marker).
+- Files: module §1 and the verification paragraph (its placeholder before §1); `labs/ts-js/src/modules/43-fullstack-realtime/concepts/{transport-model.ts,section-1-transports.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §1, F9, F11, F13 (re-read RFC 6202 §2.2 and §5.1), F14 (re-read RFC 8030 §5 and §5.2, RFC 8291, RFC 8292 §2), F15, F17 (re-read `mvc-ann-async.adoc` at `v7.0.9` for `DeferredResult`), C1, C7, C15; 23 §8, Q23.29, 37 §7, Q37.15, 09 §3; handoffs 09:1606, 37:542, 37:1539, 37:2106, 41:931.
+- Do: M43.md §1 (delta 480 including the paragraph) with `flowchart TD`; `transport-model.ts` (our model; header comment "our model, not the browser's or Spring's") and the four `Section 1: …` tests; the Java `DeferredResult` endpoint with an explicit timeout and `onTimeout` under the banner; the Web Push paragraph and `text` request from the RFCs only, naming no Spring class and no Java library (F14, C15); each Code step says what it does and why (common rules); link 23 §8, 37 §7 and 09 §3 once each; link Q43.01-Q43.03 (relink comments); the verification paragraph (80-110 words) as M43.md §1 lists.
+- Acceptance: common rules.
+
+### SEC-M43-02 · M · Server-Sent Events on the wire: the `text/event-stream` format and how `EventSource` reconnects
+- Model: Opus (judgment-heavy: the WHATWG parsing and reconnection rules are exact, and `sse-parser.ts` becomes the shared kernel that Q43.04, §3 and Exercise 43.1's oracle build on).
+- Files: module §2; `labs/ts-js/src/modules/43-fullstack-realtime/concepts/{sse-parser.ts,sse-reconnect.ts,section-2-sse-protocol.test.ts}` (new; `sse-parser.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §2, F9, F10 (re-read WHATWG HTML §9.2.4-§9.2.6 the day of writing: the parsing algorithm, "fail the connection" versus "reestablish the connection", and the examples), F15, C7.
+- Do: M43.md §2 (delta 380) with `sequenceDiagram`; `sse-parser.ts` (our model of the parsing algorithm: BOM, CR/LF/CRLF across chunks, one stripped space, `id` with NUL ignored, digits-only `retry`, an unterminated block discarded at the end) and `sse-reconnect.ts` (the decision: reconnect, stop on 204, fail on other statuses or content types); the five `Section 2: …` tests; the WHATWG example as a `text` fence, quoted exactly; re-read which responses stop reconnecting before writing that sentence and name the spec step in the LOG line (common rules, direction facts); link Q43.04, Q43.05 and Exercise 43.1 (relink comments).
+- Acceptance: common rules.
+
+### SEC-M43-03 · M · Server-Sent Events in Spring: `SseEmitter` in Spring MVC and a `Flux` of `ServerSentEvent` in WebFlux
+- Model: Sonnet (facts F16-F19 named in M43.md §3; C1 and C10 read first).
+- Files: module §3; `labs/ts-js/src/modules/43-fullstack-realtime/concepts/{sse-format.ts,event-log.ts,section-3-spring-sse.test.ts}` (new; imports `sse-parser.ts` read-only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §3, F16 (re-read `SseEmitter.java` at `v7.0.9`, including the private `SseEventBuilderImpl`'s line format), F17 (the disconnect paragraph of `mvc-ann-async.adoc`), F18 (`ServerSentEvent.java`, `reactive-spring.adoc` streaming), F19 (`spring.mvc.async.request-timeout` in Boot `v4.1.1`), C1, C10, C12; 41 §8; handoffs 41:931, 41:2047.
+- Do: M43.md §3 (delta 380) with `flowchart LR`; the `SseEmitter` endpoint (registry, three callbacks, `Last-Event-ID`, scheduled comment heartbeat) and the WebFlux variant under the banner (read APIs only; the heartbeat merge only as C10 decides); `sse-format.ts` (our mirror of F16's line format, labeled ours) and `event-log.ts` (bounded, `since(id)` returning events or `too-old`); the four `Section 3: …` tests; the required Coming from the backend callout with where it breaks; 44 file-level once; link 41 §8 once; link Q43.06-Q43.08.
+- Acceptance: common rules.
+
+### SEC-M43-04 · M · The Angular SSE client: `EventSource` or a `fetch` stream as an Observable, and when `HttpClient` fits
+- Model: Sonnet (facts F6-F9, F15 named in M43.md §4; C5, C6, C7, C8 read or decided by the first run).
+- Files: module §4; `labs/angular/src/app/modules/43-fullstack-realtime/concepts/{sse-client.ts,testing/fake-event-source.ts,section-4-sse-client.spec.ts}` (new; `testing/fake-event-source.ts` read-only afterwards); if C6's run shows jsdom does not stream, the fetch-stream test goes to `labs/ts-js/src/modules/43-fullstack-realtime/concepts/section-4-fetch-stream.test.ts` instead (say so in the LOG line); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §4, F6 (re-read `innerFrom.ts` in RxJS 7.8.2 for C5), F7 (grep `@angular/common` and `@angular/core` 22.2.1 for `EventSource` again), F8 (re-read `FetchBackend` in `@angular/common` 22.2.1: `partialText`, the chunk list, `HTTP_FETCH_MAX_RESPONSE_SIZE`), F9, F15, F30, C5, C6, C7, C8; 09 §2, Q09.04, 27 §1, 27 §9, 21 §5, 23 §6, 23 §7, 32 §7; handoff 27:2579.
+- Do: M43.md §4 (delta 380) with `stateDiagram-v2`; `fake-event-source.ts` (our fake: `readyState`, `addEventListener`, `close()`, test hooks to open, emit, error-while-reconnecting and fail; header comment "our fake, not the browser's") and `sse-client.ts` (`fromEventSource`, `fromFetchStream` with `AbortController` teardown); the five `Section 4: …` tests in a zoneless `TestBed`; the required Framework vs platform callout with Baseline markers from MDN (C7); link 09 §2, 27 §9, 21 §5 and 23 §6 once each; link Q43.09, Q43.10 and Exercise 43.1.
+- Acceptance: common rules; `npx ng build` exits 0 (non-spec code added).
+
+### SEC-M43-05 · M · WebSockets and STOMP in Spring: the handshake, frames, `@MessageMapping`, brokers, user destinations and heart-beats
+- Model: Opus (judgment-heavy: Spring's messaging model across channels, brokers and user destinations, the heart-beat direction rule, and two places where Spring's docs disagree with its source or with stompjs, F20, F22).
+- Files: module §5; `labs/ts-js/src/modules/43-fullstack-realtime/concepts/{stomp-frame.ts,section-5-stomp.test.ts}` (new; `stomp-frame.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §5, F3 (re-`npm pack` `@stomp/stompjs@7.5.0` into the job scratchpad for the heart-beat code in `client.ts`/`stomp-handler.ts`; deleted after), F4, F11 (RFC 6455 §1.3, §5.1, §7.4.1), F12 (re-read STOMP 1.2's frame and heart-beat sections), F15, F20 (re-read `enable.adoc`, `handle-simple-broker.adoc` and `StompSubProtocolHandler` at `v7.0.9` for `heart-beat:0,0`), F22, F23, F25, C3, C12.
+- Do: M43.md §5 (delta 400) with `sequenceDiagram`; the `@EnableWebSocketMessageBroker` configuration (with `setTaskScheduler` and `setHeartbeatValue`) and the `@MessageMapping` / `@SendTo` / `@SendToUser` controller under the banner (read APIs only); `CONNECT` and `MESSAGE` frames as `text`; `stomp-frame.ts` (our codec and `negotiateHeartBeat(client, server, tolerance)`; header comment "our model, not stompjs's or Spring's") and the five `Section 5: …` tests; re-read which side sends and which checks heart-beats before writing those sentences (direction facts); the 16K-versus-8 KiB note stated from both sources; the required Coming from the backend callout with where it breaks; the SockJS "Once true" bullet from F4 and F15 only; link Q43.11, Q43.12 and Exercise 43.2.
+- Acceptance: common rules.
+
+### SEC-M43-06 · M · The Angular WebSocket client: RxJS `webSocket`, `@stomp/rx-stomp` and reconnecting without losing subscriptions
+- Model: Sonnet (facts F2, F3, F5 named in M43.md §6; C11 read first; rx-stomp read, not run).
+- Files: module §6; `labs/angular/src/app/modules/43-fullstack-realtime/concepts/{live-socket.ts,testing/fake-web-socket.ts,section-6-websocket-client.spec.ts}` (new; `live-socket.ts` and `testing/fake-web-socket.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §6, F2 (re-`npm pack` `@stomp/rx-stomp@2.4.0` for `watch`, `publish`, `connectionState$`, `beforeConnect`; deleted after), F3, F5 (re-read `WebSocketSubject.ts` in RxJS 7.8.2), F11 (close codes), C11; 23 §4, Q23.14-Q23.16, Exercise 23.6, 22 §4; handoffs 23:2610, 23:2745.
+- Do: M43.md §6 (delta 360) with `stateDiagram-v2`; `fake-web-socket.ts` (our fake: constructor records the URL, `send` log, `readyState`, test hooks to open, message, error and close with a chosen `code` and `wasClean`; static instance list; header comment "our fake, not the browser's") and `live-socket.ts` (`webSocket` with `WebSocketCtor`, backoff through `retry({ delay })` and `repeat({ delay })` as C11 reads, resubscription in `openObserver`); the four `Section 6: …` tests with fake timers; the Partial rx-stomp setup with each option's reason in a comment; the required Framework vs platform callout; link 23 §4 once; link Q43.13, Q43.14 and Exercise 43.2.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### SEC-M43-07 · M · Authentication on the handshake: cookies, tokens in the `CONNECT` frame, origin checks and CSRF in Spring Security
+- Model: Opus (judgment-heavy: the masked-token direction on `CONNECT` is the opposite of `csrf.spa()` on HTTP, the docs and the source disagree on CSRF configurability, and token auth runs through an ordered `ChannelInterceptor`).
+- Files: module §7; `labs/ts-js/src/modules/43-fullstack-realtime/concepts/{handshake-guard.ts,section-7-auth.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §7, F11 (RFC 6455 §10.2, §10.5), F24 (re-read `authentication.adoc` and `authentication-token-based.adoc` at `v7.0.9`), F25 (`OriginHandshakeInterceptor`, `server.adoc`), F26 (re-read `servlet/integrations/websocket.adoc` at `7.1.1`), F27 (re-read `WebSocketMessageBrokerSecurityConfiguration`, `XorCsrfChannelInterceptor`, `CsrfTokenHandshakeInterceptor` and `XorCsrfTokenUtils` at `7.1.1`), F28, C2, C4; 42 §5, 42 §6, Q42.17, 33 §9, 09 §5; handoffs 42:747, 42:2124.
+- Do: M43.md §7 (delta 400) with `sequenceDiagram`; the `@EnableWebSocketSecurity` authorization rules and the `HIGHEST_PRECEDENCE + 99` token `ChannelInterceptor` under the banner (read APIs only); `handshake-guard.ts` (our model of the origin check, the XOR-masked CSRF comparison and the token interceptor; header comment "our model, not Spring's code") and the four `Section 7: …` tests; **re-read the masked-versus-raw direction in `XorCsrfChannelInterceptor` immediately before writing that sentence and name the file and method in the LOG line** (REVIEW-M42 F-1); state the docs-versus-source disagreement with both sources; how the page gets a masked token only as C4 reads (else the code shows no `/api/csrf` call and the text says the value must be the masked one); the required Coming from the backend callout with where it breaks; link 42 §5, 42 §6 and 33 §9 once each; link Q43.15, Q43.16.
+- Acceptance: common rules.
+
+### SEC-M43-08 · M · From streams to signals: one shared connection, `toSignal` and `rxResource`, bursts and connection state
+- Model: Sonnet (facts F2, F7, F9 and owners 23 §5, §7, 21 §5 named in M43.md §8; C8 read first).
+- Files: module §8; `labs/angular/src/app/modules/43-fullstack-realtime/concepts/{live-store.ts,section-8-signals.spec.ts}` (new; imports `testing/fake-web-socket.ts` and `live-socket.ts` read-only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §8, F7 (re-read `rxResource` and `resource` streaming in `@angular/core` 22.2.1: NG0991, `ResourceStreamItem`), C8; 23 §5, Q23.17, 23 §7, Q23.24, Q23.26, 21 §5, Q21.17, 17 §6, 28 §1, 32 §7; handoff 23:2688 (flashcard), M28.md:122.
+- Do: M43.md §8 (delta 380) with `flowchart LR`; `live-store.ts` (snapshot, ordered deltas, gap reload, conflation) and the shared connection with `share({ resetOnRefCountZero: () => timer(…) })`; the five `Section 8: …` tests in a zoneless `TestBed` with fake timers (the `shareReplay(1)` test asserts only the socket consequence; 23 §5 owns the operator); Angular status markers for `rxResource` and streaming `resource` from F7; link 23 §5, 23 §7 and 21 §5 once each; link Q43.17, Q43.18 and Exercise 43.3.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### SEC-M43-09 · M · Scaling out and under the hood: sticky sessions, the broker relay, backpressure, and one message traced across two instances
+- Model: Opus (judgment-heavy: the deepest section; the relay, user destinations across instances, the send limits and overflow strategies, and one message traced across two instances to a signal).
+- Files: module §9; `labs/ts-js/src/modules/43-fullstack-realtime/concepts/{broker-model.ts,section-9-scaling.test.ts}` (new; imports `stomp-frame.ts` read-only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M43.md §9, F15, F20, F21 (re-read `handle-broker-relay.adoc` and `StompBrokerRelayRegistration` (and `StompBrokerRelayMessageHandler` for the system connection) at `v7.0.9`), F22 (re-read `SubProtocolWebSocketHandler`, `ConcurrentWebSocketSessionDecorator`, `configuration-performance.adoc`), F23, F25 (`sessionCookieNeeded`), C3, C9; 22 §3, Q22.14, 42 §1, §8's store (the trace's Angular end).
+- Do: M43.md §9 (delta 400) with `sequenceDiagram`; the relay configuration with the user broadcast destinations (only as C9 reads) and `configureWebSocketTransport` limits under the banner (read APIs only); `broker-model.ts` (our model; header comment "our model, not Spring's code") and the four `Section 9: …` tests; the trace table (hop, component, what it reads, what it writes), each Spring hop "read, not run" with its source; the required Coming from the backend callout with where it breaks; 44 file-level once; link 22 §3 and Q22.14 once; link Q43.19-Q43.21 and Exercise 43.3.
+- Acceptance: common rules.
+
+### EX-M43-01 · M · Exercise 43.1 · A resumable SSE client: parse the stream, reconnect with `Last-Event-ID` and honour `retry`
+- Model: Sonnet (the protocol and its kernel exist from §2; the exercise rebuilds a client over an injected `fetch`).
+- Files: module exercise region and the exercise intro at its placeholder (at most 40 words); `labs/ts-js/src/modules/43-fullstack-realtime/exercise-1-resumable-sse/` (new; `concepts/sse-parser.ts` used only as the test's oracle, read-only); SOURCES.md.
+- Inputs: M43.md Exercises 1, §2, §4, F9, F10, F29; Exercise 23.6 (linked in the intro, not rebuilt).
+- Do: full E1 anatomy (delta 400 including the intro); six criteria over both variants (`describe.each(['a', 'b'])`: a hand line splitter over `TextDecoder` with `{ stream: true }`, and `TextDecoderStream` plus a line-splitting `TransformStream`), titles equal to the criteria; chunk boundaries chosen by the test; fake timers; every Hint and the Solution walk-through say why each step is done that way; at least two answered follow-ups, each with its reason; restore section links to Exercise 43.1.
+- Acceptance: common rules.
+
+### EX-M43-02 · M · Exercise 43.2 · A resilient WebSocket channel with RxJS: backoff, resubscription, an outgoing queue and a heart-beat timeout
+- Model: Opus (judgment-heavy: a stateful channel under failures and time, two variants with identical criteria, jitter and heart-beat timing under fake timers).
+- Files: module exercise region; `labs/angular/src/app/modules/43-fullstack-realtime/exercise-2-resilient-socket/` (new; imports `concepts/testing/fake-web-socket.ts` read-only); SOURCES.md.
+- Inputs: M43.md Exercises 2, §5, §6, F2, F3, F5, F11 (1001 and 1006), C11; 23 §4, Exercise 23.6.
+- Do: full E1 anatomy (delta 380); six criteria over both variants (`describe.each(['a', 'b'])`: `webSocket` with `retry`/`repeat`, and a hand-written Observable), titles equal to the criteria; jitter from the injected `random`; the heart-beat timeout as two missed intervals (state the rule's source: STOMP 1.2's tolerance advice and stompjs's multiplier, F3, F12); compare the solution with rx-stomp's defaults (F2, F3) in one paragraph, read, not run; at least two answered follow-ups, each with its reason; restore section links to Exercise 43.2.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### EX-M43-03 · M · Exercise 43.3 · A live board in a zoneless component: a snapshot, ordered deltas, gap recovery and one shared connection
+- Model: Opus (judgment-heavy: the Angular integration exercise over §4, §6 and §8, two variants with identical criteria).
+- Files: module exercise region; `labs/angular/src/app/modules/43-fullstack-realtime/exercise-3-live-board/` (new; imports `concepts/testing/fake-web-socket.ts` read-only); SOURCES.md.
+- Inputs: M43.md Exercises 3, §4, §6, §8, F7, C8; 23 §5, 23 §7, 21 §5, 28 §9 (a store alternative, linked once), 29 §10.
+- Do: full E1 anatomy (delta 380); six criteria over both variants (`describe.each(['a', 'b'])`: a signals service with `toSignal` and `share({ resetOnRefCountZero })`, and `rxResource({ stream })`), titles equal to the criteria; zoneless `TestBed`, fake timers, `inject()` with at most four dependencies; the connection opens only in the browser (C8); at least two answered follow-ups, each with its reason; restore section links to Exercise 43.3.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### QB-M43-01 · M · Q43.01-Q43.07 and the bank intro
+- Model: Sonnet (routine question writing; facts, tests, links and follow-up reasons named in M43.md "Question notes").
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); `labs/ts-js/src/outputs/43-fullstack-realtime/q43-04.test.ts` (new; `captureLogs`; imports `concepts/sse-parser.ts` read-only); section links in §1-§3 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 110 words across the chunk, none above 145, at least two answered follow-ups each, **every follow-up answer and every trap with its reason** (M43.md "Question notes" names the source of each reason); Q43.04 through its test (`it('Q43.04 …')`), lines as the run shows; Q43.02 quotes RFC 8030 §5.2's MUST with its section; Q43.03 and Q43.07 give each bug's fix with why it fixes it; the overlap links M43.md names for Q43.01-Q43.03.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +810 words (5% tolerance); the Output test passes.
+
+### QB-M43-02 · M · Q43.08-Q43.14
+- Model: Sonnet (as QB-M43-01; two Output answers from runs in two labs).
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/43-fullstack-realtime/q43-12.test.ts` (new; `captureLogs`; imports `concepts/stomp-frame.ts` read-only); `labs/angular/src/app/modules/43-fullstack-realtime/outputs/q43-13.spec.ts` (new; imports `concepts/testing/fake-web-socket.ts` read-only); section links in §3-§6; SOURCES.md.
+- Do: as QB-M43-01; Q43.12 through its test (`it('Q43.12 …')`) with the direction of each interval re-read in STOMP 1.2 and stompjs 7.5.0 before writing (common rules, direction facts); Q43.13 through its spec (`it('Q43.13 …')`), values as the run shows, and 1006 described as the code the user agent reports, never one an endpoint sends (F11); Q43.14 is "read, not run" for rx-stomp and links 23 §4 once; Q43.09 links Q09.04 and 27 §9 once each; Q43.10 links Q21.17 and 23 §6 once each.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +770 words; both Output tests pass.
+
+### QB-M43-03 · M · Q43.15-Q43.21
+- Model: Sonnet (as QB-M43-01).
+- Files: module Question bank (its marker region); section links in §7-§9; SOURCES.md.
+- Do: as QB-M43-01; Q43.15 links 42 §5 and 33 §9 once each; Q43.16 states the masked-token direction as SEC-M43-07 recorded it (re-read `XorCsrfChannelInterceptor` before writing) and links Q42.17 once; Q43.17 links Q23.24 and Q23.26 once each; Q43.18 links Q23.17 and 21 §5 once each; Q43.19 rests on C9's read; Q43.20 links Q22.14 once; Q43.21 reuses §9's trace and §8's store; then D3 and D5 for the whole bank and a link check into 09, 17, 21, 22, 23, 27, 33, 37, 41 and 42.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +770 words; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M43 · M · Close module 43
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Files: module header (Applies to, Short on time, Labs line with links and both run commands), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 43, totals); `_meta/ROADMAP.md` (its row for 43).
+- Do: as CLOSE-M42: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M43.md's breadth table against the finished module (all four checkboxes); sample ten follow-ups and five traps across the bank for a stated reason and five Code step lists for an approach (REVIEW-M42 T-1, T-3), and fix any found inside the closing budget or name them in the LOG line; run the full verification (Standard checks, `check-snippets.mjs . 01 … 43`, `module-stats.mjs` and the python one-liner); trim named repeats if above 9,231; no other module is edited: record in the LOG line the file-level links into 43 (M43.md anchor candidates), the VERSIONS.md rows of For Jorge 1, and the open points C1-C12.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/43-fullstack-realtime.md` is 0; prose at most 9,231.
+
+### REVIEW-M43 · L · independent review of module 43
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- As `REVIEW-M42`. Must run in a session that authored no task of module 43 except PLAN-M43, and not in a continuation of their conversations. Findings become `FIX-M43-nn` tasks appended to this file. Module-specific checks: every Spring Framework, Spring Boot and Spring Security claim traced to a source read at its release tag or a dated docs read, re-reading at least ten of them (`SseEmitter`'s timeout fallback, the Servlet disconnect note and comment heartbeat, `heart-beat:0,0` without a `TaskScheduler`, the simple broker's single-instance limit, the relay defaults, `sendTimeLimit` and `sendBufferSizeLimit`, `TERMINATE` as the default overflow strategy, CONNECT login headers ignored, the token interceptor's order, same-origin by default, CSRF required on `CONNECT`, `XorCsrfChannelInterceptor`'s masked comparison, the `csrfChannelInterceptor` bean hook among them); **every direction fact re-read at its source** (masked versus raw on `CONNECT`, heart-beat send and check directions, 1006 never sent by an endpoint, which responses stop `EventSource`); every WHATWG, RFC and STOMP MUST/SHOULD quoted with its section; every Java snippet carries the banner and uses only read APIs; rx-stomp and stompjs "read, not run" and re-checked against the 2.4.0 and 7.5.0 tarballs (F2, F3); Q43.04, Q43.12 and Q43.13 against re-runs of their tests; **every follow-up answer and trap gives its reason, every Misconceptions cause says why the belief is natural, every Code step states its approach** (the REVIEW-M42 T-1, T-2, T-3 patterns: count any that recur); our models and fakes named as ours (C16); no Angular-style status marker on a Spring, RxJS, library, spec or RFC fact (C13); no real connection, clock or network in any test (C17); the handoff lines into 43 (M43.md "Handoffs into 43") honored, including 37's "sending Web Push" with no Spring API claimed; Q09.04, Q21.10, Q21.17, Q22.10, Q22.14, Q23.14-Q23.20, Q23.24-Q23.26, Q23.29, Q37.15 and Q42.17 not re-asked, with an anchor proposal per file-level link (M43.md anchor candidates) for a FIX task; prose at most 9,850 after fixes (hard cap 10,000).
+
+### FIX-M43-01 · S · Factual and content fixes (F-1..F-4, T-3, T-4, N-2, N-5)
+- Model: **Sonnet** (every text and source is prescribed in the review).
+- Status: done. Depends: REVIEW-M43.
+- Files: `modules/43-fullstack-realtime.md`; `SOURCES.md` (under `## Module 43 · Full-stack real time`: append at the end of the section the three notes prescribed in F-1, F-4 and T-4); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M43.md` (Factual findings F-1..F-4; Teaching findings T-3, T-4; Nits N-2, N-5).
+- Do: apply each fix text in REVIEW-M43, finding each line by its quoted text, not its number: F-1 (Exercise 43.2 follow-up "ask for a STOMP `RECEIPT`."), F-2 (Q43.05 "*Why 204 to stop?*" follow-up), F-3 (§5 "closes after max(own in, server out) × 2 of silence;"), F-4 (Q43.15: insert the `login`/`passcode` follow-up after "*The API's decoder?*"), T-3 (§3 How it actually works: insert the "**Not a download.**" bullet after "**Why 30 seconds?**"), T-4 (§5 How it actually works: insert the "**Sizes.**" bullet after "**Why `0,0`?**"), N-2 (§4 `innerFrom.ts` citation), N-5 (§7 Partial comment). No lab file, no heading or anchor change; M43.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 43` and `node labs/tools/check-links.mjs --planned` exit 0 (the new 41 §8 link resolves); in `modules/43-fullstack-realtime.md`: `grep -c 'ask for a STOMP `RECEIPT`\.'` = 0, `grep -c 'does not support receipts'` = 1, `grep -c 'reserves it for a finished server'` = 0, `grep -c '× 2 of silence'` = 0, `grep -c 'checked once per interval'` = 1, `grep -c "STOMP's \`login\` and \`passcode\`"` = 1, `grep -c '\*\*Not a download\.\*\*'` = 1, `grep -c '41-fullstack-api-contracts.md#8-'` = 1, `grep -c '\*\*Sizes\.\*\*'` = 1, `grep -c 'isReadableStreamLike.ts'` = 1, `grep -c 'this beforeConnect replaces the token one'` = 1; SOURCES.md `grep -c 'REVIEW-M43'` = 3; the 9 Mermaid diagrams and 11 Java banners unchanged; D1 counts still 21 each (Q43.15 has three follow-ups); prose at most +190 over the count just before, both counts (`module-stats.mjs` and the QUALITY-BAR one-liner) in the LOG line.
+
+### FIX-M43-02 · S · Teaching fixes and nits (T-1, T-2, N-1, N-3, N-4)
+- Model: **Sonnet** (every text is prescribed in the review).
+- Status: done. Depends: REVIEW-M43 (run after FIX-M43-01: both touch §5, on disjoint lines).
+- Files: `modules/43-fullstack-realtime.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M43.md` (T-1, T-2; Nits N-1, N-3, N-4).
+- Do: apply T-1 (six follow-up and trap replacements in Q43.05, Q43.06 ×2, Q43.11, Q43.12, Q43.21), T-2 (§1 Web Push and §8 `toSignal` misconceptions), N-1 (Q43.12 "*Why `0,0`?*" link `#q43-11` → §5's slug), N-3 (§8 "an `rxResource`" → "An `rxResource`"), N-4 (§5 callout defines **fan-out**; §9 drops its gloss). Find each line by its quoted text; keep every other link target. No heading or anchor change. If the measured module count passes 9,850, shorten only the clauses this task adds (never a cause, a "because" or a link) until it is at most 9,850.
+- Acceptance: `node labs/tools/check-snippets.mjs . 43` and `node labs/tools/check-links.mjs --planned` exit 0; in the module: `grep -c 'MVC writes a `Flux` elsewhere'` = 0, `grep -c 'Because a write is the only test\.'` = 0, `grep -c 'because a return value feels like a response\.'` = 0, `grep -c 'Because a receiver "SHOULD be tolerant"'` = 0, `grep -c "Tab 1's connection?\*"` = 0, `grep -c 'It needs permission\. Cause'` = 0, `grep -c 'It unsubscribes itself on destroy'` = 0, `grep -c 'no interval to offer (\[Q43.11\]'` = 0, `grep -c 'Why NG0991?\*\* an'` = 0, `grep -c '(copying to every subscriber)'` = 0, `grep -c 'in-process \*\*fan-out\*\*'` = 1; D1 counts still 21 each; `<details>` count and the 9 Mermaid diagrams unchanged; prose at most +110 over the count just before and at most 9,850 (hard cap 10,000), both counts in the LOG line.
+
+### FIX-M43-03 · S · Anchors for the file-level links into 43 (+0 words)
+- Model: **Sonnet** (mechanical; slugs listed).
+- Status: done. Depends: REVIEW-M43.
+- Files: link targets only in `modules/23-rxjs-in-depth.md`, `37-elements-pwa-errors-ecosystem.md`, `41-fullstack-api-contracts.md`, `42-fullstack-authentication.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M43.md` § Handoffs.
+- Do: apply the Handoffs table (7 rows: 37:542, 37:1539 → §1; 41:931 → §3; 23:2610, 23:2745 → §6; 42:747, 42:2124 → §7; find each line by its context text, not the line number). Only the link target changes (`43-fullstack-realtime.md` → `43-fullstack-realtime.md#<slug>`). Verify each slug against module 43's `## N.` headings. Leave the `:5` header lines (23, 37, 41, 42) and 09:1606, 23:2746, 27:2579, 37:2106, 41:2047 file-level. FIX-M43-01 and -02 change no heading, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '43-fullstack-realtime.md#'` across the four files totals 7 (0 before); `git diff --stat` touches only those four files (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+
+### Module 44 tasks (PLAN-M44) · common rules
+- Inputs for every task: `_meta/modules/M44.md` (its section, question or exercise rows with the **Must state** line, the budget, "Handoffs into 44", "What other modules already teach", "Lab decision", "Facts established while planning" F1-F45, "Could not be read" C1-C27, the owner map, and "Corrections found while writing"), STYLE-GUIDE §3-§8 (§7.2 for the Spring banner), QUALITY-BAR B-E, SYLLABUS §4 (44), §5 (`labs/angular/deploy/`) and §7 decision 2, the module skeleton, and for Part E depth `modules/43-fullstack-realtime.md` (the previous Part E module: read a section, answer or exercise of the same kind before writing; never copy), `modules/41-fullstack-api-contracts.md` and `modules/32-ssr-ssg-hydration.md` (the prerequisites), and `_meta/reviews/REVIEW-M43.md` § Findings (F-1 to F-4 and T-1 to T-4 are the patterns this plan heads off). Re-verify every fact the task uses before writing (lab > package or framework source > official spec, RFC, docs or registry) and record the basis next to the claim; every "Could not be read" item for the task is read first, or the claim is dropped. Spring sources are read on GitHub at their release tags (`spring-boot` `v4.1.1`, `spring-framework` `v7.0.9`, `spring-cloud-gateway` `v5.0.3`) into the job scratchpad and deleted before the task ends; nginx.org pages, docs.docker.com pages, the `nginx/docker-nginx`, `nginx/docker-nginx-unprivileged`, `nodejs/docker-node` and `docker-library/docs` files, W3C and WHATWG specs, openfeature.dev and MDN pages are read with the date; `@opentelemetry/*`, `@openfeature/*`, `@sentry/*` and `web-vitals` are `npm pack`ed at the versions in F3 and F34 into the job scratchpad and deleted after; Angular is read in `labs/angular/node_modules` (read only); nothing is installed, no Docker or Nginx is run, no daemon is started.
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics: caching directives and header choice (09 §4, Q09.11), CORS and preflights (09 §5, 41 §1, Q41.02), CSP (09 §8, 33 §5), output layout and budgets (12 §3, 31 §6), build time versus run time and the config loader (12 §4, 12 §6, Q12.10, Q12.17, Q12.18, Exercise 12.2), injection tokens (16 §7), SSR deployment, `allowedHosts` and `trustProxyHeaders` (32 §9, Q32.25), SRI and lockfiles (33 §11, Q33.27), service-worker updates and its kill switch (37 §6), the reporter port, scrubbing and hidden maps (37 §11, Q37.22), metrics and the basic beacon (08 §6, Q08.17), Nx and the front-end pipeline (38 §7, 38 §11, Q38.21, Q38.27), e2e in CI (30 §8, Q30.16), contract compatibility and versioning (41 §4, Q41.08, Q41.09), the OAuth BFF and `TokenRelay` (42 §3, Q42.09), the SSE heartbeat and reconnect storms (43 §3, 43 §9); each gets one sentence and a link (planned modules 45, 46 file-level). **One canonical statement per direction or timing fact** (M44.md lesson 19): `location` precedence in §3, the `proxy_pass` URI rule and the 60-second read timeout in §4, the shutdown order in §6, the `traceparent` format and the 10% sampling default in §10; any other place links the canonical section instead of rewording it. **Capability per implementation** (lesson 17): Brotli only with `ngx_brotli`; `gzip_static` only where C11 reads it; no SPA fallback in Spring Boot; Sentry sends its own headers; the Angular OpenFeature SDK has no signals; the Angular builder has no precompression. **Normative versus non-normative** (lesson 18): W3C and WHATWG MUST/SHOULD quoted from normative sections with the section number; examples and notes tagged "(non-normative)"; docs pages cited as docs, never as specs. **The Spring side is documented only** (SYLLABUS §7 decision 2): every Java snippet's first line is `// Spring Boot 4.1 — illustrative, not compiled in labs`; every class, method and property in Java or YAML is read in the named source first; no sentence says the server, Nginx or a container "did" something in the lab. **Deploy files** carry their first comment line from M44.md lesson 9. **Our models and fakes are named as ours** (C20). **No Angular-style status markers on Nginx, Docker, Spring, OpenTelemetry, OpenFeature, Sentry, `web-vitals`, W3C or WHATWG facts** (C19); browser APIs get a marker only from a dated MDN read.
+- Every task adds its sources under `## Module 44 · Full-stack delivery and operations` in `SOURCES.md` (after the last module section present; framework sources as `<repo> <tag> <path>, read <date>`; nginx.org, Docker, specs and MDN pages with URL and date; package reads as `<pkg>@<version>, <file>, <function>, read <date>`; registry reads as `npm view <pkg> <fields>, read <date>`; a code-source line for every lab and deploy file it creates) and its inline-defined terms under `## Module 44` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** plain TypeScript tests only under `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/` (`concepts/`, `exercise-1-release-publisher/`) and the Output tests under `labs/ts-js/src/outputs/44-fullstack-delivery-and-operations/` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only); Angular specs only under `labs/angular/src/app/modules/44-fullstack-delivery-and-operations/` (`concepts/`, `exercise-2-trace-correlation/`, `exercise-3-feature-flags/`), zoneless `TestBed`; documented-only files only under `labs/angular/deploy/` (names in M44.md "Lab files"); ts-js tests read the deploy files as text with `readFileSync` on a path relative to the test file; **no test opens a socket, listens on a port, spawns a process, runs Docker or Nginx, calls `git`, `npm` or the network, reads the clock (`Date.now()`, `new Date()` without an argument) or depends on the machine's time zone**; time is a passed number or Vitest fake timers; IDs, sampling and bucket salts come from an injected random source; compression uses `node:zlib` with explicit levels on committed input; no file under `labs/e2e`, no `labs/spring-backend/`, nothing under `labs/angular/projects/` (C21).
+- **Shared files (C22):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `angular.json`, `src/outputs/capture.ts`, VERSIONS.md, `projects/ssr-lab/**` or another module's folder or file. Read-only to later tasks once created: labs/ts-js `concepts/nginx-model.ts` (SEC-M44-03), `concepts/envsubst-model.ts` (SEC-M44-05), `concepts/trace-context.ts` (SEC-M44-10); labs/angular `concepts/beacon-queue.ts` (SEC-M44-09); `deploy/Dockerfile` and `deploy/Dockerfile.dockerignore` (SEC-M44-02), `deploy/config/config.json.template` and `deploy/docker-entrypoint.d/40-write-config.sh` (SEC-M44-05), `deploy/Dockerfile.ssr` (SEC-M44-06). `deploy/nginx/default.conf.template` is created by SEC-M44-03, rewritten as a whole once by SEC-M44-04 (every SEC-M44-03 line kept; its tests unchanged and passing), and may gain only the `location = /config.json` change C10 requires from SEC-M44-05; read-only afterwards.
+- **Code:** modern Angular (standalone, `inject()`, signals, built-in control flow, no `changeDetection`, zoneless), at most four injected dependencies per class, low branching, strict TypeScript, no `any`, no `as` outside a type test; v22 file names (no `.component` suffix); browser-only APIs (`navigator.sendBeacon`, `document.visibilityState`) reached through injected tokens. Internal names (`getAllowedHostsFromEnv`, `getTrustProxyHeadersFromEnv`, `shouldPropagateTraceHeaders`, `AvailabilityProbesAutoConfiguration`) are read, never imported, and marked internal (or deprecated helper) at first use in each section (M44.md lesson 5). Java snippets illustrative under the banner; YAML, Dockerfile, Nginx, shell and CI fences are non-TS fences; OpenTelemetry, OpenFeature and Sentry setup shown is Partial (M44.md "Lab decision", Snippets); wire text in `text` fences.
+- **First-time-pass rules (from REVIEW-M14 to M43; named so they do not recur):** every recorded version, default, directive, property, class name, header and message is checked against the named file or dated read before writing; every "in the lab, X" names a test (`Section N: …`, `Q44.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its artifact, version, file and class or directive, or a dated docs, spec, MDN or registry read; quotes verbatim from the named file, version or URL and date, a shortened quote carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M44.md names followed by a line starting `What to notice`, parsed with the mermaid parser; **every Misconceptions bullet gives the correction and a cause clause that says why the belief is natural** (M44.md writes each cause; reword, never drop; REVIEW-M43 T-2); **terms defined at first use** (M44.md lists them per section), checked by a first-use script; **each `### Code` has numbered steps, and every step says what the code does and why that way** (REVIEW-M42 T-3); each mechanism answers one "why" from a source read; **direction and precedence facts (M44.md lesson 16's list) are re-read at their source just before the sentence is written, and the task's LOG line names the page and paragraph for each** (REVIEW-M42 F-1, REVIEW-M43 F-3); **capability claims name the implementation that has the capability** (REVIEW-M43 F-1); the Output short answer gives the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups, and every follow-up answer and every trap gives its reason ("because …")** (REVIEW-M43 T-1; a follow-up that cannot carry its reason is replaced, not shortened); **every "Must state" fact of the task's section appears in reader text; a fact that cannot fit is moved, with its F-number, to a named question or exercise in M44.md "Corrections found while writing", never dropped** (REVIEW-M43 F-4, T-4); **every handoff line M44.md assigns to the task is honored** (REVIEW-M43 T-3); every question and exercise is linked from the body ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors; links in `_meta/` files use `../../modules/<file>#slug`.
+- **Prose budget** (deltas over the module count measured just before the task; M44.md "Budget"): skeleton 1,793 measured 2026-10-22 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps: SEC-M44-01..10 = 460 / 340 / 400 / 360 / 340 / 380 / 340 / 340 / 320 / 400 (3,680); EX-M44-01 = 400 (intro included), EX-M44-02 = 370, EX-M44-03 = 370 (1,140); QB-M44-01 = 880 (intro included), QB-M44-02 = 735, QB-M44-03 = 630 (2,245); CLOSE-M44 = 440. 1,793 + 3,680 + 1,140 + 2,245 + 440 = 9,298. **CLOSE at most 9,298 words; REVIEW ceiling 9,850; hard cap 10,000.** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a "Must state" fact, a diagram, a cause, a follow-up's reason or a "because"); if the facts still do not fit, the task stops and reports instead (M44.md lesson 22). Answer parts average at most 105 words per QB chunk, none above 145.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M44-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker (QB-M44-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M44-01 also writes the exercise intro at its placeholder). CLOSE-M44's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M44, and the header's Labs line carries a relink comment for CLOSE-M44. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q44-NN -->` (or `#ex44-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/ts-js` file changed: from `labs/ts-js` (Node 24), `npx vitest run src/modules/44-fullstack-delivery-and-operations src/outputs/44-fullstack-delivery-and-operations` and `npx tsc --noEmit` exit 0; when a `labs/angular` file changed: from `labs/angular`, `npx ng test --watch=false --include='src/app/modules/44-fullstack-delivery-and-operations/**/*.spec.ts'` and `npx tsc -p tsconfig.spec.json --noEmit` exit 0 (and `npx ng build` when non-spec code was added); from the guide root, `node labs/tools/check-snippets.mjs . 44` and `node labs/tools/check-links.mjs --planned` exit 0; `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line); every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`; `node_modules/` and `dist/` are ignored); the task's marker is gone; no scratch, tarball or temporary file left; the LOG line gives both prose counts and the "Must state" facts written. The main session runs every check serially; writers report readiness.
+
+### SEC-M44-01 · M · Where the API calls go: direct calls, a same-origin reverse proxy, an API gateway or a backend-for-frontend
+- Model: Sonnet (facts F32, owners 41 §1, 42 §3, 09 §5 named in M44.md §1; C23 read before the gateway YAML).
+- Files: module §1 and the verification paragraph (its placeholder before §1); `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{topology-model.ts,section-1-topologies.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §1, F32 (re-read the `v5.0.3` starter pages), C23, C20; 41 §1, Q41.02, 42 §3, Q42.09, 09 §5, 33 §8; handoffs 09:367, 41:69, 41:1398, 42:447, 42:2124.
+- Do: M44.md §1 (delta 460 including the paragraph) with `flowchart LR` (four lanes); `topology-model.ts` (header comment "our model, not a gateway's or Nginx's code") and the four `Section 1: …` tests with the exact titles; the gateway YAML route only with property names read in C23 (first comment `# Illustrative, not run`); the one-line Nginx forward pointer to §4 (no URI rule restated); the required Coming from the backend callout with where it breaks; the four Misconceptions with M44.md's causes; link 41 §1, 42 §3 and 09 §5 once each; link Q44.01, Q44.02 (relink comments); the verification paragraph (80-110 words) exactly as M44.md §1 lists.
+- Acceptance: common rules.
+
+### SEC-M44-02 · M · A Docker multi-stage build for Angular: build and runtime stages, layer caching, `.dockerignore` and a non-root image
+- Model: Sonnet (facts F13, F14, F28 named in M44.md §2; C2, C8 and C26 read first).
+- Files: module §2; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{docker-cache-model.ts,section-2-docker.test.ts}` (new); `labs/angular/deploy/Dockerfile` and `labs/angular/deploy/Dockerfile.dockerignore` (new, documented only; the ignore file only if C2 confirms its name, else §2 shows `.dockerignore` as an illustrative fence and no file is created); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §2, F13 (re-read the Debian Dockerfile and the unprivileged README), F14 (re-read the multi-stage, cache and build-context pages), F28 (re-read `dockerfiles.adoc` and the `dockerfile` partial at `v4.1.1`), F18, C2, C8, C10 (the runtime stage's paths must match what SEC-M44-05 will write), C26; 12 §3, 12 §4, 33 §11; handoff none beyond §5's.
+- Do: M44.md §2 (delta 340) with `flowchart LR`; the committed Dockerfile (two stages; `package.json` and the lockfile copied and `npm ci` with `RUN --mount=type=cache,target=/root/.npm` before `COPY . .`; `ng build`; `COPY --from=build` of `dist/labs/browser` only; `nginx/nginx-unprivileged` runtime; copies of `deploy/nginx/default.conf.template` to `/etc/nginx/templates/` and of `deploy/docker-entrypoint.d/40-write-config.sh` and `deploy/config/config.json.template`, each named for the later task that creates it; a comment per instruction giving its reason), first line per M44.md lesson 9; `docker-cache-model.ts` (rule quoted from C26 in its header; "our model, not Docker's code") and the four `Section 2: …` tests (two read the committed Dockerfile as text); the illustrative Boot layered-jar Dockerfile from F28 (`# Illustrative, not run`); buildpack goal names only as C8 reads; the four Misconceptions with M44.md's causes; link 12 §3 and 12 §4 once each; link Q44.03, Q44.04 and Exercise 44.1.
+- Acceptance: common rules; CLOSE-M44 later checks every `COPY` source exists.
+
+### SEC-M44-03 · M · Nginx for a single-page app: `location` matching, the `try_files` fallback, caching headers for hashed assets, and gzip or Brotli
+- Model: Opus (judgment-heavy: three precedence and inheritance rules from nginx.org (F5, F6, F7) with version notes, a capability split between nginx open source and `ngx_brotli`, and `nginx-model.ts` becomes the kernel that §4, Q44.05 and Exercise 44.1 rest on).
+- Files: module §3; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{nginx-model.ts,section-3-nginx-static.test.ts}` (new; `nginx-model.ts` read-only afterwards); `labs/angular/deploy/nginx/default.conf.template` (new, documented only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §3, F4, F5 (re-read the `location` paragraph of `ngx_http_core_module` immediately before writing the precedence sentence; name it in the LOG line), F6 (re-read `add_header`, `add_header_inherit` and `expires`), F7 (re-read the gzip and gzip_static pages and the `ngx_brotli` README), F18, F19, F21, C11, C12, C13, C24, C27 (confirm the hashed-name pattern by `npx ng build` in `labs/angular` or from `@angular/build` 22.2.1's naming code; list three names in the LOG line); 09 §4, Q09.11, 05 §2, Q05.08, 33 §5, 34 §7; handoffs 05:893, 09:266, 09:893, 33:1867, 33:2128, 34:568, 34:1943.
+- Do: M44.md §3 (delta 400) with `flowchart TD`; the committed template (server-level security headers with `always`; `location = /index.html` with `Cache-Control: no-cache`; a regex location for hashed names with `public, max-age=31536000, immutable` and `try_files $uri =404`; `location = /config.json` with `no-store`; `location /` with `try_files $uri $uri/ /index.html` and `no-cache`; each location repeating the security headers or using `add_header_inherit merge` with its version note, choose one and say why in a comment; `gzip on`, `gzip_types` for JS, CSS, JSON, SVG, `gzip_vary on`, `gzip_static on`; no `brotli` directive, a comment naming `ngx_brotli` instead), first line per lesson 9; `nginx-model.ts` (exact, `^~`, regex in order, longest prefix; `try_files`; header resolution per level with `always` and the status list from F6; `gzip_static` negotiation with `Vary`; a small parser for the subset of directives the committed file uses; header comment "our model, not Nginx's code", naming F5-F7) and the six `Section 3: …` tests with the exact titles (the Brotli test asserts only that Brotli quality 11 is smaller than gzip level 9 on `labs/ts-js/node_modules/typescript/lib/typescript.js`); the required Framework vs platform callout; the locale paragraph only as C12 reads, the `frame-ancestors`/reporting paragraph only as C13 reads (else omitted and recorded in "Corrections found while writing"); the five Misconceptions with M44.md's causes, including the predicate-location "Once true" from F5's version note; link 09 §4, Q09.11, Q05.08, 33 §5 and 34 §7 once each; link Q44.05, Q44.06 and Exercise 44.1.
+- Acceptance: common rules.
+
+### SEC-M44-04 · M · Nginx as the reverse proxy: `proxy_pass`, forwarded headers into Spring Boot, and SSE or WebSocket connections through the proxy
+- Model: Sonnet (direction facts F8-F10, F24, F25 are quoted verbatim in M44.md; the model imports §3's kernel; C3 read first).
+- Files: module §4; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{proxy-model.ts,section-4-reverse-proxy.test.ts}` (new; imports `nginx-model.ts` read-only); `labs/angular/deploy/nginx/default.conf.template` (rewritten once as a whole: every SEC-M44-03 line kept, the `/api/`, `/api/events` and `/ws` locations and the `map` block added; SEC-M44-03's tests pass unchanged); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §4, F8 and F9 (re-read `proxy_pass`, `proxy_set_header` and `proxy_http_version` immediately before writing those sentences; name the paragraphs in the LOG line), F10 (re-read `proxy_read_timeout`, `proxy_buffering` and `websocket.html`), F24 (re-read `ServerProperties` and `how-to/webserver.adoc` at `v4.1.1`), F25 (re-read `ForwardedHeaderFilter` at `v7.0.9`), C3; 41 §1, 43 §3, 43 §9, Q43.07, 32 §9; handoffs 41:69, 43:427, 43:1273, 43:2008, M09.md:45, M43.md:156.
+- Do: M44.md §4 (delta 360) with `sequenceDiagram`; the three new locations (each `proxy_set_header` overwriting client-sent forwarded headers; `Upgrade`/`Connection` via `map`; `proxy_buffering off` and a raised `proxy_read_timeout` for the streams with the reason in a comment); the illustrative `application.yml` for `server.forward-headers-strategy`; `proxy-model.ts` (header comment "our model, not Nginx's or Spring's code") and the four `Section 4: …` tests; TLS termination and HTTP/2 only as C3 reads; this section holds the canonical statements of the `proxy_pass` URI rule and the 60-second read timeout; the required Coming from the backend callout with where it breaks; the five Misconceptions with M44.md's causes (the `proxy_http_version` "Once true" from F9); link 43 §3 and 43 §9 once each; link Q44.07, Q44.08.
+- Acceptance: common rules.
+
+### SEC-M44-05 · M · Runtime configuration without rebuilding: `config.json`, environment substitution at container start and `provideAppInitializer`
+- Model: Sonnet (facts F12, F22 and owners 12 §4, §6 named in M44.md §5; C10 read first).
+- Files: module §5; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{envsubst-model.ts,section-5-runtime-config.test.ts}` (new; `envsubst-model.ts` read-only afterwards); `labs/angular/deploy/config/config.json.template` and `labs/angular/deploy/docker-entrypoint.d/40-write-config.sh` (new, documented only); `labs/angular/deploy/nginx/default.conf.template` only if C10 requires an `alias` for `/config.json` (whole-file rewrite, every earlier line kept, earlier tests unchanged); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §5, F12 (re-read `20-envsubst-on-templates.sh` and `docker-entrypoint.sh` in `nginx/docker-nginx`), F13, F22, C10; 12 §4, 12 §6, Q12.10, Q12.17, Q12.18, Exercise 12.2, 16 §7, 09 §4, 38 §8, 32 §7; handoffs SYLLABUS:292, 12:328, 12:1015, 12:1053, 12:1637, 38:601, M12.md:102, M12.md:115.
+- Do: M44.md §5 (delta 340) with `sequenceDiagram`; the committed template (`apiUrl`, `featureFlagsUrl`, `release`, `traceSampleRate`) and script (explicit variable list for `envsubst`, required-variable check that exits non-zero with a message, writes where C10 allows; `set -eu`; executable-bit note because `docker-entrypoint.sh` skips non-executable files, F12), first lines per lesson 9; `envsubst-model.ts` (mirrors F12's variable selection and filter, and our writer's required check; header comment "our model, not the nginx image's script") and the four `Section 5: …` tests; the Angular side is one link to Exercise 12.2, no code repeated; the required Framework vs platform callout; the four Misconceptions with M44.md's causes; link 12 §4, 12 §6, Exercise 12.2, 09 §4 and 38 §8 once each; link Q44.09, Q44.10.
+- Acceptance: common rules.
+
+### SEC-M44-06 · M · Serving SSR apps in containers: the Node server as PID 1, graceful shutdown, health probes and what Nginx or a CDN still serves
+- Model: Opus (judgment-heavy: which process receives the signal under shell versus exec form, PID 1's default-action rule, and the shutdown order across Docker, Kubernetes probes and Spring Boot's lifecycle table; docs versus source on probe enablement, C9).
+- Files: module §6; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{graceful-shutdown.ts,section-6-ssr-containers.test.ts}` (new); `labs/angular/deploy/Dockerfile.ssr` (new, documented only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §6, F15 (re-read the Dockerfile reference's ENTRYPOINT shell-form paragraph and `docker run --init` immediately before writing those sentences; name them in the LOG line), F16, F17 (re-read `docs/BestPractices.md`), F20 (re-read `server.ts.template` in `@schematics/angular` 22.2.1), F23, F26 and F27 (re-read `graceful-shutdown.adoc`, `endpoints.adoc` probes and the lifecycle table at `v4.1.1`), C1, C9; 32 §2, 32 §9, Q32.25, Q32.26; handoffs 32:2285, M32.md:139.
+- Do: M44.md §6 (delta 380) with `sequenceDiagram`; the committed `Dockerfile.ssr` (build stage; `node:24-alpine` runtime with `USER node`, `NODE_ENV=production`, exec-form `CMD`, `tini` or the `--init` note, `HEALTHCHECK` against a liveness path with F16's defaults in a comment), first line per lesson 9; `graceful-shutdown.ts` (fake server, readiness flag, in-flight counter, injected clock and deadline, a process-tree model for shell versus exec form; header comment "our model, not Node's, Docker's or Spring's code") and the five `Section 6: …` tests; the Partial `process.on('SIGTERM', …)` wiring marked as not applied to `projects/ssr-lab`; the illustrative Boot YAML for `server.shutdown` and probes; this section holds the canonical shutdown order; the docker stop grace period as a number only if C1 reads it; probe enablement outside Kubernetes only as C9 reads; the required Coming from the backend callout with where it breaks; the four Misconceptions with M44.md's causes; link 32 §9 once; link Q44.11, Q44.12.
+- Acceptance: common rules.
+
+### SEC-M44-07 · M · CI/CD for both layers: one image promoted through stages, a monorepo or separate repositories, and versioning the contract
+- Model: Sonnet (owners 38 §11, 30 §8, 41 §3, 41 §4, 37 §6 named in M44.md §7; the model is a pure function set).
+- Files: module §7; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{release-model.ts,section-7-cicd.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §7, F3 (`frontend-maven-plugin` 2.0.2, one clause), F45; 38 §7, 38 §11, Q38.21, Q38.27, 30 §8, Q30.16, 41 §3 (`concepts/contract-drift.ts` read only, as precedent), 41 §4, Q41.08, Q41.09, 37 §6, 12 §3, 31 §6, 39 §7 (build its slug with `githubSlug` before linking); handoffs 12:1715, 30:676, 38:836, 38:2040, 39:1947, 41:350, M30.md:133, M38.md:153, M39.md:135.
+- Do: M44.md §7 (delta 340) with `flowchart LR`; the illustrative CI YAML (path filters, contract job, build-once and promote-by-digest jobs; action majors only as 38 §11 records them; `# Illustrative, not run`); `release-model.ts` (header comment "our model, not a CI service's code") and the four `Section 7: …` tests; the repository layouts as a `text` tree; one sentence each for budgets in the build (12 §3) and update bots (39 §7); the required Coming from the backend callout with where it breaks; the four Misconceptions with M44.md's causes; link 38 §11, 30 §8, 41 §4, 37 §6 and 38 §7 once each; link Q44.13-Q44.15.
+- Acceptance: common rules.
+
+### SEC-M44-08 · M · Feature flags with OpenFeature and canary releases: providers, evaluation context, sticky rollout, kill switches and version skew
+- Model: Sonnet (facts F11, F41-F44 named in M44.md §8; C14 read first; OpenFeature read, not run).
+- Files: module §8; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{flag-model.ts,section-8-flags.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §8, F11 (re-read `split_clients`), F41 and F42 (re-`npm pack` `@openfeature/web-sdk@1.10.0` and `@openfeature/core@1.12.0`; deleted after), F43 (`@openfeature/angular-sdk@1.3.2`, same), F44, C14 (the spec's flag-evaluation section and `StandardResolutionReasons`/`ErrorCode` in core 1.12.0 before any reason or code name), C20; 05 §2, Q05.08, 37 §6; handoff 05:893.
+- Do: M44.md §8 (delta 340) with `flowchart LR`; `flag-model.ts` (bucket hash over `flagKey` + `targetingKey`, evaluation with default on error, a canary router with and without a sticky cookie; header comment "our model, not OpenFeature's or Nginx's code") and the five `Section 8: …` tests (the 10,000-key test uses a fixed key list); the Partial OpenFeature setup with shapes read from 1.10.0 types; the illustrative `split_clients` snippet; reason and error-code names only as C14 reads; the four Misconceptions with M44.md's causes; link Q05.08 and 37 §6 once each; link Q44.16, Q44.17 and Exercise 44.3.
+- Acceptance: common rules.
+
+### SEC-M44-09 · M · Frontend error tracking and real user monitoring: releases, source maps, beacons and sampling
+- Model: Sonnet (facts F19, F38-F40 and owners 37 §11, 08 §6 named in M44.md §9; C5, C6, C15 read first).
+- Files: module §9; `labs/angular/src/app/modules/44-fullstack-delivery-and-operations/concepts/{beacon-queue.ts,section-9-rum.spec.ts}` (new; `beacon-queue.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §9, F19, F38 (re-`npm pack` `@sentry/browser@11.8.0` and `@sentry/cli@3.8.2`; deleted after), F39 (`web-vitals@6.2.3`, same), F40 (re-read MDN `sendBeacon` and `keepalive` with the date), C5, C6, C15; 37 §11, Q37.22, 08 §6, Q08.17, 31 §1; handoffs 37:897, 37:1739, 37:2105, SYLLABUS:533, M37.md:154, M37.md:164.
+- Do: M44.md §9 (delta 320) with `flowchart LR`; `beacon-queue.ts` (an injectable with `BEACON` and `DOCUMENT` injected, at most four dependencies; batches events stamped with route, release and page-view id; one sampling decision per page view from an injected random source; flush on `visibilitychange` to hidden; header comment "our queue, not a vendor SDK") and the four `Section 9: …` tests in a zoneless `TestBed`; the Partial `web-vitals` wiring; the illustrative CI step (`sourceMap.hidden`, upload with the release id, maps removed before deploy; commands only as C6 reads); the 10% Boot default linked to §10, not restated; Baseline markers only from F40's dated read; the four Misconceptions (the source-map one links 37 §11 instead of repeating); link 37 §11, Q37.22, 08 §6 and Q08.17 once each; link Q44.18 and Exercise 44.2.
+- Acceptance: common rules; `npx ng build` exits 0 (non-spec code added).
+
+### SEC-M44-10 · M · Under the hood: OpenTelemetry for the web, `traceparent`, and one click traced to a Spring Boot span and log line
+- Model: Opus (judgment-heavy: the deepest section; normative W3C quotes compared with OpenTelemetry's parser (C4), the cross-origin propagation rule and its CORS consequence, the deprecation and zone-context caveats in a zoneless app, and one click traced across four hops).
+- Files: module §10; `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/concepts/{trace-context.ts,section-10-tracing.test.ts}` (new; `trace-context.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M44.md §10, F29 and F30 (re-read the tracing metadata and `tracing.adoc` at `v4.1.1`; `produce` versus `consume` immediately before writing that sentence, named in the LOG line), F33 and C4 (re-read W3C Trace Context Level 1 §3.2-§3.3 verbatim, normative parts only, with section numbers), F34-F36 (re-`npm pack` the `@opentelemetry/*` packages at F34's versions; deleted after), F37, F38, C5, C6, C7, C16, C17, C18, C25; 41 §1, 09 §5, 43 §9 (the trace-table precedent); handoff none beyond §9's.
+- Do: M44.md §10 (delta 400) with `sequenceDiagram`; `trace-context.ts` (format, parse per the spec grammar, child span from an injected random source, `shouldPropagate(url, pageOrigin, allowList)`, a four-hop join over test-built log lines; header comment "our codec and model, not OpenTelemetry's code") and the five `Section 10: …` tests; the Partial OpenTelemetry setup with the deprecation stated from F34; the illustrative YAML with defaults in comments and the Nginx `log_format` only as C17 reads; the trace table as prose; this section holds the canonical `traceparent` format and the 10% sampling default; every spec-versus-library difference stated with both sources; the two required callouts (Coming from the backend with where it breaks; Framework vs platform); the five Misconceptions with M44.md's causes (the `instrumentation-fetch` "Once true" from F34); link 41 §1 once; link Q44.19-Q44.21 and Exercise 44.2.
+- Acceptance: common rules.
+
+### EX-M44-01 · M · Exercise 44.1 · A release publisher for static hosting: precompress, upload in a safe order, keep the previous chunks and set headers per file
+- Model: Sonnet (a pure function over an in-memory bucket; the header values and hashed-name pattern exist from §3).
+- Files: module exercise region and the exercise intro at its placeholder (at most 40 words); `labs/ts-js/src/modules/44-fullstack-delivery-and-operations/exercise-1-release-publisher/` (new; `concepts/nginx-model.ts` used only as the test's oracle, read-only); SOURCES.md.
+- Inputs: M44.md Exercises 1, §2, §3, §7, §9, F7, F19, F21, C27 (the pattern SEC-M44-03 recorded); Exercise 12.2 (linked in the intro, not rebuilt); handoff 05:893.
+- Do: full E1 anatomy (delta 400 including the intro); six criteria over both variants (`describe.each(['a', 'b'])`: sequential steps, and a plan object then apply), titles equal to the criteria; compression with `node:zlib` at explicit levels; the operation log asserts the order; every Hint and the Solution walk-through say why each step is done that way (hashed files first because the old `index.html` may still be served; old chunks kept because open tabs request them); at least two answered follow-ups, each with its reason; restore section links to Exercise 44.1.
+- Acceptance: common rules.
+
+### EX-M44-02 · M · Exercise 44.2 · Correlate a failed request with the backend: propagate `traceparent` to allowed origins, report errors with the trace ID and flush beacons when the page hides
+- Model: Opus (judgment-heavy: two genuinely different Angular designs (an interceptor and an `HttpBackend` decorator) that pass identical criteria under sampling and page-lifecycle timing).
+- Files: module exercise region; `labs/angular/src/app/modules/44-fullstack-delivery-and-operations/exercise-2-trace-correlation/` (new); SOURCES.md.
+- Inputs: M44.md Exercises 2, §9, §10, F33, F35, F37, F40, C4; 27 §2 (interceptors and the fetch backend, linked once), 37 §11.
+- Do: full E1 anatomy (delta 370); six criteria over both variants (`describe.each(['a', 'b'])`), titles equal to the criteria; zoneless `TestBed`, `HttpTestingController`, `document.visibilityState` stubbed, `BEACON` and `RANDOM` injected, `inject()` with at most four dependencies; the `traceparent` format re-implemented in the exercise and checked against §10's canonical format in the test (say why: Angular cannot import the ts-js codec); the 5xx and network-error cases both covered by the report criterion; at least two answered follow-ups, each with its reason (one compares OpenTelemetry's `propagateTraceHeaderCorsUrls`, F35, read, not run); restore section links to Exercise 44.2.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### EX-M44-03 · M · Exercise 44.3 · Feature flags in a zoneless app: an OpenFeature-shaped provider, sticky percentage rollout, re-evaluation after login and a kill switch
+- Model: Opus (judgment-heavy: an OpenFeature-shaped contract with context change and provider events, two variants (signals and an Observable store read with `toSignal`) with identical criteria, and a zoneless template).
+- Files: module exercise region; `labs/angular/src/app/modules/44-fullstack-delivery-and-operations/exercise-3-feature-flags/` (new); SOURCES.md.
+- Inputs: M44.md Exercises 3, §8, F41-F44, C14 (reason and error-code names as SEC-M44-08 recorded them); 23 §7 (`toSignal`, linked once), 21 §5.
+- Do: full E1 anatomy (delta 370); six criteria over both variants (`describe.each(['a', 'b'])`), titles equal to the criteria; our types named as ours and mirroring OpenFeature (C20); zoneless `TestBed`, the `checkout.ts` component with built-in control flow; the re-evaluation criterion counts provider calls; compare the solution with `@openfeature/angular-sdk`'s Observable service and directives in one paragraph, read, not run (F43); at least two answered follow-ups, each with its reason; restore section links to Exercise 44.3.
+- Acceptance: common rules; `npx ng build` exits 0.
+
+### QB-M44-01 · M · Q44.01-Q44.08 and the bank intro
+- Model: Sonnet (routine question writing; facts, tests, links and follow-up reasons named in M44.md "Question notes").
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); `labs/ts-js/src/outputs/44-fullstack-delivery-and-operations/q44-05.test.ts` (new; `captureLogs`; imports `concepts/nginx-model.ts` read-only and reads the committed Nginx template); section links in §1-§4 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 105 words across the chunk, none above 145, at least two answered follow-ups each, **every follow-up answer and every trap with its reason** (M44.md "Question notes" names the source of each reason); Q44.05 through its test (`it('Q44.05 …')`), lines as the run shows, linking §3's canonical precedence statement; Q44.04, Q44.06 and Q44.07 give each bug's fix with why it fixes it; Q44.07 links §4's canonical read-timeout sentence instead of restating it; the overlap links M44.md names for Q44.01-Q44.08.
+- Acceptance: common rules; D1 counts equal 8; chunk at most +880 words (5% tolerance); the Output test passes.
+
+### QB-M44-02 · M · Q44.09-Q44.15
+- Model: Sonnet (as QB-M44-01).
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/44-fullstack-delivery-and-operations/q44-10.test.ts` (new; `captureLogs`; imports `concepts/envsubst-model.ts` read-only); section links in §5-§7; SOURCES.md.
+- Do: as QB-M44-01; Q44.10 through its test (`it('Q44.10 …')`), values as the run shows, labeled our model of the nginx image's script; Q44.11 links §6's canonical shutdown order and uses C1's outcome as SEC-M44-06 recorded it; Q44.12 gives each fix with its reason; Q44.09 links Q12.10 and Q12.18 once each; Q44.13 links Q38.27 and 30 §8 once each; Q44.14 links Q38.21 once; Q44.15 links Q41.08 and Q41.09 once each.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +735 words; the Output test passes.
+
+### QB-M44-03 · M · Q44.16-Q44.21
+- Model: Sonnet (as QB-M44-01).
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/44-fullstack-delivery-and-operations/q44-20.test.ts` (new; `captureLogs`; imports `concepts/trace-context.ts` read-only); section links in §8-§10; SOURCES.md.
+- Do: as QB-M44-01; Q44.20 through its test (`it('Q44.20 …')`), the last two headers' outcomes as C4's read (recorded by SEC-M44-10) decides, with one follow-up comparing OpenTelemetry's regex (F35); Q44.16 uses reason names only as C14 recorded them; Q44.17 links Q05.08 and 37 §6 once each; Q44.18 links Q37.22 and Q08.17 once each; Q44.19 rests on F29, F38 and C6, C18 as recorded; Q44.21 reuses §10's trace and links 41 §1 once; then D3 and D5 for the whole bank and a link check into 05, 08, 09, 12, 30, 31, 32, 33, 37, 38, 41, 42 and 43.
+- Acceptance: common rules; D1 counts equal 6; chunk at most +630 words; the Output test passes; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M44 · M · Close module 44
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Files: module header (Applies to, Short on time, Labs line with links and both run commands), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 44, totals); `_meta/ROADMAP.md` (its row for 44).
+- Do: as CLOSE-M43: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M44.md's breadth table against the finished module (all seven checkboxes); **planned-fact check: grep the module for every section's "Must state" facts (M44.md §1-§10) and record each as found, or moved with its target named in M44.md "Corrections found while writing"; a fact neither found nor moved fails CLOSE** (REVIEW-M43 F-4); check every handoff line of M44.md "Handoffs into 44" against the section or question named there; check the canonical-statement rule (the five facts of M44.md lesson 19 are stated once and linked elsewhere); deploy files check: every `COPY` source in `deploy/Dockerfile` and `deploy/Dockerfile.ssr` names a committed file or a build output path, and every path the Nginx template and entrypoint script name exists or is a container path documented in F12, F13 (a grep, recorded in the LOG line); sample ten follow-ups and five traps across the bank for a stated reason and five Code step lists for an approach (REVIEW-M43 T-1, REVIEW-M42 T-3), and fix any found inside the closing budget or name them in the LOG line; run the full verification (Standard checks, `check-snippets.mjs . 01 … 44`, `module-stats.mjs` and the python one-liner); trim named repeats if above 9,298 (never a "Must state" fact); no other module is edited: record in the LOG line the file-level links into 44 (M44.md anchor candidates), the VERSIONS.md rows of For Jorge 1, and the open points C1-C27 with their outcome.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/44-fullstack-delivery-and-operations.md` is 0; prose at most 9,298.
+
+### REVIEW-M44 · L · independent review of module 44
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- As `REVIEW-M43`. Must run in a session that authored no task of module 44 except PLAN-M44, and not in a continuation of their conversations. Findings become `FIX-M44-nn` tasks appended to this file. Module-specific checks: every Nginx claim traced to a dated nginx.org read, re-reading at least eight (the `location` precedence, `try_files`'s last parameter, `add_header`'s status list, inheritance and `always`, `add_header_inherit`'s version, `gzip_types`'s default, `gzip_static` not built by default, the `proxy_pass` URI rule, `Host` and `Connection` not passed, `proxy_http_version`'s default since 1.29.7, `proxy_read_timeout` between two reads, `X-Accel-Buffering`); every Docker and image claim to a dated docs or repository read (shell form and signals, PID 1's default-action rule, `--init`, `STOPSIGNAL`, HEALTHCHECK defaults, the template step's variable selection); every Spring Boot, Spring Framework and Spring Cloud claim to its tag (forward-headers strategies and the `NONE` default outside a cloud platform, `ForwardedHeaderFilter`'s warning, `GRACEFUL` by default and the 30-second phase timeout, `REFUSING_TRAFFIC` during shutdown, probe enablement as C9 resolved, 10% sampling, `produce` W3C and `consume` W3C/B3/B3 multi, log correlation, the layered-jar Dockerfile, no SPA fallback); **every direction fact re-read at its source** (M44.md lesson 16's list); **every capability claim tied to the implementation that has it** (Brotli, `gzip_static`, Sentry's headers, the Angular OpenFeature SDK, the Angular builder's lack of precompression); every W3C and WHATWG MUST/SHOULD quoted from a normative section with its number and non-normative text tagged; every Java snippet carries the banner and uses only read APIs; every deploy file carries its "documented only" line and no sentence claims it was built or run; OpenTelemetry, OpenFeature, Sentry and `web-vitals` "read, not run" and re-checked against their tarballs (F34-F43); Q44.05, Q44.10 and Q44.20 against re-runs of their tests; **every follow-up answer and trap gives its reason, every Misconceptions cause says why the belief is natural, every Code step states its approach** (count any that recur); **every "Must state" fact present or moved as CLOSE recorded**; the canonical-statement rule (M44.md lesson 19) held; our models and fakes named as ours (C20); no Angular-style status marker on a non-Angular fact (C19); no real connection, clock, process or network in any test (C21); the handoff lines into 44 (M44.md "Handoffs into 44") honored; Q09.08, Q09.11, Q09.14, Q12.08, Q12.10, Q12.11, Q12.17, Q12.18, Q32.05, Q32.25, Q32.26, Q33.15, Q33.20, Q33.27, Q37.13, Q37.17, Q37.22, Q38.17, Q38.21, Q38.23, Q38.27, Q41.02, Q41.07, Q41.08, Q41.09, Q42.09, Q42.23, Q30.16, Q31.05, Q31.17, Q08.17, Q43.07 and Q43.19 not re-asked, with an anchor proposal per file-level link (M44.md anchor candidates) for a FIX task; prose at most 9,850 after fixes (hard cap 10,000).
+
+### FIX-M44-01 · S · Factual and content fixes (F-1..F-4, T-3, N-4, N-5, N-8)
+- Model: **Sonnet** (every text and source is prescribed in the review).
+- Status: done. Depends: REVIEW-M44.
+- Files: `modules/44-fullstack-delivery-and-operations.md`; `SOURCES.md` (under `## Module 44 · Full-stack delivery and operations`: append at the end of the section the three notes prescribed in F-1, F-4 and T-3); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M44.md` (Factual findings F-1..F-4; Teaching finding T-3; Nits N-4, N-5, N-8).
+- Do: apply each fix text in REVIEW-M44, finding each line by its quoted text, not its number: F-1 (Q44.21 trap "it only logs and proxies, because no tracer runs there."), F-2 (§6 "`HEALTHCHECK` is Docker's liveness check."), F-3 (§5 "replaces only the `${NAME}` names the script lists:"), F-4 (Q44.19 Full explanation "and `sentry-trace` same-origin only (read;"), T-3 (Q44.14: replace the "*Why path filters?*" follow-up with the `static/` follow-up), N-4 (Q44.11 "the generated `server.ts` has none (read)"), N-5 (§8 "(specification 1.4.10)"), N-8 (Q44.08 "the filter \"cannot know\" who added them"). No lab or deploy file, no heading or anchor change; M44.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 44` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/44-fullstack-delivery-and-operations.md`: `grep -c 'ngx_otel_module'` ≥ 1, `grep -c "is Docker's liveness check"` = 0, `grep -c 'only marks a container `unhealthy`'` = 1, `grep -c 'the `${NAME}` names the script lists'` = 0, `grep -c 'as `$NAME` or `${NAME}`'` = 1, `grep -c '`sentry-trace` same-origin only'` = 0, `grep -c 'without `tracePropagationTargets`'` ≥ 1, `grep -c 'Why path filters?'` = 0, `grep -c 'no SPA fallback'` ≥ 1, `grep -c 'has no SIGTERM listener (read)'` = 1, `grep -c 'specification 1.4.8-1.4.10'` = 1, `grep -c 'an application cannot know'` = 1; SOURCES.md `grep -c 'REVIEW-M44'` = 3; the 10 Mermaid diagrams unchanged; D1 counts still 21 each (Q44.14 keeps two follow-ups); prose at most +80 over the count just before, both counts (`module-stats.mjs` and the QUALITY-BAR one-liner) in the LOG line.
+
+### FIX-M44-02 · S · Teaching fixes and nits (T-1, T-2, T-4, N-1, N-2, N-3, N-6, N-7, N-9, N-10)
+- Model: **Sonnet** (every text is prescribed in the review).
+- Status: done. Depends: REVIEW-M44 (run after FIX-M44-01: both touch Q44.08 and Q44.14, on disjoint lines).
+- Files: `modules/44-fullstack-delivery-and-operations.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M44.md` (T-1, T-2, T-4; Nits N-1, N-2, N-3, N-6, N-7, N-9, N-10).
+- Do: apply T-1 (prepend to the Full explanations of Q44.01, Q44.08, Q44.13, Q44.14, keeping the existing text and links), T-2 (§2, §5 and §10 misconceptions), T-4 (Q44.08 `internal-proxies` and Q44.19 sampled-flag follow-ups), N-1 (§2 problem: close the paren after the §5 link), N-2 (Q44.07 "(§4's read-timeout sentence)" → a link to §4's slug), N-3 (§9 "37 §11 answers" → a link to 37 §11), N-6 (Q44.05 snippet `log(` → `console.log(`), N-7 (§7 YAML: `- uses: actions/checkout@v7` first under `steps:` in the `staging` and `production` jobs), N-9 (Connections Builds on: the seven parenthetical reasons, link targets unchanged), N-10 (§9 "It disables the bfcache."). Find each line by its quoted text. No heading or anchor change, no lab or deploy file. If the measured module count passes 9,850, shorten only the clauses this task adds (never a cause, a "because" or a link) until it is at most 9,850.
+- Acceptance: `node labs/tools/check-snippets.mjs . 44` and `node labs/tools/check-links.mjs --planned` exit 0; in the module: `grep -c '^\*\*Full explanation\.\*\* Our `Section 1:`'` = 0, `grep -c '^\*\*Full explanation\.\*\* Our resolver'` = 0, `grep -c '^\*\*Full explanation\.\*\* Stages and previews'` = 0, `grep -c '^\*\*Full explanation\.\*\* The wider choice'` = 0, `grep -c 'The runtime stage only copies files'` = 1, `grep -c 'the advice is to run it by hand'` = 0, `grep -c 'Cause: tutorials use it\.'` = 0, `grep -c 'Because only inside addresses can be trusted proxies'` = 0, `grep -c 'Because the browser is untrusted\.'` = 0, `grep -c "§4's read-timeout sentence"` = 0, `grep -c '\[37 §11\](37-elements-pwa-errors-ecosystem.md#11-'` ≥ 3 (2 before), `grep -c '^  log(uri'` = 0, `grep -c 'actions/checkout@v7'` = 4, `grep -c '(shipping SSR)'` = 1, `grep -c 'It disables the bfcache'` = 0; D1 counts still 21 each; `<details>` count and the 10 Mermaid diagrams unchanged; prose at most +190 over the count just before and at most 9,850 (hard cap 10,000), both counts in the LOG line.
+
+### FIX-M44-03 · S · Anchors for the file-level links into 44 (+0 words)
+- Model: **Sonnet** (mechanical; slugs listed).
+- Status: done. Depends: REVIEW-M44.
+- Files: link targets only in `modules/05-*.md`, `09-*.md`, `12-*.md`, `30-*.md`, `31-*.md`, `32-*.md`, `33-*.md`, `34-*.md`, `37-*.md`, `38-*.md`, `39-*.md`, `41-*.md`, `42-*.md`, `43-*.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M44.md` § Handoffs.
+- Do: apply the Handoffs table (31 rows: §1 09:367, 41:69, 41:1398, 42:447, 42:2124; §3 09:266, 09:893, 31:514, 33:1867, 33:2128, 34:568, 34:1943; §4 43:427, 43:1273, 43:2008; §5 12:328, 12:1015, 12:1053, 12:1637, 38:601; §6 32:2285; §7 12:1715, 30:676, 38:836, 38:2040, 39:1947, 41:350; §8 05:893; §9 37:897, 37:1739, 37:2105). Each listed line holds exactly one link to `44-fullstack-delivery-and-operations.md`; if a line has moved, find it by that link and its context, and stop and report if a line no longer holds exactly one. Only the link target changes (`44-fullstack-delivery-and-operations.md` → `44-fullstack-delivery-and-operations.md#<slug>`). Verify each slug against module 44's `## N.` headings. Leave the `:5` header lines and the lines the Handoffs section lists as file-level unchanged. FIX-M44-01 and -02 change no heading, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '44-fullstack-delivery-and-operations.md#'` across the fourteen files totals 31 (0 before); `git diff --stat` touches only those fourteen files among modules (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+
+### Module 45 tasks (PLAN-M45) · common rules
+- Inputs for every task: `_meta/modules/M45.md` (its section, question or exercise rows with the **Must state** line, the budget, "Handoffs into 45", "What other modules already teach", "Questions not asked here", "Lab decision", "Facts established while planning" F1-F10, "Could not be read" C1-C15, the owner map, and "Corrections found while writing"), STYLE-GUIDE §2-§11, QUALITY-BAR B-F, SYLLABUS §4 (45), the module skeleton, and for depth `modules/44-fullstack-delivery-and-operations.md` (the previous module: read a section, answer or exercise of the same kind before writing; never copy) and the owner sections the task links, and `_meta/reviews/REVIEW-M44.md` § Factual findings and § Teaching findings (F-1 to F-4, T-1 to T-4 and N-2, N-3, N-7, N-9 are the patterns this plan heads off, M45.md lessons 2, 17, 24-28). Re-verify every fact the task uses before writing (lab > package source > official spec, RFC, docs) and record the basis next to the claim; every "Could not be read" item for the task is read first, or the claim is dropped. W3C, RFC Editor, MDN, c4model.com and greatfrontend.com pages are read with the date (greatfrontend.com always cited as a third-party prep site); `lighthouse@13.5.0` and `@paulirish/trace_engine@0.0.65` are `npm pack`ed into the job scratchpad and deleted after; Angular is read in `labs/angular/node_modules` (read only); nothing is installed.
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics: Core Web Vitals and thresholds (08 §6, Q08.16), HTTP caching and validators (09 §4, Q09.11), storage and quotas (09 §7, Q09.18), service-worker strategies and lifecycle (09 §9, Q09.22, 37 §4, §5, Q37.11), WCAG targets, keyboard and focus (11 §1, §4, §5, Q11.13), lazy routes and `@defer` (24 §4, 18 §5), client caches (27 §6, §10, Q27.20, Q27.21), kinds of state, normalization and optimistic updates (28 §1, §10, Q28.01, Q28.03, Q28.28, Q28.29, Exercises 28.2 and 28.3), measurement, long lists, loading plans, budgets and rendering cost (31 §1, §4, §5, §6, §10, Q31.10, Q31.12, Q31.26), rendering strategies and `RenderMode` (32 §1, §3, §8, Q32.02, Q32.09, Q32.23), CDK drag and drop's keyboard gap (36 §6), error boundaries, error UX, `navigator.onLine` and the reporter (37 §9, §10, §11, Q37.21, Q37.22), boundaries and containers (38 §1, §2, §4, Q38.06, Q38.28), the framework choice (40 §8, Q40.12, Q40.13), contracts, lost updates and pagination (41 §2, §5, §6, Q41.12, Q41.13), logout across tabs (42 §8), transports (43 §1, Q43.02), topologies, version skew and observability (44 §1, §8, §9, §10, Q44.02, Q44.17, Q44.18); each gets one sentence and a link (planned modules 46, 47 file-level). **One canonical statement per direction fact** (M45.md lesson 19): the eight method steps in §1, the profile numbers in §3, SC 2.5.7's wording in §6, the cache-layer order in §7, RFC 9110's precondition outcomes in §8; any other place links the canonical section. **Advice is advice** (M45.md lesson 1, C1): no sentence states what interviewers, companies or rounds do as a fact unless it quotes F9 (this repository's backend guide) or F8 (named, dated, third-party); the time plan, answer skeleton, trade-off template and the board's numbers are labeled "our suggestion" or "assumed". **Capability per implementation and scope of denials** (lesson 17): the Angular service worker has no `sync` listener (37 §4) while the browser API exists with limited availability (F4); `BroadcastChannel` is same-origin (F3); Lighthouse numbers are a lab simulation (F5); a denial true only in our model says "in our model". **Whole rules** (lesson 24): RFC 9110 §13.1.1 with all three outcomes; behaviors under a default or option name it. **Terms not mapped across tools** (lesson 25): a C4 container is not an Angular container component. **No Angular-style status markers on WCAG, RFC, C4, Lighthouse or third-party facts**; browser APIs get a Baseline marker only from a dated MDN read.
+- Every task adds its sources under `## Module 45 · Front-end system design method` in `SOURCES.md` (after the last module section present; spec, RFC, MDN, c4model.com and third-party pages with URL and date; package reads as `<pkg>@<version>, <file>, <symbol>, read <date>`; the repository's backend guide by path and heading; a code-source line for every lab file it creates) and its inline-defined terms under `## Module 45` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** plain TypeScript tests only under `labs/ts-js/src/modules/45-frontend-system-design-method/` (`concepts/`, `exercise-1-screen-estimate/`, `exercise-2-board-sync/`) and the Output tests under `labs/ts-js/src/outputs/45-frontend-system-design-method/` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only); **no test opens a socket, calls `fetch`, spawns a process, reads the clock (`Date.now()`, `new Date()` without an argument), uses `Math.random`, touches real `localStorage`, IndexedDB or `BroadcastChannel`, or depends on the machine's time zone**; time is a passed number; storage, connectivity, channels and servers are in-memory fakes named as ours; nothing under `labs/angular`, `labs/e2e` or `labs/spring-backend/` (C12).
+- **Shared files (C15):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `src/outputs/capture.ts`, VERSIONS.md, anything under `labs/angular`, or another module's folder or file. Read-only to later tasks once created: `concepts/estimate.ts` (SEC-M45-03), `concepts/state-placement.ts` (SEC-M45-05), `concepts/cache-layers.ts` (SEC-M45-07).
+- **Code:** strict TypeScript, no `any`, no `as` outside a type test, low branching, small pure functions or a small class with at most four collaborators; each model's header comment says "our model, not <tool>'s code" and names the F-number or owner section it mirrors (C11). API contracts are `http` or `text` fences whose first line is `# Illustrative contract, not a lab API`, and a contract that shows a conditional write shows its `If-Match` header (lesson 28). No Java, no YAML. Mermaid only in STYLE-GUIDE §11's types; C4-style levels are drawn as `flowchart` (C14).
+- **First-time-pass rules (from REVIEW-M14 to M44; named so they do not recur):** every recorded number, version, criterion and quote is checked against the named file or dated read before writing; every "in the lab, X" names a test (`Section N: …`, `Q45.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its artifact and version or a dated page; quotes verbatim, a shortened quote carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M45.md names followed by a line starting `What to notice`, parsed with the mermaid parser; **every Misconceptions bullet gives a correction that states the true belief and a cause clause that says why the myth is natural** (M45.md writes each; reword, never drop; REVIEW-M44 T-2); **terms defined at first use** (M45.md lists them per section); **each `### Code` has numbered steps, and every step says what the code does and why that way**; each mechanism answers one "why" from a source read or an owner linked; **direction facts (M45.md lesson 16's list) are re-read at their source just before the sentence is written, and the task's LOG line names the page and paragraph for each**; **Full explanations teach before they route** (REVIEW-M44 T-1); the Output short answer gives the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups, and every follow-up answer and every trap gives its reason** (a follow-up that cannot carry its reason is replaced, not shortened); **every "Must state" fact of the task's section appears in reader text; a fact that cannot fit is moved, with its F-number, to a named question or exercise in M45.md "Corrections found while writing", never dropped**; **every handoff line M45.md assigns to the task is honored**; every question and exercise is linked from the body ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); **references to other sections or modules are links, not plain text** (REVIEW-M44 N-2, N-3); no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors; links in `_meta/` files use `../../modules/<file>#slug`.
+- **Prose budget** (deltas over the module count measured just before the task; M45.md "Budget"): skeleton 1,400 measured 2026-10-22 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps: SEC-M45-01..08 = 480 / 400 / 420 / 400 / 400 / 400 / 420 / 460 (3,380); EX-M45-01 = 400 (intro included), EX-M45-02 = 380 (780); QB-M45-01 = 700 (intro included), QB-M45-02 = 660, QB-M45-03 = 550 (1,910); CLOSE-M45 = 440. 1,400 + 3,380 + 780 + 1,910 + 440 = 7,910. **CLOSE at most 7,910 words; REVIEW ceiling 8,460 (the plan's own; Part F has no hard cap).** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a "Must state" fact, a diagram, a cause, a follow-up's reason or a "because"); if the facts still do not fit, the task stops and reports instead (M45.md lesson 22). Answer parts average at most 110 words per QB chunk, none above 150.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M45-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker or `## Hands-on exercises` (QB-M45-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M45-01 also writes the exercise intro at its placeholder). CLOSE-M45's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M45, and the header's Labs line carries a relink comment for CLOSE-M45. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q45-NN -->` (or `#ex45-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/ts-js` file changed: from `labs/ts-js` (Node 24), `npx vitest run src/modules/45-frontend-system-design-method src/outputs/45-frontend-system-design-method` and `npx tsc --noEmit` exit 0; from the guide root, `node labs/tools/check-snippets.mjs . 45` and `node labs/tools/check-links.mjs --planned` exit 0; `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line); every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`); the task's marker is gone; no scratch, tarball or temporary file left; the LOG line gives both prose counts and the "Must state" facts written. The main session runs every check serially; writers report readiness.
+
+### SEC-M45-01 · M · The front-end system design interview: what it evaluates, its formats, and how it differs from a backend design round
+- Model: Sonnet (facts F8, F9 named in M45.md §1; the risk, advice stated as fact, is closed by C1).
+- Status: done. Depends: PLAN-M45.
+- Files: module §1 and the verification paragraph (its placeholder before §1); SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M45.md §1, F8 (re-read the greatfrontend.com evaluation-axes page with the date), F9 (re-read the backend guide §7 in this repository), C1, C2; 40 §8, 47 (file-level); SYLLABUS §4 (45) checkbox 1.
+- Do: M45.md §1 (delta 480 including the paragraph) with `flowchart LR` (the eight steps and the two cross-cutting boxes); the answer-skeleton `text` fence labeled "our suggestion"; the required Coming from the backend callout with where it breaks, linking F9's encoded path with its `#7-system-design` anchor (verify it with `check-links.mjs --planned`; if the checker does not resolve anchors outside the guide, keep the file link and name the section in text); the four Misconceptions with M45.md's causes and corrections; the RADIO name only as C2 allows; link Q45.01, Q45.02 (relink comments); the verification paragraph (80-110 words) exactly as M45.md §1 lists.
+- Acceptance: common rules; `grep -ciE 'interviewers (always|usually)|most companies'` in §1 is 0.
+
+### SEC-M45-02 · M · Communicating under time pressure: a time plan, complete trade-off statements and diagrams at three zoom levels
+- Model: Sonnet (F7 and our time plan named in M45.md §2; C13 read first).
+- Status: done. Depends: SEC-M45-01.
+- Files: module §2; `labs/ts-js/src/modules/45-frontend-system-design-method/concepts/{time-plan.ts,section-2-time-plan.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M45.md §2, F7 (re-read c4model.com's home and container pages with the date), F8 (linked to §1, not repeated), C1, C13, C14; 33 §1.
+- Do: M45.md §2 (delta 400) with `flowchart TD` (three nested subgraphs); `time-plan.ts` (weights and priorities as input, largest-remainder rounding, protected steps; header "our model, not a published rubric") and the four `Section 2: …` tests with the exact titles; the trade-off `text` template labeled ours; the C4-container contrast sentence (lesson 25); the four Misconceptions with M45.md's causes and corrections; link Q45.03-Q45.05.
+- Acceptance: common rules.
+
+### SEC-M45-03 · M · Requirements first: functional and non-functional requirements, constraints and back-of-envelope numbers
+- Model: Sonnet (F1, F5 quoted in M45.md; C3 and C4 read first).
+- Status: done. Depends: SEC-M45-02.
+- Files: module §3; `labs/ts-js/src/modules/45-frontend-system-design-method/concepts/{estimate.ts,section-3-estimates.test.ts}` (new; `estimate.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M45.md §3, F5 (re-`npm pack` `lighthouse@13.5.0` and `@paulirish/trace_engine@0.0.65`; read `core/config/constants.js`, `core/config/desktop-config.js` and `models/trace/lantern/simulation/Constants.js` immediately before writing the profile sentence; deleted after), C3, C4, F1 (the Recommendation date); 08 §6, 31 §1, 11 §1, 33 §1, 34.
+- Do: M45.md §3 (delta 420) with `flowchart LR`; `estimate.ts` (`PROFILES` with the F5 values, its unit as C3 decides, `transferTime`; header comment naming both files and what the model ignores) and the four `Section 3: …` tests (if C3 changes a number, the third title keeps its meaning and the new values go into M45.md Corrections); the requirements and assumed numbers as a `text` fence; this section holds the canonical profile statement; the four Misconceptions with M45.md's causes and corrections; link 08 §6 and 31 §1 once each; link Q45.06, Q45.07 and Exercise 45.1.
+- Acceptance: common rules.
+
+### SEC-M45-04 · M · Component architecture, data model and data flow: from screens to a component tree and a client-side model
+- Model: Sonnet (owners 38 §2, 28 §10, 40 §8 named in M45.md §4; the model is a pure function set).
+- Status: done. Depends: SEC-M45-03.
+- Files: module §4; `labs/ts-js/src/modules/45-frontend-system-design-method/concepts/{board-model.ts,section-4-board-model.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M45.md §4; 38 §1, §2, §3, §4, Q38.06, 28 §10, Q28.29, 24 §4, 31 §5, 19, 40 §8, 41 §3; handoffs 38:2041, 40:1369.
+- Do: M45.md §4 (delta 400) with `flowchart TD`; `board-model.ts` (nested and normalized shapes, immutable moves and renames, `replacedObjects` by reference comparison; header "our model") and the four `Section 4: …` tests; the component tree as a `text` fence; the optional Coming from the backend callout with where it breaks; the four Misconceptions with M45.md's causes and corrections; link 38 §2, 28 §10 and 40 §8 once each; link Q45.08 and Exercise 45.1.
+- Acceptance: common rules.
+
+### SEC-M45-05 · M · State and API design: where each piece of state lives and the API the screens need
+- Model: Sonnet (owners 28 §1, 09 §4, 41 §5, §6, 43 §1, 44 §1 named in M45.md §5).
+- Status: done. Depends: SEC-M45-04.
+- Files: module §5; `labs/ts-js/src/modules/45-frontend-system-design-method/concepts/{state-placement.ts,section-5-state-placement.test.ts}` (new; `state-placement.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M45.md §5; 28 §1, Exercise 28.2, Q28.03, 09 §4, §7, 41 §5, §6, 43 §1, 44 §1; handoff 28:2792.
+- Do: M45.md §5 (delta 400) with `flowchart LR`; `state-placement.ts` (rules in the fixed order; the result names the home and, for storage, a lifetime; header "our model, after 28 §1") and the four `Section 5: …` tests; the `http` contract fence with `If-Match` on the write (lesson 28); the four Misconceptions with M45.md's causes and corrections; link 28 §1, 41 §5, 41 §6, 43 §1 and 44 §1 once each; link Q45.09-Q45.11.
+- Acceptance: common rules.
+
+### SEC-M45-06 · M · Performance and accessibility as design steps: budgets, a loading plan, long lists, and keyboard and pointer paths
+- Model: Sonnet (F1 quoted verbatim in M45.md; 36 §6 owns the 2.1.1 / 2.5.7 split; C5 read first; the model imports §3's kernel).
+- Status: done. Depends: SEC-M45-05.
+- Files: module §6; `labs/ts-js/src/modules/45-frontend-system-design-method/concepts/{budget.ts,section-6-budget.test.ts}` (new; imports `estimate.ts` read-only); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M45.md §6, F1 (re-read SC 2.5.7, 2.5.8 and 2.4.11 on w3.org immediately before quoting; name them in the LOG line), C5 (the Understanding page for 2.5.7, non-normative), F5 via `estimate.ts`; 31 §4, §5, §6, Q31.10, Q31.12, 18 §5, 08 §6, 11 §4, §5, 36 §6; handoffs 31:2012, 11:1598.
+- Do: M45.md §6 (delta 400) with `flowchart LR`; `budget.ts` (`maxBytes`, zero when round trips and server time exceed the target; header "our model, ignores CPU, F5") and the three `Section 6: …` tests; the move-card interaction specified three ways as a `text` fence; this section holds the canonical SC 2.5.7 quote; the four Misconceptions with M45.md's causes and corrections; link 31 §4, §5, §6, 11 §4, §5 and 36 §6 once each; link Q45.12 and Exercise 45.1.
+- Acceptance: common rules.
+
+### SEC-M45-07 · M · Rendering strategy and caching layers: a rendering choice per route, and every cache from the CDN to the component
+- Model: Sonnet (F6 and owners 31 §10, 32 §1, §3, §8, 09 §4, §9, 27 §6, 37 §5 named in M45.md §7; C8-C10 read first).
+- Status: done. Depends: SEC-M45-06.
+- Files: module §7; `labs/ts-js/src/modules/45-frontend-system-design-method/concepts/{cache-layers.ts,section-7-cache-layers.test.ts}` (new; `cache-layers.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M45.md §7, F6 (re-read `types/ssr.d.ts` in `labs/angular/node_modules/@angular/ssr`, read only), C8, C9, C10; 31 §10, Q31.26, 32 §1, §3, §8, §9, Q32.02, Q32.09, 09 §4, §9, 27 §6, §10, 28 §1, 37 §4, §5; handoffs 32:2286, 40:1370.
+- Do: M45.md §7 (delta 420) with `flowchart LR`; `cache-layers.ts` (ordered layers, per-entry stored time and maximum age, explicit `now`, `lookup` returning the answering layer and value, `invalidate` per layer, fill on the way back; header "our model, not a browser's or Angular's cache") and the four `Section 7: …` tests; the routes-and-rendering `text` fence; the required Framework vs platform callout; this section holds the canonical layer order; the four Misconceptions with M45.md's causes and corrections; link 31 §10, 32 §1, 32 §3, 09 §4, 09 §9, 27 §6 and 37 §5 once each; link Q45.13, Q45.14.
+- Acceptance: common rules.
+
+### SEC-M45-08 · M · Under the hood: failure modes, observability, offline levels and consistency choices
+- Model: Opus (judgment-heavy: RFC 9110's three precondition outcomes and strong comparison encoded exactly, `BroadcastChannel`'s sender exclusion, Background Sync's limited availability against the Angular service worker's missing `sync` listener, a failure-mode table with a signal per row, and one interleaving traced across two tabs).
+- Status: done. Depends: SEC-M45-07.
+- Files: module §8; `labs/ts-js/src/modules/45-frontend-system-design-method/concepts/{consistency.ts,section-8-consistency.test.ts}` (new); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M45.md §8, F2 (re-read RFC 9110 §13.1.1 and §15.5.13 immediately before writing the precondition sentence; name the paragraphs in the LOG line), F3 (re-read MDN `BroadcastChannel` with the date), F4 and C6 (re-read the Background Sync page and, if a browser is named, its compatibility table); 28 §10, Q28.28, 37 §4, §5, §9, §10, §11, 09 §7, 41 §5, Q41.12, 42 §8, 43 §1, §2, 44 §8, §9, §10; handoff 44:1985.
+- Do: M45.md §8 (delta 460) with `sequenceDiagram` (two tabs, a conditional write applied, a stale one refused, the broadcast); `consistency.ts` (three write policies over one interleaving, an outbox replay with operation ids, a fake channel excluding the sender; header "our model, mirroring RFC 9110 §13.1.1 and MDN BroadcastChannel; not a server's or browser's code") and the five `Section 8: …` tests; the failure-mode table as a `text` fence with an owner link per row; this section holds the canonical RFC 9110 statement (all three outcomes, lesson 24); the optional Coming from the backend callout with where it breaks; the five Misconceptions with M45.md's causes and corrections; link 28 §10, 37 §4, 37 §10, 41 §5, 42 §8, 43 §1, 44 §9 and 44 §10 once each; 46 file-level once; link Q45.15-Q45.17 and Exercise 45.2.
+- Acceptance: common rules; `grep -c 'MAY respond with a 2xx\|MAY indicate'` in §8 ≥ 1 (the quote is present).
+
+### EX-M45-01 · M · Exercise 45.1 · Put numbers on a screen: the critical request path, transfer time on two network profiles and a budget verdict
+- Model: Sonnet (a pure function over a request graph; the profiles and estimator exist from §3).
+- Status: done. Depends: SEC-M45-08.
+- Files: module exercise region and the exercise intro at its placeholder (at most 40 words); `labs/ts-js/src/modules/45-frontend-system-design-method/exercise-1-screen-estimate/` (new; imports `concepts/estimate.ts` read-only); SOURCES.md.
+- Inputs: M45.md Exercises 1, §3, §4, §6, F5; Exercise 28.3 (named in the intro as not rebuilt).
+- Do: full E1 anatomy (delta 400 including the intro); six criteria over both variants (`describe.each(['a', 'b'])`: memoized depth-first search, and Kahn's topological order), titles equal to the criteria; errors name the cycle or the unknown id; the Hints and the walk-through say why each step is done that way (the longest chain because parallel requests overlap; total bytes because they share one connection's throughput in our model); at least two answered follow-ups, each with its reason; restore section links to Exercise 45.1.
+- Acceptance: common rules.
+
+### EX-M45-02 · M · Exercise 45.2 · A task-board data layer that survives failure: optimistic moves, an offline outbox, conditional writes and a second tab
+- Model: Opus (judgment-heavy: two genuinely different designs (a class, and a pure reducer with an effect runner) that pass identical criteria under interleaved offline, conflict, reload and cross-tab timing; the server fake's three outcomes mirror RFC 9110).
+- Status: done. Depends: EX-M45-01.
+- Files: module exercise region; `labs/ts-js/src/modules/45-frontend-system-design-method/exercise-2-board-sync/` (new); SOURCES.md.
+- Inputs: M45.md Exercises 2, §5 (the contract), §8, F2, F3; 28 §10 and Exercise 28.3 (linked once, not rebuilt), 09 §7.
+- Do: full E1 anatomy (delta 380); six criteria over both variants (`describe.each(['a', 'b'])`), titles equal to the criteria; in-memory fakes for the server, channel, storage and connectivity, named ours; no timers unless Vitest fake timers; the conflict criterion exposes both versions; at least two answered follow-ups, each with its reason (one on Background Sync, F4 and 37 §4, read, not run); restore section links to Exercise 45.2.
+- Acceptance: common rules.
+
+### QB-M45-01 · M · Q45.01-Q45.06 and the bank intro
+- Model: Sonnet (routine question writing; facts, links and follow-up reasons named in M45.md "Question notes").
+- Status: done. Depends: EX-M45-02.
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); section links in §1-§3 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 110 words across the chunk, none above 150, at least two answered follow-ups each, **every follow-up answer and every trap with its reason**; Full explanations teach before linking (lesson 26); Q45.01-Q45.04 word interview claims as advice, F8 or F9 only (C1); Q45.05 gives each defect with why it costs; Q45.06 uses the board's assumed numbers from §3 and links §3's canonical profile statement; the overlap links M45.md names for Q45.02, Q45.04 and Q45.06.
+- Acceptance: common rules; D1 counts equal 6; chunk at most +700 words (5% tolerance).
+
+### QB-M45-02 · M · Q45.07-Q45.12
+- Model: Sonnet (as QB-M45-01).
+- Status: done. Depends: QB-M45-01.
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/45-frontend-system-design-method/q45-07.test.ts` and `q45-09.test.ts` (new; `captureLogs`; import `concepts/estimate.ts` and `concepts/state-placement.ts` read-only); section links in §3-§6; SOURCES.md.
+- Do: as QB-M45-01; Q45.07 and Q45.09 through their tests (`it('Q45.07 …')`, `it('Q45.09 …')`), lines as the run shows, labeled our estimator and our placement function; Q45.10 makes GraphQL claims only as C7 reads (else links Q32.23 only); Q45.11 links §8's canonical precondition statement instead of restating it; Q45.12 gives each defect with why it is wrong, quoting nothing beyond §6's canonical SC 2.5.7 link; the overlap links M45.md names for Q45.08-Q45.12.
+- Acceptance: common rules; D1 counts equal 6; chunk at most +660 words; both Output tests pass.
+
+### QB-M45-03 · M · Q45.13-Q45.17
+- Model: Sonnet (as QB-M45-01).
+- Status: done. Depends: QB-M45-02.
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/45-frontend-system-design-method/q45-14.test.ts` (new; `captureLogs`; imports `concepts/cache-layers.ts` read-only); section links in §7-§8; SOURCES.md.
+- Do: as QB-M45-01; Q45.14 through its test (`it('Q45.14 …')`), values as the run shows, labeled our cache model; Q45.13 links §7's canonical layer order; Q45.16 and Q45.17 link §8's canonical RFC 9110 statement and use F3's sender exclusion as §8 recorded it; the overlap links M45.md names for Q45.13-Q45.17; then D3 and D5 for the whole bank and a link check into 08, 09, 11, 27, 28, 31, 32, 36, 37, 38, 40, 41, 42, 43 and 44.
+- Acceptance: common rules; D1 counts equal 5; chunk at most +550 words; the Output test passes; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M45 · M · Close module 45
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Status: done. Depends: QB-M45-03.
+- Files: module header (Applies to, Short on time, Labs line with its link and run command), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 45, totals); `_meta/ROADMAP.md` (its row for 45).
+- Do: as CLOSE-M44: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M45.md's breadth table against the finished module (all four checkboxes); **planned-fact check: grep the module for every section's "Must state" facts (M45.md §1-§8) and record each as found, or moved with its target named in M45.md "Corrections found while writing"; a fact neither found nor moved fails CLOSE**; **advice check** (M45.md "Other closing material"); check every handoff line of M45.md "Handoffs into 45" against the section or question named there; check the canonical-statement rule (the five facts of M45.md lesson 19 are stated once and linked elsewhere); sample ten follow-ups and five traps across the bank for a stated reason, five Full explanations for teaching before routing, and five Code step lists for an approach, and fix any found inside the closing budget or name them in the LOG line; Connections "Builds on" gives a reason per link (lesson 27); run the full verification (Standard checks, `check-snippets.mjs . 01 … 45`, `module-stats.mjs` and the python one-liner); trim named repeats if above 7,910 (never a "Must state" fact); no other module is edited: record in the LOG line the file-level links into 45 (M45.md anchor candidates) and the open points C1-C15 with their outcome.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/45-frontend-system-design-method.md` is 0; prose at most 7,910.
+
+### REVIEW-M45 · L · independent review of module 45
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- Status: done. Depends: CLOSE-M45.
+- As `REVIEW-M44`. Must run in a session that authored no task of module 45 except PLAN-M45, and not in a continuation of their conversations. Findings become `FIX-M45-nn` tasks appended to this file. Module-specific checks: **every claim about interviews, rounds or interviewers is advice worded as advice, F9 (the repository's backend guide §7) or F8 (named, dated, third-party)** (M45.md C1; count any that state a company practice as fact); WCAG 2.2 SC 2.5.7, 2.5.8 and 2.4.11 re-read and quoted verbatim with their levels, and 2.5.7 not conflated with 2.1.1; RFC 9110 §13.1.1 re-read with **all three outcomes** (MUST NOT perform, MAY 412, MAY 2xx when already applied) and the strong comparison, and §15.5.13; MDN `BroadcastChannel` (Baseline, same origin, sender excluded) and Background Sync (limited availability) re-read; Lighthouse 13.5.0's profiles re-read in its tarball and in `@paulirish/trace_engine@0.0.65`, called a simulation, never field data; `RenderMode`'s names against `@angular/ssr` 22.2.1 typings; C4's levels and container definition against c4model.com, and no C4 container equated with an Angular container component; **every direction fact re-read at its source** (M45.md lesson 16's list); **every capability or denial tied to the implementation or our model** (lesson 17); every model and fake named as ours (C11); Q45.07, Q45.09 and Q45.14 against re-runs of their tests; **every follow-up answer and trap gives its reason, every Misconceptions correction states the true belief and its cause says why the myth is natural, every Full explanation teaches before routing, every Code step states its approach** (count any that recur); **every "Must state" fact present or moved as CLOSE recorded**; the canonical-statement rule (lesson 19) held; the handoff lines into 45 honored; Q05.18, Q08.16, Q09.11, Q09.18, Q09.22, Q11.13, Q27.20, Q27.21, Q28.01, Q28.03, Q28.28, Q28.29, Q31.10, Q31.12, Q31.26, Q32.02, Q32.09, Q32.23, Q37.21, Q37.22, Q38.06, Q38.28, Q40.12, Q40.13, Q41.12, Q41.13, Q43.02, Q44.02, Q44.17 and Q44.18 not re-asked, with an anchor proposal per file-level link (M45.md anchor candidates) for a FIX task; prose at most 8,460 after fixes.
+
+### FIX-M45-01 · S · Factual and content fixes (F-1..F-5, N-2, N-3, N-4)
+- Model: **Sonnet** (every text is prescribed in the review; every basis is already in SOURCES.md `## Module 45` or an owner module).
+- Status: done. Depends: REVIEW-M45.
+- Files: `modules/45-frontend-system-design-method.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M45.md` (Factual findings F-1..F-5; Nits N-2, N-3, N-4).
+- Do: apply each fix text in REVIEW-M45, finding each line by its quoted text, not its number (where the review gives a fenced pair, the first line is the text to find and the second its replacement): F-1 in five places (§3 assumptions fence "Non-functional: LCP, INP, CLS good at p75 on mobileSlow4G"; §3 misconception "A requirement is a number at p75 on a named profile."; Q45.06 short answer "Write non-functional requirements as numbers at p75 on a named profile."; Q45.06 Full explanation "Speed becomes \"LCP, INP and CLS good at p75 on"; Summary "Write requirements as numbers at p75 on a named profile"), F-2 (Q45.13 follow-up "*Why does `index.html` differ?*"), F-3 (§8 Code step "1. `decide` never performs a stale write."), F-4 (flashcard "What does the writing tab not receive?" and its answer), F-5 (Q45.02 follow-up "*Why state assumptions in machine coding?*"), N-2 (§3 "kbps commented \"roughly the 75th percentile of 4G connections\";"), N-3 (§6 "(Lighthouse slows it 4 times)"), N-4 (§8 "(read 2026-10-22): a server \"MUST use"). No lab file, no heading or anchor change; M45.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 45` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/45-frontend-system-design-method.md`: `grep -c 'p75 on'` = 0 (5 before), `grep -c 'field p75'` = 5 (0 before), `grep -c 'a deploy shows at once'` = 0, `grep -c 'an installed worker keeps serving its own copy'` = 1, `grep -c 'never performs a stale write'` = 0, `grep -c 'applies every write under last-write-wins'` = 1, `grep -c 'What does the writing tab not receive'` = 0, `grep -c 'except the object that sent the message'` = 2 (1 before), `grep -c 'The prep site above'` = 0, `grep -c 'is about design rounds'` = 1, `grep -c 'WebPageTest'` = 1, `grep -c 'slows it 4 times; desktop, not at all'` = 1, `grep -c 'an origin server "MUST use'` = 1; the 8 Mermaid diagrams unchanged; D1 counts still 17 each; prose at most +110 over the count just before, both counts (`module-stats.mjs` and the QUALITY-BAR one-liner) in the LOG line.
+
+### FIX-M45-02 · S · Teaching fixes and nits (T-1, T-2, T-3, N-1, N-5, N-6)
+- Model: **Sonnet** (every text is prescribed in the review).
+- Status: done. Depends: REVIEW-M45 (run after FIX-M45-01: both touch §3 and §6, on disjoint lines).
+- Files: `modules/45-frontend-system-design-method.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M45.md` (T-1, T-2, T-3; Nits N-1, N-5, N-6).
+- Do: apply T-1 (Q45.07 intro "assumed: `index.html` 4 KB, `main.js` 180,"; Exercise 45.1 "- Times: 234,000 bytes, three round trips, plus 100 ms."; §6 "leave about 388 KB;"), T-2 (§1 misconception "Per the backend guide, the evaluation is almost never about that."; §8 misconception "\"Background Sync replaces the outbox.\""), T-3 (the end of the Q45.15 and Q45.16 Full explanations, from the review's fenced pairs, link targets unchanged), N-1 (§3 "Cause: owners list features."), N-5 (§6 "\"at least 24 by 24 CSS pixels\", (abridged)."), N-6 (§7 Code "1. `lookup` skips stale entries: age decides."). Find each line by its quoted text. No heading or anchor change, no lab file. If the measured module count passes 8,460, shorten only the clauses this task adds (never a cause, a "because" or a link) until it is at most 8,460.
+- Acceptance: `node labs/tools/check-snippets.mjs . 45` and `node labs/tools/check-links.mjs --planned` exit 0; in the module: `grep -c 'in KB of 1,024 bytes'` = 1, `grep -c "Q45.07's 239,616 counts KB as 1,024"` = 1, `grep -c 'about 388 KB'` = 0, `grep -c 'about 388,000 bytes'` = 1, `grep -c 'almost never about that'` = 0, `grep -c 'You still need the outbox'` = 1, `grep -c 'Error UX per screen is'` = 1, `grep -c 'Cached reads offline come from a data group'` = 1, `grep -c 'Cause: product owners list features'` = 1, `grep -c 'exceptions follow'` = 1, `grep -c 'skips stale entries'` = 0; 33 "Cause:" still; D1 counts still 17 each; `<details>` count (26) and the 8 Mermaid diagrams unchanged; prose at most +110 over the count just before and at most 8,460, both counts in the LOG line.
+
+### FIX-M45-03 · S · Anchors for the file-level links into 45 (+0 words)
+- Model: **Sonnet** (mechanical; slugs listed).
+- Status: done. Depends: REVIEW-M45.
+- Files: link targets only in `modules/28-*.md`, `31-*.md`, `40-*.md`, `44-*.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M45.md` § Handoffs.
+- Do: apply the Handoffs table (4 rows: §4 40:1369; §5 28:2792; §6 31:2012; §8 44:1985, each a "Read next" line). Each listed line holds exactly one link to `45-frontend-system-design-method.md`; if a line has moved, find it by that link and its context, and stop and report if a line no longer holds exactly one. Only the link target changes (`45-frontend-system-design-method.md` → `45-frontend-system-design-method.md#<slug>`). Verify each slug against module 45's `## N.` headings. Leave the `:5` header lines and the "Uses these ideas later" lines (11:1598, 28:2793, 31:2013, 32:2286, 33:2129, 38:2041, 40:1370, 44:1986) unchanged (REVIEW-M45 § Handoffs explains the deviation from M45.md's candidates). FIX-M45-01 and -02 change no heading, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '45-frontend-system-design-method.md#'` across the four files totals 4 (0 before); `git diff --stat` touches only those four files among modules (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+
+### Module 46 tasks (PLAN-M46) · common rules
+- Inputs for every task: `_meta/modules/M46.md` (its section, question or exercise rows with the **Must state** line, the budget, "Handoffs into 46", "What other modules already teach", "Questions not asked here", "Lab decision", "Facts established while planning" F1-F12, "Could not be read" C1-C17, the owner map, and "Corrections found while writing"), STYLE-GUIDE §2-§11, QUALITY-BAR B-F, SYLLABUS §4 (46), the module skeleton, and for depth `modules/45-frontend-system-design-method.md` (the method this module applies: read the section, answer or exercise of the same kind before writing; link its canonical statements, never restate or copy them) and the owner sections the task links, and `_meta/reviews/REVIEW-M45.md` § Factual findings and § Teaching findings (F-1 to F-5, T-1 to T-3 and N-1 to N-6 are the patterns this plan heads off, M46.md lessons 2-7, 28-30) with `_meta/reviews/REVIEW-M44.md` § Teaching findings (T-1, T-2, T-4). Re-verify every fact the task uses before writing (lab > package source > official spec, draft, RFC, docs) and record the basis next to the claim; every "Could not be read" item for the task is read first, or the claim is dropped. IETF, RFC Editor, W3C WAI, MDN and docs.stripe.com pages are read with the date (Stripe always cited as one vendor's documentation, the APG as informative); text pages may be fetched with `curl` into the job scratchpad and deleted after; Angular is read in `labs/angular/node_modules` (read only); nothing is installed.
+- **Corrections to apply from the plan (they override anything older):** owners keep their topics: debounce and timing operators (Q02.19, Q22.30, Q22.32), bounded caches (Q05.15), `IntersectionObserver` (08 §3, Q08.07), Core Web Vitals at field p75 (08 §6), idempotent methods (09 §1, Q09.01), `visibilitychange` sends (09 §2), storage (09 §7), ARIA, keyboard, live regions and form errors (11 §3-§6), flattening operators and the typeahead pipeline (23 §2, §8, Q23.03, Q23.06, Q23.27, Q23.28, Exercises 23.5, 23.6), the unsaved-changes guard and scroll restoration (24 §5, §9, Q24.20), conditional and dynamic forms (25 §5, §9, 26 §5, §7), retry and idempotency keys at the call site (27 §5, Q27.18), client caches (27 §6, §10, Q27.21), kinds of state, URL state and optimistic updates (28 §1, §10, Q28.01, Q28.19, Q28.28, Exercises 28.2, 28.3), flaky suites (Q30.17), long lists and virtual scrolling (31 §4, Q31.10, Q31.11, Exercise 31.2), the threat model (33 §1, Q33.02), collation and money formatting (34 §2, §10, Q34.23), animating a notification list (Q35.12), tables, the stepper, Angular Aria and the combobox build (36 §7, §8, §11, Q36.14, Exercise 36.2), updates, push, error boundaries and error UX (37 §6, §7, §9, §10, Q37.12, Q37.15), feature boundaries (38 §1), problem details, pagination with a tiebreaker and money on the wire (41 §5, §6, §9, Q41.13, Q41.20, Exercise 41.3), the BFF and session timeout (42 §3, §8, Q42.22), transports, SSE reconnect, conflation, snapshots and gaps, backpressure (43 §1, §2, §8, §9, Q43.02, Q43.17, Q43.18, Exercises 43.1, 43.3), topologies, version skew and RUM (44 §1, §8, §9, Q44.17), and the method itself (45 §1-§8, Q45.06, Q45.13, Q45.15, Q45.16, Q45.17, Exercise 45.2); each gets one sentence and a link (planned module 47 file-level). **One canonical statement per direction fact** (M46.md lesson 19): the case template in §1, the keyset tiebreaker rule in §4, the background-throttling quotes in §6, the Idempotency-Key draft's rules and the "pending, never success" money rule in §8, the APG feed `aria-busy` rule in §3; module 45's canonical statements (method steps, time plan, profiles, SC 2.5.7, cache-layer order, RFC 9110 preconditions, `BroadcastChannel`'s sender exclusion) are linked, never restated. **Field versus lab** (lesson 3, REVIEW-M45 F-1): "good at field p75" and "a lab budget on `mobileSlow4G`" are separate statements; `p75 on` and `INP on` never appear. **Advice is advice** (lesson 1, C1): no sentence states what interviewers, companies or products do as a fact; each case's numbers are labeled "assumed". **Capability per implementation and scope of denials** (lesson 17): replaying the stored response is Stripe v1's documented behavior (F3) and our server's choice (C11), while draft-08 §2.6 asks only for "a response consistent with the request being completed"; MDN's unthrottled list names WebSockets and WebRTC only (F9, C17). **Whole rules** (lesson 24): the draft's 400 / 409 / 422 together, each a SHOULD, with "Clients MUST correct the requests (with the exception of 409 …)"; Stripe's behavior "For API v1". **Terms not mapped across tools** (lesson 25): an idempotency key is not an entity tag nor 45 §8's operation id; a STOMP heart-beat is not a presence heartbeat; the APG grid is not CSS Grid nor `CdkTable`. **No Angular-style status markers on the draft, RFC, APG, Stripe or the architect guide**; the draft is "an IETF Internet-Draft" with number and date, never "the standard"; browser APIs get a Baseline marker only from a dated MDN read.
+- Every task adds its sources under `## Module 46 · System design case studies` in `SOURCES.md` (after the last module section present; draft, RFC, APG, MDN and Stripe pages with URL and date; package reads as `<pkg>@<version>, <file>, <symbol>, read <date>`; the repository's architect guide by path and heading; a code-source line for every lab file it creates) and its inline-defined terms under `## Module 46` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:** plain TypeScript tests only under `labs/ts-js/src/modules/46-system-design-case-studies/` (`concepts/`, `exercise-1-feed-session/`, `exercise-2-grid-selection/`, `exercise-3-draft-saver/`, `exercise-4-dashboard-hub/`, `exercise-5-transfer-client/`) and the Output tests under `labs/ts-js/src/outputs/46-system-design-case-studies/` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only); **no test opens a socket, calls `fetch`, spawns a process, reads the clock (`Date.now()`, `new Date()` without an argument), uses `Math.random` or `crypto.randomUUID`, touches real `localStorage`, IndexedDB, `BroadcastChannel` or `document`, or depends on the machine's time zone**; time is a passed number or Vitest fake timers; keys and ids come from an injected generator; storage, connectivity, visibility, channels and servers are in-memory fakes named as ours; nothing under `labs/angular`, `labs/e2e` or `labs/spring-backend/` (C12).
+- **Shared files (C15):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `src/outputs/capture.ts`, VERSIONS.md, anything under `labs/angular`, or another module's folder or file; module 45's lab files are not imported. Read-only to later tasks once created: every `concepts/*.ts` model (`prefix-cache.ts`, `feed-pager.ts`, `grid-query.ts`, `wizard.ts`, `aggregator.ts`, `unread.ts`, `presence.ts`, `transfer.ts`).
+- **Code:** strict TypeScript, no `any`, no `as` outside a type test, low branching, small pure functions or a small class with at most four collaborators; each model's header comment says "our model, not <tool>'s code" and names the F-number or owner section it mirrors (C11). API contracts are `http` or `text` fences whose first line is `# Illustrative contract, not a lab API`; a contract that shows an idempotent POST shows `Idempotency-Key` with a quoted String value, and one that shows a conditional draft save shows `If-Match` (lesson 27). ARIA markup is an `html` fence whose first line is `<!-- Partial: illustrative markup after the APG <pattern> pattern, not a lab file -->`. No Java, no YAML. Mermaid only in STYLE-GUIDE §11's types (C14).
+- **First-time-pass rules (from REVIEW-M14 to M45; named so they do not recur):** every recorded number, version, criterion and quote is checked against the named file or dated read before writing; every "in the lab, X" names a test (`Section N: …`, `Q46.NN …`, or the criterion title) asserting exactly X; **no throwaway observation in reader text**: anything not asserted by a committed test is "read, not run" with its artifact and version or a dated page; quotes verbatim with their subject ("the resource SHOULD …"), a shortened quote carries "(abridged)"; owner credit is named correctly in every link sentence; every section has its Mermaid diagram of the type M46.md names followed by a line starting `What to notice` (checked by eye against a diagram of the same type in module 45 or 43, C14); **every case section carries §1's template parts in order** (assumed numbers, diagram, contract, state, failure modes, kernel); **every Misconceptions bullet gives a correction that states the true belief and a cause clause that says why the myth is natural** (M46.md writes each; reword, never drop; REVIEW-M45 T-2); **terms defined at first use** (M46.md lists them per section); **each `### Code` has numbered steps, and every step says what the code does and why that way, and holds for every branch the excerpt shows** (REVIEW-M45 F-3, N-6); **one byte unit** (plain byte counts, or KB = 1,000 as §1 states; REVIEW-M45 T-1); **a statement about one layer, object or branch is not stated for all** (REVIEW-M45 F-2, F-4); **a source is cited only for what it says** (REVIEW-M45 F-5); each mechanism answers one "why" from a source read or an owner linked; **direction facts (M46.md lesson 16's list) are re-read at their source just before the sentence is written, and the task's LOG line names the page and paragraph for each**; **Full explanations teach before they route and end on teaching, not a bare link** (REVIEW-M44 T-1, REVIEW-M45 T-3); the Output short answer gives the result and its reason, in the same words as the full explanation; **every answer and every exercise has at least two answered follow-ups, and every follow-up answer and every trap gives its reason** (a follow-up that cannot carry its reason is replaced, not shortened); **every "Must state" fact of the task's section appears in reader text; a fact that cannot fit is moved, with its F-number, to a named question or exercise in M46.md "Corrections found while writing", never dropped**; **every handoff line M46.md assigns to the task is honored**; every question and exercise is linked from the body ("Drilled in …" at the end of the section's Misconceptions, "practised in …" where an exercise applies the section); **references to other sections or modules are links, not plain text**; no process words ("probe", "planner") and no task ID in reader text; links into written modules carry anchors; links in `_meta/` files use `../../modules/<file>#slug`.
+- **Prose budget** (deltas over the module count measured just before the task; M46.md "Budget"): skeleton 1,907 measured 2026-10-22 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps: SEC-M46-01..08 = 460 / 460 / 460 / 480 / 460 / 480 / 420 / 540 (3,760); EX-M46-01 = 420 (intro included), EX-M46-02 = 380, EX-M46-03 = 400, EX-M46-04 = 400, EX-M46-05 = 420 (2,020); QB-M46-01 = 810 (intro included), QB-M46-02 = 770, QB-M46-03 = 660, QB-M46-04 = 660 (2,900); CLOSE-M46 = 480. 1,907 + 3,760 + 2,020 + 2,900 + 480 = 11,067. **CLOSE at most 11,067 words; REVIEW ceiling 11,620 (the plan's own; Part F has no hard cap).** Each task measures before and after with both counters, puts both in its LOG line, and cuts before finishing if more than 5% over its delta (repeats first; never a "Must state" fact, a template part, a diagram, a cause, a follow-up's reason or a "because"); if the facts still do not fit, the task stops and reports instead (M46.md lesson 22). Answer parts average at most 110 words per QB chunk, none above 150.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit; `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker. **Marker regions:** a section's region is its marker line plus the six empty `###` headings under it (SEC-M46-01 also writes the verification paragraph at its placeholder before §1); a question chunk's region is its marker line plus the anchors and headings up to the next marker or `## Hands-on exercises` (QB-M46-01 also writes the bank intro at its placeholder); an exercise's region is its marker line, its `<a id>` and its heading (EX-M46-01 also writes the exercise intro at its placeholder). CLOSE-M46's marker is in `## Summary`; the placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M46, and the header's Labs line carries a relink comment for CLOSE-M46. Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q46-NN -->` (or `#ex46-N`) comment; the QB or EX task that writes the target restores them, and CLOSE checks none remain.
+- **Acceptance for every task:** when a `labs/ts-js` file changed: from `labs/ts-js` (Node 24), `npx vitest run src/modules/46-system-design-case-studies src/outputs/46-system-design-case-studies` and `npx tsc --noEmit` exit 0; from the guide root, `node labs/tools/check-snippets.mjs . 46` and `node labs/tools/check-links.mjs --planned` exit 0; `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line); every URL in the module is in SOURCES.md; only the declared files are new or changed (`git status --short`); the task's marker is gone; `grep -c 'p75 on'` on the module is 0; no scratch, page copy or temporary file left; the LOG line gives both prose counts and the "Must state" facts written. The main session runs every check serially; writers report readiness.
+
+### SEC-M46-01 · M · From method to case: the parts every case study carries, and where each case's difficulty lies
+- Model: Sonnet (no new facts: owners 45 §1-§8 and F4 named in M46.md §1; the risk, restating 45, is closed by lesson 19).
+- Status: done. Depends: PLAN-M46.
+- Files: module §1 and the verification paragraph (its placeholder before §1); SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M46.md §1, F4 (re-read the architect guide's Q26 in this repository), C1; 45 §1, §2, §3, §4, §5, §7, §8; Q30.17; 39 (file-level); SYLLABUS §4 (46) module line; handoffs 30:1704, 32:2286, 39:1948, 40:1370, 45:35, 45:1225.
+- Do: M46.md §1 (delta 460 including the paragraph) with `flowchart LR` (the six template parts and the seven cases pointing at their hard part); the case template filled for the grid as a `text` fence labeled "our suggestion"; the per-case table (case, hard step, kernel, rendering choice); the byte-unit sentence (lesson 6); the four Misconceptions with M46.md's causes and corrections; link the architect guide file with "Q26" named in text (45's precedent for files outside the guide); link Q46.01 (relink comment); the verification paragraph (80-110 words) exactly as M46.md §1 lists.
+- Acceptance: common rules; `grep -ciE 'interviewers (always|usually|expect)|most companies'` in §1 is 0; 45's eight step names are not listed in §1 (a link replaces them).
+
+### SEC-M46-02 · M · Autocomplete and typeahead search: a request policy, a prefix cache, ranking on the server and an accessible combobox
+- Model: Sonnet (F6 quoted in M46.md; owners 23 §8, Q05.15, Q27.18, Exercise 36.2; C2, C5, C7 read first or dropped; the kernel is two pure structures).
+- Status: done. Depends: SEC-M46-01.
+- Files: module §2; `labs/ts-js/src/modules/46-system-design-case-studies/concepts/{prefix-cache.ts,section-2-prefix-cache.test.ts}` (new; `prefix-cache.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M46.md §2, F6 (re-read the APG combobox page and the APG introduction with the date immediately before quoting; name the paragraphs in the LOG line), F10 (`@angular/aria` 22.2.1 typings, read only), C2, C5, C7; 23 §8, Q23.27, Q23.28, Q22.32, Q05.15, Q27.18, 11 §5, 36 §11, Exercise 36.2, 45 §5, §8.
+- Do: M46.md §2 (delta 460) with `sequenceDiagram`; the assumed-numbers fence; `prefix-cache.ts` (`normalize`, `createPrefixCache` with `lookup` returning `skip`, `hit`, `derived` or `miss` and `store(key, items, complete)`, LRU by insertion order of a `Map`; `createResponseGate`; header "our model, not a search library's code; latest-only is the guarantee 23 §8's `switchMap` gives") and the six `Section 2: …` tests with the exact titles; the `http` contract fence; the `html` combobox fence after F6; the recommended Framework vs platform callout (Angular Aria's status as 36 §11 states it); the four Misconceptions with M46.md's causes and corrections; link 23 §8, Q05.15, Q27.18, 11 §5 and Exercise 36.2 once each; link Q46.02-Q46.04.
+- Acceptance: common rules; `grep -c 'informative'` in §2 ≥ 1.
+
+### SEC-M46-03 · M · An infinite-scroll feed: cursor pages, deduplication, new items without a jump, and a bounded window
+- Model: Sonnet (F7, F8 quoted in M46.md; owners 41 §6, 31 §4, 24 §9, 18 §5, 08 §3; the kernel is a pure merge and buffer).
+- Status: done. Depends: SEC-M46-02.
+- Files: module §3; `labs/ts-js/src/modules/46-system-design-case-studies/concepts/{feed-pager.ts,section-3-feed-pager.test.ts}` (new; `feed-pager.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M46.md §3, F7 (re-read the APG feed pattern with the date immediately before quoting `aria-busy` and Control+End), F8 (re-read MDN Intersection Observer API for the Baseline line), F11; 41 §6, Q41.13, 31 §4, Q31.10, Q31.11, 24 §9, 18 §5, 08 §3, Q08.07, 43 §1, §2, 45 §5, §8; handoff 31:2013.
+- Do: M46.md §3 (delta 460) with `sequenceDiagram`; the assumed-numbers fence; `feed-pager.ts` (`createFeedPager` with `addPage`, `receiveLive`, `showNew`, `view`, `pendingCount`; order by publication time then id; header "our model, after 41 §6's tiebreaker rule") and the five `Section 3: …` tests; the `http` contract fence; the `html` feed fence after F7; the required Framework vs platform callout; this section holds the canonical APG feed `aria-busy` statement; the four Misconceptions with M46.md's causes and corrections; link 41 §6, Q41.13, 31 §4, Q31.10, 24 §9 and 43 §1 once each; link Q46.05-Q46.08 and Exercise 46.1 (relink comments).
+- Acceptance: common rules; `grep -c 'withInMemoryScrolling'` in §3 ≥ 1 (the condition of 24 §9 is named).
+
+### SEC-M46-04 · M · A large data grid: server-side filtering, sorting and pagination, the query in the URL, and keyset cursors
+- Model: Sonnet (F7, F11 quoted in M46.md; owners 41 §6, 36 §7, Exercise 28.2, 27 §6, 34 §2; C6 read first or worded as M46.md says).
+- Status: done. Depends: SEC-M46-03.
+- Files: module §4; `labs/ts-js/src/modules/46-system-design-case-studies/concepts/{grid-query.ts,section-4-grid-query.test.ts}` (new; `grid-query.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M46.md §4, F7 (re-read the APG grid pattern with the date immediately before quoting the tab-sequence sentence and `aria-sort`), F11 (re-read 41 §6 and Q41.13 immediately before writing the tiebreaker sentence), C6; 36 §7, Q36.14, Exercise 28.2, Q28.19, 27 §6, 34 §2, 41 §5, 45 §5, §7, §8; handoff 34:1944 (collation half).
+- Do: M46.md §4 (delta 480) with `flowchart LR`; the assumed-numbers fence; `grid-query.ts` (`canonical`, `toParams`, `fromParams`, `cacheKey`, `withFilter`, `withSort`, `encodeCursor`, `decodeCursor`, and `keysetPage` as our fake server; header "our model, after 41 §6; not Spring Data's code") and the five `Section 4: …` tests; the `http` contract fence; the recommended Coming from the backend callout with where it breaks; this section holds the canonical tiebreaker statement for this module; the four Misconceptions with M46.md's causes and corrections; link 41 §6, Q41.13, 36 §7, Exercise 28.2, 27 §6 and 34 §2 once each; link Q46.09-Q46.11 and Exercise 46.2.
+- Acceptance: common rules.
+
+### SEC-M46-05 · M · A multi-step form wizard with draft saving: a step model, per-step validation, and drafts that survive and migrate
+- Model: Sonnet (F9 quoted in M46.md; owners 36 §8, 25 §9, 26 §5, 24 §5, 09 §2, §7, 42 §8, 45 §8; the kernel is pure functions over steps and drafts).
+- Status: done. Depends: SEC-M46-04.
+- Files: module §5; `labs/ts-js/src/modules/46-system-design-case-studies/concepts/{wizard.ts,section-5-wizard.test.ts}` (new; `wizard.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M46.md §5, F9 (re-read MDN `Document: visibilitychange event` with the date immediately before quoting "the last event that's reliably observable"), C8; 36 §8, 25 §9, 26 §5, 24 §5, Q24.20, 09 §2, §7, 42 §8, Q42.22, 45 §5, §8; handoff 42:2125 (wizard half).
+- Do: M46.md §5 (delta 460) with `stateDiagram-v2`; the assumed-numbers fence; `wizard.ts` (`visibleSteps`, `next`, `back`, `landingStep`, `restore(draft, migrations)`; header "our model; the `linear` gate mirrors 36 §8's statement") and the five `Section 5: …` tests; the `http` contract fence with `If-Match` on the draft write and an `Idempotency-Key` on the final submit (link §8 for its rules, not stated here); the four Misconceptions with M46.md's causes and corrections; link 36 §8, 26 §5, 24 §5, 09 §2, 42 §8 and 45 §8 once each; link Q46.12-Q46.15 and Exercise 46.3.
+- Acceptance: common rules; §5 contains no status-code rule of the Idempotency-Key draft (`grep -c '409\|422'` in §5 is 0).
+
+### SEC-M46-06 · M · A real-time operations dashboard: aggregation, per-widget staleness, hidden tabs and screens left open for days
+- Model: Sonnet (F9 quoted in M46.md, canonical here; owners 43 §1, §8, 44 §8, 37 §6, §9, 38 §1; C13, C17; the kernel is a pure aggregation).
+- Status: done. Depends: SEC-M46-05.
+- Files: module §6; `labs/ts-js/src/modules/46-system-design-case-studies/concepts/{aggregator.ts,section-6-aggregator.test.ts}` (new; `aggregator.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M46.md §6, F9 (re-read MDN Page Visibility API with the date immediately before quoting the throttling sentences and the WebSockets and WebRTC exception; name the paragraphs in the LOG line), C13, C17; 43 §1, §2, §8, Q43.02, Q43.17, 44 §1, §8, 37 §6, §9, 38 §1, 42 §3, 08 §6, 45 §3; handoffs 43:2008, 44:1985, 38:2041.
+- Do: M46.md §6 (delta 480) with `flowchart LR`; the assumed-numbers fence; `aggregator.ts` (`createAggregator` with `push`, `flush(now)`, `status(widgetId, now)`; kinds `counter` (sum), `gauge` (last), `latency` (our nearest-rank p95, defined in the header); `createSeries(capacity)`; header "our model; conflation itself is 43 §8's") and the four `Section 6: …` tests; the widget table as a `text` fence; this section holds the canonical throttling quotes; field p75 and the lab budget in separate sentences (lesson 3); the four Misconceptions with M46.md's causes and corrections; link 43 §1, 43 §8, 44 §8, 37 §6, 37 §9 and 38 §1 once each; link Q46.16-Q46.18 and Exercise 46.4.
+- Acceptance: common rules; `grep -c 'WebRTC'` in §6 ≥ 1 (the whole exception is quoted); `grep -ci 'EventSource.*unthrottled\|SSE.*unthrottled'` in §6 is 0 (C17).
+
+### SEC-M46-07 · M · A notifications center and an editing indicator: delivery, unread counts across tabs, and presence with a time-to-live
+- Model: Sonnet (owners 43 §1, §2, §5, 37 §7, 45 §8; C9, C10; the kernels are a set and a TTL map).
+- Status: done. Depends: SEC-M46-06.
+- Files: module §7; `labs/ts-js/src/modules/46-system-design-case-studies/concepts/{unread.ts,presence.ts,section-7-notifications.test.ts}` (new; `unread.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M46.md §7, C9, C10; 45 §8 (the `BroadcastChannel` statement as written there), 43 §1, §2, §5, Q43.02, 37 §7, Q37.15, Q35.12, 09 §7; handoff 43:2009.
+- Do: M46.md §7 (delta 420) with `sequenceDiagram`; the assumed-numbers fence; `unread.ts` (`createUnread` with `deliver`, `markRead`, `count`, `isUnread`; an early receipt remembered) and `presence.ts` (`createPresence(ttlMs)` with `heartbeat(user, now)` and `present(now)`), with an in-test fake channel that excludes the sender (header "our model; one channel object per tab, so 'sender' equals 'tab' only here", lesson 4), and the five `Section 7: …` tests; the `http` contract fence; the four Misconceptions with M46.md's causes and corrections; link 45 §8, 43 §1, 43 §2, 37 §7 and Q35.12 once each; link Q46.19-Q46.21.
+- Acceptance: common rules; `grep -c 'in our model'` in §7 ≥ 1.
+
+### SEC-M46-08 · M · Under the hood: a money transfer with idempotency keys, optimistic UI that never claims success, and the unknown outcome
+- Model: Opus (judgment-heavy: the Idempotency-Key draft's SHOULD 400 / 422 / 409, MUST NOT reuse and "MUST correct … except 409", §2.6's "consistent with the request being completed" kept apart from Stripe v1's replay and our server's choice, the unknown outcome after a lost response, the "pending, never success" rule reconciled with 45 §8's "money actions pessimistic", and the key distinguished from `If-Match` and 45 §8's operation id).
+- Status: done. Depends: SEC-M46-07.
+- Files: module §8; `labs/ts-js/src/modules/46-system-design-case-studies/concepts/{transfer.ts,section-8-transfer.test.ts}` (new; `transfer.ts` read-only afterwards); SOURCES.md; GLOSSARY-TERMS.md.
+- Inputs: M46.md §8, F1 and C4 (re-open the datatracker page, then re-read the current draft's §2.1-§2.7 immediately before writing the rules; name the version, sections and paragraphs in the LOG line), F2 (re-read RFC 9110 §9.2.2, §15.5.1, §15.5.10, §15.5.21), F3 (re-read Stripe's page with the date), F4, F5 (re-read MDN `randomUUID()`), C3, C11, C16; 45 §8, Q45.16, 28 §10, Q28.28, 27 §5, Q27.18, 09 §1, Q09.01, 41 §5, §9, 34 §10, 42 §8, Q33.02; handoffs 17:1499, 45:586, 45:1042, 33:2129, 34:1944 (money half), 42:2125 (transfer half).
+- Do: M46.md §8 (delta 540) with `stateDiagram-v2`; the assumed-numbers fence; `transfer.ts` (`createIdempotentServer(apply)` with `post(key, payload, now)` (201 replay of the first response, 409 in progress, 422 different payload by our fingerprint, 400 without a key) and a `release` hook the tests drive, `createIntent(payload, newKey)`, `settle(intent, response)`; header "our model, mirroring draft-ietf-httpapi-idempotency-key-header-<version> §2.6-§2.7; replaying the first response is our choice, as Stripe v1 documents; not a server's or Stripe's code") and the six `Section 8: …` tests; the `http` contract fence with a quoted `Idempotency-Key` value, the four answers as problem details, and our status-read endpoint named ours; this section holds the canonical draft statement and the canonical money rule, with one sentence saying it agrees with 45 §8; the recommended Coming from the backend callout (F4) with where it breaks; the five Misconceptions with M46.md's causes and corrections; link 45 §8, 28 §10, Q27.18, Q09.01, 41 §5, 41 §9, 34 §10, 42 §8 and Q33.02 once each; link Q46.22-Q46.26 and Exercise 46.5.
+- Acceptance: common rules; `grep -c 'Internet-Draft'` in §8 ≥ 1 and `grep -ciE 'idempotency[- ]key (standard|RFC)|RFC [0-9]+ .*Idempotency-Key'` in §8 is 0; `grep -c 'consistent with the request being completed'` in §8 ≥ 1 (the §2.6 quote is present); `grep -c 'with the exception of 409'` in §8 ≥ 1.
+
+### EX-M46-01 · M · Exercise 46.1 · A feed store: cursor pages merged without duplicates, live arrivals held behind a "new posts" pill, and a bounded window
+- Model: Sonnet (a store over an async page API with a buffer and a cap; the merge order exists in §3's model).
+- Status: done. Depends: SEC-M46-08.
+- Files: module exercise region and the exercise intro at its placeholder (at most 40 words); `labs/ts-js/src/modules/46-system-design-case-studies/exercise-1-feed-session/` (new; may import `concepts/feed-pager.ts` read-only); SOURCES.md.
+- Inputs: M46.md Exercises 1, §3, F7, F11; Exercises 23.5, 36.2, 41.3, 43.3 (named in the intro as not rebuilt).
+- Do: full E1 anatomy (delta 420 including the intro); six criteria over both variants (`describe.each(['a', 'b'])`: a class holding pages by cursor, and a reducer over events with an effect runner), titles equal to the criteria; an in-memory `FeedApi` fake with a page that fails once; the Hints and the walk-through say why each step is done that way (one load in flight because two loads with one cursor duplicate a page; drop the farthest page because the anchor is where the user reads); at least two answered follow-ups, each with its reason; restore section links to Exercise 46.1.
+- Acceptance: common rules.
+
+### EX-M46-02 · M · Exercise 46.2 · Grid selection that survives paging: explicit ids or "all matching except", and a bulk action on a filter snapshot
+- Model: Sonnet (pure functions over a tagged union; the canonical query exists in §4's model).
+- Status: done. Depends: EX-M46-01.
+- Files: module exercise region; `labs/ts-js/src/modules/46-system-design-case-studies/exercise-2-grid-selection/` (new; imports `concepts/grid-query.ts` read-only); SOURCES.md.
+- Inputs: M46.md Exercises 2, §4, F11, C6.
+- Do: full E1 anatomy (delta 380); six criteria over both variants (`describe.each(['a', 'b'])`: immutable functions, and a small class with the same API), titles equal to the criteria; the count says "about" when the total is an estimate (C6's wording); at least two answered follow-ups, each with its reason (one on what the server does if rows matching the filter change before the bulk action runs: the request names the filter, so the server applies it at execution time, and the design says so); restore section links to Exercise 46.2.
+- Acceptance: common rules.
+
+### EX-M46-03 · M · Exercise 46.3 · A wizard draft saver: coalesced saves, one save in flight, versions with `If-Match`, and conflicts shown instead of overwritten
+- Model: Sonnet (the precondition rule is 45 §8's canonical statement, linked; the criteria fix the saver's behavior; timing through Vitest fake timers or a driven scheduler).
+- Status: done. Depends: EX-M46-02.
+- Files: module exercise region; `labs/ts-js/src/modules/46-system-design-case-studies/exercise-3-draft-saver/` (new); SOURCES.md.
+- Inputs: M46.md Exercises 3, §5, F9; 45 §8 (linked, not restated), Exercise 45.2 (linked once as the outbox it does not rebuild), Q22.32.
+- Do: full E1 anatomy (delta 400); six criteria over both variants (`describe.each(['a', 'b'])`: a class with a timer, and a reducer with a scheduler the test drives), titles equal to the criteria; an in-memory `DraftApi` fake with a conflict and a network error; a `Visibility` fake for the hidden criterion; at least two answered follow-ups, each with its reason; restore section links to Exercise 46.3.
+- Acceptance: common rules.
+
+### EX-M46-04 · M · Exercise 46.4 · A dashboard data hub: per-widget aggregation windows, staleness, a pause while hidden, and a resync on return
+- Model: Sonnet (the aggregation exists in §6's model; snapshot and sequence rules are 43 §8's, linked; a state machine with three states).
+- Status: done. Depends: EX-M46-03.
+- Files: module exercise region; `labs/ts-js/src/modules/46-system-design-case-studies/exercise-4-dashboard-hub/` (new; imports `concepts/aggregator.ts` read-only); SOURCES.md.
+- Inputs: M46.md Exercises 4, §6, F9, C17; 43 §8, Exercise 43.3 (linked once as the delta store it does not rebuild).
+- Do: full E1 anatomy (delta 400); six criteria over both variants (`describe.each(['a', 'b'])`: a class, and a `visible | hidden | resyncing` machine with an effect runner), titles equal to the criteria; `Visibility`, `SnapshotApi` and stream fakes named ours; at least two answered follow-ups, each with its reason (one on why the hub pauses rendering rather than closing the socket, citing §6's canonical quotes: WebSockets stay unthrottled, timers do not); restore section links to Exercise 46.4.
+- Acceptance: common rules.
+
+### EX-M46-05 · M · Exercise 46.5 · A transfer client: one idempotency key per intent, retries after a lost response, 409 while processing, and an unknown outcome resolved by a status read
+- Model: Opus (judgment-heavy: two genuinely different designs (a class, and a reducer with an effect runner) that pass identical criteria under a lost response, a request held in progress, exhausted retries, a reload with a persisted intent, a double submit and an edited amount; our server follows draft §2.6-§2.7 as §8 records it).
+- Status: done (S20261022-2051-claudecode). Depends: EX-M46-04.
+- Files: module exercise region; `labs/ts-js/src/modules/46-system-design-case-studies/exercise-5-transfer-client/` (new; may import `concepts/transfer.ts` read-only for our server); SOURCES.md.
+- Inputs: M46.md Exercises 5, §8 (its canonical statements, linked, not restated), F1, F3, C4, C11; 41 §9 (minor units), Q27.18, Exercise 45.2 (linked once).
+- Do: full E1 anatomy (delta 420); seven criteria over both variants (`describe.each(['a', 'b'])`), titles equal to the criteria; in-memory server, storage and key generator, named ours; retries and waits through Vitest fake timers or a driven scheduler, never real time; the unknown criterion asserts that no state reads "failed" before a status read; at least two answered follow-ups, each with its reason (one on keeping the key across a re-login, 42 §8; one on what the draft lets a server do after the key expires, F1 §2.3, read, not run); restore section links to Exercise 46.5.
+- Acceptance: common rules.
+
+### QB-M46-01 · M · Q46.01-Q46.07 and the bank intro
+- Model: Sonnet (routine question writing; facts, links and follow-up reasons named in M46.md "Question notes").
+- Status: done (S20261022-2051-claudecode). Depends: EX-M46-05.
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); `labs/ts-js/src/outputs/46-system-design-case-studies/q46-03.test.ts` and `q46-06.test.ts` (new; `captureLogs`; import `concepts/prefix-cache.ts` and `concepts/feed-pager.ts` read-only); section links in §1-§3 (restore relink comments); SOURCES.md.
+- Do: five-part answers (STYLE-GUIDE §5.3): answers average at most 110 words across the chunk, none above 150, at least two answered follow-ups each, **every follow-up answer and every trap with its reason**; Full explanations teach first and end on teaching (lesson 7); Design answers walk §1's template parts in order with the case's assumed numbers; Q46.03 and Q46.06 through their tests (`it('Q46.03 …')`, `it('Q46.06 …')`), lines as the run shows, labeled our prefix cache and our feed pager; Q46.02 quotes nothing beyond §2's F6 statements and names no search engine (C5); Q46.04 gives each defect with why it costs, and 429 per C7; the overlap links M46.md names for Q46.01-Q46.07.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +810 words (5% tolerance); both Output tests pass.
+
+### QB-M46-02 · M · Q46.08-Q46.14
+- Model: Sonnet (as QB-M46-01).
+- Status: done (S20261022-2051-claudecode). Depends: QB-M46-01.
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/46-system-design-case-studies/q46-11.test.ts` and `q46-13.test.ts` (new; `captureLogs`; import `concepts/grid-query.ts` and `concepts/wizard.ts` read-only); section links in §3-§5; SOURCES.md.
+- Do: as QB-M46-01; Q46.11 and Q46.13 through their tests, labeled our grid query and our wizard; Q46.09 and Q46.10 link §4's canonical tiebreaker statement and use C6's wording for totals; Q46.12 links 45 §8's canonical precondition statement and §8's key rules instead of restating them; Q46.14 respects C8; Q46.08 gives each defect with why and its fix (the footer by F7's Control+End); the overlap links M46.md names for Q46.08-Q46.14.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +770 words; both Output tests pass.
+
+### QB-M46-03 · M · Q46.15-Q46.20
+- Model: Sonnet (as QB-M46-01).
+- Status: done (S20261022-2051-claudecode). Depends: QB-M46-02.
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/46-system-design-case-studies/q46-17.test.ts` and `q46-20.test.ts` (new; `captureLogs`; import `concepts/aggregator.ts` and `concepts/unread.ts` read-only; the Q46.20 test holds its own fake channel); section links in §5-§7; SOURCES.md.
+- Do: as QB-M46-01; Q46.17 and Q46.20 through their tests, labeled our aggregator and our unread set; Q46.16 links §6's canonical throttling quotes and keeps field p75 and the lab budget apart (lesson 3); Q46.18 links 44 §1 for the BFF; Q46.19 respects C10; Q46.15 gives each defect with why and its fix; the overlap links M46.md names for Q46.15-Q46.20.
+- Acceptance: common rules; D1 counts equal 6; chunk at most +660 words; both Output tests pass.
+
+### QB-M46-04 · M · Q46.21-Q46.26
+- Model: Sonnet (as QB-M46-01; the draft's rules are §8's canonical statement, linked).
+- Status: done (S20261022-2051-claudecode). Depends: QB-M46-03.
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/46-system-design-case-studies/q46-26.test.ts` (new; `captureLogs`; imports `concepts/transfer.ts` read-only); section links in §7-§8; SOURCES.md.
+- Do: as QB-M46-01; Q46.26 through its test, values as the run shows, labeled our transfer client and our server; Q46.21 keeps heart-beat and presence apart (lesson 25, C9); Q46.22-Q46.25 link §8's canonical draft and money statements and quote the draft only as §8 recorded it (C4: the version §8 used); Q46.23 states all three status codes with SHOULD and the 409 exception (lesson 24); Q46.24 says how the rule fits 45 §8; Q46.25 gives each defect with why it costs money or trust; the overlap links M46.md names for Q46.21-Q46.26; then D3 and D5 for the whole bank and a link check into 02, 05, 08, 09, 11, 22, 23, 24, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 38, 41, 42, 43, 44 and 45.
+- Acceptance: common rules; D1 counts equal 6; chunk at most +660 words; the Output test passes; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M46 · M · Close module 46
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Status: done (S20261022-2051-claudecode). Depends: QB-M46-04.
+- Files: module header (Applies to, Short on time, Labs line with its link and run command), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if an EX task changed a heading); `PROGRESS.md` (row 46, totals); `_meta/ROADMAP.md` (its row for 46).
+- Do: as CLOSE-M45: walk QUALITY-BAR A-H and record pass/fail per item in the LOG line; check M46.md's breadth table against the finished module (all seven checkboxes and the module line); **planned-fact check: grep the module for every section's "Must state" facts (M46.md §1-§8) and record each as found, or moved with its target named in M46.md "Corrections found while writing"; a fact neither found nor moved fails CLOSE**; **template check** (seven of seven case sections carry the six parts); **advice check** and **field-versus-lab check** (M46.md "Other closing material"); check every handoff line of M46.md "Handoffs into 46" against the section or question named there; check the canonical-statement rule (lesson 19: this module's five, and 45's linked, not restated); sample ten follow-ups and five traps across the bank for a stated reason, five Full explanations for teaching before routing and ending on teaching, and five Code step lists for an approach that holds for every branch, and fix any found inside the closing budget or name them in the LOG line; Connections "Builds on" gives a reason per link (lesson 26); run the full verification (Standard checks, `check-snippets.mjs . 01 … 46`, `module-stats.mjs` and the python one-liner); trim named repeats if above 11,067 (never a "Must state" fact); no other module is edited: record in the LOG line the file-level links into 46 (M46.md anchor candidates) and the open points C1-C17 with their outcome.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/46-system-design-case-studies.md` is 0; `grep -c 'p75 on\|INP on'` is 0; prose at most 11,067.
+
+### REVIEW-M46 · L · independent review of module 46
+- Model: Opus (judgment-heavy: independent review in a fresh session).
+- Status: done. Depends: CLOSE-M46.
+- As `REVIEW-M45`. Must run in a session that authored no task of module 46 except PLAN-M46, and not in a continuation of their conversations. Findings become `FIX-M46-nn` tasks appended to this file. Module-specific checks: **every claim about interviews, companies or products is advice worded as advice or a named, dated read** (M46.md C1); the Idempotency-Key draft re-read at its current version (datatracker), called an Internet-Draft with number and date, and quoted with **all of** §2.2's MUST and MUST NOT, §2.6's completed-retry and concurrent-request wording, §2.7's SHOULD 400 / 422 / 409 and "MUST correct … with the exception of 409"; **§2.6 not flattened into "the server must replay the stored response"** (F3 is Stripe v1's behavior, our server's replay is ours); RFC 9110 §9.2.2, §15.5.1, §15.5.10 and §15.5.21 re-read; Stripe's page re-read and cited as one vendor "For API v1"; the APG combobox, grid, feed and introduction pages re-read, the APG called informative and no WCAG requirement claimed from it; MDN Intersection Observer, Page Visibility, `visibilitychange` and `randomUUID()` re-read for their Baseline lines and quotes, including the WebSockets and WebRTC exception, and no SSE claim (C17); `@angular/aria` named only as 36 §11 states it; **field p75 and lab budgets never fused** (REVIEW-M45 F-1 pattern; `grep 'p75 on\|INP on'` is 0); **the money rule agrees with 45 §8** (pending acknowledged at once, outcome and balance only after confirmation); every case section carries §1's six template parts; **every direction fact re-read at its source** (M46.md lesson 16's list); **every capability or denial tied to the implementation or our model** (lesson 17); every model and fake named as ours (C11); Q46.03, Q46.06, Q46.11, Q46.13, Q46.17, Q46.20 and Q46.26 against re-runs of their tests; **every follow-up answer and trap gives its reason, every Misconceptions correction states the true belief and its cause says why the myth is natural, every Full explanation teaches before routing and ends on teaching, every Code step states its approach and holds for every branch shown, one byte unit throughout** (count any that recur); **every "Must state" fact present or moved as CLOSE recorded**; the canonical-statement rule (lesson 19) held, including 45's statements linked, not restated; the handoff lines into 46 honored; Q02.19, Q05.15, Q08.07, Q09.01, Q22.30, Q22.32, Q23.03, Q23.06, Q23.27, Q23.28, Q24.20, Q27.18, Q27.21, Q28.01, Q28.19, Q28.28, Q30.17, Q31.10, Q31.11, Q33.02, Q34.23, Q35.12, Q36.14, Q37.12, Q37.15, Q01.09, Q07.12, Q41.13, Q41.20, Q42.22, Q43.02, Q43.17, Q43.18, Q44.17, Q45.06, Q45.13, Q45.15, Q45.16 and Q45.17 not re-asked and Exercises 23.5, 23.6, 28.2, 28.3, 31.2, 36.2, 41.3, 43.1, 43.3 and 45.2 not rebuilt, with an anchor proposal per "Read next" or body link into 46 (M46.md anchor candidates, lesson 30) for a FIX task; prose at most 11,620 after fixes.
+
+### FIX-M46-01 · S · Factual and teaching fixes (F-1, F-2, T-1, T-2, N-8)
+- Model: **Sonnet** (every text is prescribed in the review; every basis is already in SOURCES.md `## Module 46` or a committed lab file).
+- Status: done. Depends: REVIEW-M46.
+- Files: `modules/46-system-design-case-studies.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M46.md` (Factual findings F-1, F-2; Teaching findings T-1, T-2; Nit N-8).
+- Do: apply each fix text in REVIEW-M46, finding each line by its quoted text, not its number (where the review gives a fenced pair, the first line is the text to find and the second its replacement; every find text occurs once in the module): F-1 in two places (§8 "The draft." paragraph: the `§2.2: "The idempotency key MUST be unique …"; "It is RECOMMENDED` text; the next paragraph: `409 when a retry arrives "while the original request is still being processed";`), F-2 (§8 "What to notice: only a confirm makes a key, and Unknown has no arrow to Failed."), T-1 in three places (§5 the sentence starting "The final submit validates every visible step again"; §6 "a dropped stream turns widgets stale, a throwing widget is caught by its boundary, a new release raises the prompt."; §7 "a stale entry ends at the time-to-live."), T-2 (Exercise 46.5 worked solution step "5. After `maxAttempts`, read by key: …"), N-8 (Exercise 46.5 step "3. `settle` makes a rejected post `unknown`, because"). No lab file, no heading, anchor or Mermaid change; M46.md is not edited.
+- Acceptance: `node labs/tools/check-snippets.mjs . 46` and `node labs/tools/check-links.mjs --planned` exit 0; in `modules/46-system-design-case-studies.md`: `grep -c 'Uniqueness of the key MUST be defined by the resource owner'` = 1 (0 before), `grep -c 'a concurrent request: "a resource conflict error"'` = 1 (0), `grep -c 'Unknown has no arrow to Failed'` = 0 (1), `grep -c 'finds only successes'` = 1 (0), `grep -c 'Signals (ours): the rates of failed saves'` = 1 (0), `grep -c 'signals: stale widgets, boundary errors'` = 1 (0), `grep -c 'signals: reconnects with their catch-up size'` = 1 (0), `grep -c 'with no cap'` = 1 (0), `grep -c 'a rejected post'` = 0 (1), `grep -c 'whose promise rejects'` = 1 (0); `grep -c 'p75 on\|INP on'` still 0; D1 counts still 26 each, 33 "Cause:", 8 Mermaid fences unchanged; prose at most +130 over the count just before (review estimate +117), both counts (`module-stats.mjs` and the QUALITY-BAR one-liner) in the LOG line. If the measured delta passes +130, shorten only the clauses this task adds (never a quote, a cause, a "because" or a link).
+
+### FIX-M46-02 · S · Nits (N-1 to N-7)
+- Model: **Sonnet** (every text is prescribed in the review; two Mermaid edits need care with syntax).
+- Status: done. Depends: REVIEW-M46 (run after FIX-M46-01: both touch §6 and §8 paragraphs, on disjoint text).
+- Files: `modules/46-system-design-case-studies.md`; `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M46.md` § Teaching findings, Nits N-1 to N-7.
+- Do: apply N-1 (§2 `Down Arrow "moves focus into the popup", Escape`), N-2 (§6 "So hidden timers slow, frames stop and a `setTimeout` poll slows too."), N-3 (§3 best practice "- **Reset `aria-busy` on every path**, failures included."), N-4 (§3 `sequenceDiagram`: insert the line `    participant R as Reader` right after the line `    participant V as Server`, and replace the line `    S->>F: reader activates the pill` with `    R->>F: activates the pill`; §7 `sequenceDiagram`: replace the line `    B->>B: reconnect, catch-up sends n7 again` with `    S->>B: n7 again, in the catch-up after a reconnect`; keep four-space indentation and both "What to notice" lines), N-5 (the eight fenced pairs: RFC 6585 §4 in §2, MDN in §3, PostgreSQL in §4, MDN `visibilitychange` in §5, MDN Page Visibility in §6, MDN `randomUUID()` in §8, MDN Push API in Q46.19, "quoted in section 6" in Exercise 46.4; only link markup is added, the words stay), N-6 (Connections "Uses these ideas later"), N-7 (three fenced pairs in the Full explanations of Q46.06, Q46.11, Q46.13). Find each by its quoted text (every find text occurs once). No heading or anchor change, no lab file, no SOURCES change (every URL is already in SOURCES.md `## Module 46`). After the edit, main parses the §3 and §7 diagrams with the same Mermaid parser CLOSE-M46 used (8/8) and records it in the LOG line.
+- Acceptance: `node labs/tools/check-snippets.mjs . 46` and `node labs/tools/check-links.mjs --planned` exit 0; in the module: `grep -c 'if the popup is available'` = 1 (0 before), `grep -c 'frames stop in most browsers'` = 1 (0), `grep -c 'a feed left busy'` = 1 (0), `grep -c 'participant R as Reader'` = 1 (0), `grep -c 'B->>B'` = 0 (1), `grep -c 'developer.mozilla.org/en-US/docs/Web/API/'` = 5 (0), `grep -c 'rfc-editor.org/rfc/rfc6585.html'` = 1 (0), `grep -c 'postgresql.org/docs/current/functions-comparisons.html'` = 1 (0), `grep -c 'a case told as a project story'` = 1 (0), `grep -c 'Live items wait in the buffer, so post 31'` = 0 (1), `grep -c 'Visibility is computed from the answers: a home claim'` = 0 (1), `grep -c 'so a sort change clears it'` = 0 (1); 8 Mermaid fences and 8 "What to notice" lines; D1 counts still 26 each; prose within −40 and +20 of the count just before (review estimate −2), both counts in the LOG line.
+
+### FIX-M46-03 · S · Anchors for the links into 46 (+0 words)
+- Model: **Haiku** (mechanical; slugs and lines listed).
+- Status: done. Depends: REVIEW-M46.
+- Files: link targets only in `modules/17-signals.md`, `43-fullstack-realtime.md`, `44-fullstack-delivery-and-operations.md`, `45-frontend-system-design-method.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Inputs: `_meta/reviews/REVIEW-M46.md` § Handoffs.
+- Do: apply the Handoffs table (5 rows): 43:2008 ("Read next") and 44:1985 ("Read next") → `46-system-design-case-studies.md#6-a-real-time-operations-dashboard-aggregation-per-widget-staleness-hidden-tabs-and-screens-left-open-for-days`; 17:1499 (Q17 Full explanation, "[Module 46 case study]"), 45:586 (45 §8, "money actions pessimistic") and 45:1042 (Q45.16 follow-up, "money likewise") → `46-system-design-case-studies.md#8-under-the-hood-a-money-transfer-with-idempotency-keys-optimistic-ui-that-never-claims-success-and-the-unknown-outcome`. Each listed line holds exactly one link to `46-system-design-case-studies.md`; if a line has moved, find it by that link and its quoted context, and stop and report if a line no longer holds exactly one. Only the link target changes. Verify both slugs against module 46's `## 6.` and `## 8.` headings (Contents). Leave the `:5` header lines, 45:35, 45:1225 and every "Uses these ideas later" line (30:1704, 31:2013, 32:2286, 33:2129, 34:1944, 38:2041, 39:1948, 40:1370, 42:2125, 43:2009, 44:1986, 45:1226) unchanged. FIX-M46-01 and -02 change no heading, so order does not matter.
+- Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '46-system-design-case-studies.md#'` across the four files totals 5 (0 before: 1 in 17, 1 in 43, 1 in 44, 2 in 45); `git diff --stat` touches only those four files among modules (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
+
+### Module 47 tasks (PLAN-M47) · common rules
+- Inputs for every task: `_meta/modules/M47.md`, namely:
+  - its section, question or exercise rows with the **Must state** line;
+  - the budget, "Handoffs into 47", "What other modules already teach", "Questions not asked here" and "Lab decision";
+  - "Facts established while planning" F1-F7 and "Could not be read" C1-C12;
+  - the owner map and "Corrections found while writing".
+
+  Also: STYLE-GUIDE §2-§11, QUALITY-BAR B-F, SYLLABUS §4 (47), the module skeleton, and for depth `modules/45-frontend-system-design-method.md` §1-§2 (the closest module in kind: advice worded as advice, a third-party read named and dated; read one section and one answer before writing), plus the owner sections the task links. Read `_meta/reviews/REVIEW-M46.md` § Factual findings and § Teaching findings (F-1, F-2, T-1, T-2 and N-1 to N-8 are the patterns this plan heads off, M47.md lessons 3-8, 16-17) and `_meta/reviews/REVIEW-M45.md` F-5 and T-2.
+
+  Re-verify every fact the task uses before writing (lab > this repository's guides > a dated page read) and record the basis next to the claim. Every "Could not be read" item for the task is read first, or the claim is dropped. Web pages are read with the date (sre.google, retrospectivewiki.org, en.wikipedia.org; any other page only if a C-item allows it). Text pages may be fetched with `curl` into the job scratchpad and deleted after. Angular is read in `labs/angular/node_modules` (read only); nothing is installed.
+- **Corrections to apply from the plan (they override anything older):**
+  - **Owners keep their topics:**
+    - `toFixed` and money (01 §2, Q01.04, Q01.09); field p75 (08 §6); the accessibility standards (11 §1);
+    - standalone, `computed` and `@for` (15 §2, 17 §3, 18 §1-§2); flattening instead of nested subscriptions (23 §2, Q23.06);
+    - when a store library is justified (28 §11, Q28.32); what to test where (29 §1, 30 §1); measure first and lab versus field (31 §1, Q31.01);
+    - a design system (36 §12); updates and error UX (37 §6, §10); feature boundaries and micro-frontends (38 §1, Q38.23);
+    - versions, statuses and migrations (39 §3, §9, §10, Q39.05, Q39.18, Q39.20); "why Angular" and rewrite versus modernize (40 §8, Q40.13, Q40.14);
+    - contract evolution (41 §4); CI/CD, version skew and RUM (44 §7-§9, Q44.17, Q44.18);
+    - the round types and trade-off statements (45 §1, §2, Q45.02, Q45.03); the case template (46 §1);
+    - and **the backend guide's §9, §10 and §6.5** (F1, F2).
+
+    Each gets one sentence and a link; the backend guide is linked file-level with the § named in text.
+  - **One canonical statement per rule** (M47.md lesson 18):
+    - STAR weighting and the result sentence in §1;
+    - the four story skeletons in §2;
+    - the blame-free wording and F3/F4 quotes in §3;
+    - the live-coding loop in §4;
+    - the README contents in §5;
+    - the follow-up ladder in §7.
+  - **Advice is advice** (lesson 1, C1): no sentence states what interviewers, companies or recruiters do as a fact. F1's "Interviewers write down outcomes" and "These are scored" are quoted as the backend guide's claims. Every sample story is "an example story" and every number in one is an "example number".
+  - **Whole quotes** (lesson 3): F3's definition and assumption sentences, F4 and F5's definition are quoted whole or marked "(abridged)".
+  - **Scope** (lesson 9): F3 is Google SRE's postmortem practice, and applying it to talking about code is ours. F4 is the wiki's quote of Kerth (book not read). F5 is Wikipedia's (Feathers' book not read).
+  - **Field versus lab** (lesson 10): every performance number says field or lab; `p75 on` and `INP on` never appear.
+  - **Failure modes with signals** (lesson 5) in §1, §4 and §5.
+  - No Angular status marker on any non-Angular source.
+- Every task adds its sources under `## Module 47 · Behavioral interviews and interview craft` in `SOURCES.md` (after the last module section present). Each entry gives:
+  - web pages with URL and date;
+  - the backend guide by path and heading;
+  - package reads as `<pkg>@<version>, <file>, <symbol>, read <date>`;
+  - a code-source line for every lab file the task creates.
+
+  It adds its inline-defined terms under `## Module 47` in `_meta/GLOSSARY-TERMS.md`.
+- **Lab rules:**
+  - plain TypeScript tests only, under `labs/ts-js/src/modules/47-behavioral-and-interview-craft/` (`exercise-1-legacy-refactor/`, `exercise-2-live-list/`), plus the Output test `labs/ts-js/src/outputs/47-behavioral-and-interview-craft/q47-09.test.ts` (STYLE-GUIDE §7.3, `captureLogs` from `src/outputs/capture.ts`, read-only);
+  - **no test opens a socket, calls `fetch`, spawns a process, reads the clock, uses `Math.random`, touches storage or `document`, or uses `Intl` or `toLocaleString`**;
+  - nothing under `labs/angular`, `labs/e2e` or `labs/spring-backend/` (C9).
+- **Shared files (C11):** no task edits `package.json`, a lockfile, a tsconfig, `vitest.config.ts`, `src/outputs/capture.ts`, VERSIONS.md, anything under `labs/angular`, or another module's folder or file. `exercise-1-legacy-refactor/legacy/price-label.ts` is read-only once EX-M47-01 has created it.
+- **Code:**
+  - strict TypeScript, no `any`, no `as` outside a type test, low branching (except the deliberately branchy legacy file, whose header says so), small pure functions or a small class with at most four collaborators;
+  - each solution's header comment says "our model" and the legacy file's says "our example of legacy code, not taken from any project" (C8);
+  - Angular appears only in `// Partial:` snippets whose APIs are checked in `labs/angular/node_modules/@angular/core` 22.2.1 typings (C7);
+  - story outlines, scripts, lists and the README skeleton are `text` fences labeled "our suggestion" or "an example story";
+  - no Java, no YAML, no `html` fence; Mermaid only in STYLE-GUIDE §11's types (C10).
+- **First-time-pass rules (from REVIEW-M14 to M46; named so they do not recur):**
+  - **Checks and runs.** Every recorded number, criterion and quote is checked against the named file or dated read before writing. Every "in the lab, X" names a test (`Q47.09 …` or the criterion title) asserting exactly X. **No throwaway observation in reader text:** F7 is never cited as run.
+  - **Quotes and credit.** Quotes are verbatim with their subject, and a shortened quote carries "(abridged)". Owner credit is named correctly in every link sentence.
+  - **Diagrams.** Every section has its Mermaid diagram of the type M47.md names, followed by a line starting `What to notice` (checked as C10 says).
+  - **Misconceptions.** **Every Misconceptions bullet gives a correction that states the true belief and a cause clause that says why the myth is natural.** M47.md writes each; reword, never drop.
+  - **Failure modes.** **Every failure mode a section lists names its cost and the signal in the room** (REVIEW-M46 T-1).
+  - **Terms** are defined at first use (M47.md lists them per section).
+  - **Code steps.** Each `### Code` has numbered steps, and every step says what it does and why, and holds for every branch shown (REVIEW-M46 T-2, N-8).
+  - **Sources.** **A source is cited only for what it says** (REVIEW-M45 F-5). Each mechanism answers one "why" from F1-F5, an owner, or our lab.
+  - **Answers.** **Full explanations teach before they route and end on teaching.** The Output short answer gives the result and its reason in the same words as the full explanation, without repeating a clause (REVIEW-M46 N-7). **Every answer and every exercise has at least two answered follow-ups, and every follow-up answer and every trap gives its reason.**
+  - **Planned facts.** **Every "Must state" fact of the task's section appears in reader text.** A fact that cannot fit is moved, with its F-number, to a named question or exercise in M47.md "Corrections found while writing", never dropped. **Every handoff line M47.md assigns to the task is honored.**
+  - **Links.** Every question and exercise is linked from the body. **References to other sections, modules and read pages are links, not plain text** (REVIEW-M46 N-5). Links into written modules carry anchors; links in `_meta/` files use `../../modules/<file>#slug`.
+  - **Reader text** has no process words and no task ID.
+- **Prose budget** (deltas over the module count measured just before the task; M47.md "Budget"; per-part costs measured in modules 45 and 46): skeleton 1,366, measured 2026-10-23 by `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner (equal). Caps:
+  - SEC-M47-01..07 = 640 (paragraph included) / 620 / 540 / 580 / 500 / 500 / 580 (3,960);
+  - EX-M47-01 = 520 (intro included), EX-M47-02 = 480 (1,000);
+  - QB-M47-01 = 1,000 (intro included), QB-M47-02 = 840 (1,840);
+  - CLOSE-M47 = 520.
+
+  1,366 + 3,960 + 1,000 + 1,840 + 520 = 8,686. **CLOSE at most 8,686 words; REVIEW ceiling 9,300 (the plan's own; Part G has no hard cap).**
+
+  Each task measures before and after with both counters and puts both in its LOG line. If it is more than 5% over its delta, it cuts before finishing (repeats first; never a "Must state" fact, a diagram, a cause, a signal, a follow-up's reason or a "because"). If the facts still do not fit, the task stops and reports instead. **If two consecutive tasks overrun by more than 10%, main records the projection in M47.md Corrections and raises it For Jorge before dispatching the next task.** Answer parts average at most 120 words per QB chunk, none above 160.
+- Module file: replace only the task's own `<!-- TASK: <ID> -->` region, at the end of the task, in a single edit. `<!-- PLACEHOLDER: … -->` lines are replaced by the task named in them; never touch another task's marker.
+  - **Marker regions:**
+    - a section's region is its marker line plus the six empty `###` headings under it (SEC-M47-01 also writes the verification paragraph at its placeholder before §1);
+    - a question chunk's region is its marker line plus the anchors and headings up to the next marker or `## Hands-on exercises` (QB-M47-01 also writes the bank intro at its placeholder);
+    - an exercise's region is its marker line, its `<a id>` and its heading (EX-M47-01 also writes the exercise intro at its placeholder, and replaces §3's planned Code fence with an Excerpt of its committed test).
+  - CLOSE-M47's marker is in `## Summary`. The placeholders for Applies to, Short on time, Check your understanding and Connections name CLOSE-M47, and the header's Labs line carries a relink comment for CLOSE-M47.
+  - Forward links to questions and exercises not written yet are plain text with a `<!-- relink: #q47-NN -->` (or `#ex47-N`) comment. The QB or EX task that writes the target restores them, and CLOSE checks that none remain.
+- **Acceptance for every task:**
+  - when a `labs/ts-js` file changed: from `labs/ts-js` (Node 24), `npx vitest run src/modules/47-behavioral-and-interview-craft src/outputs/47-behavioral-and-interview-craft` and `npx tsc --noEmit` exit 0;
+  - from the guide root, `node labs/tools/check-snippets.mjs . 47` and `node labs/tools/check-links.mjs --planned` exit 0;
+  - `node labs/tools/module-stats.mjs` and the QUALITY-BAR python one-liner give the module's prose (both in the LOG line);
+  - every URL in the module is in SOURCES.md;
+  - only the declared files are new or changed (`git status --short`);
+  - the task's marker is gone;
+  - `grep -c 'p75 on\|INP on'` on the module is 0;
+  - `grep -ciE 'interviewers (always|usually|expect|want)|most (companies|interviewers)|recruiters (always|usually)'` on the module is 0;
+  - no scratch, page copy or temporary file is left;
+  - the LOG line gives both prose counts and the "Must state" facts written.
+
+  The main session runs every check serially; writers report readiness.
+
+### SEC-M47-01 · M · The behavioral round: what a story is evidence of, STAR with the weight on action and an explicit result, and a story bank
+- Model: Sonnet (F1 and F2 are quoted in M47.md; the story bank and failure modes are prescribed).
+- Status: done. Depends: PLAN-M47.
+- Files: module §1 and the verification paragraph (its placeholder before §1); SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M47.md §1, F1 (re-read the backend guide's §9 opening and its drill paragraph immediately before quoting), F2, C1, C2; SYLLABUS §4 (47) first checkbox.
+- Do: write M47.md §1 (delta 640 including the paragraph) with:
+  - a `flowchart LR` diagram;
+  - the example story outline (ours, example numbers labeled) and the story-bank table as `text` fences;
+  - the four failure modes with their signals;
+  - the four Misconceptions with M47.md's causes and corrections;
+  - the backend guide linked file-level with §9 named in text, and the seven §9 prompts not retold;
+  - a link to Q47.01-Q47.02 (relink comments);
+  - the verification paragraph (80-110 words), exactly as M47.md §1 lists it.
+- Acceptance: common rules; F1's structure paragraph appears whole (`grep -c 'stated explicitly as the last thing you say'` = 1 in §1); no origin is claimed for STAR (C2).
+
+### SEC-M47-02 · M · Four front-end stories: a performance win, a migration, a production incident and a disagreement over architecture
+- Model: **Opus** (judgment-heavy: four concrete example stories that must read as plausible front-end work yet be labeled ours, with every technical beat attached to its owner (field versus lab, version skew, RUM, migration programs, trade-off statements) and F1 quoted without becoming fact).
+- Status: done. Depends: SEC-M47-01.
+- Files: module §2; SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M47.md §2; F1 §9.2, §9.3, §9.4, §9.5 and §6.5 (re-read each immediately before quoting; name the paragraphs in the LOG line); C1; 08 §6, 31 §1, Q31.01, 39 §3, 39 §10, 44 §8, 44 §9, Q44.17, 37 §6, 45 §2, 28 §11, Q38.23.
+- Do: write M47.md §2 (delta 620) with:
+  - a `flowchart LR` diagram (four rows);
+  - four example story outlines as `text` fences, each labeled "an example story" with "example numbers";
+  - the recommended Coming from the backend callout with where it breaks;
+  - the four Misconceptions with M47.md's causes and corrections;
+  - this section holds the canonical four skeletons; every performance number names field or lab;
+  - 08 §6, 31 §1, 39 §10, 44 §8, 44 §9, 37 §6, 45 §2, 28 §11 and Q38.23 linked once each;
+  - a link to Q47.03-Q47.06.
+- Acceptance: common rules; `grep -c 'an example story'` in §2 ≥ 4; F1 §9.4 is quoted with "where you lost or the outcome was mixed" whole.
+
+### SEC-M47-03 · M · Legacy codebases and migrations without blame: the constraints of the time, how you learned the code before changing it, and words that explain instead of accuse
+- Model: Sonnet (F3-F5 are fixed verbatim in M47.md; the wording table and the misconceptions are prescribed).
+- Status: done. Depends: SEC-M47-02.
+- Files: module §3; SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M47.md §3; F3 (re-read the sre.google chapter's "Google's Postmortem Philosophy" immediately before quoting), F4 (re-read the Retrospective Wiki page), F5 (re-read Wikipedia "Characterization test"); name each page and paragraph in the LOG line. Also F1 §9.3, C3, C8; 39 §9, 39 §10, Q40.14, 30 §6.
+- Do: write M47.md §3 (delta 540) with:
+  - a `flowchart LR` diagram;
+  - the blame-words fence (ours);
+  - the Code part as a `text` fence holding the two test titles planned for Exercise 47.1, labeled "planned in Exercise 47.1" (EX-M47-01 replaces it with an Excerpt);
+  - the four Misconceptions with M47.md's causes and corrections;
+  - F3 named as Google SRE's postmortem practice and our application said once; F4 as the wiki's quote of Kerth; F5 as Wikipedia's;
+  - characterization test versus a component snapshot (30 §6 linked);
+  - 39 §9, 39 §10 and Q40.14 linked once each (handoff 40:1370);
+  - a link to Q47.07-Q47.09 and Exercise 47.1 (relink comments).
+- Acceptance: common rules; `grep -c 'without indicting any individual or team'` = 1, `grep -c 'did the best job they could'` = 1 and `grep -c 'Golden Master'` = 1 in the module.
+
+### SEC-M47-04 · M · Live coding an Angular task: clarify, say the plan, build in working increments, narrate, and recover when stuck
+- Model: Sonnet (the loop, the failure modes and the defaults are prescribed; the Partial snippet's APIs are owners').
+- Status: done. Depends: SEC-M47-03.
+- Files: module §4; SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M47.md §4; C4, C5, C7 (read `input`, `signal`, `computed` in `labs/angular/node_modules/@angular/core` 22.2.1 typings, read only, and name the files in the LOG line); 45 §1 (line 35), Q45.02, 15 §2, 17 §3, 18 §2, 23 §2, Q23.06, 28 §11, 29 §1; F1 §9.7; handoffs 45:35, 45:685, M46.md:118.
+- Do: write M47.md §4 (delta 580) with:
+  - a `sequenceDiagram`;
+  - the seven-step loop (canonical);
+  - the narration script as a `text` fence;
+  - the `// Partial:` standalone list component over Exercise 47.2's core;
+  - the four failure modes with their signals;
+  - the four Misconceptions with M47.md's causes and corrections;
+  - live coding equated with 45 §1's machine coding in one sentence (link once);
+  - 15 §2, 17 §3, 18 §2 and 23 §2 linked once each; no platform named (C4); no AI rule stated (C5);
+  - a link to Q47.10-Q47.11 and Exercise 47.2 (relink comments).
+- Acceptance: common rules; `check-snippets.mjs . 47` accepts the Partial; the prep site's "never verbalized" sentence is not used (`grep -c 'never verbalized'` = 0).
+
+### SEC-M47-05 · M · Take-home assignments: scope and time-box, what the repository must show, the README, and the review call
+- Model: Sonnet (the README contents, the failure modes and the misconceptions are prescribed).
+- Status: done. Depends: SEC-M47-04.
+- Files: module §5; SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M47.md §5; C5, C6; F1 §9.5; 37 §10, Q28.32, 30 §1, 29 §1, 45 §2, Q40.13, Q39.05.
+- Do: write M47.md §5 (delta 500) with:
+  - a `timeline` diagram (checked as C10 says);
+  - the README skeleton as a `text` fence (canonical);
+  - the four failure modes with their signals;
+  - the four Misconceptions with M47.md's causes and corrections;
+  - 37 §10, Q28.32, 30 §1, 29 §1, 45 §2 and Q39.05 linked once each;
+  - a link to Q47.12-Q47.13.
+- Acceptance: common rules; no time or pay figure is stated as a fact (C6).
+
+### SEC-M47-06 · M · Questions to ask about the front-end practice: versions and updates, testing, the design system and accessibility, performance, contracts and releases, and how to read the answers
+- Model: Sonnet (the seven areas, their owners and the reading rules are prescribed).
+- Status: done. Depends: SEC-M47-05.
+- Files: module §6; SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M47.md §6; F1 §10 (re-read immediately before quoting); 39 §3, 39 §10, 29 §1, 30 §1, 36 §12, 11 §1, 44 §9, 08 §6, 41 §4, 44 §7, 38 §1.
+- Do: write M47.md §6 (delta 500) with:
+  - a `flowchart LR` diagram;
+  - the areas table as a `text` fence (ours; two questions per area, plus a good-sign column and a follow-up column);
+  - the four Misconceptions with M47.md's causes and corrections;
+  - F1 §10's "These are scored…" and "The one worth asking everyone separately" quoted as the guide's;
+  - §10's own questions linked, not repeated;
+  - one owner link per area;
+  - a link to Q47.14.
+- Acceptance: common rules; none of F1 §10's listed questions is copied verbatim beyond the two quotes named.
+
+### SEC-M47-07 · M · Under the hood: how one story is drilled into, numbers you can defend, and telling a design or a migration as your own project
+- Model: **Opus** (judgment-heavy: the deepest section; the ladder must turn F1 §9.5's follow-ups into a general method without overclaiming, tell a 46 case and the "why Angular" decision as stories without restating 46 §1 or Q40.13, and keep the second-language advice the guide's).
+- Status: done. Depends: SEC-M47-06.
+- Files: module §7; SOURCES.md; GLOSSARY-TERMS.md. No lab file.
+- Inputs: M47.md §7; F1 §9.5, §9.7 and F2 (re-read immediately before quoting); C12; 31 §1, 45 §2, 46 §1, Q40.13; handoffs 40:1369, 45:1225, 46:2185, 46:2186.
+- Do: write M47.md §7 (delta 580) with:
+  - a `flowchart TB` diagram (six rungs);
+  - the example story with its prepared answers per rung, as a `text` fence labeled ours;
+  - the four Misconceptions with M47.md's causes and corrections;
+  - this section holds the canonical follow-up ladder;
+  - 46 §1, 45 §2, 31 §1 and Q40.13 linked once each, with Q40.13's five steps not restated;
+  - a link to Q47.15.
+- Acceptance: common rules; `grep -c 'rather than inflating the number'` = 1 in §7.
+
+### EX-M47-01 · M · Exercise 47.1 · A legacy function in a refactoring round: characterization tests first, a refactor that keeps every pinned result, and one quirk changed in the open
+- Model: Sonnet (the legacy behaviors, the deliberate change and the F7 trap are prescribed; the tests decide every value).
+- Status: done. Depends: SEC-M47-07.
+- Files:
+  - the module exercise region and the exercise intro at its placeholder (at most 40 words);
+  - §3's planned Code fence, replaced by an Excerpt of `exercise-1.test.ts` with §3's two steps kept true;
+  - `labs/ts-js/src/modules/47-behavioral-and-interview-craft/exercise-1-legacy-refactor/` (new: `legacy/price-label.ts`, `a/price-label.ts`, `b/price-label.ts`, `exercise-1.test.ts`);
+  - SOURCES.md.
+- Inputs: M47.md Exercises 1, §3, F5, F6 (01 §2, Q01.04), F7, C3, C8; Exercise 46.2 (linked once in the intro as not rebuilt).
+- Do:
+  - full E1 anatomy (delta 520 including the intro);
+  - the legacy file with the four behaviors M47.md lists, its header naming it our example;
+  - a characterization table run against `legacy`, then the six criteria over both variants (`describe.each(['a', 'b'])`: extract-function steps with the same arithmetic, and an integer minor-units core with a formatter), with titles equal to the criteria;
+  - the deliberate change proved by its test (`Math.round(x * 100)` does not round 1.005 up: the test shows whichever method the solution uses does);
+  - Hints and the walk-through say why each step is done that way (pin first because a consumer may depend on the quirk; change one behavior per commit because a reviewer must see it);
+  - at least two answered follow-ups, each with its reason (one on how you would tell this refactor in a behavioral round without blaming the original author, linking §3);
+  - the exercise linked from §3.
+- Acceptance: common rules; the characterization cases pass against `legacy`; `legacy/price-label.ts` is unchanged after the task's tests are written (read-only afterwards).
+
+### EX-M47-02 · M · Exercise 47.2 · A live-coding round in increments: the filter, sort and page core of an Angular list, built test-first with its edge cases
+- Model: Sonnet (pure functions and a reducer; the seven criteria fix the behavior; the Partial snippet's APIs are owners').
+- Status: done. Depends: EX-M47-01.
+- Files: the module exercise region; `labs/ts-js/src/modules/47-behavioral-and-interview-craft/exercise-2-live-list/` (new: `list-core.ts`, `a/list-core.ts`, `b/list-core.ts`, `exercise-2.test.ts`); SOURCES.md.
+- Inputs: M47.md Exercises 2 and §4 (its loop, linked, not restated); C7 (`@angular/core` 22.2.1 typings, read only); 15 §2, 17 §3, 18 §2, 41 §6 (tiebreaker by id, linked once).
+- Do:
+  - full E1 anatomy (delta 480);
+  - seven criteria over both variants (`describe.each(['a', 'b'])`: pure functions, and a reducer with a `view` selector), with titles equal to the criteria;
+  - fixed rows with a tie on `name` and on `createdAt`;
+  - the Worked solution's narration lines as a `text` fence in §4's loop order;
+  - the Angular wiring as a `// Partial:` snippet;
+  - at least two answered follow-ups, each with its reason (one on "now make it server-side", linking Exercise 46.2 and 41 §6);
+  - the exercise linked from §4.
+- Acceptance: common rules; `check-snippets.mjs . 47` passes.
+
+### QB-M47-01 · M · Q47.01-Q47.08 and the bank intro
+- Model: Sonnet (routine question writing; facts, links and follow-up reasons are named in M47.md "Question notes").
+- Status: done. Depends: EX-M47-02.
+- Files: module Question bank (its marker region); the bank intro at its placeholder (at most 40 words); section links in §1-§3 (restore relink comments); SOURCES.md. No lab file.
+- Do:
+  - five-part answers (STYLE-GUIDE §5.3): answers average at most 120 words across the chunk, none above 160, with at least two answered follow-ups each, and **every follow-up answer and every trap with its reason**;
+  - Full explanations teach first and end on teaching;
+  - Design answers on a story prompt give an outline in §2's skeleton, labeled "an example story", and link the backend guide's matching §9 prompt once;
+  - Q47.06 gives each draft with its cost and its fix;
+  - Q47.07 quotes F3 only as §3 recorded it;
+  - the overlap links M47.md names for Q47.01-Q47.08.
+- Acceptance: common rules; D1 counts equal 8; chunk at most +1,000 words (5% tolerance).
+
+### QB-M47-02 · M · Q47.09-Q47.15
+- Model: Sonnet (as QB-M47-01).
+- Status: done. Depends: QB-M47-01.
+- Files: module Question bank (its marker region); `labs/ts-js/src/outputs/47-behavioral-and-interview-craft/q47-09.test.ts` (new; `captureLogs`; imports `exercise-1-legacy-refactor/legacy/price-label.ts` read-only); section links in §3-§7; SOURCES.md.
+- Do:
+  - as QB-M47-01;
+  - Q47.09 through its test (`it('Q47.09 …')`), lines as the run shows, labeled our legacy function, with the half-cent line explained by linking Q01.04, not re-derived;
+  - Q47.11 gives each moment with its cost and its fix (a `// Partial:` fix snippet only if C7 is met);
+  - Q47.12 and Q47.13 respect C5 and C6;
+  - Q47.14 links F1 §10 without copying its questions;
+  - Q47.15 links §7's canonical ladder;
+  - the overlap links M47.md names for Q47.09-Q47.15;
+  - then the D3 and D5 checks for the whole bank and a link check into 01, 08, 11, 15, 17, 18, 23, 28, 29, 30, 31, 36, 37, 38, 39, 40, 41, 44, 45 and 46.
+- Acceptance: common rules; D1 counts equal 7; chunk at most +840 words; the Output test passes; `module-stats.mjs` shows no D3 flag.
+
+### CLOSE-M47 · M · Close module 47
+- Model: Sonnet (closing: checklist walk and measured counts; escalate to main if a QUALITY-BAR item fails).
+- Status: done. Depends: QB-M47-02.
+- Files: module header (Applies to, Short on time, the Labs line with its link and run command), Summary, Check your understanding, Connections (their markers and placeholders), Contents (if a task changed a heading); `PROGRESS.md` (row 47, totals); `_meta/ROADMAP.md` (its row for 47).
+- Do: as CLOSE-M46:
+  - walk QUALITY-BAR A-H and record pass or fail per item in the LOG line;
+  - check M47.md's breadth table against the finished module (all four checkboxes, the ⇢ pointer honored);
+  - run the **planned-fact check**, **advice check**, **example-story check**, **field-versus-lab check** and **quote check** (M47.md "Other closing material");
+  - check every handoff line of M47.md "Handoffs into 47" against the section or question named there;
+  - check the canonical-statement rule (lesson 18);
+  - sample eight follow-ups and five traps across the bank for a stated reason, five Full explanations for teaching before routing and ending on teaching, and every failure-mode list for its signals. Fix any found inside the closing budget or name them in the LOG line;
+  - make sure every Connections link gives a reason, including "Uses these ideas later";
+  - run the full verification (Standard checks, `check-snippets.mjs . 01 … 47`, `module-stats.mjs` and the python one-liner);
+  - trim named repeats if above 8,686 (never a "Must state" fact);
+  - edit no other module: record in the LOG line the file-level links into 47 (M47.md anchor candidates) and the open points C1-C12 with their outcome.
+- Acceptance: common rules; `grep -cE '<!-- (TASK:|PLACEHOLDER:)|relink:' modules/47-behavioral-and-interview-craft.md` is 0; `grep -c 'p75 on\|INP on'` is 0; prose at most 8,686.
+
+### REVIEW-M47 · L · independent review of module 47
+- Model: Opus (judgment-heavy: an independent review in a fresh session).
+- Status: done. Depends: CLOSE-M47. Done by S20261024-0835-claudecode (reviewer subagent claude-opus-5-5; bookkeeping by main claude-opus-5-5); review `_meta/reviews/REVIEW-M47.md`.
+- As `REVIEW-M46`. Must run in a session that authored no task of module 47 except PLAN-M47, and not in a continuation of their conversations. Findings become `FIX-M47-nn` tasks appended to this file. Module-specific checks:
+  - **advice and examples:**
+    - every claim about interviews, interviewers, companies, recruiters or hiring is advice worded as advice, a quote attributed to the backend guide, or a named, dated read (M47.md C1);
+    - every sample story and story number is labeled ours;
+    - STAR's origin is not claimed (C2);
+  - **quotes and sources:**
+    - the backend guide's §9, §9.2-§9.5, §9.7, §10 and §6.5 re-read and quoted whole where quoted, with their conditions (§9.4's "lost or the outcome was mixed");
+    - the sre.google chapter re-read, with F3's sentences quoted whole and applied to talking about code only as our application;
+    - the Retrospective Wiki page and Wikipedia re-read, cited as those sites (C3);
+  - **owners and handoffs:**
+    - **§9 and §10 linked, not duplicated** (SYLLABUS ⇢; none of §9.1-§9.7's prompts re-asked as written);
+    - field p75 and lab numbers never fused (`grep 'p75 on\|INP on'` is 0);
+    - every failure-mode list gives a signal in the room (REVIEW-M46 T-1);
+    - Exercise 47.1's legacy file named our example; its deliberate change proved by a test, not by F7;
+    - Q47.09 against a re-run of its test;
+    - every Partial snippet's Angular API found in 22.2.1 typings (C7);
+    - the handoff lines into 47 honored;
+    - Q01.04, Q01.09, Q23.06, Q28.32, Q31.01, Q38.23, Q39.05, Q39.18, Q39.20, Q40.13, Q40.14, Q44.17, Q44.18, Q45.02 and Q45.03 not re-asked, and Exercise 46.2 not rebuilt;
+    - an anchor proposal per "Read next" or body link into 47 (M47.md anchor candidates, lesson 24) for a FIX task;
+  - **teaching:**
+    - **every follow-up answer and trap gives its reason; every Misconceptions correction states the true belief, and its cause says why the myth is natural; every Full explanation teaches before routing and ends on teaching; every Code step states its approach and holds for every branch shown** (count any that recur);
+    - **every "Must state" fact present or moved as CLOSE recorded**;
+    - the canonical-statement rule (lesson 18) held;
+  - **size:** prose at most 9,300 after fixes.
+
+### FIX-M47-01 · S · Factual and teaching fixes (F-1 to F-4, T-1 to T-4)
+- Model: **Sonnet** (every text is prescribed in the review).
+- Status: done (S20261024-0835-claudecode, fixer claude-sonnet-5-5; checks by main claude-opus-5-5). Depends: REVIEW-M47.
+- Files: `modules/47-behavioral-and-interview-craft.md`; `SOURCES.md` (F-1's one line in `## Module 47`); `_meta/LOG.md` (its own line).
+- Inputs: `_meta/reviews/REVIEW-M47.md`. Do: apply each fix text in the review, finding each line by its quoted text, not its number. Checks and bookkeeping by main.
+- Acceptance (module unless noted, before → after): `grep -c 'came first'` 2 → 0; `grep -c 'before time ran out'` 0 → 2; SOURCES.md `grep -c 'the drill (two-minute timer, a result sentence) paraphrased'` 1 → 0 and `grep -c 'before time ran out'` 0 → 1; `grep -c 'the story exists for it'` 1 → 0; `grep -c 'calls that the signal'` 1 → 0; `grep -c 'whether you can disagree without becoming difficult to work with'` 1 → 2; `grep -c 'on answering out loud before reading'` 0 → 1; `grep -c 'Four ways it goes wrong, each with a cost and a signal (our suggestions):'` 1 → 4; `grep -c 'End the migration on\|ends on what you left alone'` 2 → 0; `grep -c 'mitigation before the root cause'` 0 → 1; `grep -c "surveyor's report"` 0 → 1; `grep -c 'good or mixed, stated last'` 0 → 1; `grep -c 'just below 100.5'` 0 → 1; `grep -c 'an inflated figure cannot'` 0 → 1; check-links --planned and check-snippets . 47 exit 0; module-stats 47 at most 9,184.
+
+### FIX-M47-02 · S · Nits (N-1 to N-7)
+- Model: **Sonnet** (every text is prescribed in the review).
+- Status: done (S20261024-0835-claudecode, fixer claude-sonnet-5-5; checks by main claude-opus-5-5). Depends: REVIEW-M47 (run after FIX-M47-01: same file, disjoint texts).
+- Files: `modules/47-behavioral-and-interview-craft.md`; `_meta/LOG.md` (its own line).
+- Inputs: `_meta/reviews/REVIEW-M47.md`. Do: apply each fix text in the review, finding each line by its quoted text, not its number. Checks and bookkeeping by main.
+- Acceptance: `grep -c '](#1-the-behavioral-round'` 6 → 7; `grep -c '](#2-four-front-end-stories'` 8 → 11; `grep -c 'not which option wins'` 0 → 1; `grep -c 'we now version assets'` 1 → 0; `grep -c "(the guide's answer)"` 0 → 1; `grep -c 'How is a decision recorded'` 1 → 0; `grep -c 'the root practice files'` 1 → 0; `grep -c 'first:  \[29'` 1 → 0; check-links and check-snippets exit 0; module-stats 47 at most 9,300.
+
+### FIX-M47-03 · S · Anchors for the 5 links into 47
+- Model: **Haiku** (mechanical; slugs and texts listed under the review's Handoffs).
+- Status: done (S20261024-0835-claudecode, fixer claude-haiku-5-5; checks by main claude-opus-5-5). Depends: REVIEW-M47 (any order).
+- Files: `modules/40-framework-comparisons.md`, `modules/45-frontend-system-design-method.md`, `modules/46-system-design-case-studies.md`; `_meta/LOG.md` (its own line).
+- Inputs: `_meta/reviews/REVIEW-M47.md`. Do: apply each fix text in the review, finding each line by its quoted text, not its number. Checks and bookkeeping by main.
+- Acceptance: `grep -c '47-behavioral-and-interview-craft.md#'` 40: 0 → 1, 45: 0 → 3, 46: 0 → 1; `grep -c '47-behavioral-and-interview-craft.md)'` 40: 3 → 2, 45: 5 → 2, 46: 3 → 2; check-links --planned exits 0; +0 prose words in each file.
+
+### PLAN-FINISH · M · plan the finish line (RUN.md §13)
+- Model: **Opus** (judgment-heavy: decomposes the finish line into atomic tasks).
+- Status: done (S20261024-0835-claudecode, planner subagent claude-opus-5-5; checks by main). Depends: every module CLOSEd, REVIEWed and fixed (47 / 47 on 2026-10-24).
+- Files: `_meta/modules/FINISH.md` (new: the plan); `_meta/TASKS.md` (appends finish-line rows and blocks only).
+- Inputs: RUN.md §5, §9, §13; ROADMAP Phase C; SYLLABUS §1, §6, §7 (as needed); STYLE-GUIDE (floors, prose caps); `labs/tools/` (existing scripts); `PROGRESS.md`; repo-root `README.md` (read only).
+- Acceptance: FINISH.md maps every §13 item and every "job is done" checkbox to a task with acceptance checks; each new task has ID, size, model, deps, files, inputs and grep- or exit-code-countable acceptance; the cross-module consistency REVIEW is ordered so its FIX tasks land before the generated files; check-links --planned exits 0.
+
+### Finish line tasks (PLAN-FINISH) · common rules
+- Plan: `_meta/modules/FINISH.md` (written 2026-10-24). Every task reads its own FINISH.md section plus the inputs listed. Section numbers below (§4.2, §6.3 …) are FINISH.md's.
+- **Finish links gate** (replaces the `--planned` gate for these tasks): before HOUSE-43, `node labs/tools/check-links.mjs --planned` exits 0; after HOUSE-43, `node labs/tools/check-links.mjs | grep -vcE '(GLOSSARY|QUESTION-INDEX|CHEATSHEET|MOCK-INTERVIEWS|README)\.md|broken link'` is 0 (every remaining broken link points at a root file not written yet); once all five root files exist, `node labs/tools/check-links.mjs` exits 0.
+- Scripts: Node standard library only, ESM, one `node:test` file each, written by a Sonnet subagent that runs nothing; main runs `node --test 'labs/tools/*.test.mjs'` (exit 0) and the script. Scripts never write outside the guide; scratch lives outside the repo and is deleted.
+- Root files: links are `modules/NN-slug.md#anchor`; prose words are module-stats' `proseWords` (FINISH.md §6). A written root file states nothing its linked passage does not state; status markers are copied from the module verbatim. Content goes into the task's own `<!-- TASK: <ID> -->` region in one edit (RUN §5).
+- FIX-X tasks (appended by REVIEW-X-06 and REVIEW-X-07) are inserted in the summary table before the FINAL-VERIFY row.
+- Bookkeeping (STATE, TASKS, LOG) is main's, after the checks pass (RUN §6.5).
+
+### HOUSE-43 · S · Link hygiene: the 217 broken links `--planned` masks
+- Model: **Haiku** (mechanical path fixes; no text changes).
+- Status: done (S20261024-0835-claudecode, fixer claude-haiku-5-5; checks by main). Depends: PLAN-FINISH. Ruling J3 (FINISH.md For Jorge): default fix in place.
+- Files: `_meta/GLOSSARY-TERMS.md`, `_meta/reviews/REVIEW-M*.md` (those listed by check-links), `SOURCES.md`, `_meta/LOG.md` (one old line and its own line), `_meta/TASKS.md` (one old line in a done block, and this task's row), `_meta/modules/M05.md`, `M18.md`, `M31.md`.
+- Inputs: the output of `node labs/tools/check-links.mjs` (no flag), FINISH.md §1.
+- Do: rewrite only the path part of each broken link so it resolves from its file: GLOSSARY-TERMS `../../modules/` → `../modules/`; reviews and `_meta/modules` plans: bare `NN-slug.md` → `../../modules/NN-slug.md`; SOURCES.md `../modules/` → `modules/`; LOG and TASKS: the bare module name → `../modules/…`. Keep link text and anchors; an anchor that no longer exists is reported, not guessed.
+- Acceptance: `node labs/tools/check-links.mjs | grep -vcE '(GLOSSARY|QUESTION-INDEX|CHEATSHEET|MOCK-INTERVIEWS|README)\.md|broken link'` 217 → 0; `node labs/tools/check-links.mjs | grep -cE '(GLOSSARY|QUESTION-INDEX|CHEATSHEET|MOCK-INTERVIEWS|README)\.md'` = 14 (5 if FIN-01 ran first); `grep -c '](../../modules/' _meta/GLOSSARY-TERMS.md` = 0; `git diff --stat` shows equal insertions and deletions in every touched file except LOG's own line.
+
+### HOUSE-41 · S · Consistency scan, part 1: markers and duplicate questions
+- Model: **Sonnet** writes; main runs.
+- Status: done (S20261024-0835-claudecode, writer claude-sonnet-5-5; checks by main). Depends: PLAN-FINISH.
+- Files: `labs/tools/consistency-scan.mjs`, `labs/tools/consistency-scan.test.mjs` (new).
+- Inputs: FINISH.md §4.2 (sections 1–3); STYLE-GUIDE §3.2; `labs/tools/module-stats.mjs` (`questionTags`) and `check-links.mjs` (`stripCode`) to import, not copy.
+- Do: implement sections 1–3 of §4.2 over `modules/*.md` (fenced code skipped), every item tagged with its chunk `X-01` (01–11), `X-02` (12–21), `X-03` (22–30), `X-04` (31–40), `X-05` (41–47) by its lowest module; Markdown output with locations in backticks and no Markdown link; `--strict-markers` exits 1 when section 1 has an item.
+- Acceptance: `node --test 'labs/tools/*.test.mjs'` exits 0 with tests for each canonical form (accepted), one variant per keyword (reported), an API with two `Stable since` versions (reported), two titles at Jaccard 0.6 (reported) and 0.5 (not); `node labs/tools/consistency-scan.mjs` exits 0 and prints the three section headings; `grep -c '](' ` on its output is 0.
+
+### HOUSE-42 · S · Consistency scan, part 2: glossary duplicates and headers; save the report
+- Model: **Sonnet** writes; main runs and saves.
+- Status: done (S20261024-0835-claudecode, writer claude-sonnet-5-5; checks by main). Depends: HOUSE-41.
+- Files: `labs/tools/consistency-scan.mjs`, `labs/tools/consistency-scan.test.mjs`; `_meta/reviews/REVIEW-X-SCAN.md` (new, generated by main).
+- Inputs: FINISH.md §4.2 (sections 4–5); GLOSSARY-TERMS.md head (entry format); SYLLABUS §1 (via module-stats' `syllabusRows`); STYLE-GUIDE §4.1.
+- Do: add sections 4 and 5 of §4.2 with chunk tags; main runs `node labs/tools/consistency-scan.mjs > _meta/reviews/REVIEW-X-SCAN.md`.
+- Acceptance: tools tests exit 0 (new cases: a term in two modules reported with both definitions, ` (as used in NN)` normalized away; a missing prerequisite and a missing Leads-to reported); REVIEW-X-SCAN.md has 5 `## ` section headings and section 4 lists the terms defined in more than one module (204 by the planner's grep on 2026-10-24; main records the script's count in LOG); `grep -cE 'X-0[1-5]' _meta/reviews/REVIEW-X-SCAN.md` > 0; finish links gate.
+
+### HOUSE-45 · S · QUESTION-INDEX generator
+- Model: **Sonnet** writes; main runs.
+- Status: done (S20261024-0835-claudecode, writer claude-sonnet-5-5; checks by main). Depends: PLAN-FINISH.
+- Files: `labs/tools/question-index.mjs`, `labs/tools/question-index.test.mjs` (new).
+- Inputs: FINISH.md §5, §6.1; STYLE-GUIDE §5.1; module-stats' `syllabusRows` and `questionTags` (import).
+- Do: generate §6.1's text; stdout by default, `--write` writes `QUESTION-INDEX.md` at the guide root, `--check` exits 1 when the file differs; exit 2 when a `### Q` heading lacks `<a id="qNN-nn"></a>` on the line before.
+- Acceptance: tools tests exit 0 (fixture: two modules, a letter-suffixed ID, a title with `|`, a missing anchor → exit 2); `node labs/tools/question-index.mjs | grep -cE '^\| \[Q[0-9]{2}\.[0-9]{2}[a-z]?\]'` equals module-stats' question total (1,220 on 2026-10-24); no file written by this task.
+
+### HOUSE-46 · S · GLOSSARY generator
+- Model: **Sonnet** writes; main runs.
+- Status: done (S20261024-0835-claudecode, writer claude-sonnet-5-5; checks by main). Depends: PLAN-FINISH.
+- Files: `labs/tools/glossary.mjs`, `labs/tools/glossary.test.mjs` (new).
+- Inputs: FINISH.md §5, §6.2; GLOSSARY-TERMS.md (head, and `grep` for entries whose shape differs from `- **term**: … ([…](…)).`); check-links' `githubSlug` (import).
+- Do: generate §6.2's text; `--write`, `--check` as HOUSE-45; print to stderr the entry count and the distinct-key count; an entry line that does not parse makes the script exit 2 and name the line.
+- Acceptance: tools tests exit 0 (fixture: `zone.js` in two modules → one entry with anchor `zonejs` and one "also in" link; ` (as used in 14)` normalized; `../modules/` and `../../modules/` both rewritten to `modules/`; `@Input` sorted under Symbols); `node labs/tools/glossary.mjs > /dev/null` exits 0 on the real file and reports 2,784 entries and about 2,510 keys; no file written by this task.
+
+### FIN-01 · S · Skeletons of CHEATSHEET, MOCK-INTERVIEWS and README
+- Model: **Haiku** (headings and markers prescribed).
+- Status: done (S20261024-0835-claudecode, writer claude-haiku-5-5; checks by main). Depends: PLAN-FINISH.
+- Files: `CHEATSHEET.md`, `MOCK-INTERVIEWS.md`, `README.md` (new, guide root).
+- Inputs: FINISH.md §6.3–§6.5; the H1 of each `modules/*.md` (`head -1`); SYLLABUS §1 Part column.
+- Do: CHEATSHEET: `# Cheat sheet`, `<!-- TASK: FIN-04 -->` … `<!-- TASK: FIN-08 -->` in order (each writer writes its parts' `##` and `###` headings). MOCK-INTERVIEWS: `# Mock interviews`, then markers FIN-09 … FIN-13. README: `# Angular & Full-Stack Interview Guide`, markers `FIN-14a` (what, how a module is built, prerequisite map), `FIN-15` (study paths), `FIN-14b` (modules table, practice files, labs, versions and markers, sources and progress).
+- Acceptance: `grep -c '<!-- TASK: FIN-' ` = 5, 5 and 3 in the three files; no other content; finish links gate (the MOCK-INTERVIEWS and CHEATSHEET links of module 47 now resolve: the gate's root-file count drops from 14 to 5).
+
+### REVIEW-X-01 · L · Cross-module consistency review, chunk 1: modules 01–11
+- Model: **Opus** (judgment-heavy; independent).
+- Status: done (S20261024-0835-claudecode, reviewer subagent claude-opus-5-5; checks by main); review `_meta/reviews/REVIEW-X-01.md`, 9 findings. Depends: HOUSE-42. Session rule: FINISH.md §4.1.
+- Files: `_meta/reviews/REVIEW-X-01.md` (new). Appends nothing to TASKS.md.
+- Inputs: FINISH.md §4; `_meta/reviews/REVIEW-X-SCAN.md` (items tagged `X-01`); headers and `## Summary` of 01–11; the passages each item points at; VERSIONS.md; STATE standing notes and STATE-ARCHIVE items about 01–11; SYLLABUS §1, §4 (01–11); STYLE-GUIDE §3.2, §5.1.
+- Do: §4.3 for every `X-01` item and for 01–11's headers, Summaries and carry-over notes. For J1 option C: name at least 21 words of redundancy in module 09 with the cut text verbatim.
+- Acceptance: every `X-01` item in REVIEW-X-SCAN.md appears in the report as a finding or under "Judged acceptable" (main counts both); every finding has a location quoted, evidence, the right side and a verbatim fix text (`grep -c '^#### X-01-F'` = `grep -c 'Fix text:'`); scratch deleted; finish links gate.
+
+### REVIEW-X-02 · L · Cross-module consistency review, chunk 2: modules 12–21
+- Model: **Opus**. Status: done (S20261024-0926-claudecode, reviewer subagent claude-opus-5-5; checks by main); review `_meta/reviews/REVIEW-X-02.md`, 11 findings. Depends: HOUSE-42. Session rule: FINISH.md §4.1.
+- Files: `_meta/reviews/REVIEW-X-02.md` (new).
+- Inputs and Do: as REVIEW-X-01 for tag `X-02` and modules 12–21. Carry-over includes Q17.02's "an Eager tick would refresh the field", 17's `effect` `[Stable since v20.0]` and the module 14 pipe-argument re-check (STATE standing notes).
+- Acceptance: as REVIEW-X-01 with `X-02`.
+
+### REVIEW-X-03 · L · Cross-module consistency review, chunk 3: modules 22–30
+- Model: **Opus**. Status: done (S20261024-0926-claudecode, reviewer subagent claude-opus-5-5; checks by main); review `_meta/reviews/REVIEW-X-03.md`, 11 findings. Depends: HOUSE-42. Session rule: FINISH.md §4.1.
+- Files: `_meta/reviews/REVIEW-X-03.md` (new).
+- Inputs and Do: as REVIEW-X-01 for tag `X-03` and modules 22–30.
+- Acceptance: as REVIEW-X-01 with `X-03`.
+
+### REVIEW-X-04 · L · Cross-module consistency review, chunk 4: modules 31–40
+- Model: **Opus**. Status: done (S20261024-0926-claudecode, reviewer subagent claude-opus-5-5; checks by main); review `_meta/reviews/REVIEW-X-04.md`, 12 findings. Depends: HOUSE-42. Session rule: FINISH.md §4.1.
+- Files: `_meta/reviews/REVIEW-X-04.md` (new).
+- Inputs and Do: as REVIEW-X-01 for tag `X-04` and modules 31–40.
+- Acceptance: as REVIEW-X-01 with `X-04`.
+
+### REVIEW-X-05 · L · Cross-module consistency review, chunk 5: modules 41–47
+- Model: **Opus**. Status: done (S20261024-0926-claudecode, reviewer subagent claude-opus-5-5; checks by main); review `_meta/reviews/REVIEW-X-05.md`, 4 findings. Depends: HOUSE-42. Session rule: FINISH.md §4.1 (not S20261024-0835, which fixed 47).
+- Files: `_meta/reviews/REVIEW-X-05.md` (new).
+- Inputs and Do: as REVIEW-X-01 for tag `X-05` and modules 41–47; Spring snippets checked against SYLLABUS §7 decision 2 only where two modules disagree.
+- Acceptance: as REVIEW-X-01 with `X-05`.
+
+### REVIEW-X-06 · M · Consolidation: findings to FIX-X tasks
+- Model: **Opus** (judgment: merging, conflict checks, task cuts).
+- Status: in_progress. Depends: REVIEW-X-01..05.
+- Files: `_meta/reviews/REVIEW-X.md` (new); `_meta/TASKS.md` (FIX-X rows before the FINAL-VERIFY row, blocks at the end).
+- Inputs: FINISH.md §4.4; REVIEW-X-01..05; REVIEW-X-SCAN.md; Jorge's rulings J1, J4 if recorded in STATE.
+- Do: §4.4. Each FIX-X block in the existing FIX format (Model, Status, Depends, Files, Inputs, Do, Acceptance with before → after `grep -c` counts and the module's checks: its lab tests when a lab claim changes, check-snippets for the module, module-stats for its prose).
+- Acceptance: every finding of the five reports is in REVIEW-X.md's index with a FIX-X ID or "not fixed" and the reason; no two FIX-X tasks list the same file unless ordered by Depends; every FIX-X row has a block (`grep -c '^| FIX-X-'` = `grep -c '^### FIX-X-'`); finish links gate.
+
+### HOUSE-44 · S · module-stats honors ruled prose-cap exceptions
+- Model: **Sonnet** writes; main runs.
+- Status: todo. Depends: Jorge's ruling J1 (options A or C; with option B this task is dropped), REVIEW-X-06 and its FIX-X tasks.
+- Files: `labs/tools/module-stats.mjs`, `labs/tools/module-stats.test.mjs`, `PROGRESS.md` (new `## Prose cap exceptions` table).
+- Inputs: FINISH.md §5; the J1 ruling in STATE; `node labs/tools/module-stats.mjs` output after the FIX-X tasks.
+- Do: the table rows `| NN | cap | ruled YYYY-MM-DD | reason |` for each module the ruling covers (cap = measured prose rounded up to the next 500, unless the ruling says otherwise); module-stats reads it and prints `cap exception` instead of a flag when prose ≤ that cap.
+- Acceptance: tools tests exit 0 (fixture: over 10,000 with an exception → no flag; over its own cap → flag; no table → today's behavior); `node labs/tools/module-stats.mjs --strict` exits 0; `grep -c 'cap exception'` in its output = the number of table rows.
+
+### FIN-02 · S · Generate QUESTION-INDEX.md
+- Model: main runs the generator (no writer).
+- Status: todo. Depends: HOUSE-45, REVIEW-X-06 and its FIX-X tasks.
+- Files: `QUESTION-INDEX.md` (new, generated).
+- Inputs: FINISH.md §6.1.
+- Do: `node labs/tools/question-index.mjs --write`.
+- Acceptance: `question-index.mjs --check` exits 0; the row count equals module-stats' total; file ≤ 250 KB (`wc -c`); finish links gate.
+
+### FIN-03 · S · Generate GLOSSARY.md
+- Model: main runs the generator (no writer).
+- Status: todo. Depends: HOUSE-43, HOUSE-46, REVIEW-X-06 and its FIX-X tasks. Ruling J2 (default: full).
+- Files: `GLOSSARY.md` (new, generated).
+- Inputs: FINISH.md §6.2.
+- Do: `node labs/tools/glossary.mjs --write`.
+- Acceptance: `glossary.mjs --check` exits 0; `grep -c '<a id="' GLOSSARY.md` = the key count the script prints; `grep -c '<a id="zonejs"></a>' GLOSSARY.md` = 1; file ≤ 700 KB; finish links gate (the `GLOSSARY.md#zonejs` links of 04 and 17 resolve).
+
+### FIN-04 · M · CHEATSHEET, Parts A–C (modules 01–11)
+- Model: **Sonnet** (prescribed by FINISH.md §6.3).
+- Status: todo. Depends: FIN-01, REVIEW-X-06 and its FIX-X tasks.
+- Files: `CHEATSHEET.md` (region FIN-04: the how-to-use paragraph, `## Part A · JavaScript`, `## Part B · TypeScript`, `## Part C · Web platform`, `### 01 · …` to `### 11 · …`).
+- Inputs: FINISH.md §6.3; per module 01–11: header Short on time, `## Summary`, the "Misconceptions and traps" lists; REVIEW-X.md (any fixed claim).
+- Do: §6.3, 5–8 bullets per module, each ending with an anchored link.
+- Acceptance: `grep -c '<!-- TASK: FIN-04 -->' CHEATSHEET.md` = 0; 11 `### ` headings added; every bullet anchored (§6.3 count equality); region ≤ 1,800 prose words; every marker in the region found verbatim in its linked module (main greps); finish links gate.
+
+### FIN-05 · M · CHEATSHEET, Part D (modules 12–21)
+- Model: **Sonnet**. Status: todo. Depends: FIN-04 (same file).
+- Files: `CHEATSHEET.md` (region FIN-05: `## Part D · Angular`, `### 12 · …` to `### 21 · …`).
+- Inputs and Do: as FIN-04 for 12–21.
+- Acceptance: as FIN-04: marker gone; 10 headings; region ≤ 1,600 prose words.
+
+### FIN-06 · M · CHEATSHEET, Part D (modules 22–30)
+- Model: **Sonnet**. Status: todo. Depends: FIN-05.
+- Files: `CHEATSHEET.md` (region FIN-06: `### 22 · …` to `### 30 · …`).
+- Inputs and Do: as FIN-04 for 22–30.
+- Acceptance: as FIN-04: marker gone; 9 headings; region ≤ 1,450 prose words.
+
+### FIN-07 · M · CHEATSHEET, Part D (modules 31–40)
+- Model: **Sonnet**. Status: todo. Depends: FIN-06.
+- Files: `CHEATSHEET.md` (region FIN-07: `### 31 · …` to `### 40 · …`).
+- Inputs and Do: as FIN-04 for 31–40.
+- Acceptance: as FIN-04: marker gone; 10 headings; region ≤ 1,600 prose words.
+
+### FIN-08 · M · CHEATSHEET, Parts E–G (modules 41–47)
+- Model: **Sonnet**. Status: todo. Depends: FIN-07.
+- Files: `CHEATSHEET.md` (region FIN-08: `## Part E · Full stack with Spring Boot`, `## Part F · System design`, `## Part G · Interview practice`, `### 41 · …` to `### 47 · …`).
+- Inputs and Do: as FIN-04 for 41–47.
+- Acceptance: as FIN-04: marker gone; 7 headings; region ≤ 1,100 prose words; whole file: 47 `### ` headings, ≤ 7,500 prose words, `grep -c '<!-- TASK:' CHEATSHEET.md` = 0.
+
+### FIN-09 · M · MOCK-INTERVIEWS design: how to run, rubric, blueprint
+- Model: **Opus** (judgment-heavy: question selection and scoring design).
+- Status: todo. Depends: FIN-01, REVIEW-X-06 and its FIX-X tasks.
+- Files: `MOCK-INTERVIEWS.md` (region FIN-09); `_meta/modules/FINISH.md` (§9 region FIN-09).
+- Inputs: FINISH.md §6.4; SYLLABUS §4 (47) and its Root-level practice files line; module 47 (Contents, §1 headings, Summary); QUESTION-INDEX.md (FIN-02 if done, else `grep '^### Q' modules/*.md`); REVIEW-X.md (retired or merged questions).
+- Do: in MOCK-INTERVIEWS.md: `## How to run a mock` and `## Scoring rubric` (≤ 1,200 prose words together). In FINISH.md §9: per mock, the theme, length, 6–8 prompts in order each with its owning Q ID or section anchor, 1–3 follow-ups each, and the scoring focus, so FIN-10…13 are prescribed; any change to §6.4's default themes with its reason.
+- Acceptance: both markers gone; FINISH.md §9 has 8 `### Mock` headings, each with 6–8 prompts (`grep -c` per mock recorded in LOG); every Q ID in §9 exists (`grep -c '^### Q<ID> '` = 1 for each, main loops); finish links gate.
+
+### FIN-10 · M · Mocks 1 and 2
+- Model: **Sonnet** (prescribed by FINISH.md §9).
+- Status: todo. Depends: FIN-09.
+- Files: `MOCK-INTERVIEWS.md` (region FIN-10).
+- Inputs: FINISH.md §6.4 and §9 (Mocks 1, 2); the rubric written by FIN-09; each linked question's answer and follow-ups.
+- Do: `## Mock 1 · <theme>` and `## Mock 2 · <theme>` per §6.4: prompts, follow-ups, model-answer outlines (≤ 120 words each, linked), scoring notes.
+- Acceptance: marker gone; `grep -c '^## Mock [12] · '` = 2; each mock ≤ 1,800 prose words; every Q ID in the region is a link (§6.4 count equality); no claim beyond the linked passages (REVIEW-X-07 checks); finish links gate.
+
+### FIN-11 · M · Mocks 3 and 4
+- Model: **Sonnet**. Status: todo. Depends: FIN-10.
+- Files: `MOCK-INTERVIEWS.md` (region FIN-11).
+- Inputs and Do: as FIN-10 for Mocks 3 and 4.
+- Acceptance: as FIN-10 with `^## Mock [34] · ` = 2.
+
+### FIN-12 · M · Mocks 5 and 6
+- Model: **Sonnet**. Status: todo. Depends: FIN-11.
+- Files: `MOCK-INTERVIEWS.md` (region FIN-12).
+- Inputs and Do: as FIN-10 for Mocks 5 and 6.
+- Acceptance: as FIN-10 with `^## Mock [56] · ` = 2.
+
+### FIN-13 · M · Mocks 7 and 8
+- Model: **Sonnet**. Status: todo. Depends: FIN-12.
+- Files: `MOCK-INTERVIEWS.md` (region FIN-13).
+- Inputs and Do: as FIN-10 for Mocks 7 and 8.
+- Acceptance: as FIN-10 with `^## Mock [78] · ` = 2; whole file: `^## Mock [1-8] · ` = 8, ≤ 16,000 prose words, `grep -c '<!-- TASK:' MOCK-INTERVIEWS.md` = 0.
+
+### FIN-14 · M · README: what, how a module is built, prerequisite map, modules table, practice files, labs, conventions
+- Model: **Sonnet** (prescribed by FINISH.md §6.5).
+- Status: todo. Depends: FIN-01, FIN-02, FIN-03, REVIEW-X-06 and its FIX-X tasks.
+- Files: `README.md` (regions FIN-14a and FIN-14b, each replaced in one edit).
+- Inputs: FINISH.md §6.5; SYLLABUS §1, §2; every module header (H1, Prerequisites, Study time: `grep -m1`); `node labs/tools/module-stats.mjs` output; VERSIONS.md (head); STYLE-GUIDE §3.2; RUN.md §1 (mission wording); the Standard checks at the top of TASKS.md (lab commands).
+- Do: §6.5 FIN-14 contents; the map is SYLLABUS §2's graph after the edge check; any edge SYLLABUS §1 and §2 disagree on is reported in the LOG line, and the README follows §1.
+- Acceptance: both markers gone; `grep -c '^```mermaid' README.md` = 1; the map's edge set equals SYLLABUS §1's Prerequisites column (main's `node -e` symmetric difference is empty); `grep -cE '^\| \[[0-9]{2} ' README.md` = 47 and each row's Q and Ex equal module-stats; regions ≤ 3,000 prose words; no level labels (`grep -ciE 'junior|senior|mid-level'` = 0); finish links gate.
+
+### FIN-15 · M · README: study paths by goal
+- Model: **Opus** (judgment-heavy: what each path keeps and drops).
+- Status: todo. Depends: FIN-14, FIN-08, FIN-13.
+- Files: `README.md` (region FIN-15).
+- Inputs: FINISH.md §6.5; SYLLABUS §3; module headers (Study time, Short on time); CHEATSHEET.md and MOCK-INTERVIEWS.md headings; QUESTION-INDEX.md.
+- Do: `## Study paths` with the five paths as `### ` headings named by goal, per §6.5.
+- Acceptance: marker gone; 5 `### ` headings under `## Study paths`; each path's total study time equals the sum main recomputes from the headers it lists; ≤ 2,000 prose words; no level labels (`grep -ciE 'junior|senior|mid-level|beginner path|advanced path'` = 0); `grep -c '<!-- TASK:' README.md` = 0; finish links gate.
+
+### FIN-16 · S · The single link in the repo-root README
+- Model: **Haiku** (one prescribed line).
+- Status: todo. Depends: FIN-15.
+- Files: `../README.md` (repo root; RUN §7's one exception).
+- Inputs: FINISH.md §6.6; module-stats totals.
+- Do: append FINISH.md §6.6's line; touch nothing else (J6).
+- Acceptance: from the repo root, `git diff --numstat -- README.md` prints `1	0	README.md`; `grep -c '](angular-fullstack-guide/README.md)' README.md` = 1; `test -f angular-fullstack-guide/README.md` exits 0.
+
+### REVIEW-X-07 · L · Independent review of the root files
+- Model: **Opus** (judgment-heavy; a session that wrote none of FIN-04…15).
+- Status: todo. Depends: FIN-02, FIN-03, FIN-08, FIN-13, FIN-15.
+- Files: `_meta/reviews/REVIEW-X-07.md` (new); `_meta/TASKS.md` (FIX-X rows before the FINAL-VERIFY row, continuing REVIEW-X-06's numbering, and blocks at the end).
+- Inputs: FINISH.md §6; CHEATSHEET.md, MOCK-INTERVIEWS.md, README.md (whole); QUESTION-INDEX.md and GLOSSARY.md (20 sampled entries each against their sources); the passages each cheat-sheet bullet and model answer links; QUALITY-BAR (teaching items).
+- Do: check every cheat-sheet bullet and model-answer outline against its link (no claim beyond it, markers verbatim), the rubric's usefulness, the study paths' coverage of their goals and their times, the map against SYLLABUS §1, size budgets, and no level labels; findings with verbatim fix texts become FIX-X tasks.
+- Acceptance: every bullet and outline judged (counts recorded in the report); every finding has a FIX-X ID or "not fixed" with the reason; `grep -c '^| FIX-X-'` = `grep -c '^### FIX-X-'` in TASKS.md; finish links gate.
+
+### FINAL-VERIFY · M · The §13 checklist, with evidence
+- Model: main session (**Opus**); runs everything serially; no writer.
+- Status: todo. Depends: every finish-line row above, HOUSE-44 (or Jorge's option B tasks), every FIX-X task.
+- Files: `_meta/LOG.md` (final entry), `_meta/STATE.md`, `PROGRESS.md` (Phase 4 and Phase 5 ticked, root files listed), `_meta/ROADMAP.md` (Phase C done).
+- Inputs: RUN.md §13; FINISH.md §7 and For Jorge (J7, J8, J9).
+- Do: run FINISH.md §7 items 1–7 one at a time (Node 24; e2e under `caffeinate -dimsu`); record each as `command → exit code → one-line result` in one LOG entry, with the open rulings of J9 listed; on any failure stop, record it, append a FIX task, and do not mark the job done.
+- Acceptance (the RUN §13 checklist): PROGRESS 47 `done` rows and no `todo`/`blocked`/`in_progress` row in TASKS.md but this one; `module-stats.mjs --strict` exit 0; `grep -c 'Open items: 0' _meta/UNVERIFIED.md` = 1; ts-js `npm test`, angular `ng build ui-lib`, `ng build`, `ng test --watch=false` (and e2e per J8) exit 0; `check-links.mjs` (no flag) exit 0; the five root files exist with 0 TASK markers, `question-index.mjs --check` and `glossary.mjs --check` exit 0, the repo README link grep = 1; `git diff --cached --name-only` empty and no stray file per FINISH.md §7 item 7; the LOG entry holds one evidence line per checkbox (7 or more `→ exit` lines).
+
+### REVIEW-X-06 fix tasks (FIX-X-01 … FIX-X-19) · common rules
+- Plan: `_meta/reviews/REVIEW-X.md` (finding index, task table, consolidated fix texts C1–C5, checks, For Jorge). Each task applies the fix texts of the findings it lists verbatim from the named report, plus any C-text, finding each line by its quoted old text, not its line number (line numbers are as of the reviews, 2026-10-24). Nothing else in the file changes.
+- FIX-X-01 … FIX-X-18 share no file: they can run in any order or at once; main runs the checks serially. FIX-X-19 runs after all of them.
+- Every acceptance count is `grep -cF '<text>' <file>` from the guide root unless written otherwise, before → after. "Backtick-marker count" is the first command under "Checks used by the FIX-X blocks" in REVIEW-X.md. "Row NN" is `node labs/tools/module-stats.mjs . | grep '^| NN-'`. Every task also passes the finish links gate and `node labs/tools/check-snippets.mjs . NN` (exit 0) for each module it touches.
+- Writers run nothing; checks and bookkeeping (STATE, TASKS, LOG) are main's (RUN §6.5).
+
+### FIX-X-01 · S · Module 09: corrupted CORS link target and the 44 return link
+- Model: **Haiku** (one prescribed deletion and one prescribed label swap).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/09-web-networking-storage-security.md`.
+- Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F01; `_meta/reviews/REVIEW-X-05.md` X-05-F01; REVIEW-X.md decision 4 (J1 option C).
+- Do: X-01-F01: on the line that starts `> **Coming from the backend.** Spring's` (09:342), delete the 22-token text the review quotes in its `text` block (from the space after the first `-dev-proxy` up to, not including, `)) emits these headers.`). X-05-F01: on the `> **Leads to:**` line (09:5), swap the 41/42 labels and add 44 exactly as the review's fix text gives. No other edit: 09 has a 1-word margin under the cap.
+- Acceptance (09): `storage-security:367:` 1 → 0; `41-fullstack-api-contracts.md#1-cors-on-both-sides` 2 → 2; `[41. Full-stack API contracts](41-fullstack-api-contracts.md), [42. Full-stack authentication]` 1 → 0; `[41. API contracts](41-fullstack-api-contracts.md), [42. Authentication](42-fullstack-authentication.md), [44. Delivery](44-fullstack-delivery-and-operations.md)` 0 → 1; row 09 prose 10,021 → 9,999 and Flags `none`; check-snippets . 09 exit 0; finish links gate.
+
+### FIX-X-02 · S · Leads to return links in 01 and 03
+- Model: **Haiku** (two prescribed link insertions).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/01-js-values-types-coercion.md`, `modules/03-js-objects-prototypes-classes.md`.
+- Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F03; `_meta/reviews/REVIEW-X-01.md` X-01-F05.
+- Do: 01:5 add `[34. Internationalization](34-i18n.md)` after the 08 link (X-04-F03); 03:5 insert the 07 and 08 links between 06 and 17 (X-01-F05). Line 5 only.
+- Acceptance: 01 `[34. Internationalization](34-i18n.md)` 0 → 1; 03 `[07. Advanced types and decorators](07-ts-advanced-types-and-decorators.md), [08. Browser rendering, the DOM and events](08-browser-rendering-dom-events.md), [17. Signals]` 0 → 1; row 01 prose 15,398 → at most 15,400; row 03 prose 16,354 → at most 16,366 (both over the cap: J1 option C exceptions); check-snippets . 01 03 exit 0; finish links gate.
+
+### FIX-X-03 · S · Module 04 markers and return link, module 06 Node marker
+- Model: **Sonnet** (prose moved out of two markers; one consolidated text).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/04-js-async-event-loop.md`, `modules/06-ts-type-system-essentials.md`.
+- Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F04, X-01-F06; `_meta/reviews/REVIEW-X.md` C3 (replaces X-01-F04's swap 2).
+- Do: 04:141 X-01-F04 (1) (the two sentences move after the closing bracket); 04:379 C3, not X-01-F04 (2); 04:5 X-01-F06 (08 link between 05 and 09); 06:53 X-01-F04 (3).
+- Acceptance: 04 `which is why older articles start the list with them.]` 1 → 0; 04 `runs timers after poll in each iteration]. They used to run first.` 0 → 1; 04 `[Changed in ES2019: the normative PR` 1 → 0; 04 `[Changed in ES2019: fewer ticks for await] (the normative PR` 0 → 1; 04 `[05. Modules, memory and modern features](05-js-modules-memory-modern-features.md), [08. Browser rendering, the DOM and events](08-browser-rendering-dom-events.md), [09.` 0 → 1; 06 `[Stable since Node.js v24.12.0]` 1 → 0; 06 `[Stable since Node 24.12]` 0 → 1; row 04 prose 15,304 → at most 15,316; row 06 prose 13,177 → at most 13,177 (J1 option C); check-snippets . 04 06 exit 0; finish links gate.
+
+### FIX-X-04 · S · Module 07 typed-forms marker; module 08 markers and the 35 return link
+- Model: **Haiku** (marker swaps and one link insertion, all prescribed).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/07-ts-advanced-types-and-decorators.md`, `modules/08-browser-rendering-dom-events.md`.
+- Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F02, X-01-F03; `_meta/reviews/REVIEW-X-04.md` X-04-F04.
+- Do: 07:443 X-01-F02; 08:115, 281, 404, 421 X-01-F03 (four swaps; each old text includes its enclosing backticks, the new text has none); 08:5 X-04-F04 (35 after 31).
+- Acceptance: 07 `[Added in Angular 14]` 1 → 0; 07 `**Typed forms** [Added in v14.0]` 0 → 1; 08 backtick-marker count 4 → 0; 08 `[Baseline 2024: widely available, per MDN]` 0 → 1; 08 `[Baseline 2026: newly available, per MDN]` 0 → 1; 08 `[31. Performance](31-performance.md), [35. Animations](35-animations.md)` 0 → 1; row 07 prose 9,975 → at most 9,975, Flags `none`; row 08 prose 9,925 → at most 9,999 (expected 9,920), Flags `none`; check-snippets . 07 08 exit 0; finish links gate.
+
+### FIX-X-05 · S · Module 11 Applies to and Q11.02 hedge; module 34 polyfill definition
+- Model: **Sonnet** (prescribed prose swaps).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/11-accessibility.md`, `modules/34-i18n.md`.
+- Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F07, X-01-F08, X-01-F09.
+- Do: 11:6 X-01-F07; 11:682 (Q11.02 Full explanation) X-01-F08; 34:286 X-01-F09.
+- Acceptance: 11 `not installed` 1 → 0; 11 `not used in module 11's labs` 0 → 1; 11 `for the EAA too, once cited.` 0 → 1; 34 `a script the build runs` 1 → 0; 34 `a script the build bundles to run before your code` 0 → 1; row 11 prose 9,969 → at most 9,999 (expected 9,975), Flags `none`; row 34 Flags `none`; check-snippets . 11 34 exit 0; finish links gate.
+
+### FIX-X-06 · S · Module 12 marker, workspace sentence and 40 return link; module 13 Changed markers
+- Model: **Sonnet** (one prose rewrite; marker texts prescribed).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/12-angular-how-it-works.md`, `modules/13-components-and-templates.md`.
+- Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F01, X-02-F10, X-02-F02 (swaps 1–7), X-02-F03; `_meta/reviews/REVIEW-X-04.md` X-04-F05.
+- Do: 12:263 X-02-F01; 12:127 X-02-F10; 12:5 X-04-F05 (40 between 39 and 44); 13:55, 132, 316, 1100, 1122, 1266, 1895 X-02-F02 swaps 1–7; 13:686 X-02-F03.
+- Acceptance: 12 `Deprecated since CLI 22.0` 1 → 0; 12 `top-down: one project` 1 → 0; 12 `top-down through its first project` 0 → 1; 12 `[40. Framework comparisons](40-framework-comparisons.md), [44.` 0 → 1; 13 `[Changed in v22.0]` 6 → 0; 13 `[Changed in v20.0]` 2 → 0; 13 `[Changed in v19.0]` 1 → 0; 13 `[Changed in v22.0: OnPush is the default]` 0 → 2; 13 `[Added in v20.0] · [Changed in v21.0: on by default]` 0 → 1; 13 backtick-marker count 1 → 1 (the 13:1016 mention stays); the workspace test that 12:127 describes still passes: `cd labs/ts-js && npx vitest run src/modules/12-angular-how-it-works/section-2-workspace.test.ts` exit 0; rows 12 and 13 Flags `none`; check-snippets . 12 13 exit 0; finish links gate.
+
+### FIX-X-07 · M · Module 14 markers and plural sentence; module 17 code-span markers and the merged Leads to line
+- Model: **Sonnet** (prescribed swaps, one merged line, two short rewordings).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/14-directives-and-pipes.md`, `modules/17-signals.md`.
+- Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F02 (swaps 8–10), X-02-F04, X-02-F06 (1), X-02-F05; `_meta/reviews/REVIEW-X-03.md` X-03-F08; `_meta/reviews/REVIEW-X-04.md` X-04-F07; `_meta/reviews/REVIEW-X.md` C2 (replaces the three Leads to fix texts).
+- Do: 14:632, 893, 2198 X-02-F02 swaps 8–10; 14:806 X-02-F04 swap 1; 14:636 X-02-F06 swap 1 (module only; the glossary line is FIX-X-18's); 17:128, 278 (two), 281, 644, 645, 791, 1646, 2275 X-02-F04 swaps 2–10 (old texts include the backticks); 17:5 replace the whole line with C2.
+- Acceptance: 14 `[Changed in v20.0]` 3 → 0; 14 `[Changed in v20.0: the pipe reports errors to` 0 → 2; 14 backtick-marker count 1 → 0; 14 `picks a **plural category** (` 1 → 0; 14 `picks an exact key such as` 0 → 1; 17 backtick-marker count 8 → 0; 17 `Signal queries are [Stable since v19.0].` 0 → 1; 17 `[14. Directives and pipes](14-directives-and-pipes.md), [18.` 0 → 1; 17 `[20. Lifecycle and render hooks](20-lifecycle-and-render-hooks.md), [21.` 0 → 1; 17 `[27. HTTP client](27-http-client.md), [28.` 0 → 1; 17 `[28. State management](28-state-management.md), [40. Framework comparisons](40-framework-comparisons.md)` 0 → 1; rows 14 and 17 Flags `none`; check-snippets . 14 17 exit 0; finish links gate.
+
+### FIX-X-08 · S · Leads to: the merged line of 16 and the 31/35 links of 18
+- Model: **Haiku** (one whole-line replacement and one prescribed insertion).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/16-dependency-injection.md`, `modules/18-control-flow-and-defer.md`.
+- Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F07; `_meta/reviews/REVIEW-X-04.md` X-04-F06, X-04-F08; `_meta/reviews/REVIEW-X.md` C1 (replaces the two fix texts for 16).
+- Do: 16:5 replace the whole line with C1; 18:5 X-04-F08 (31 and 35 links).
+- Acceptance: 16 `[25. Forms](25-forms-reactive-and-template-driven.md), [27. HTTP client](27-http-client.md), [29. Testing Angular](29-testing-angular.md), [37. Elements, PWA, errors and the ecosystem](37-elements-pwa-errors-ecosystem.md)` 0 → 1; 18 `[29. Testing Angular](29-testing-angular.md), [31. Performance](31-performance.md), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md), [35. Animations](35-animations.md), [39.` 0 → 1; rows 16 and 18 Flags `none`; check-snippets . 16 18 exit 0; finish links gate.
+
+### FIX-X-09 · S · Leads to return links in 19 and 21
+- Model: **Haiku** (two prescribed link insertions).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/19-component-communication-and-projection.md`, `modules/21-change-detection.md`.
+- Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F09; `_meta/reviews/REVIEW-X-04.md` X-04-F09.
+- Do: 19:5 X-03-F09 (24, 28, 29); 21:5 X-04-F09 (40 after 39).
+- Acceptance: 19 `[21. Change detection](21-change-detection.md), [24. Routing](24-routing.md), [25. Forms](25-forms-reactive-and-template-driven.md), [28. State management](28-state-management.md), [29. Testing Angular](29-testing-angular.md)` 0 → 1; 21 `[39. Version history and migrations](39-version-history-and-migrations.md), [40. Framework comparisons](40-framework-comparisons.md)` 0 → 1; rows 19 and 21 Flags `none`; check-snippets . 19 21 exit 0; finish links gate.
+
+### FIX-X-10 · S · Module 20 change-detection definition and Summary; module 31 budget definition
+- Model: **Sonnet** (prescribed prose swaps).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/20-lifecycle-and-render-hooks.md`, `modules/31-performance.md`.
+- Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F07 (1), X-02-F11, X-02-F09 (1).
+- Do: 20:34 X-02-F07 swap 1; 20:841 (Summary) X-02-F11; 31:495 X-02-F09 swap 1. The glossary lines are FIX-X-18's.
+- Acceptance: 20 `checks every template binding for changes` 1 → 0; 20 `checks the template bindings of each view it refreshes` 0 → 1; 20 `The constructor is the only place with an injection context and sees only input defaults` 1 → 0; 20 `Construction (the constructor and field initializers) is the only phase` 0 → 1; 31 `size limit that fails the build when crossed` 1 → 0; 31 `size limit that warns or fails the build when crossed` 0 → 1; the 21 lab the new definition rests on still passes: `cd labs/angular && npx ng test labs --watch=false --include src/app/modules/21-change-detection/concepts/section-9-under-the-hood.spec.ts` exit 0 (run `npx ng build ui-lib` first if `dist/ui-lib` is missing); rows 20 and 31 Flags `none`; check-snippets . 20 31 exit 0; finish links gate.
+
+### FIX-X-11 · M · Modules 22 and 23: rxResource Summary, RxJS version sentences, deprecation tails, code-span markers, 28 return link, HttpTestingController
+- Model: **Sonnet** (prescribed prose and marker swaps).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/22-rxjs-foundations.md`, `modules/23-rxjs-in-depth.md`.
+- Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F01, F02, F03, F06 (swaps 1–3), F10, F11 (swap 2).
+- Do: 23:985 and 23:708 X-03-F01; 22 intro and 23 intro X-03-F02 (one sentence each); 22:178, 181, 714 and 23:304 X-03-F03; 22:460, 23:889, 23:943 X-03-F06 swaps 1–3; 22:5 X-03-F10 (28 between 27 and 29); 23:182 X-03-F11 swap 2 (the glossary line is FIX-X-18's).
+- Acceptance: 23 `has no value while it reloads` 1 → 0; 23 `has no value while it loads new params` 0 → 1; 23 `keeps the old value while reloading.` 1 → 0; 23 `keeps the old value when its params change.` 0 → 1; 22 `API gives the RxJS version` 0 → 1; 23 `API gives the RxJS version` 0 → 1; 22 `— pass an` 2 → 0; 22 `— keep the default]` 1 → 0; 22 `[Deprecated since v6.4 — use an observer]` 0 → 1; 23 `— pass a factory]` 1 → 0; 22 backtick-marker count 1 → 0; 23 backtick-marker count 2 → 0; 22 `[27. HttpClient](27-http-client.md), [28. State management](28-state-management.md), [29.` 0 → 1; 23 `grep -cF "Angular's test double for the HTTP backend"` 1 → 0; 23 `in-memory HTTP test backend` 0 → 1; the labs behind the corrected resource claim still pass: `cd labs/angular && npx ng test labs --watch=false --include src/app/modules/23-rxjs-in-depth/concepts/section-7-signals-interop.spec.ts --include src/app/modules/17-signals/outputs/q17-outputs.spec.ts` exit 0; rows 22 and 23 Flags `none`; check-snippets . 22 23 exit 0; finish links gate.
+
+### FIX-X-12 · M · Module 28 markers (prose, tails, code spans); module 29 code-span marker and 36 return link
+- Model: **Sonnet** (prescribed swaps, one with a short clause).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/28-state-management.md`, `modules/29-testing-angular.md`.
+- Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F05, X-03-F06 (swaps 4–12); `_meta/reviews/REVIEW-X-04.md` X-04-F12.
+- Do: 28:65, 648, 773, 972 X-03-F05 (in swaps 2–4 the old text includes the backticks); 28:557, 831, 953, 955 (two), 980 (three) X-03-F06 swaps 4–11; 29:282 X-03-F06 swap 12; 29:5 X-04-F12 (36 between 30 and 38).
+- Acceptance: 28 backtick-marker count 8 → 0; 28 `[Experimental since 5.12.1` 1 → 0; 28 `[Experimental since TanStack Query v5.12.1]` 0 → 1; 28 `pass { next, error, complete }` 1 → 0; 28 `[Deprecated since NgRx v22.0 — use core RxJS operators]` 0 → 1; 28 `[Deprecated since NgRx v21.1 — use an injection context or the injector option]` 0 → 1; 29 backtick-marker count 1 → 0; 29 `[30. End-to-end tests and testing strategy](30-e2e-and-testing-strategy.md), [36. Material and CDK](36-material-and-cdk.md)` 0 → 1; rows 28 and 29 Flags `none`; check-snippets . 28 29 exit 0; finish links gate.
+
+### FIX-X-13 · S · Module 24 return link; module 27 deprecation tails and 37 return link
+- Model: **Haiku** (prescribed marker swaps and link insertions).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/24-routing.md`, `modules/27-http-client.md`.
+- Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F10, X-04-F11; `_meta/reviews/REVIEW-X-03.md` X-03-F04.
+- Do: 24:5 X-04-F10 (35 between 34 and 42); 27:140 and 27:503 X-03-F04; 27:5 X-04-F11 (37 between 33 and 41).
+- Acceptance: 24 `[34. i18n](34-i18n.md), [35. Animations](35-animations.md)` 0 → 1; 27 `— remove it, fetch is the default]` 1 → 0; 27 `[Deprecated since v22.0 — use provideHttpClient() without it]` 0 → 1; 27 `— read status]` 1 → 0; 27 `[Deprecated since v21.0 — use status]` 0 → 1; 27 `[33. Security](33-security.md), [37. Elements, PWA, errors and the ecosystem](37-elements-pwa-errors-ecosystem.md), [41.` 0 → 1; rows 24 and 27 Flags `none`; check-snippets . 24 27 exit 0; finish links gate.
+
+### FIX-X-14 · S · Code-span markers in 32 and 33
+- Model: **Haiku** (eleven prescribed swaps).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/32-ssr-ssg-hydration.md`, `modules/33-security.md`.
+- Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F02.
+- Do: 32:524, 606, 630, 1063, 1081, 1091, 1133, 1615 swaps 1–9; 33:266, 273 swaps 10–11. Each old text includes its enclosing backticks; API names inside a marker get their own backticks as the fix text shows.
+- Acceptance: 32 backtick-marker count 8 → 0; 33 backtick-marker count 2 → 0; 32 `[Stable since v20.0] · [Changed in v22.0: enabled by default by` 0 → 1; rows 32 and 33 Flags `none` and prose unchanged (18,451; 19,915); check-snippets . 32 33 exit 0; finish links gate.
+
+### FIX-X-15 · S · Module 36 isSignalErrorState marker; module 40 fine-grained reactivity
+- Model: **Sonnet** (one marker swap, one prescribed sentence with a link).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/36-material-and-cdk.md`, `modules/40-framework-comparisons.md`.
+- Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F01; `_meta/reviews/REVIEW-X-02.md` X-02-F08 (1).
+- Do: 36:145 X-04-F01; 40:280 X-02-F08 swap 1 (the glossary line is FIX-X-18's).
+- Acceptance: 36 `[Changed in v22.0.4: reworked to handle Signal Forms]` 1 → 0; 36 `[Added in v22.0.4]` 0 → 1; 40 `makes that unit a single DOM expression.` 1 → 0; 40 `one view in Angular` 0 → 1; rows 36 and 40 Flags `none`; check-snippets . 36 40 exit 0; finish links gate.
+
+### FIX-X-16 · S · Module 42 Summary (csrf.spa); module 43 forwarded headers
+- Model: **Sonnet** (prescribed prose swaps).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/42-fullstack-authentication.md`, `modules/43-fullstack-realtime.md`.
+- Inputs: `_meta/reviews/REVIEW-X-05.md` X-05-F02, X-05-F03.
+- Do: 42:1409 (Summary) X-05-F02; 43:838 X-05-F03.
+- Acceptance: 42 `masks the token, and logout clears it` 1 → 0; 42 `accepts the raw cookie value in the header` 0 → 1; 43 `so a TLS proxy needs` 1 → 0; 43 `Spring must read the forwarded headers` 0 → 1; row 42 prose 9,831 → at most 9,999 (expected 9,836), Flags `none`; row 43 prose 9,664 → at most 9,999 (expected 9,671), Flags `none`; check-snippets . 42 43 exit 0; finish links gate.
+
+### FIX-X-17 · S · Module 45: the 37 pointer for the missing sync listener
+- Model: **Haiku** (two link-target swaps).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `modules/45-frontend-system-design-method.md`.
+- Inputs: `_meta/reviews/REVIEW-X-05.md` X-05-F04.
+- Do: 45:584 and 45:1175 X-05-F04 swaps 1–2 (37 §4 → 37 §7, label and anchor).
+- Acceptance: 45 `37-elements-pwa-errors-ecosystem.md#4-angularservice-worker` 2 → 0; 45 `37-elements-pwa-errors-ecosystem.md#7-push-notifications` 0 → 2; row 45 prose 8,242 → 8,242, Flags `none`; check-snippets . 45 exit 0; finish links gate.
+
+### FIX-X-18 · S · Glossary harvest: five definitions
+- Model: **Sonnet** (prescribed definition rewrites).
+- Status: todo. Depends: REVIEW-X-06.
+- Files: `_meta/GLOSSARY-TERMS.md`.
+- Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F06 (2), F07 (2), F08 (2), F09 (2); `_meta/reviews/REVIEW-X-03.md` X-03-F11 (1).
+- Do: the five glossary swaps (lines 641, 885, 2346, 1620 and 1045 as of the reviews). Each stays one `- **term**: definition` line.
+- Acceptance (`_meta/GLOSSARY-TERMS.md`): `**plural category**: the label (` 1 → 0; `**plural category**: the locale` 0 → 1; `checks every template binding for changes` 1 → 0; `checks the template bindings of each view it refreshes` 0 → 1; `reactivity whose unit of update is a single DOM expression` 1 → 0; `reactivity whose unit of update is small: one view in Angular` 0 → 1; `**budget (build)**: a size limit that fails the build` 1 → 0; `**budget (build)**: a size limit that warns or fails` 0 → 1; `grep -cF "Angular's test double for the HTTP backend; its"` 1 → 0; `flag of each` 0 → 1; `node labs/tools/glossary.mjs > /dev/null` exit 0 (every entry line parses); `wc -l < _meta/GLOSSARY-TERMS.md` unchanged; finish links gate.
+
+### FIX-X-19 · M · J4 default: marker variants in STYLE-GUIDE §3.2 and the scan's canonical list
+- Model: **Sonnet** writes (texts prescribed); main runs the tests and the scan.
+- Status: todo. Depends: FIX-X-01 … FIX-X-18 (the scan count is measured on the fixed modules). Applies J4's default (FINISH.md For Jorge); if Jorge rules J4 the other way before this task starts, cancel it and record the ruling (REVIEW-X.md For Jorge lists the markers that would need rewriting).
+- Files: `STYLE-GUIDE.md` (§3.2 only), `labs/tools/consistency-scan.mjs`, `labs/tools/consistency-scan.test.mjs`.
+- Inputs: `_meta/reviews/REVIEW-X.md` decision 7, C4, C5 and For Jorge; FINISH.md §4.4 and J4; the Scripts rule of the finish-line common rules.
+- Do: insert C4 in STYLE-GUIDE §3.2 where C4 says; replace the `V` constant and `CANONICAL` list of `consistency-scan.mjs` with C5; add C5's test to `consistency-scan.test.mjs`. Nothing else changes.
+- Acceptance: `grep -cF 'Accepted variants of the version part' STYLE-GUIDE.md` 0 → 1; `grep -c 'TanStack Query' labs/tools/consistency-scan.mjs` 0 → 2; `node --test 'labs/tools/*.test.mjs'` exit 0; the scan's section 1 item count (REVIEW-X.md, Checks) 109 → 7 (132 before FIX-X-01…18), and the 7 are exactly the items REVIEW-X.md For Jorge lists; the guide-wide backtick-marker occurrence count is 1; finish links gate.

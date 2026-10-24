@@ -488,7 +488,7 @@ async function search(query: string, controller: AbortController): Promise<unkno
 ### Misconceptions and traps
 
 - *"`Promise.race` with a timeout cancels the slow operation."* It only stops *waiting* for it ([Q04.26](#q04-26)). The myth comes from HTTP clients whose `timeout` option does abort the request.
-- *"Aborting a fetch guarantees the server did nothing."* The request may already have reached the server. Abort stops the client from waiting and frees its resources. Non-idempotent operations still need server-side protection such as idempotency keys ([41. API contracts](41-fullstack-api-contracts.md)). The myth comes from the browser's network panel, which shows the request as "cancelled".
+- *"Aborting a fetch guarantees the server did nothing."* The request may already have reached the server. Abort stops the client from waiting and frees its resources. Non-idempotent operations still need server-side protection such as idempotency keys ([41. API contracts](41-fullstack-api-contracts.md#5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular)). The myth comes from the browser's network panel, which shows the request as "cancelled".
 
 ---
 

@@ -535,7 +535,7 @@ What to notice: `canDeactivate` runs before any `canActivate`, and a redirect is
 **Closing the tab.** Guards run in the navigation pipeline (read, not run), so none is asked when the tab closes; that is the browser's `beforeunload` event, whose dialog text is generic (MDN, read 2026-10-10; documented, not run).
 
 > [!WARNING]
-> **Guards are not access control.** "CRITICAL: Never rely on client-side guards as the sole source of access control. All JavaScript that runs in a web browser can be modified by the user running the browser. Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) See [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server) and [42](42-fullstack-authentication.md).
+> **Guards are not access control.** "CRITICAL: Never rely on client-side guards as the sole source of access control. All JavaScript that runs in a web browser can be modified by the user running the browser. Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) See [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server) and [42](42-fullstack-authentication.md#7-the-angular-side-an-auth-state-at-startup-guards-as-ux-interceptors-and-angular-oauth2-oidc-versus-angular-auth-oidc-client).
 
 ### Code
 
@@ -1760,7 +1760,7 @@ const canDeactivate: CanDeactivateFn<Editor> = (component, currentRoute, current
 
 **Follow-ups an interviewer will ask.**
 - *Where does the unsaved-changes check go?* In `canDeactivate`, which gets the component and the next URL (`Section 5: canDeactivate receives the component instance and the next URL`); closing the tab is the browser's `beforeunload`, not a guard ([Q24.20](#q24-20)).
-- *May a guard be the access control?* No: the docs warn against client-side guards as the sole access control; see [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server) and [42](42-fullstack-authentication.md).
+- *May a guard be the access control?* No: the docs warn against client-side guards as the sole access control; see [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server) and [42](42-fullstack-authentication.md#7-the-angular-side-an-auth-state-at-startup-guards-as-ux-interceptors-and-angular-oauth2-oidc-versus-angular-auth-oidc-client).
 
 **Trap to avoid.** Reading every `false` as "try the next route": only `canMatch` does that, and the rest cancel with `GuardRejected`.
 
@@ -1943,7 +1943,7 @@ const routes: Routes = [{ path: 'admin', canActivate: [isAdmin], component: Admi
 
 **Short answer (30 seconds).** Two bugs, one cause: the check runs where the user controls it. The guard trusts a value the user can write: in the lab `/admin` was refused, then admitted after `localStorage.setItem('role', 'admin')` (`Q24.19 …`). And the API trusts the guard, so anyone who skips the page, with a modified bundle or a direct HTTP call, still gets the data. The guard is UX; authorization is the server's, on every request.
 
-**Full explanation.** The docs say it directly: "Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) Fix the API first: it checks the caller's verified identity and role on every request and answers `401` or `403`. Keep the guard as courtesy, reading the role from the signed-in session, so a user without it sees a redirect, not an empty page. The warning is in [section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand); sessions and tokens are [33](33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend) and [42](42-fullstack-authentication.md).
+**Full explanation.** The docs say it directly: "Always enforce user authorization server-side, in addition to any client-side guards." (`adev/src/content/guide/routing/route-guards.md`, branch `main`, read 2026-10-10.) Fix the API first: it checks the caller's verified identity and role on every request and answers `401` or `403`. Keep the guard as courtesy, reading the role from the signed-in session, so a user without it sees a redirect, not an empty page. The warning is in [section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand); sessions and tokens are [33](33-security.md#8-where-the-token-lives-memory-web-storage-httponly-cookies-and-a-backend-for-frontend) and [42](42-fullstack-authentication.md#1-sessions-versus-tokens-what-the-server-keeps-what-each-request-carries-revocation-and-scaling).
 
 **Follow-ups an interviewer will ask.**
 - *Does `canMatch` fix it?* It keeps the router from loading the chunk ([Q24.12](#q24-12)), but it is the same client-side check.
@@ -2559,7 +2559,7 @@ return router.createUrlTree(['/products', String(id), tab, ...matrix], {
 
 **Problem.** An app has a login page, a checkout page, an editor and a lazy admin area. Only admins may reach `/admin`, a logged-out user must log in before `/checkout`, and the editor must not lose work silently ([section 4](#4-lazy-loading-in-depth-loaders-canmatch-and-route-injectors), [section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand)). Write the guards, editor and routes.
 
-**Constraints.** Functional guards only; at most three injected dependencies per guard; the session and the confirm function are injected, so tests replace them; `legacy/class-guard.ts` compiles and stays unchanged. Not covered: real authentication, tokens and server checks, because guards are not access control ([section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand), [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server), [42](42-fullstack-authentication.md)).
+**Constraints.** Functional guards only; at most three injected dependencies per guard; the session and the confirm function are injected, so tests replace them; `legacy/class-guard.ts` compiles and stays unchanged. Not covered: real authentication, tokens and server checks, because guards are not access control ([section 5](#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand), [33](33-security.md#10-route-guards-are-ux-authorization-belongs-on-the-server), [42](42-fullstack-authentication.md#7-the-angular-side-an-auth-state-at-startup-guards-as-ux-interceptors-and-angular-oauth2-oidc-versus-angular-auth-oidc-client)).
 
 **Acceptance criteria.**
 - [ ] a non-admin navigating to `/admin` never runs the admin loader and lands on the not-found page

@@ -478,7 +478,7 @@ What to notice: the last registered handler sees the request first, and only a r
 
 **Others.** `HttpTestingController` replaces the backend inside `HttpClient`, in Node ([27 §11](27-http-client.md#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace)); `page.route` intercepts the browser's request. MSW (documented only) uses a **Service Worker**, a script the browser runs between page and network ([09 §9](09-web-networking-storage-security.md#9-service-workers-and-the-pwa-manifest)); its README says one mock definition serves unit, integration and end-to-end tests (read 2026-10-13).
 
-**Contract tests.** A mock echoes what the frontend expects and cannot notice a renamed field. A **contract test** checks both sides against one shared description; Pact's docs say contract tests "assert that inter-application messages conform to a shared understanding that is documented in a contract" ([Pact introduction](https://docs.pact.io/), read 2026-10-13, documented only). In a **consumer-driven contract** the frontend's tests write the requests it makes and the responses it needs into a pact file, which the backend replays in its own build ([Terminology](https://docs.pact.io/getting_started/terminology), "Pact verification"). [Module 41](41-fullstack-api-contracts.md) owns the design.
+**Contract tests.** A mock echoes what the frontend expects and cannot notice a renamed field. A **contract test** checks both sides against one shared description; Pact's docs say contract tests "assert that inter-application messages conform to a shared understanding that is documented in a contract" ([Pact introduction](https://docs.pact.io/), read 2026-10-13, documented only). In a **consumer-driven contract** the frontend's tests write the requests it makes and the responses it needs into a pact file, which the backend replays in its own build ([Terminology](https://docs.pact.io/getting_started/terminology), "Pact verification"). [Module 41](41-fullstack-api-contracts.md#3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen) owns the design.
 
 ### Code
 
@@ -673,7 +673,7 @@ The end-to-end stage takes 45 minutes on one machine. Split four ways, one machi
 
 ### Mental model
 
-Speed comes from parallelism at two levels: **workers** (the runner's processes, [§2](#2-playwright-and-cypress-architecture-ng-e2e-and-the-end-of-protractor)) inside a machine, and **shards** across machines; a **shard** is the slice of the suite one machine runs (`--shard=2/4`). Reliability comes from a **retries policy**: how many retries CI allows and what a pass on retry triggers. Isolation comes from **test data management**: every test creates or resets the data it reads. A kitchen at rush hour: more cooks, more kitchens, a log of dishes sent back, and each cook's own ingredients. Pipeline stages belong to [38](38-architecture-and-production-structure.md#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews), deploy previews to [44](44-fullstack-delivery-and-operations.md).
+Speed comes from parallelism at two levels: **workers** (the runner's processes, [§2](#2-playwright-and-cypress-architecture-ng-e2e-and-the-end-of-protractor)) inside a machine, and **shards** across machines; a **shard** is the slice of the suite one machine runs (`--shard=2/4`). Reliability comes from a **retries policy**: how many retries CI allows and what a pass on retry triggers. Isolation comes from **test data management**: every test creates or resets the data it reads. A kitchen at rush hour: more cooks, more kitchens, a log of dishes sent back, and each cook's own ingredients. Pipeline stages belong to [38](38-architecture-and-production-structure.md#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews), deploy previews to [44](44-fullstack-delivery-and-operations.md#7-cicd-for-both-layers-one-image-promoted-through-stages-a-monorepo-or-separate-repositories-and-versioning-the-contract).
 
 ```mermaid
 flowchart TB
@@ -1118,7 +1118,7 @@ async function answerFromHandlers(page: Page, laterFallsBack: boolean): Promise<
 
 **Short answer (30 seconds).** A route mock proves the frontend handles scripted responses, including failures a real server rarely produces. A stub server proves the same through real HTTP and a per-test data store. The real backend proves the integration but costs speed, shared data and flakiness. None proves the backend still honors what the frontend expects: a contract test does.
 
-**Full explanation.** A fulfilled request never reaches a server (`Section 5: page.route fulfills the list request without the server`). Against the stub server an unrouted request is served from seeded data and logged once (`Section 5: an unrouted request reaches the stub server`). [Exercise 30.2](#ex30-2) controls the backend both ways. The real backend wins when the question is whether two deployed parts work together, at the price of seeding data per test. A mock echoes what the frontend expects, so a renamed field stays green. A **consumer-driven contract** writes the frontend's expectations into a file the backend replays in its build ([§5](#5-api-mocking-at-the-network-layer-and-where-contract-tests-take-over); [module 41](41-fullstack-api-contracts.md) owns the design). The seam below it is [Q27.34](27-http-client.md#q27-34).
+**Full explanation.** A fulfilled request never reaches a server (`Section 5: page.route fulfills the list request without the server`). Against the stub server an unrouted request is served from seeded data and logged once (`Section 5: an unrouted request reaches the stub server`). [Exercise 30.2](#ex30-2) controls the backend both ways. The real backend wins when the question is whether two deployed parts work together, at the price of seeding data per test. A mock echoes what the frontend expects, so a renamed field stays green. A **consumer-driven contract** writes the frontend's expectations into a file the backend replays in its build ([§5](#5-api-mocking-at-the-network-layer-and-where-contract-tests-take-over); [module 41](41-fullstack-api-contracts.md#3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen) owns the design). The seam below it is [Q27.34](27-http-client.md#q27-34).
 
 **Code.**
 
@@ -1457,7 +1457,7 @@ test.describe('E30.1 todos journey (page object delivered by the fixture)', () =
 
 **Problem.** Drive `/m30/todos` through its list states by scripting the reply to `GET /api/todos` ([section 5](#5-api-mocking-at-the-network-layer-and-where-contract-tests-take-over), [section 7](#7-flaky-tests-root-causes-diagnosis-and-fixes)). Give two backend controllers one interface, `respondWith({ status, delayMs, body })` and `unexpectedCalls()`: `page.route` handlers and the stub server's scenario endpoint. Every criterion runs over both.
 
-**Constraints.** No `waitForTimeout`; the backend holds the delay. Each test has its own tenant. Not covered: HAR replay ([section 5](#5-api-mocking-at-the-network-layer-and-where-contract-tests-take-over)) and contract tests ([41](41-fullstack-api-contracts.md)).
+**Constraints.** No `waitForTimeout`; the backend holds the delay. Each test has its own tenant. Not covered: HAR replay ([section 5](#5-api-mocking-at-the-network-layer-and-where-contract-tests-take-over)) and contract tests ([41](41-fullstack-api-contracts.md#3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen)).
 
 **Acceptance criteria.**
 - [ ] shows a loading message while the list request is pending
@@ -1524,7 +1524,7 @@ await page.route(LIST_URL, async (route) => {
 **Interviewer follow-ups.**
 - *"Why register the catch-all first?"* The last registered handler runs first, so the specific one answers and calls `fallback()` for the rest.
 - *"Could the last test pass when the page sends nothing?"* It first waits for two rows, which only the scripted reply supplies; without that it would pass vacuously.
-- *"Replay a recorded session instead."* HAR replay ([section 5](#5-api-mocking-at-the-network-layer-and-where-contract-tests-take-over)); it cannot show the backend still sends that shape: that is a contract test ([41](41-fullstack-api-contracts.md)).
+- *"Replay a recorded session instead."* HAR replay ([section 5](#5-api-mocking-at-the-network-layer-and-where-contract-tests-take-over)); it cannot show the backend still sends that shape: that is a contract test ([41](41-fullstack-api-contracts.md#3-openapi-with-springdoc-and-generated-typescript-clients-openapi-generator-orval-and-ng-openapi-gen)).
 
 **Tests:** [network-states.spec.ts](../labs/e2e/tests/exercise-2-network-states/network-states.spec.ts); the code is [backends.ts](../labs/e2e/tests/exercise-2-network-states/backends.ts).
 
