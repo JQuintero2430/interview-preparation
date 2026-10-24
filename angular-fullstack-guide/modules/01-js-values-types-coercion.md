@@ -2,7 +2,7 @@
 
 > **What this covers:** the seven primitive types and objects, how numbers and strings really work (IEEE-754 doubles, `NaN`, `-0`, `BigInt`, UTF-16), symbols, the coercion algorithms the language runs behind every operator, and the four kinds of equality. By the end you can predict the output of any coercion puzzle by running the specification's algorithm in your head, instead of memorizing results.
 > **Prerequisites:** none
-> **Leads to:** [02. Scope, closures and `this`](02-js-scope-closures-this.md), [03. Objects, prototypes and classes](03-js-objects-prototypes-classes.md), [06. TypeScript type system](06-ts-type-system-essentials.md), [08. Browser rendering and DOM](08-browser-rendering-dom-events.md)
+> **Leads to:** [02. Scope, closures and `this`](02-js-scope-closures-this.md), [03. Objects, prototypes and classes](03-js-objects-prototypes-classes.md), [06. TypeScript type system](06-ts-type-system-essentials.md), [08. Browser rendering and DOM](08-browser-rendering-dom-events.md), [34. Internationalization](34-i18n.md)
 > **Applies to:** ECMAScript 2026, TypeScript 6.0 (labs), Node.js 24 (lab runtime)
 > **Study time:** ~3 hours reading + ~3 hours exercises
 > **Short on time:** read [5. Coercion](#5-coercion) and [6. Equality](#6-equality), then drill [Q01.04](#q01-04), [Q01.15](#q01-15), [Q01.18](#q01-18), [Q01.19](#q01-19), [Q01.20](#q01-20) and [Q01.21](#q01-21), and finish with the [Summary](#summary).

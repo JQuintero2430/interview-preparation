@@ -52,7 +52,7 @@ What to notice: the host element is both "the component as the parent wrote it" 
 
 ### How it actually works
 
-**Metadata.** In the `@angular/core` 22.2.1 typings `Component` extends `Directive` and adds `template`, `templateUrl`, `styles`, `styleUrl`, `encapsulation`, `changeDetection`, `imports` and `schemas`; `selector` (optional) and `host` come from `Directive`. Components are standalone by default [Changed in v19.0: `standalone` defaults to `true`] ([15](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array)), and without `changeDetection` they are OnPush (re-checked only when an input signal, an event or a signal it reads changes) [Changed in v22.0] ([21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)).
+**Metadata.** In the `@angular/core` 22.2.1 typings `Component` extends `Directive` and adds `template`, `templateUrl`, `styles`, `styleUrl`, `encapsulation`, `changeDetection`, `imports` and `schemas`; `selector` (optional) and `host` come from `Directive`. Components are standalone by default [Changed in v19.0: `standalone` defaults to `true`] ([15](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array)), and without `changeDetection` they are OnPush (re-checked only when an input signal, an event or a signal it reads changes) [Changed in v22.0: OnPush is the default] ([21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)).
 
 **Selectors.** The forms are an element name, an attribute (`[x]`, `[type="reset"]`) and a class, plus `:not()` and comma lists. Combinators, namespaces and other pseudo-classes are unsupported ([angular.dev, Selectors](https://angular.dev/guide/components/selectors)), yet `ngc` accepted `lab a > b` and `lab-x::before` with exit 0 (2026-10-07). Element names need a hyphen and a **prefix** (a short project-wide start such as the CLI default `app-`); never `ng`, which is Angular's. An attribute selector on a native element (`button[lab-primary]`) keeps its native behavior and ARIA (roles and states for assistive technology) attributes ([Q11.03](11-accessibility.md#q11-03)).
 
@@ -129,7 +129,7 @@ class ForgotImportHost {}
 ### Misconceptions and traps
 
 - *"A missing component import always errors."* Only unknown elements do (`NG8001`); attribute and class selectors match nothing silently. The myth exists because the common case, an element selector, fails loudly.
-- *"`.component.ts` is required."* Once true: the CLI generated that name until v20.0. Now: `user-card.ts` is the default [Changed in v20.0]. The myth survives because older tutorials use the suffix.
+- *"`.component.ts` is required."* Once true: the CLI generated that name until v20.0. Now: `user-card.ts` is the default [Changed in v20.0: no `.component` suffix]. The myth survives because older tutorials use the suffix.
 - *"The selector can be any CSS selector."* Combinators and most pseudo-classes are unsupported. The myth exists because the syntax looks like CSS and `ngc` did not object.
 
 Drilled in [Q13.01](#q13-01), [Q13.02](#q13-02) and [Q13.03](#q13-03); practised in [Exercise 13.1](#ex13-1).
@@ -313,7 +313,7 @@ $any(user).nickname                          -> ɵɵtextInterpolate(ctx.user.nic
 ### Misconceptions and traps
 
 - *"`!` prevents the crash."* It removes the compile error only and is erased. The myth exists because the squiggle disappears, which looks like a fix.
-- *"`?.` returns `null` in templates."* Once true: until v22.0 it did, and now it gives `undefined` [Changed in v22.0]. The myth exists because pre-v22 tutorials show `null`.
+- *"`?.` returns `null` in templates."* Once true: until v22.0 it did, and now it gives `undefined` [Changed in v22.0: `?.` gives `undefined`]. The myth exists because pre-v22 tutorials show `null`.
 - *"`$any` is a pipe."* It is a compile-time cast. The myth exists because it is written where a pipe would be.
 
 Drilled in [Q13.07](#q13-07), [Q13.08](#q13-08) and [Q13.09](#q13-09); modelled in [Exercise 13.4](#ex13-4).
@@ -683,7 +683,7 @@ What to notice: a property or attribute is decided by static versus dynamic and 
 
 **Forms.** `host` keys read like template bindings: a plain `role` is a static attribute, `[prop]`, `[attr.x]`, `[class.x]` and `[style.x]` are bindings, `(event)` is a listener, and a `document:`, `window:` or `body:` prefix picks a [global event target](#5-event-binding-and-two-way-binding) ([host-elements page](https://angular.dev/guide/components/host-elements), read 2026-10-07 at tag `v22.2.1`). `Section 7: host metadata sets static attributes, properties, classes, styles and listeners on the host` asserts each.
 
-**Type checking.** Host expressions are type-checked [Added in v20.0 · Changed in v21.0: on by default] (core CHANGELOG, read 2026-10-07). Observed by compiling a throwaway component with `ngc` 22.2.1 on 2026-10-07:
+**Type checking.** Host expressions are type-checked [Added in v20.0] · [Changed in v21.0: on by default] (core CHANGELOG, read 2026-10-07). Observed by compiling a throwaway component with `ngc` 22.2.1 on 2026-10-07:
 
 ```text
 host: { '[class.on]': 'nope()', '(click)': 'missing()' }   error TS2339: Property 'nope' does not exist on type 'BadHost'.
@@ -1097,7 +1097,7 @@ Each *Output* answer is asserted by a spec named after its question, [`q13-outpu
 
 **Short answer (30 seconds).** A class plus `@Component` metadata: a template (inline or a file), optional styles, `imports` for everything the template uses, and a `selector` that picks the host elements. `ng generate component user-card` writes `user-card.ts`, `user-card.html`, `user-card.css` and `user-card.spec.ts`; the class is `UserCard` and the selector `app-user-card`.
 
-**Full explanation.** The metadata fields come from the `@angular/core` typings: `Component` extends `Directive` and adds `template`, `templateUrl`, `styles`, `styleUrl`, `encapsulation`, `changeDetection`, `imports` and `schemas`, while `selector` and `host` come from `Directive` ([section 1](#1-component-anatomy-selector-template-styles-imports-and-the-v22-file-convention)). The generated class carries no `standalone` or `changeDetection` line because standalone is the default [Changed in v19.0] and OnPush is the default [Changed in v22.0]. Since CLI 20.0 the generator drops the `.component` infix [Changed in v20.0]; `ng new --file-name-style-guide=2016` [Added in v21.0] brings it back for a new workspace. The names and class come from the `@schematics/angular` 22.2.1 templates, read from the package, not run here.
+**Full explanation.** The metadata fields come from the `@angular/core` typings: `Component` extends `Directive` and adds `template`, `templateUrl`, `styles`, `styleUrl`, `encapsulation`, `changeDetection`, `imports` and `schemas`, while `selector` and `host` come from `Directive` ([section 1](#1-component-anatomy-selector-template-styles-imports-and-the-v22-file-convention)). The generated class carries no `standalone` or `changeDetection` line because standalone is the default [Changed in v19.0: `standalone` defaults to `true`] and OnPush is the default [Changed in v22.0: OnPush is the default]. Since CLI 20.0 the generator drops the `.component` infix [Changed in v20.0: no `.component` suffix]; `ng new --file-name-style-guide=2016` [Added in v21.0] brings it back for a new workspace. The names and class come from the `@schematics/angular` 22.2.1 templates, read from the package, not run here.
 
 **Follow-ups an interviewer will ask.**
 - *Is `selector` required?* The typings mark it optional, but no parent template can match a component without one.
@@ -1119,7 +1119,7 @@ Each *Output* answer is asserted by a spec named after its question, [`q13-outpu
 
 **Follow-ups an interviewer will ask.**
 - *Can one component have two selectors?* Yes, a comma list: `lab-sel-list, [lab-sel-list]` matched both a tag and an attribute in the same test.
-- *Can two attribute-selector components share one button?* No: two components on one element is `NG8023` since v22 [Changed in v22.0].
+- *Can two attribute-selector components share one button?* No: two components on one element is `NG8023` since v22 [Changed in v22.0: "will now throw at compile time"].
 - *May the selector contain `a > b`?* The selectors page lists no combinators, yet `ngc` 22.2.1 accepted `lab a > b` with exit 0 on 2026-10-07, so do not rely on either.
 
 **Trap to avoid.** Choosing an attribute selector and expecting the compiler to report a forgotten import, or an element named `card` (no prefix, no hyphen).
@@ -1263,7 +1263,7 @@ class Q07 {
 
 **Short answer (30 seconds).** `[true][false][true]`. Since v22.0 an optional chain whose left side is `null` evaluates to `undefined`, so the first comparison is true and the second false. `$safeNavigationMigration(...)` keeps the old result, `null`, so the third is true. That call is a migration aid, not something to write.
 
-**Full explanation.** Before v22.0 the chain gave `null`; the `@angular/core` 22.0.0 CHANGELOG lists "Angular expressions with optional chaining returns `undefined`" [Changed in v22.0]. The compiler now emits plain JavaScript for the chain, `ctx.maybe()?.name`. The wrapper is rewritten away at compile time into `(tmp = ctx.maybe()) == null ? null : tmp.name` (the dated `ngc` run in [section 3](#3-safe-navigation-the-non-null-assertion-and-any) shows both lines). `ng update` inserts the wrapper so old `=== null` checks keep working; the docs call it temporary. Verified: `Q13.07` in [`q13-outputs.spec.ts`](../labs/angular/src/app/modules/13-components-and-templates/outputs/q13-outputs.spec.ts).
+**Full explanation.** Before v22.0 the chain gave `null`; the `@angular/core` 22.0.0 CHANGELOG lists "Angular expressions with optional chaining returns `undefined`" [Changed in v22.0: `?.` gives `undefined`]. The compiler now emits plain JavaScript for the chain, `ctx.maybe()?.name`. The wrapper is rewritten away at compile time into `(tmp = ctx.maybe()) == null ? null : tmp.name` (the dated `ngc` run in [section 3](#3-safe-navigation-the-non-null-assertion-and-any) shows both lines). `ng update` inserts the wrapper so old `=== null` checks keep working; the docs call it temporary. Verified: `Q13.07` in [`q13-outputs.spec.ts`](../labs/angular/src/app/modules/13-components-and-templates/outputs/q13-outputs.spec.ts).
 
 **Follow-ups an interviewer will ask.**
 - *What should the template do instead?* Stop comparing with `null`: write `u()?.name ?? 'anonymous'`, or narrow with `@if (u(); as v)` ([module 18](18-control-flow-and-defer.md#q18-03)).
@@ -1892,7 +1892,7 @@ console.log(`C=${colorOf(c)} B=${colorOf(b)}`);
 
 **Short answer (30 seconds).** `:host` becomes the host attribute selector `[_nghost-…]`; `:host-context(x)` becomes two selectors, `x` on the host or above it; `::ng-deep` ends the scoping from its position, so what follows is global. Matching nothing: `html`, `body` and `:root` (the attribute is on no element), `:host(.a, .b)` (unconverted) and `::part()`, which Emulated "does not support".
 
-**Full explanation.** `ShadowCss` (private) rewrites. The rewrites, observed 2026-10-07 on 22.2.1, are the table in [section 9](#9-view-encapsulation-emulated-shadowdom-and-none-and-what-the-compiler-does-to-your-css). Tests: `Section 9: Emulated rewrites :host, :host-context and ::ng-deep as documented`, `Section 9: html, :root and :host(.a, .b) are rewritten into selectors that match nothing`. `:host-context` requires parentheses [Changed in v22.0] (core CHANGELOG). `::ng-deep` is discouraged, not deprecated: no CHANGELOG or typings entry says so, and it compiles in 22.2.1. [Exercise 13.5](#ex13-5) rebuilds the table.
+**Full explanation.** `ShadowCss` (private) rewrites. The rewrites, observed 2026-10-07 on 22.2.1, are the table in [section 9](#9-view-encapsulation-emulated-shadowdom-and-none-and-what-the-compiler-does-to-your-css). Tests: `Section 9: Emulated rewrites :host, :host-context and ::ng-deep as documented`, `Section 9: html, :root and :host(.a, .b) are rewritten into selectors that match nothing`. `:host-context` requires parentheses [Changed in v22.0: parentheses with arguments are enforced] (core CHANGELOG). `::ng-deep` is discouraged, not deprecated: no CHANGELOG or typings entry says so, and it compiles in 22.2.1. [Exercise 13.5](#ex13-5) rebuilds the table.
 
 **Follow-ups an interviewer will ask.**
 - *Does `:host-context(.dark)` work?* In Angular, yes: it applies when an ancestor carries the class (`Section 9: :host-context(.dark) applies when an ancestor carries the class`). Browser support is documented.

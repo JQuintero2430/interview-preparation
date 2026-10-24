@@ -1395,7 +1395,7 @@ Module 47 (PLAN-M47; plan in `_meta/modules/M47.md`, written 2026-10-23). Run in
 | REVIEW-X-03 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
 | REVIEW-X-04 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
 | REVIEW-X-05 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
-| REVIEW-X-06 | M | in_progress | REVIEW-X-01..05 |  |
+| REVIEW-X-06 | M | done | REVIEW-X-01..05 | S20261024-0943-claudecode (consolidator subagent claude-opus-5-5; link-path fixes, checks and bookkeeping claude-opus-5-5) |
 | HOUSE-44 | S | todo | Jorge's ruling J1 (FINISH.md), REVIEW-X-06 and its FIX-X tasks |  |
 | FIN-02 | S | todo | HOUSE-45, REVIEW-X-06 and its FIX-X tasks |  |
 | FIN-03 | S | todo | HOUSE-43, HOUSE-46, REVIEW-X-06 and its FIX-X tasks |  |
@@ -1413,24 +1413,24 @@ Module 47 (PLAN-M47; plan in `_meta/modules/M47.md`, written 2026-10-23). Run in
 | FIN-15 | M | todo | FIN-14, FIN-08, FIN-13 |  |
 | FIN-16 | S | todo | FIN-15 |  |
 | REVIEW-X-07 | L | todo | FIN-02, FIN-03, FIN-08, FIN-13, FIN-15 |  |
-| FIX-X-01 | S | todo | REVIEW-X-06 |  |
-| FIX-X-02 | S | todo | REVIEW-X-06 |  |
-| FIX-X-03 | S | todo | REVIEW-X-06 |  |
-| FIX-X-04 | S | todo | REVIEW-X-06 |  |
-| FIX-X-05 | S | todo | REVIEW-X-06 |  |
-| FIX-X-06 | S | todo | REVIEW-X-06 |  |
-| FIX-X-07 | M | todo | REVIEW-X-06 |  |
-| FIX-X-08 | S | todo | REVIEW-X-06 |  |
-| FIX-X-09 | S | todo | REVIEW-X-06 |  |
-| FIX-X-10 | S | todo | REVIEW-X-06 |  |
-| FIX-X-11 | M | todo | REVIEW-X-06 |  |
-| FIX-X-12 | M | todo | REVIEW-X-06 |  |
-| FIX-X-13 | S | todo | REVIEW-X-06 |  |
+| FIX-X-01 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-02 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-03 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-04 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-05 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-06 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-07 | M | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-08 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-09 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-10 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-11 | M | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-12 | M | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-13 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
 | FIX-X-14 | S | todo | REVIEW-X-06 |  |
 | FIX-X-15 | S | todo | REVIEW-X-06 |  |
 | FIX-X-16 | S | todo | REVIEW-X-06 |  |
 | FIX-X-17 | S | todo | REVIEW-X-06 |  |
-| FIX-X-18 | S | todo | REVIEW-X-06 |  |
+| FIX-X-18 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
 | FIX-X-19 | M | todo | FIX-X-01..18 |  |
 | FINAL-VERIFY | M | todo | every row above, HOUSE-44, every FIX-X task |  |
 
@@ -8090,7 +8090,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### REVIEW-X-06 · M · Consolidation: findings to FIX-X tasks
 - Model: **Opus** (judgment: merging, conflict checks, task cuts).
-- Status: in_progress. Depends: REVIEW-X-01..05.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-01..05.
 - Files: `_meta/reviews/REVIEW-X.md` (new); `_meta/TASKS.md` (FIX-X rows before the FINAL-VERIFY row, blocks at the end).
 - Inputs: FINISH.md §4.4; REVIEW-X-01..05; REVIEW-X-SCAN.md; Jorge's rulings J1, J4 if recorded in STATE.
 - Do: §4.4. Each FIX-X block in the existing FIX format (Model, Status, Depends, Files, Inputs, Do, Acceptance with before → after `grep -c` counts and the module's checks: its lab tests when a lab claim changes, check-snippets for the module, module-stats for its prose).
@@ -8234,7 +8234,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-01 · S · Module 09: corrupted CORS link target and the 44 return link
 - Model: **Haiku** (one prescribed deletion and one prescribed label swap).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/09-web-networking-storage-security.md`.
 - Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F01; `_meta/reviews/REVIEW-X-05.md` X-05-F01; REVIEW-X.md decision 4 (J1 option C).
 - Do: X-01-F01: on the line that starts `> **Coming from the backend.** Spring's` (09:342), delete the 22-token text the review quotes in its `text` block (from the space after the first `-dev-proxy` up to, not including, `)) emits these headers.`). X-05-F01: on the `> **Leads to:**` line (09:5), swap the 41/42 labels and add 44 exactly as the review's fix text gives. No other edit: 09 has a 1-word margin under the cap.
@@ -8242,7 +8242,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-02 · S · Leads to return links in 01 and 03
 - Model: **Haiku** (two prescribed link insertions).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/01-js-values-types-coercion.md`, `modules/03-js-objects-prototypes-classes.md`.
 - Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F03; `_meta/reviews/REVIEW-X-01.md` X-01-F05.
 - Do: 01:5 add `[34. Internationalization](34-i18n.md)` after the 08 link (X-04-F03); 03:5 insert the 07 and 08 links between 06 and 17 (X-01-F05). Line 5 only.
@@ -8250,7 +8250,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-03 · S · Module 04 markers and return link, module 06 Node marker
 - Model: **Sonnet** (prose moved out of two markers; one consolidated text).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/04-js-async-event-loop.md`, `modules/06-ts-type-system-essentials.md`.
 - Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F04, X-01-F06; `_meta/reviews/REVIEW-X.md` C3 (replaces X-01-F04's swap 2).
 - Do: 04:141 X-01-F04 (1) (the two sentences move after the closing bracket); 04:379 C3, not X-01-F04 (2); 04:5 X-01-F06 (08 link between 05 and 09); 06:53 X-01-F04 (3).
@@ -8258,7 +8258,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-04 · S · Module 07 typed-forms marker; module 08 markers and the 35 return link
 - Model: **Haiku** (marker swaps and one link insertion, all prescribed).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/07-ts-advanced-types-and-decorators.md`, `modules/08-browser-rendering-dom-events.md`.
 - Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F02, X-01-F03; `_meta/reviews/REVIEW-X-04.md` X-04-F04.
 - Do: 07:443 X-01-F02; 08:115, 281, 404, 421 X-01-F03 (four swaps; each old text includes its enclosing backticks, the new text has none); 08:5 X-04-F04 (35 after 31).
@@ -8266,7 +8266,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-05 · S · Module 11 Applies to and Q11.02 hedge; module 34 polyfill definition
 - Model: **Sonnet** (prescribed prose swaps).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/11-accessibility.md`, `modules/34-i18n.md`.
 - Inputs: `_meta/reviews/REVIEW-X-01.md` X-01-F07, X-01-F08, X-01-F09.
 - Do: 11:6 X-01-F07; 11:682 (Q11.02 Full explanation) X-01-F08; 34:286 X-01-F09.
@@ -8274,7 +8274,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-06 · S · Module 12 marker, workspace sentence and 40 return link; module 13 Changed markers
 - Model: **Sonnet** (one prose rewrite; marker texts prescribed).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/12-angular-how-it-works.md`, `modules/13-components-and-templates.md`.
 - Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F01, X-02-F10, X-02-F02 (swaps 1–7), X-02-F03; `_meta/reviews/REVIEW-X-04.md` X-04-F05.
 - Do: 12:263 X-02-F01; 12:127 X-02-F10; 12:5 X-04-F05 (40 between 39 and 44); 13:55, 132, 316, 1100, 1122, 1266, 1895 X-02-F02 swaps 1–7; 13:686 X-02-F03.
@@ -8282,7 +8282,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-07 · M · Module 14 markers and plural sentence; module 17 code-span markers and the merged Leads to line
 - Model: **Sonnet** (prescribed swaps, one merged line, two short rewordings).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/14-directives-and-pipes.md`, `modules/17-signals.md`.
 - Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F02 (swaps 8–10), X-02-F04, X-02-F06 (1), X-02-F05; `_meta/reviews/REVIEW-X-03.md` X-03-F08; `_meta/reviews/REVIEW-X-04.md` X-04-F07; `_meta/reviews/REVIEW-X.md` C2 (replaces the three Leads to fix texts).
 - Do: 14:632, 893, 2198 X-02-F02 swaps 8–10; 14:806 X-02-F04 swap 1; 14:636 X-02-F06 swap 1 (module only; the glossary line is FIX-X-18's); 17:128, 278 (two), 281, 644, 645, 791, 1646, 2275 X-02-F04 swaps 2–10 (old texts include the backticks); 17:5 replace the whole line with C2.
@@ -8290,7 +8290,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-08 · S · Leads to: the merged line of 16 and the 31/35 links of 18
 - Model: **Haiku** (one whole-line replacement and one prescribed insertion).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/16-dependency-injection.md`, `modules/18-control-flow-and-defer.md`.
 - Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F07; `_meta/reviews/REVIEW-X-04.md` X-04-F06, X-04-F08; `_meta/reviews/REVIEW-X.md` C1 (replaces the two fix texts for 16).
 - Do: 16:5 replace the whole line with C1; 18:5 X-04-F08 (31 and 35 links).
@@ -8298,7 +8298,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-09 · S · Leads to return links in 19 and 21
 - Model: **Haiku** (two prescribed link insertions).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/19-component-communication-and-projection.md`, `modules/21-change-detection.md`.
 - Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F09; `_meta/reviews/REVIEW-X-04.md` X-04-F09.
 - Do: 19:5 X-03-F09 (24, 28, 29); 21:5 X-04-F09 (40 after 39).
@@ -8306,7 +8306,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-10 · S · Module 20 change-detection definition and Summary; module 31 budget definition
 - Model: **Sonnet** (prescribed prose swaps).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/20-lifecycle-and-render-hooks.md`, `modules/31-performance.md`.
 - Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F07 (1), X-02-F11, X-02-F09 (1).
 - Do: 20:34 X-02-F07 swap 1; 20:841 (Summary) X-02-F11; 31:495 X-02-F09 swap 1. The glossary lines are FIX-X-18's.
@@ -8314,7 +8314,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-11 · M · Modules 22 and 23: rxResource Summary, RxJS version sentences, deprecation tails, code-span markers, 28 return link, HttpTestingController
 - Model: **Sonnet** (prescribed prose and marker swaps).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/22-rxjs-foundations.md`, `modules/23-rxjs-in-depth.md`.
 - Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F01, F02, F03, F06 (swaps 1–3), F10, F11 (swap 2).
 - Do: 23:985 and 23:708 X-03-F01; 22 intro and 23 intro X-03-F02 (one sentence each); 22:178, 181, 714 and 23:304 X-03-F03; 22:460, 23:889, 23:943 X-03-F06 swaps 1–3; 22:5 X-03-F10 (28 between 27 and 29); 23:182 X-03-F11 swap 2 (the glossary line is FIX-X-18's).
@@ -8322,7 +8322,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-12 · M · Module 28 markers (prose, tails, code spans); module 29 code-span marker and 36 return link
 - Model: **Sonnet** (prescribed swaps, one with a short clause).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/28-state-management.md`, `modules/29-testing-angular.md`.
 - Inputs: `_meta/reviews/REVIEW-X-03.md` X-03-F05, X-03-F06 (swaps 4–12); `_meta/reviews/REVIEW-X-04.md` X-04-F12.
 - Do: 28:65, 648, 773, 972 X-03-F05 (in swaps 2–4 the old text includes the backticks); 28:557, 831, 953, 955 (two), 980 (three) X-03-F06 swaps 4–11; 29:282 X-03-F06 swap 12; 29:5 X-04-F12 (36 between 30 and 38).
@@ -8330,7 +8330,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-13 · S · Module 24 return link; module 27 deprecation tails and 37 return link
 - Model: **Haiku** (prescribed marker swaps and link insertions).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/24-routing.md`, `modules/27-http-client.md`.
 - Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F10, X-04-F11; `_meta/reviews/REVIEW-X-03.md` X-03-F04.
 - Do: 24:5 X-04-F10 (35 between 34 and 42); 27:140 and 27:503 X-03-F04; 27:5 X-04-F11 (37 between 33 and 41).
@@ -8370,7 +8370,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-18 · S · Glossary harvest: five definitions
 - Model: **Sonnet** (prescribed definition rewrites).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-0943-claudecode). Depends: REVIEW-X-06.
 - Files: `_meta/GLOSSARY-TERMS.md`.
 - Inputs: `_meta/reviews/REVIEW-X-02.md` X-02-F06 (2), F07 (2), F08 (2), F09 (2); `_meta/reviews/REVIEW-X-03.md` X-03-F11 (1).
 - Do: the five glossary swaps (lines 641, 885, 2346, 1620 and 1045 as of the reviews). Each stays one `- **term**: definition` line.

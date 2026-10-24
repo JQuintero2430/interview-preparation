@@ -2,7 +2,7 @@
 
 > **What this covers:** Observables as lazy push collections and how they differ from functions, iterators and promises; the anatomy of an observable, observer, subscription and teardown; cold and hot sources; the four subjects; pipeable operators and writing your own; the operator catalogue by purpose, combination and timing operators; and the subscriber chain underneath. Higher-order mapping, error strategies, schedulers, unsubscription strategies, marble testing and signal interop are module 23.
 > **Prerequisites:** [04. JavaScript async and the event loop](04-js-async-event-loop.md#3-promises-from-callbacks-to-a-state-machine) (promises and microtasks; cancellation in [§7](04-js-async-event-loop.md#7-cancellation-with-abortcontroller)) and [07. TypeScript advanced types and decorators](07-ts-advanced-types-and-decorators.md#1-generics-constraints-defaults-inference-and-const-type-parameters) (generics, for operator signatures)
-> **Leads to:** [23. RxJS in depth](23-rxjs-in-depth.md), [24. Routing](24-routing.md), [25. Forms](25-forms-reactive-and-template-driven.md), [27. HttpClient](27-http-client.md), [29. Testing Angular](29-testing-angular.md)
+> **Leads to:** [23. RxJS in depth](23-rxjs-in-depth.md), [24. Routing](24-routing.md), [25. Forms](25-forms-reactive-and-template-driven.md), [27. HttpClient](27-http-client.md), [28. State management](28-state-management.md), [29. Testing Angular](29-testing-angular.md)
 > **Applies to:** Angular 22.2 (`@angular/core` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
 > **Study time:** ~6 hours reading + ~4 hours exercises
 > **Short on time:** read [3. Cold and hot](#3-cold-and-hot-unicast-and-multicast), [4. Subjects](#4-subjects-subject-behaviorsubject-replaysubject-and-asyncsubject), [7. Combining streams](#7-combining-streams-combinelatest-withlatestfrom-forkjoin-zip-merge-and-concat) and [8. Timing operators](#8-timing-operators-debouncetime-throttletime-audittime-and-sampletime), then drill [Q22.06](#q22-06), [Q22.12](#q22-12), [Q22.16](#q22-16), [Q22.29](#q22-29) and [Q22.31](#q22-31), try [Exercise 22.5](#ex22-5), and finish with the [Summary](#summary).
@@ -25,7 +25,7 @@
 - [Check your understanding](#check-your-understanding)
 - [Connections](#connections)
 
-**How the claims here are verified.** A sentence about what a program printed or did cites a spec in `labs/angular/src/app/modules/22-rxjs-foundations/`, run by `ng test` (in jsdom, a DOM implementation for Node, with `rxjs` 7.8.2). "Read from the source" means the published `rxjs` 7.8.2 package, with file and function named. Deprecation markers come from typings `@deprecated` tags and the CHANGELOG, and documentation quotes name their file on the `7.x` branch. Browser support of the platform `Observable`, Project Reactor, performance and Angular application patterns are documented only: cited and dated, never run.
+**How the claims here are verified.** A sentence about what a program printed or did cites a spec in `labs/angular/src/app/modules/22-rxjs-foundations/`, run by `ng test` (in jsdom, a DOM implementation for Node, with `rxjs` 7.8.2). "Read from the source" means the published `rxjs` 7.8.2 package, with file and function named. Deprecation markers come from typings `@deprecated` tags and the CHANGELOG, and documentation quotes name their file on the `7.x` branch. A marker on an `rxjs` API gives the RxJS version (`v6.4` is RxJS 6.4); a marker on an Angular API gives the Angular version. Browser support of the platform `Observable`, Project Reactor, performance and Angular application patterns are documented only: cited and dated, never run.
 
 ## 1. Push collections: Observables, Promises, iterators and laziness
 
@@ -175,10 +175,10 @@ What to notice: "stopped" and "closed" differ. After `complete` the subscriber d
 
 **Composition.** `Section 2: a Subscription tears down children and functions in order and reports teardown errors together`: `unsubscribe` ran the parent's teardown, then each child, then each function; `add` on a closed subscription ran at once; a child that left first was not run again; two throwing teardowns became one `UnsubscriptionError` with two `errors`. `subscribe` returns such an object (`Section 2: subscribe returns a Subscriber, which is a Subscription`).
 
-**Forms.** `subscribe` takes nothing, an observer, a function or positional callbacks [Deprecated since v6.4 — pass an observer] (`Section 2: subscribe accepts an observer, a function and positional callbacks`); the method itself is not deprecated (`deprecations/subscribe-arguments.md`).
+**Forms.** `subscribe` takes nothing, an observer, a function or positional callbacks [Deprecated since v6.4 — use an observer] (`Section 2: subscribe accepts an observer, a function and positional callbacks`); the method itself is not deprecated (`deprecations/subscribe-arguments.md`).
 
 > [!WARNING]
-> `config.useDeprecatedSynchronousErrorHandling` [Deprecated since v6.0 — keep the default] rethrows errors synchronously; its typings say "DO NOT USE THIS FLAG UNLESS IT'S NEEDED TO BUY TIME FOR MIGRATION REASONS". Do not enable it to "see" errors.
+> `config.useDeprecatedSynchronousErrorHandling` [Deprecated since v6.0 — use the default] rethrows errors synchronously; its typings say "DO NOT USE THIS FLAG UNLESS IT'S NEEDED TO BUY TIME FOR MIGRATION REASONS". Do not enable it to "see" errors.
 
 > [!NOTE]
 > **Framework vs platform.** The platform `Observable` also registers teardown, through `addTeardown()` (explainer; the note in [section 1](#1-push-collections-observables-promises-iterators-and-laziness)).
@@ -457,7 +457,7 @@ What to notice: nothing flows until `subscribe`, which travels upstream; an `uns
 
 **Types.** `Section 5: the operator signatures type-check`: an `OperatorFunction<string, number>` ran on strings; two `// @ts-expect-error` lines show a wrong source and a wrong result fail to compile.
 
-**Import paths.** Operators exported from `'rxjs'` are `[Added in v7.2]` (CHANGELOG 7.2.0). The docs (`importing.md`) call `'rxjs/operators'` deprecated, to be "removed in one of the next major versions"; the 7.8.2 typings put no `@deprecated` on it. `Section 5: rxjs/operators exports different functions for merge, concat, zip, combineLatest and race` found seven names whose function differs between the paths, the five below and two more ([section 6](#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)); nine others it checked are the same object.
+**Import paths.** Operators exported from `'rxjs'` are [Added in v7.2] (CHANGELOG 7.2.0). The docs (`importing.md`) call `'rxjs/operators'` deprecated, to be "removed in one of the next major versions"; the 7.8.2 typings put no `@deprecated` on it. `Section 5: rxjs/operators exports different functions for merge, concat, zip, combineLatest and race` found seven names whose function differs between the paths, the five below and two more ([section 6](#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)); nine others it checked are the same object.
 
 > [!WARNING]
 > The import compiles, but `merge(of(1), of(2))` from the subpath returned a function, not an Observable. There they are instance operators: `merge` [Deprecated since v6.0 — use mergeWith], `concat` [Deprecated since v6.0 — use concatWith], `zip` [Deprecated since v6.0 — use zipWith], `combineLatest` [Deprecated since v6.0 — use combineLatestWith] and `race` [Deprecated since v6.2 — use raceWith].
@@ -711,7 +711,7 @@ The approach is to compare frame tables in virtual time.
 
 #### Legacy
 
-- Rest arguments, `combineLatest(a, b)` and `forkJoin(a, b)` [Deprecated since v6.5 — pass an array or an object] (`deprecations/array-argument.md`, `7.x`; the 7.8.2 typings tag a trailing result selector the same way: use the array and `map`).
+- Rest arguments, `combineLatest(a, b)` and `forkJoin(a, b)` [Deprecated since v6.5 — use an array or an object] (`deprecations/array-argument.md`, `7.x`; the 7.8.2 typings tag a trailing result selector the same way: use the array and `map`).
 - Instance operators from `'rxjs/operators'` ([section 5](#5-pipeable-operators-and-writing-your-own)): use `mergeWith` and siblings.
 - The `scheduler` argument of `merge` [Deprecated since v6.5 — use scheduled and mergeAll] (`deprecations/scheduler-argument.md`).
 

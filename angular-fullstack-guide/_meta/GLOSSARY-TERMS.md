@@ -638,7 +638,7 @@ Terms each module defines on first use, collected by the HOUSE harvest tasks. Th
 - **`LOCALE_ID`**: the injection token holding the locale the pipes use, `en-US` by default; owner [34](../modules/34-i18n.md) ([14 §6](../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
 - **formatting pipe**: a pipe (`date`, `currency`, `number`, `percent`, `i18nPlural`) that turns a value into text using locale data ([14 §6](../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
 - **comparator**: a function of two entries that decides their order, the optional argument of `keyvalue` ([14 §6](../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
-- **plural category**: the label (`=0`, `=1`, `other`) that `i18nPlural` matches against the number ([14 §6](../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
+- **plural category**: the locale's label for a number (`one`, `few`, `other`…), which `i18nPlural` tries after an exact key such as `=0` ([14 §6](../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
 - **CLDR**: the project the typings name as the source of currency data; named only on that basis ([14 §6](../modules/14-directives-and-pipes.md#6-built-in-pipes-and-locale-data)).
 - **memoization**: remembering the last result of a function so a repeat call with the same input skips the work ([14 §7](../modules/14-directives-and-pipes.md#7-pipe-computed-or-method-call-in-a-template)).
 - **derived state**: a value computed from other state, such as a total from a list ([14 §7](../modules/14-directives-and-pipes.md#7-pipe-computed-or-method-call-in-a-template)).
@@ -882,7 +882,7 @@ Terms each module defines on first use, collected by the HOUSE harvest tasks. Th
 ## Module 20
 
 - **lifecycle hook**: a method Angular calls on a component at a fixed point of change detection, such as `ngOnInit` or `ngOnDestroy` ([20 §1](../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
-- **change detection**: the walk over the component tree that checks every template binding for changes ([20 §1](../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
+- **change detection**: the walk over the component tree that checks the template bindings of each view it refreshes ([20 §1](../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
 - **pre-order**: a node visited before its children; `ngOnChanges`, `ngOnInit` and `ngDoCheck` run this way ([20 §1](../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
 - **post-order**: a node visited after its children; the content and view hooks run this way, so a child's `ngAfterViewInit` precedes its parent's ([20 §1](../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
 - **declaring view**: the template that contains a component's tag; a component's hooks run when that view is checked, not its own ([20 §1](../modules/20-lifecycle-and-render-hooks.md#1-the-lifecycle-map-phases-and-the-order-of-the-hooks))
@@ -1042,7 +1042,7 @@ Terms each module defines on first use, collected by the HOUSE harvest tasks. Th
 - **accumulator**: the running state that `scan`, `mergeScan` and `switchScan` carry from one value to the next ([23 §2](../modules/23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion))
 - **race condition**: a result that depends on which async job finishes first ([23 §2](../modules/23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion))
 - **idempotent (request)**: repeating it changes nothing more than doing it once ([23 §2](../modules/23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion))
-- **`HttpTestingController`**: Angular's test double for the HTTP backend; its `cancelled` flag reports that the test request's subscription was torn down ([23 §2](../modules/23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion))
+- **`HttpTestingController`**: the test-side handle on the in-memory test backend; the `cancelled` flag of each `TestRequest` it returns reports that the request's subscription was torn down ([23 §2](../modules/23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion))
 - **abort (a request)**: stop it on the client; `HttpClient`'s backends do it in their teardown (`aborter.abort()`, `xhr.abort()`) ([23 §2](../modules/23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion))
 - **terminal notification**: `error` or `complete`; after one, a stream sends nothing more ([23 §3](../modules/23-rxjs-in-depth.md#3-errors-catcherror-placement-finalize-and-error-versus-complete))
 - **fallback / rethrow (`catchError`)**: the replacement a `catchError` selector returns: a substitute value or stream (fallback), or a new error (rethrow) ([23 §3](../modules/23-rxjs-in-depth.md#3-errors-catcherror-placement-finalize-and-error-versus-complete))
@@ -1617,7 +1617,7 @@ Terms each module defines on first use, collected by the HOUSE harvest tasks. Th
 - **initial bundle**: the files the first view needs before it can run ([31 §5](../modules/31-performance.md#5-loading-the-initial-bundle-lazy-routes-defer-and-preloading-as-one-plan))
 - **lazy chunk**: a chunk outside the initial bundle, fetched later through a dynamic `import()` ([31 §5](../modules/31-performance.md#5-loading-the-initial-bundle-lazy-routes-defer-and-preloading-as-one-plan))
 - **critical path**: the work the browser must finish before the first view appears ([31 §5](../modules/31-performance.md#5-loading-the-initial-bundle-lazy-routes-defer-and-preloading-as-one-plan))
-- **budget (build)**: a size limit that fails the build when crossed ([31 §6](../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
+- **budget (build)**: a size limit that warns or fails the build when crossed ([31 §6](../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
 - **metafile**: the JSON description of a build, listing each output file's inputs, their bytes and what each input imports ([31 §6](../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
 - **`bytesInOutput`**: the bytes one input module contributed to one output file in the metafile ([31 §6](../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
 - **importer chain**: the path of imports from an entry to a module, showing who asked for its code ([31 §6](../modules/31-performance.md#6-bundle-analysis-budgets-and-tree-shaking-pitfalls))
@@ -2343,7 +2343,7 @@ Terms each module defines on first use, collected by the HOUSE harvest tasks. Th
 - **rune (Svelte)**: a Svelte 5 keyword such as `$state` ([40 §4](../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
 - **render effect**: a computation that writes to the DOM and re-runs when what it read changes ([40 §4](../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
 - **granularity**: the unit a write re-runs: a view, a component or one DOM expression ([40 §4](../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
-- **fine-grained reactivity**: reactivity whose unit of update is a single DOM expression ([40 §4](../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
+- **fine-grained reactivity**: reactivity whose unit of update is small: one view in Angular, a single DOM expression in Solid ([40 §4](../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
 - **`reactive` Proxy (Vue)**: Vue's deep wrapper that tracks property access (owner [03 §5](../modules/03-js-objects-prototypes-classes.md#5-proxy-and-reflect); [40 §4](../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
 - **resumability (Qwik)**: pausing execution on the server and resuming it on the client without replaying the application logic ([40 §4](../modules/40-framework-comparisons.md#4-signals-beyond-angular-vue-refs-solid-svelte-runes-preact-and-qwik))
 - **provider (React)**: the element `<SomeContext value={…}>` that hands one value to the components below it that read the context; it builds nothing ([40 §5](../modules/40-framework-comparisons.md#5-dependency-injection-and-shared-state-injectors-context-and-provideinject))

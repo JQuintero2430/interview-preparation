@@ -629,11 +629,11 @@ name: "keyvalue", pure: false
 name: "slice",    pure: false
 ```
 
-**Formatting.** With no token configured `date` uses `mediumDate` (typings), and `DATE_PIPE_DEFAULT_OPTIONS` changes the format and timezone (`Section 6: DATE_PIPE_DEFAULT_OPTIONS changes the default format`). With `'UTC'` as timezone, `date:'yyyy-MM-dd HH:mm'` renders `2024-07-08 15:30`; `currency`, `number` and `percent` take digit patterns such as `1.2-2` (`Section 6: date, currency, number and percent format with en-US data`). The `en` data puts U+202F, a narrow no-break space, before `PM`, so the test normalizes it. A `Y` (week-numbering year) pattern without `w` is detected as suspicious [Changed in v20.0] (CHANGELOG 20.0.0, read 2026-10-08); not run in the lab.
+**Formatting.** With no token configured `date` uses `mediumDate` (typings), and `DATE_PIPE_DEFAULT_OPTIONS` changes the format and timezone (`Section 6: DATE_PIPE_DEFAULT_OPTIONS changes the default format`). With `'UTC'` as timezone, `date:'yyyy-MM-dd HH:mm'` renders `2024-07-08 15:30`; `currency`, `number` and `percent` take digit patterns such as `1.2-2` (`Section 6: date, currency, number and percent format with en-US data`). The `en` data puts U+202F, a narrow no-break space, before `PM`, so the test normalizes it. A `Y` (week-numbering year) pattern without `w` is detected as suspicious [Changed in v20.0: a suspicious pattern throws] (CHANGELOG 20.0.0, read 2026-10-08); not run in the lab.
 
 **`keyvalue`.** It sorts with a **comparator**, a function that orders two entries. The default compares keys as strings, so keys `10, 9, 2` render `10 2 9`; a numeric comparator gives `2 9 10` and a by-value one reorders letters (`Section 6: keyvalue sorts keys as strings by default and accepts a comparator`). Optional keys are accepted [Added in v21.0] and a literal key union is kept [Changed in v22.1.3: "preserve literal key union in KeyValuePipe.transform()"] (CHANGELOG, read 2026-10-08).
 
-**Plurals and failures.** `i18nPlural` picks a **plural category** (`=0`, `other`) and replaces `#` (`Section 6: i18nPlural picks the category and replaces #`). An unregistered `de` throws `NG0701`, while `en-GB` renders `Jul 8, 2024` from the `en` data (`Section 6: an unregistered locale throws NG0701 and en-GB falls back to en`). A bad string throws `NG02100: InvalidPipeArgument: 'NG02311: Unable to convert "not a date" into a date' for pipe 'DatePipe'` (`Section 6: an invalid date string throws InvalidPipeArgument`). Registering data is [34's](34-i18n.md#3-angulars-locale-data-and-formatting-functions-versus-intl); the package ships 742 `.js` locale files under `locales/` (counted 2026-10-08).
+**Plurals and failures.** `i18nPlural` picks an exact key such as `=0`, else a **plural category** such as `other`, and replaces `#` (`Section 6: i18nPlural picks the category and replaces #`). An unregistered `de` throws `NG0701`, while `en-GB` renders `Jul 8, 2024` from the `en` data (`Section 6: an unregistered locale throws NG0701 and en-GB falls back to en`). A bad string throws `NG02100: InvalidPipeArgument: 'NG02311: Unable to convert "not a date" into a date' for pipe 'DatePipe'` (`Section 6: an invalid date string throws InvalidPipeArgument`). Registering data is [34's](34-i18n.md#3-angulars-locale-data-and-formatting-functions-versus-intl); the package ships 742 `.js` locale files under `locales/` (counted 2026-10-08).
 
 > [!NOTE]
 > **Framework vs platform.** The browser has `Intl.DateTimeFormat` and `Intl.NumberFormat`; these pipes do not call them. `grep -c 'Intl\.'` over every `.mjs` file in `@angular/common` 22.2.1 `fesm2022` returned 0 (run 2026-10-08), and the package ships its own locale files. What a browser's `Intl` prints is not claimed here; see [08](08-browser-rendering-dom-events.md) for the platform and [34](34-i18n.md#3-angulars-locale-data-and-formatting-functions-versus-intl) for Angular's i18n. The typings name the CLDR project as the source of currency data.
@@ -803,7 +803,7 @@ What to notice: a new object reference is a new subscription, so `makeStream() |
 
 **Subscribe, then remember.** On the first non-null source the pipe picks a **strategy** (a design pattern: one interface, interchangeable algorithms) by shape: a promise or a subscribable, otherwise it throws. For a subscribable, `subscribe` and `unsubscribe` run under `untracked`, so signal reads inside the source do not become dependencies of the view; the promise strategy calls `.then` without it. Before the first value the pipe returns `null`.
 
-**New values.** Each emission stores the value and calls `markForCheck`, which is why the view updates under OnPush ([§7](#7-pipe-computed-or-method-call-in-a-template)) with no call from you, even in a **zoneless** app, one without **zone.js** (ZoneJS in the CHANGELOG), the library that tells Angular when async work may have changed something; a **zone-based** app loads it ([17 §1](17-signals.md#1-why-signals-exist)) (`Section 8: the async pipe shows null before the first value and updates after each emission`). The first, synchronous subscribe suppresses that call, `[Changed in v17.2.3: no markForCheck on subscription]` (CHANGELOG 17.2.3, 2024-02-27); `markForCheckOnValueUpdate` is `false` while `_subscribe` runs inside `transform` (source read); that the view is already being checked is my inference from it and the 17.2.3 `perf` entry.
+**New values.** Each emission stores the value and calls `markForCheck`, which is why the view updates under OnPush ([§7](#7-pipe-computed-or-method-call-in-a-template)) with no call from you, even in a **zoneless** app, one without **zone.js** (ZoneJS in the CHANGELOG), the library that tells Angular when async work may have changed something; a **zone-based** app loads it ([17 §1](17-signals.md#1-why-signals-exist)) (`Section 8: the async pipe shows null before the first value and updates after each emission`). The first, synchronous subscribe suppresses that call, [Changed in v17.2.3: no markForCheck on subscription] (CHANGELOG 17.2.3, 2024-02-27); `markForCheckOnValueUpdate` is `false` while `_subscribe` runs inside `transform` (source read); that the view is already being checked is my inference from it and the 17.2.3 `perf` entry.
 
 **New source, destroy.** A different reference disposes the old subscription, resets the value to `null` and subscribes again; a late value from the old source is ignored because it no longer matches the current one (`Section 8: swapping the source unsubscribes the old one and ignores its late values`). `ngOnDestroy` disposes too (`Section 8: destroying the view unsubscribes`).
 
@@ -890,7 +890,7 @@ fesm2022/_common_module-chunk.mjs
 ### Misconceptions and traps
 
 - *"`async` shares the stream."* Each usage subscribes. The myth exists because one pipe and one stream look like one subscription.
-- *"`async` swallows errors."* It never did: ZoneJS reported them until v20.0, and the pipe now reports them itself [Changed in v20.0]. The myth exists because the view keeps its last value, blank if none came, so nothing shows.
+- *"`async` swallows errors."* It never did: ZoneJS reported them until v20.0, and the pipe now reports them itself [Changed in v20.0: the pipe reports errors to `ErrorHandler`]. The myth exists because the view keeps its last value, blank if none came, so nothing shows.
 - *"`async` needs `markForCheck` from you."* The pipe calls it on each emission. The myth exists because of Default-era habits.
 - *"`async` works with signals."* It does not: the build fails with `TS2769`, and `NG02100` follows at run time once `$any` hides it. The myth exists because both are called reactive.
 
@@ -2195,7 +2195,7 @@ Like `en`: the lookup falls back to `en` (`Jul 8, 2024`).
 
 <details><summary>Where does `async` send a stream error?</summary>
 
-To the application's `ErrorHandler`, itself, since v20.0 [Changed in v20.0]; the last value stays.
+To the application's `ErrorHandler`, itself, since v20.0 [Changed in v20.0: the pipe reports errors to `ErrorHandler`]; the last value stays.
 
 </details>
 

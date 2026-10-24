@@ -2,7 +2,7 @@
 
 > **What this covers:** what a framework does that a library does not, and how Angular turns your project into a running application: the CLI workspace and `angular.json`, the application builder (esbuild, with Vite as the dev server), output and budgets, build-time versus runtime configuration, hot module replacement and Angular DevTools, what `bootstrapApplication` does at startup, ahead-of-time (AOT) versus just-in-time (JIT) compilation and template type checking, and what the compiler emits (`ɵcmp`, template instructions, locality, partial compilation). By the end you can explain each step from `ng build` to the first rendered component and read compiled Angular output.
 > **Prerequisites:** [05. ES modules](05-js-modules-memory-modern-features.md#1-es-modules-static-structure-linking-and-live-bindings) and [dynamic `import()`](05-js-modules-memory-modern-features.md#2-commonjs-interop-and-dynamic-import) (what a bundle is made of), [07. Decorators and what Angular does with them](07-ts-advanced-types-and-decorators.md#7-decorators-tc39-standard-versus-experimentaldecorators-and-what-angular-does-with-them)
-> **Leads to:** [13. Components and templates](13-components-and-templates.md), [15. Standalone and NgModules](15-standalone-and-ngmodules.md), [16. Dependency injection](16-dependency-injection.md), [21. Change detection](21-change-detection.md), [31. Performance](31-performance.md), [38. Architecture](38-architecture-and-production-structure.md), [39. Version history and migrations](39-version-history-and-migrations.md), [44. Delivery and operations](44-fullstack-delivery-and-operations.md)
+> **Leads to:** [13. Components and templates](13-components-and-templates.md), [15. Standalone and NgModules](15-standalone-and-ngmodules.md), [16. Dependency injection](16-dependency-injection.md), [21. Change detection](21-change-detection.md), [31. Performance](31-performance.md), [38. Architecture](38-architecture-and-production-structure.md), [39. Version history and migrations](39-version-history-and-migrations.md), [40. Framework comparisons](40-framework-comparisons.md), [44. Delivery and operations](44-fullstack-delivery-and-operations.md)
 > **Applies to:** Angular 22.2 (`@angular/core`, `@angular/compiler-cli`, `@angular/build`, `@angular/cli` 22.2.1), TypeScript 6.0, Node 24
 > **Study time:** ~5 hours reading + ~5 hours exercises
 > **Short on time:** read [3. Building](#3-building-the-application-builder-output-layout-and-budgets), [6. Bootstrapping](#6-bootstrapping-bootstrapapplication-the-platform-and-initializers) and [8. Under the hood](#8-under-the-hood-what-the-compiler-emits-and-what-the-runtime-does-with-it), then drill [Q12.06](#q12-06), [Q12.10](#q12-10), [Q12.14](#q12-14), [Q12.19](#q12-19), [Q12.23](#q12-23) and [Q12.26](#q12-26), try [Exercise 12.2](#ex12-2), and finish with the [Summary](#summary).
@@ -124,7 +124,7 @@ A schematic is "a template-based code generator that supports complex logic" pac
 
 ### Code
 
-Read the lab's workspace top-down: one project, its `build` target, the builder, base options, two configurations. The three `Section 2: …` tests in [`section-2-workspace.test.ts`](../labs/ts-js/src/modules/12-angular-how-it-works/section-2-workspace.test.ts) assert these values from the file.
+Read the lab's workspace top-down through its first project, `labs` (seven more were added for later modules), its `build` target, the builder, base options, two configurations. The three `Section 2: …` tests in [`section-2-workspace.test.ts`](../labs/ts-js/src/modules/12-angular-how-it-works/section-2-workspace.test.ts) assert these values from the file.
 
 ```jsonc
 // From labs/angular/angular.json (assets and styles lines omitted)
@@ -260,7 +260,7 @@ Before the lazy route was added, the copy with `initial` `maximumError: "150kB"`
 
 #### Legacy
 
-Projects created before CLI 17 use the webpack `browser` builder of `@angular-devkit/build-angular` [Deprecated since CLI 22.0 — use @angular/build:application] ([CLI CHANGELOG](https://github.com/angular/angular-cli/blob/main/CHANGELOG.md) 22.0.0). Its 22.2.1 source (`src/builders/browser/index.js`, read from the npm tarball, not run) warns `The "@angular-devkit/build-angular:browser" builder is deprecated as part of Angular's Webpack support deprecation.` The automated path is `ng update @angular/cli --name use-application-builder`, a 22.0.0 migration marked optional and recommended; the manual edits follow the [migration page](https://angular.dev/tools/cli/build-system-migration):
+Projects created before CLI 17 use the webpack `browser` builder of `@angular-devkit/build-angular` [Deprecated since v22.0 — use @angular/build:application] ([CLI CHANGELOG](https://github.com/angular/angular-cli/blob/main/CHANGELOG.md) 22.0.0). Its 22.2.1 source (`src/builders/browser/index.js`, read from the npm tarball, not run) warns `The "@angular-devkit/build-angular:browser" builder is deprecated as part of Angular's Webpack support deprecation.` The automated path is `ng update @angular/cli --name use-application-builder`, a 22.0.0 migration marked optional and recommended; the manual edits follow the [migration page](https://angular.dev/tools/cli/build-system-migration):
 
 ```jsonc
 // Illustrative, not run: before
