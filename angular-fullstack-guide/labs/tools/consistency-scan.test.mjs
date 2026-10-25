@@ -86,3 +86,26 @@ test('a missing prerequisite and a missing Leads-to are reported', () => {
   assert.match(out, /X-01 03 lists 02 as prerequisite, but 02 Leads to omits 03/);
   assert.match(out, /X-01 02: TS 6\.0/);
 });
+
+test('the J4 variant forms are accepted', () => {
+  const ok = ['Added in ES2022', 'Added in ES2023, ECMA-402 Intl.NumberFormat v3', 'Added in TypeScript 5.4',
+    'Changed in TypeScript 6.0: strict by default', 'Changed in Node 22.12: no flag needed', 'Stable since Node 24.12',
+    'Added in NgRx v19.1', 'Experimental since TanStack Query v5.12.1', 'Added in v22.0.4',
+    'Deprecated since v7.5.5 — use retry with delay'];
+  for (const f of ok) assert.ok(isCanonical(f), f);
+  const bad = ['Added in Angular 14', 'Stable since Node.js v24.12.0', 'Changed in v17', 'Deprecated since v7.0 — gone'];
+  for (const f of bad) assert.ok(!isCanonical(f), f);
+});
+
+test('bare Changed for ES and TypeScript is accepted', () => {
+  for (const f of ['Changed in ES2023', 'Changed in TypeScript 3.9']) assert.ok(isCanonical(f), f);
+});
+
+test('Deprecated without a replacement is accepted in three shapes', () => {
+  for (const f of ['Deprecated since v22.2', 'Deprecated since v7.0 — no replacement', 'Deprecated since v19.0 — remove it']) assert.ok(isCanonical(f), f);
+});
+
+test('marker-like text inside an inline code span is skipped', () => {
+  assert.deepEqual(nonCanonical([mod('13', 'The `[Deprecated]` marker is a mention.')]), []);
+  assert.equal(nonCanonical([mod('13', '`a` [Deprecated]')]).length, 1);
+});

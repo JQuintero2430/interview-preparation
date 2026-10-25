@@ -3,7 +3,7 @@
 // Flags floors (STYLE-GUIDE §12), SYLLABUS §1 ceilings, the prose cap (RUN.md §9: 10,000 words for
 // Parts A, B, C and E) and D3 failures. Exit code 1 only with --strict and at least one flag.
 // Node standard library only.
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,6 +17,14 @@ export function syllabusRows(syllabus) {
   return [...section.matchAll(/^\|\s*(\d{2})\s*\|\s*`([a-z0-9-]+)`[^|]*\|\s*([A-G])[^|]*\|\s*([^|]*?)\s*\|\s*(\d+)\s*\|\s*(\d+)\s*\|/gm)].map(
     (m) => ({ num: m[1], slug: m[2], part: m[3], ng: m[4].includes('NG'), qMax: Number(m[5]), exMax: Number(m[6]) }),
   );
+}
+
+// Rows of the `## Prose cap exceptions` table in PROGRESS.md: Map of module number -> { cap, ruled }.
+export function capExceptions(progress = '') {
+  const section = progress.split(/^## Prose cap exceptions/m)[1]?.split(/^## /m)[0] ?? '';
+  return new Map([...section.matchAll(/^\|\s*(\d{2})\s*\|\s*([\d,]+)\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|/gm)].map(
+    (m) => [m[1], { cap: Number(m[2].replace(/,/g, '')), ruled: m[3] }],
+  ));
 }
 
 export function proseWords(markdown) {
@@ -40,7 +48,13 @@ export function moduleStats(markdown) {
   };
 }
 
-export function flagsFor(stats, row) {
+// The Flags-cell note for a module over the prose cap but within its ruled exception.
+export function capNote(stats, row, exception) {
+  if (!exception || !CAPPED_PARTS.has(row.part) || stats.prose <= PROSE_CAP || stats.prose > exception.cap) return '';
+  return `cap exception ${exception.cap.toLocaleString('en-US')} (ruled ${exception.ruled})`;
+}
+
+export function flagsFor(stats, row, exception) {
   const flags = [];
   const qFloor = row.ng ? 25 : 15;
   const exFloor = row.ng ? 4 : 2;
@@ -48,7 +62,7 @@ export function flagsFor(stats, row) {
   if (stats.exercises < exFloor) flags.push(`exercises ${stats.exercises} < floor ${exFloor}`);
   if (stats.questions > row.qMax) flags.push(`questions ${stats.questions} > ceiling ${row.qMax}`);
   if (stats.exercises > row.exMax) flags.push(`exercises ${stats.exercises} > ceiling ${row.exMax}`);
-  if (CAPPED_PARTS.has(row.part) && stats.prose > PROSE_CAP) flags.push(`prose ${stats.prose} > cap ${PROSE_CAP}`);
+  if (CAPPED_PARTS.has(row.part) && stats.prose > PROSE_CAP && !capNote(stats, row, exception)) flags.push(`prose ${stats.prose} > cap ${PROSE_CAP}`);
   const tags = Object.keys(stats.mix);
   if (tags.length < 4) flags.push(`D3: ${tags.length} tags < 4`);
   if (!stats.mix['Trade-off']) flags.push('D3: no Trade-off');
@@ -66,12 +80,17 @@ function main() {
   const root = resolve(args.find((a) => a !== '--strict') ?? join(here, '..', '..'));
   const rows = new Map(syllabusRows(readFileSync(join(root, 'SYLLABUS.md'), 'utf8')).map((r) => [`${r.num}-${r.slug}.md`, r]));
   const files = readdirSync(join(root, 'modules')).filter((f) => rows.has(f)).sort();
+  const progress = join(root, 'PROGRESS.md');
+  const exceptions = capExceptions(existsSync(progress) ? readFileSync(progress, 'utf8') : '');
   let flagged = 0;
   console.log('| Module | Q | Ex | Prose words | Type mix | Flags |\n|---|---|---|---|---|---|');
   for (const file of files) {
     const stats = moduleStats(readFileSync(join(root, 'modules', file), 'utf8'));
-    const flags = flagsFor(stats, rows.get(file));
+    const row = rows.get(file);
+    const flags = flagsFor(stats, row, exceptions.get(row.num));
     if (flags.length > 0) flagged += 1;
+    const note = capNote(stats, row, exceptions.get(row.num));
+    if (note) flags.push(note);
     const mix = Object.entries(stats.mix).sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} ${n}`).join(', ');
     console.log(`| ${file.slice(0, -3)} | ${stats.questions} | ${stats.exercises} | ${stats.prose} | ${mix} | ${flags.join('; ') || 'none'} |`);
   }

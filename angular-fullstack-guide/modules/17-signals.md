@@ -275,7 +275,7 @@ What to notice: writes only *mark* the effect. It runs later, once, with the fin
 
 ### How it actually works
 
-- `effect(fn, options?)` [Stable since v20.0] registers `fn` and returns an `EffectRef` with `destroy()`. The options are `injector`, `manualCleanup` and `debugName`. `allowSignalWrites` [Deprecated since v19.0 — remove it]: since v19, effects may write signals by default.
+- `effect(fn, options?)` [Stable since v20.0] (the 20.0.0 typings tag it `@publicApi 20.0`; 19.2.0 tagged it `@developerPreview`) registers `fn` and returns an `EffectRef` with `destroy()`. The options are `injector`, `manualCleanup` and `debugName`. `allowSignalWrites` [Deprecated since v19.0 — remove it]: since v19, effects may write signals by default.
 - **Injection context required.** `effect()` needs an [injection context](16-dependency-injection.md) (a constructor, a field initializer, a factory) unless you pass `{ injector }`. Calling it in `ngOnInit` throws `NG0203` ([Q17.16](#q17-16)). The injection context is also how the effect finds its `DestroyRef`, so it is destroyed with its component or service.
 - **Runs at least once**, to discover its dependencies, and then again whenever any of them changes (with equality checks, so a write of an equal value causes no run).
 - **Batched and asynchronous.** Several synchronous writes cause **one** run with the final values ([Q17.13](#q17-13)). Tests flush pending effects with `TestBed.tick()` (introduced in v20.0). The static `TestBed.flushEffects()` [Deprecated since v20.0 — use TestBed.tick()] still exists in 22.2.1 and only forwards to `tick()`; the 20.0.0 CHANGELOG's breaking note says "removed" ([29 §5](29-testing-angular.md#5-zoneless-fixtures-whenstable-testbedtick-detectchanges-and-automatic-change-detection)).
@@ -1865,7 +1865,7 @@ export class ResponsiveGrid {
 **Follow-ups an interviewer will ask.**
 - *Why does `earlyRead` not re-run when the container is resized?* It reads no signals, so nothing marks it dirty. Layout changes are not signals. To react to resizes, feed a signal from a `ResizeObserver` (or use the CDK's layout tools), and read it in `earlyRead`.
 - *`afterNextRender` vs `afterRenderEffect`?* `afterNextRender` runs once, after the next render (one-time setup such as initializing a third-party widget). `afterRenderEffect` is reactive and re-runs when its signals change. Render hooks in general are in [Module 20](20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases).
-- *Could CSS do this instead?* Often, yes. `grid-template-columns: repeat(auto-fill, minmax(160px, 1fr))` needs no JavaScript ([Module 10](10-css-essentials.md)). Reach for `afterRenderEffect` when the decision needs data that CSS cannot see.
+- *Could CSS do this instead?* Often, yes. `grid-template-columns: repeat(auto-fill, minmax(160px, 1fr))` needs no JavaScript ([Module 10](10-css-essentials.md#3-flexbox-grid-and-subgrid)). Reach for `afterRenderEffect` when the decision needs data that CSS cannot see.
 
 **Trap to avoid.** Using the callback form (`afterRenderEffect(() => …)`) for everything. It runs in the `mixedReadWrite` phase, which the Angular docs warn can degrade performance. Split reads and writes into explicit phases.
 

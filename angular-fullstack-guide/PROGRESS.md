@@ -10,8 +10,8 @@ Human-facing dashboard, one row per module. Updated by `CLOSE` tasks (and by boo
 - [x] Phase 1: [SYLLABUS.md](SYLLABUS.md) and [STYLE-GUIDE.md](STYLE-GUIDE.md), approved 2026-10-03 (decisions in SYLLABUS §7)
 - [x] Phase 2: labs scaffolding + pilot module 17 (approved; independent review fixed)
 - [ ] Phase 3: module generation, one module at a time ([ROADMAP](_meta/ROADMAP.md)). Phase A done: modules 01–04 cross-checked, reviewed and fixed (2026-10-06). Modules 05–08 written, closed, reviewed and fixed (2026-10-06); module 09 written, closed, reviewed and fixed (2026-10-06); modules 10 and 11 written, closed, reviewed and fixed (2026-10-07); module 12 written, closed, reviewed and fixed (2026-10-07); module 13 written, closed, reviewed and fixed (2026-10-07); module 14 written, closed, reviewed and fixed (2026-10-08); module 16 written, closed, reviewed and fixed (2026-10-08); module 15 written and closed (2026-10-08), REVIEW-M15 next (ROADMAP row 12). Module 20 written and closed (2026-10-09), REVIEW-M20 next (ROADMAP row 15). Module 21 written and closed (2026-10-09), REVIEW-M21 next (ROADMAP row 16); its bank has 35 questions and not the ceiling of 38 because the topic is exhausted at 35: the candidates that the reactive graph (17), hook order and the `NG0100` matrix (20), DevTools basics (12), the `async` pipe (14) and projected content (19) own were dropped, and the ceiling is an upper limit, not a quota. Module 22 written and closed (2026-10-09), REVIEW-M22 next (ROADMAP row 17); its bank has 34 questions and not the ceiling of 35 because the topic is exhausted at 34: the candidates that promises and `AbortController` (04), the `async` pipe (14), `toSignal` and the `BehaviorSubject` migration (17), the `Subject` bus (19), `takeUntilDestroyed` (20) and higher-order mapping, errors, `shareReplay` and schedulers (23) own were dropped, and the ceiling is an upper limit, not a quota.
-- [ ] Phase 4: reviews (one per module, inside each module's lifecycle)
-- [ ] Phase 5: finish line (root files, cross-module review, repo README link)
+- [x] Phase 4: reviews (one per module, inside each module's lifecycle)
+- [x] Phase 5: finish line (root files, cross-module review, repo README link): done 2026-10-24 (FINAL-VERIFY, S20261024-1224-claudecode). Root files: [README.md](README.md), [QUESTION-INDEX.md](QUESTION-INDEX.md), [GLOSSARY.md](GLOSSARY.md), [CHEATSHEET.md](CHEATSHEET.md), [MOCK-INTERVIEWS.md](MOCK-INTERVIEWS.md).
 
 **Modules done:** 47 / 47 reviewed and fixed (01–47; module 47 by REVIEW-M47 and FIX-M47-01..03, 2026-10-24; module 38 by REVIEW-M38 and FIX-M38-01..03, 2026-10-18; module 39 by REVIEW-M39 and FIX-M39-01..03, 2026-10-20); module 40 by REVIEW-M40 and FIX-M40-01..03, 2026-10-20; module 41 by REVIEW-M41 and FIX-M41-01..03, 2026-10-20; module 42 by REVIEW-M42 and FIX-M42-01..03, 2026-10-21; module 43 by REVIEW-M43 and FIX-M43-01..03, 2026-10-22; module 44 by REVIEW-M44 and FIX-M44-01..03, 2026-10-22; module 45 by REVIEW-M45 and FIX-M45-01..03, 2026-10-22; module 46 by REVIEW-M46 and FIX-M46-01..03, 2026-10-23. Module 47 is closed (CLOSE-M47, 2026-10-23), REVIEW-M47 next. Questions written: 1220 (guide floor 600). Exercises: 197. Module 25 stops at 34 of 35 questions: testing forms is module 29's. Module 26 is at its 28-question ceiling. Module 27 stops at 34 of 35 questions: a stand-alone "what is the SSR transfer cache" question belongs to module 32, so §6 covers it in prose and Q27.21 weighs it against the other caches. Module 28 stops at 34 of 35 questions: a second `BehaviorSubject` question would repeat Q17.40 and Q22.18. Module 29 stops at 34 of 35 questions: a 35th would repeat an owner (Q16.34 override matrix, Q18.19 `@defer` tests, Q19.26 binding functions, Q23.34 marble tests, Q27.34 the HTTP testing backend). Module 30 is at its ceilings of 18 questions and 3 exercises (lab mode: Exercise 30.2 is kept, so nothing was dropped). Module 31 stops at 27 of 30 questions, the count PLAN-M31 (`_meta/modules/M31.md`) sized. Module 32 stops at 27 of 30 questions, the count PLAN-M32 (`_meta/modules/M32.md`) sized: "`withIncrementalHydration()` in v22", "`ngSkipHydration` versus a fix" and "deployment security mistakes" are follow-ups of Q32.14, Q32.12 and Q32.25 (the security side of SSR is module 33's). Module 33 stops at 29 of 30 questions, the count PLAN-M33 (`_meta/modules/M33.md`) sized: "`Renderer2` versus `ElementRef` for DOM writes" is a follow-up of Q33.04 because module 14 owns those APIs.
 
@@ -68,6 +68,19 @@ Q and Ex show `written / ceiling` (SYLLABUS §1 ceilings are upper limits, not q
 | [45 frontend-system-design-method](modules/45-frontend-system-design-method.md) | F | — | done | 17 / 18 | 2 / 2 | yes (ts-js) | yes (CLOSE-M45, 2026-10-22; 8,242 prose words after FIX-M45) | yes (REVIEW-M45, all FIX done 2026-10-22) |
 | [46 system-design-case-studies](modules/46-system-design-case-studies.md) | F | — | done | 26 / 30 | 5 / 6 | yes (ts-js) | yes (CLOSE-M46, 2026-10-23; 14,474 prose words, 14,588 after FIX-M46-01..02) | yes (REVIEW-M46, FIX-M46-01..03, 2026-10-23) |
 | [47 behavioral-and-interview-craft](modules/47-behavioral-and-interview-craft.md) | G | — | done | 15 / 15 | 2 / 2 | yes (ts-js) | yes (CLOSE-M47, 2026-10-23; 9,024 prose words, 9,209 after FIX-M47-01..02) | yes (REVIEW-M47, FIX-M47-01..03, 2026-10-24) |
+
+## Prose cap exceptions
+
+Modules over the 10,000-word prose cap that Jorge ruled may stay up to their own cap (read by `labs/tools/module-stats.mjs`).
+
+| Module | Cap | Ruled | Reason |
+|---|---|---|---|
+| 01 | 15500 | 2026-10-24 | J1 option C; RUN §8: not trimmed for length |
+| 02 | 14000 | 2026-10-24 | J1 option C; RUN §8: not trimmed for length |
+| 03 | 16500 | 2026-10-24 | J1 option C; RUN §8: not trimmed for length |
+| 04 | 15500 | 2026-10-24 | J1 option C; RUN §8: not trimmed for length |
+| 05 | 14000 | 2026-10-24 | J1 option C; RUN §8: not trimmed for length |
+| 06 | 13500 | 2026-10-24 | J1 option C; RUN §8: not trimmed for length |
 
 ## Last full verification
 

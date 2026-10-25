@@ -1396,23 +1396,23 @@ Module 47 (PLAN-M47; plan in `_meta/modules/M47.md`, written 2026-10-23). Run in
 | REVIEW-X-04 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
 | REVIEW-X-05 | L | done | HOUSE-42 | S20261024-0926-claudecode (reviewer claude-opus-5-5) |
 | REVIEW-X-06 | M | done | REVIEW-X-01..05 | S20261024-0943-claudecode (consolidator subagent claude-opus-5-5; link-path fixes, checks and bookkeeping claude-opus-5-5) |
-| HOUSE-44 | S | todo | Jorge's ruling J1 (FINISH.md), REVIEW-X-06 and its FIX-X tasks |  |
-| FIN-02 | S | todo | HOUSE-45, REVIEW-X-06 and its FIX-X tasks |  |
-| FIN-03 | S | todo | HOUSE-43, HOUSE-46, REVIEW-X-06 and its FIX-X tasks |  |
-| FIN-04 | M | todo | FIN-01, REVIEW-X-06 and its FIX-X tasks |  |
-| FIN-05 | M | todo | FIN-04 |  |
-| FIN-06 | M | todo | FIN-05 |  |
-| FIN-07 | M | todo | FIN-06 |  |
-| FIN-08 | M | todo | FIN-07 |  |
-| FIN-09 | M | todo | FIN-01, REVIEW-X-06 and its FIX-X tasks |  |
-| FIN-10 | M | todo | FIN-09 |  |
-| FIN-11 | M | todo | FIN-10 |  |
-| FIN-12 | M | todo | FIN-11 |  |
-| FIN-13 | M | todo | FIN-12 |  |
-| FIN-14 | M | todo | FIN-01, FIN-02, FIN-03, REVIEW-X-06 and its FIX-X tasks |  |
-| FIN-15 | M | todo | FIN-14, FIN-08, FIN-13 |  |
-| FIN-16 | S | todo | FIN-15 |  |
-| REVIEW-X-07 | L | todo | FIN-02, FIN-03, FIN-08, FIN-13, FIN-15 |  |
+| HOUSE-44 | S | done | Jorge's ruling J1 (FINISH.md), REVIEW-X-06 and its FIX-X tasks | S20261024-1224-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-02 | S | done | HOUSE-45, REVIEW-X-06 and its FIX-X tasks | S20261024-1001-claudecode (main claude-opus-5-5 ran the generator) |
+| FIN-03 | S | done | HOUSE-43, HOUSE-46, REVIEW-X-06 and its FIX-X tasks | S20261024-1001-claudecode (main claude-opus-5-5 ran the generator; J2 full) |
+| FIN-04 | M | done | FIN-01, REVIEW-X-06 and its FIX-X tasks | S20261024-1001-claudecode (writer claude-sonnet-5-5; trim fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-05 | M | done | FIN-04 | S20261024-1001-claudecode (writer claude-sonnet-5-5; trim fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-06 | M | done | FIN-05 | S20261024-1001-claudecode (writer claude-sonnet-5-5; trim fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-07 | M | done | FIN-06 | S20261024-1001-claudecode (writer claude-sonnet-5-5; trim fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-08 | M | done | FIN-07 | S20261024-1001-claudecode (writer claude-sonnet-5-5; trim fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-09 | M | done | FIN-01, REVIEW-X-06 and its FIX-X tasks | S20261024-1001-claudecode (writer claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-10 | M | done | FIN-09 | S20261024-1001-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-11 | M | done | FIN-10 | S20261024-1001-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-12 | M | done | FIN-11 | S20261024-1001-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-13 | M | done | FIN-12 | S20261024-1001-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-14 | M | done | FIN-01, FIN-02, FIN-03, REVIEW-X-06 and its FIX-X tasks | S20261024-1001-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-15 | M | done | FIN-14, FIN-08, FIN-13 | S20261024-1001-claudecode (writer claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIN-16 | S | done | FIN-15 | S20261024-1001-claudecode (main claude-opus-5-5; one prescribed line, no subagent) |
+| REVIEW-X-07 | L | done | FIN-02, FIN-03, FIN-08, FIN-13, FIN-15 | S20261024-1030-claudecode (reviewers 2× claude-sonnet-5-5 cheat sheet, claude-opus-5-5 mocks, claude-sonnet-5-5 README/samples; consolidation claude-opus-5-5) |
 | FIX-X-01 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
 | FIX-X-02 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
 | FIX-X-03 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
@@ -1426,13 +1426,25 @@ Module 47 (PLAN-M47; plan in `_meta/modules/M47.md`, written 2026-10-23). Run in
 | FIX-X-11 | M | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
 | FIX-X-12 | M | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
 | FIX-X-13 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
-| FIX-X-14 | S | todo | REVIEW-X-06 |  |
-| FIX-X-15 | S | todo | REVIEW-X-06 |  |
-| FIX-X-16 | S | todo | REVIEW-X-06 |  |
-| FIX-X-17 | S | todo | REVIEW-X-06 |  |
+| FIX-X-14 | S | done | REVIEW-X-06 | S20261024-1001-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-15 | S | done | REVIEW-X-06 | S20261024-1001-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-16 | S | done | REVIEW-X-06 | S20261024-1001-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-17 | S | done | REVIEW-X-06 | S20261024-1001-claudecode (fixer claude-haiku-5-5; checks and bookkeeping claude-opus-5-5) |
 | FIX-X-18 | S | done | REVIEW-X-06 | S20261024-0943-claudecode (fixer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
-| FIX-X-19 | M | todo | FIX-X-01..18 |  |
-| FINAL-VERIFY | M | todo | every row above, HOUSE-44, every FIX-X task |  |
+| FIX-X-19 | M | done | FIX-X-01..18 | S20261024-1001-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-20 | S | done | REVIEW-X-07 | S20261024-1030-claudecode (main claude-opus-5-5; prescribed texts applied by one script, checks by main) |
+| FIX-X-21 | S | done | REVIEW-X-07 | S20261024-1030-claudecode (main claude-opus-5-5; prescribed texts applied by one script, checks by main) |
+| FIX-X-22 | S | done | REVIEW-X-07 | S20261024-1030-claudecode (main claude-opus-5-5; prescribed texts applied by one script, checks by main) |
+| FIX-X-23 | S | done | REVIEW-X-07 | S20261024-1030-claudecode (main claude-opus-5-5; prescribed texts applied by one script, checks by main) |
+| FIX-X-24 | S | done | REVIEW-X-07 | S20261024-1030-claudecode (main claude-opus-5-5; prescribed texts applied by one script, checks by main) |
+| FIX-X-25 | S | done | REVIEW-X-06, FIX-X-19, Jorge ruling 2026-10-24 (7 markers: amend §3.2) | S20261024-1224-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FINAL-VERIFY | M | done | every row above, HOUSE-44, every FIX-X task | S20261024-1224-claudecode (main claude-opus-5-5 ran every check serially) |
+| HOUSE-47 | S | done | FINAL-VERIFY, Jorge "decide and close everything" 2026-10-24 | S20261024-1224-claudecode (main claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| HOUSE-48 | S | done | FINAL-VERIFY (J5) | S20261024-1224-claudecode (main claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| HOUSE-49 | M | done | FINAL-VERIFY (REVIEW-X-07 For Jorge) | S20261024-1224-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-26 | M | done | FINAL-VERIFY (STATE standing notes, modules 17, 20, 22) | S20261024-1224-claudecode (writer claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
+| FIX-X-27 | M | done | FINAL-VERIFY (STATE standing notes, modules 04, 05, 11, 13, 14, 39, SYLLABUS) | S20261024-1224-claudecode (writer claude-sonnet-5-5; checks and bookkeeping claude-opus-5-5) |
+| HOUSE-50 | S | done | HOUSE-47..49, FIX-X-26..27 | S20261024-1224-claudecode (main claude-opus-5-5; checks and bookkeeping claude-opus-5-5) |
 
 ## Task details
 
@@ -7329,7 +7341,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 ### FIX-M44-03 · S · Anchors for the file-level links into 44 (+0 words)
 - Model: **Sonnet** (mechanical; slugs listed).
 - Status: done. Depends: REVIEW-M44.
-- Files: link targets only in `modules/05-*.md`, `09-*.md`, `12-*.md`, `30-*.md`, `31-*.md`, `32-*.md`, `33-*.md`, `34-*.md`, `37-*.md`, `38-*.md`, `39-*.md`, `41-*.md`, `42-*.md`, `43-*.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
+- Files: link targets only in `modules/05-js-modules-memory-modern-features.md`, `09-*.md`, `12-*.md`, `30-*.md`, `31-*.md`, `32-*.md`, `33-*.md`, `34-*.md`, `37-*.md`, `38-*.md`, `39-*.md`, `41-*.md`, `42-*.md`, `43-*.md` (allowed through this FIX, RUN.md §10); `_meta/LOG.md` (its own line only).
 - Inputs: `_meta/reviews/REVIEW-M44.md` § Handoffs.
 - Do: apply the Handoffs table (31 rows: §1 09:367, 41:69, 41:1398, 42:447, 42:2124; §3 09:266, 09:893, 31:514, 33:1867, 33:2128, 34:568, 34:1943; §4 43:427, 43:1273, 43:2008; §5 12:328, 12:1015, 12:1053, 12:1637, 38:601; §6 32:2285; §7 12:1715, 30:676, 38:836, 38:2040, 39:1947, 41:350; §8 05:893; §9 37:897, 37:1739, 37:2105). Each listed line holds exactly one link to `44-fullstack-delivery-and-operations.md`; if a line has moved, find it by that link and its context, and stop and report if a line no longer holds exactly one. Only the link target changes (`44-fullstack-delivery-and-operations.md` → `44-fullstack-delivery-and-operations.md#<slug>`). Verify each slug against module 44's `## N.` headings. Leave the `:5` header lines and the lines the Handoffs section lists as file-level unchanged. FIX-M44-01 and -02 change no heading, so order does not matter.
 - Acceptance: `node labs/tools/check-links.mjs --planned` exits 0; `grep -c '44-fullstack-delivery-and-operations.md#'` across the fourteen files totals 31 (0 before); `git diff --stat` touches only those fourteen files among modules (on top of their existing uncommitted changes); prose counts of every touched module unchanged.
@@ -8098,7 +8110,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### HOUSE-44 · S · module-stats honors ruled prose-cap exceptions
 - Model: **Sonnet** writes; main runs.
-- Status: todo. Depends: Jorge's ruling J1 (options A or C; with option B this task is dropped), REVIEW-X-06 and its FIX-X tasks.
+- Status: done (S20261024-1224-claudecode; Jorge ruled J1 option C on 2026-10-24: exceptions for 01–06). Depends: Jorge's ruling J1 (options A or C; with option B this task is dropped), REVIEW-X-06 and its FIX-X tasks.
 - Files: `labs/tools/module-stats.mjs`, `labs/tools/module-stats.test.mjs`, `PROGRESS.md` (new `## Prose cap exceptions` table).
 - Inputs: FINISH.md §5; the J1 ruling in STATE; `node labs/tools/module-stats.mjs` output after the FIX-X tasks.
 - Do: the table rows `| NN | cap | ruled YYYY-MM-DD | reason |` for each module the ruling covers (cap = measured prose rounded up to the next 500, unless the ruling says otherwise); module-stats reads it and prints `cap exception` instead of a flag when prose ≤ that cap.
@@ -8106,7 +8118,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIN-02 · S · Generate QUESTION-INDEX.md
 - Model: main runs the generator (no writer).
-- Status: todo. Depends: HOUSE-45, REVIEW-X-06 and its FIX-X tasks.
+- Status: done (S20261024-1001-claudecode). Depends: HOUSE-45, REVIEW-X-06 and its FIX-X tasks.
 - Files: `QUESTION-INDEX.md` (new, generated).
 - Inputs: FINISH.md §6.1.
 - Do: `node labs/tools/question-index.mjs --write`.
@@ -8114,47 +8126,47 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIN-03 · S · Generate GLOSSARY.md
 - Model: main runs the generator (no writer).
-- Status: todo. Depends: HOUSE-43, HOUSE-46, REVIEW-X-06 and its FIX-X tasks. Ruling J2 (default: full).
+- Status: done (S20261024-1001-claudecode; Jorge ruled J2 full, budget 750 KB). Depends: HOUSE-43, HOUSE-46, REVIEW-X-06 and its FIX-X tasks. Ruling J2 (default: full).
 - Files: `GLOSSARY.md` (new, generated).
 - Inputs: FINISH.md §6.2.
 - Do: `node labs/tools/glossary.mjs --write`.
-- Acceptance: `glossary.mjs --check` exits 0; `grep -c '<a id="' GLOSSARY.md` = the key count the script prints; `grep -c '<a id="zonejs"></a>' GLOSSARY.md` = 1; file ≤ 700 KB; finish links gate (the `GLOSSARY.md#zonejs` links of 04 and 17 resolve).
+- Acceptance: `glossary.mjs --check` exits 0; `grep -c '<a id="' GLOSSARY.md` = the key count the script prints; `grep -c '<a id="zonejs"></a>' GLOSSARY.md` = 1; file ≤ 750 KB (J2, 2026-10-24); finish links gate (the `GLOSSARY.md#zonejs` links of 04 and 17 resolve).
 
 ### FIN-04 · M · CHEATSHEET, Parts A–C (modules 01–11)
 - Model: **Sonnet** (prescribed by FINISH.md §6.3).
-- Status: todo. Depends: FIN-01, REVIEW-X-06 and its FIX-X tasks.
+- Status: done (S20261024-1001-claudecode). Depends: FIN-01, REVIEW-X-06 and its FIX-X tasks.
 - Files: `CHEATSHEET.md` (region FIN-04: the how-to-use paragraph, `## Part A · JavaScript`, `## Part B · TypeScript`, `## Part C · Web platform`, `### 01 · …` to `### 11 · …`).
 - Inputs: FINISH.md §6.3; per module 01–11: header Short on time, `## Summary`, the "Misconceptions and traps" lists; REVIEW-X.md (any fixed claim).
 - Do: §6.3, 5–8 bullets per module, each ending with an anchored link.
 - Acceptance: `grep -c '<!-- TASK: FIN-04 -->' CHEATSHEET.md` = 0; 11 `### ` headings added; every bullet anchored (§6.3 count equality); region ≤ 1,800 prose words; every marker in the region found verbatim in its linked module (main greps); finish links gate.
 
 ### FIN-05 · M · CHEATSHEET, Part D (modules 12–21)
-- Model: **Sonnet**. Status: todo. Depends: FIN-04 (same file).
+- Model: **Sonnet**. Status: done (S20261024-1001-claudecode). Depends: FIN-04 (same file).
 - Files: `CHEATSHEET.md` (region FIN-05: `## Part D · Angular`, `### 12 · …` to `### 21 · …`).
 - Inputs and Do: as FIN-04 for 12–21.
 - Acceptance: as FIN-04: marker gone; 10 headings; region ≤ 1,600 prose words.
 
 ### FIN-06 · M · CHEATSHEET, Part D (modules 22–30)
-- Model: **Sonnet**. Status: todo. Depends: FIN-05.
+- Model: **Sonnet**. Status: done (S20261024-1001-claudecode). Depends: FIN-05.
 - Files: `CHEATSHEET.md` (region FIN-06: `### 22 · …` to `### 30 · …`).
 - Inputs and Do: as FIN-04 for 22–30.
 - Acceptance: as FIN-04: marker gone; 9 headings; region ≤ 1,450 prose words.
 
 ### FIN-07 · M · CHEATSHEET, Part D (modules 31–40)
-- Model: **Sonnet**. Status: todo. Depends: FIN-06.
+- Model: **Sonnet**. Status: done (S20261024-1001-claudecode). Depends: FIN-06.
 - Files: `CHEATSHEET.md` (region FIN-07: `### 31 · …` to `### 40 · …`).
 - Inputs and Do: as FIN-04 for 31–40.
 - Acceptance: as FIN-04: marker gone; 10 headings; region ≤ 1,600 prose words.
 
 ### FIN-08 · M · CHEATSHEET, Parts E–G (modules 41–47)
-- Model: **Sonnet**. Status: todo. Depends: FIN-07.
+- Model: **Sonnet**. Status: done (S20261024-1001-claudecode). Depends: FIN-07.
 - Files: `CHEATSHEET.md` (region FIN-08: `## Part E · Full stack with Spring Boot`, `## Part F · System design`, `## Part G · Interview practice`, `### 41 · …` to `### 47 · …`).
 - Inputs and Do: as FIN-04 for 41–47.
 - Acceptance: as FIN-04: marker gone; 7 headings; region ≤ 1,100 prose words; whole file: 47 `### ` headings, ≤ 7,500 prose words, `grep -c '<!-- TASK:' CHEATSHEET.md` = 0.
 
 ### FIN-09 · M · MOCK-INTERVIEWS design: how to run, rubric, blueprint
 - Model: **Opus** (judgment-heavy: question selection and scoring design).
-- Status: todo. Depends: FIN-01, REVIEW-X-06 and its FIX-X tasks.
+- Status: done (S20261024-1001-claudecode). Depends: FIN-01, REVIEW-X-06 and its FIX-X tasks.
 - Files: `MOCK-INTERVIEWS.md` (region FIN-09); `_meta/modules/FINISH.md` (§9 region FIN-09).
 - Inputs: FINISH.md §6.4; SYLLABUS §4 (47) and its Root-level practice files line; module 47 (Contents, §1 headings, Summary); QUESTION-INDEX.md (FIN-02 if done, else `grep '^### Q' modules/*.md`); REVIEW-X.md (retired or merged questions).
 - Do: in MOCK-INTERVIEWS.md: `## How to run a mock` and `## Scoring rubric` (≤ 1,200 prose words together). In FINISH.md §9: per mock, the theme, length, 6–8 prompts in order each with its owning Q ID or section anchor, 1–3 follow-ups each, and the scoring focus, so FIN-10…13 are prescribed; any change to §6.4's default themes with its reason.
@@ -8162,33 +8174,33 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIN-10 · M · Mocks 1 and 2
 - Model: **Sonnet** (prescribed by FINISH.md §9).
-- Status: todo. Depends: FIN-09.
+- Status: done (S20261024-1001-claudecode). Depends: FIN-09.
 - Files: `MOCK-INTERVIEWS.md` (region FIN-10).
 - Inputs: FINISH.md §6.4 and §9 (Mocks 1, 2); the rubric written by FIN-09; each linked question's answer and follow-ups.
 - Do: `## Mock 1 · <theme>` and `## Mock 2 · <theme>` per §6.4: prompts, follow-ups, model-answer outlines (≤ 120 words each, linked), scoring notes.
 - Acceptance: marker gone; `grep -c '^## Mock [12] · '` = 2; each mock ≤ 1,800 prose words; every Q ID in the region is a link (§6.4 count equality); no claim beyond the linked passages (REVIEW-X-07 checks); finish links gate.
 
 ### FIN-11 · M · Mocks 3 and 4
-- Model: **Sonnet**. Status: todo. Depends: FIN-10.
+- Model: **Sonnet**. Status: done (S20261024-1001-claudecode). Depends: FIN-10.
 - Files: `MOCK-INTERVIEWS.md` (region FIN-11).
 - Inputs and Do: as FIN-10 for Mocks 3 and 4.
 - Acceptance: as FIN-10 with `^## Mock [34] · ` = 2.
 
 ### FIN-12 · M · Mocks 5 and 6
-- Model: **Sonnet**. Status: todo. Depends: FIN-11.
+- Model: **Sonnet**. Status: done (S20261024-1001-claudecode). Depends: FIN-11.
 - Files: `MOCK-INTERVIEWS.md` (region FIN-12).
 - Inputs and Do: as FIN-10 for Mocks 5 and 6.
 - Acceptance: as FIN-10 with `^## Mock [56] · ` = 2.
 
 ### FIN-13 · M · Mocks 7 and 8
-- Model: **Sonnet**. Status: todo. Depends: FIN-12.
+- Model: **Sonnet**. Status: done (S20261024-1001-claudecode). Depends: FIN-12.
 - Files: `MOCK-INTERVIEWS.md` (region FIN-13).
 - Inputs and Do: as FIN-10 for Mocks 7 and 8.
 - Acceptance: as FIN-10 with `^## Mock [78] · ` = 2; whole file: `^## Mock [1-8] · ` = 8, ≤ 16,000 prose words, `grep -c '<!-- TASK:' MOCK-INTERVIEWS.md` = 0.
 
 ### FIN-14 · M · README: what, how a module is built, prerequisite map, modules table, practice files, labs, conventions
 - Model: **Sonnet** (prescribed by FINISH.md §6.5).
-- Status: todo. Depends: FIN-01, FIN-02, FIN-03, REVIEW-X-06 and its FIX-X tasks.
+- Status: done (S20261024-1001-claudecode). Depends: FIN-01, FIN-02, FIN-03, REVIEW-X-06 and its FIX-X tasks.
 - Files: `README.md` (regions FIN-14a and FIN-14b, each replaced in one edit).
 - Inputs: FINISH.md §6.5; SYLLABUS §1, §2; every module header (H1, Prerequisites, Study time: `grep -m1`); `node labs/tools/module-stats.mjs` output; VERSIONS.md (head); STYLE-GUIDE §3.2; RUN.md §1 (mission wording); the Standard checks at the top of TASKS.md (lab commands).
 - Do: §6.5 FIN-14 contents; the map is SYLLABUS §2's graph after the edge check; any edge SYLLABUS §1 and §2 disagree on is reported in the LOG line, and the README follows §1.
@@ -8196,7 +8208,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIN-15 · M · README: study paths by goal
 - Model: **Opus** (judgment-heavy: what each path keeps and drops).
-- Status: todo. Depends: FIN-14, FIN-08, FIN-13.
+- Status: done (S20261024-1001-claudecode). Depends: FIN-14, FIN-08, FIN-13.
 - Files: `README.md` (region FIN-15).
 - Inputs: FINISH.md §6.5; SYLLABUS §3; module headers (Study time, Short on time); CHEATSHEET.md and MOCK-INTERVIEWS.md headings; QUESTION-INDEX.md.
 - Do: `## Study paths` with the five paths as `### ` headings named by goal, per §6.5.
@@ -8204,7 +8216,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIN-16 · S · The single link in the repo-root README
 - Model: **Haiku** (one prescribed line).
-- Status: todo. Depends: FIN-15.
+- Status: done (S20261024-1001-claudecode). Depends: FIN-15.
 - Files: `../README.md` (repo root; RUN §7's one exception).
 - Inputs: FINISH.md §6.6; module-stats totals.
 - Do: append FINISH.md §6.6's line; touch nothing else (J6).
@@ -8212,7 +8224,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### REVIEW-X-07 · L · Independent review of the root files
 - Model: **Opus** (judgment-heavy; a session that wrote none of FIN-04…15).
-- Status: todo. Depends: FIN-02, FIN-03, FIN-08, FIN-13, FIN-15.
+- Status: done (S20261024-1030-claudecode). Depends: FIN-02, FIN-03, FIN-08, FIN-13, FIN-15. Report `_meta/reviews/REVIEW-X-07.md`: 20 findings (1 High), 17 fixed by FIX-X-20…24, 3 not fixed.
 - Files: `_meta/reviews/REVIEW-X-07.md` (new); `_meta/TASKS.md` (FIX-X rows before the FINAL-VERIFY row, continuing REVIEW-X-06's numbering, and blocks at the end).
 - Inputs: FINISH.md §6; CHEATSHEET.md, MOCK-INTERVIEWS.md, README.md (whole); QUESTION-INDEX.md and GLOSSARY.md (20 sampled entries each against their sources); the passages each cheat-sheet bullet and model answer links; QUALITY-BAR (teaching items).
 - Do: check every cheat-sheet bullet and model-answer outline against its link (no claim beyond it, markers verbatim), the rubric's usefulness, the study paths' coverage of their goals and their times, the map against SYLLABUS §1, size budgets, and no level labels; findings with verbatim fix texts become FIX-X tasks.
@@ -8220,7 +8232,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FINAL-VERIFY · M · The §13 checklist, with evidence
 - Model: main session (**Opus**); runs everything serially; no writer.
-- Status: todo. Depends: every finish-line row above, HOUSE-44 (or Jorge's option B tasks), every FIX-X task.
+- Status: done (S20261024-1224-claudecode). Depends: every finish-line row above, HOUSE-44 (or Jorge's option B tasks), every FIX-X task.
 - Files: `_meta/LOG.md` (final entry), `_meta/STATE.md`, `PROGRESS.md` (Phase 4 and Phase 5 ticked, root files listed), `_meta/ROADMAP.md` (Phase C done).
 - Inputs: RUN.md §13; FINISH.md §7 and For Jorge (J7, J8, J9).
 - Do: run FINISH.md §7 items 1–7 one at a time (Node 24; e2e under `caffeinate -dimsu`); record each as `command → exit code → one-line result` in one LOG entry, with the open rulings of J9 listed; on any failure stop, record it, append a FIX task, and do not mark the job done.
@@ -8338,7 +8350,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-14 · S · Code-span markers in 32 and 33
 - Model: **Haiku** (eleven prescribed swaps).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-1001-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/32-ssr-ssg-hydration.md`, `modules/33-security.md`.
 - Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F02.
 - Do: 32:524, 606, 630, 1063, 1081, 1091, 1133, 1615 swaps 1–9; 33:266, 273 swaps 10–11. Each old text includes its enclosing backticks; API names inside a marker get their own backticks as the fix text shows.
@@ -8346,7 +8358,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-15 · S · Module 36 isSignalErrorState marker; module 40 fine-grained reactivity
 - Model: **Sonnet** (one marker swap, one prescribed sentence with a link).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-1001-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/36-material-and-cdk.md`, `modules/40-framework-comparisons.md`.
 - Inputs: `_meta/reviews/REVIEW-X-04.md` X-04-F01; `_meta/reviews/REVIEW-X-02.md` X-02-F08 (1).
 - Do: 36:145 X-04-F01; 40:280 X-02-F08 swap 1 (the glossary line is FIX-X-18's).
@@ -8354,7 +8366,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-16 · S · Module 42 Summary (csrf.spa); module 43 forwarded headers
 - Model: **Sonnet** (prescribed prose swaps).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-1001-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/42-fullstack-authentication.md`, `modules/43-fullstack-realtime.md`.
 - Inputs: `_meta/reviews/REVIEW-X-05.md` X-05-F02, X-05-F03.
 - Do: 42:1409 (Summary) X-05-F02; 43:838 X-05-F03.
@@ -8362,7 +8374,7 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-17 · S · Module 45: the 37 pointer for the missing sync listener
 - Model: **Haiku** (two link-target swaps).
-- Status: todo. Depends: REVIEW-X-06.
+- Status: done (S20261024-1001-claudecode). Depends: REVIEW-X-06.
 - Files: `modules/45-frontend-system-design-method.md`.
 - Inputs: `_meta/reviews/REVIEW-X-05.md` X-05-F04.
 - Do: 45:584 and 45:1175 X-05-F04 swaps 1–2 (37 §4 → 37 §7, label and anchor).
@@ -8378,8 +8390,83 @@ Common rules for each task: only the declared files change; no git writes; the m
 
 ### FIX-X-19 · M · J4 default: marker variants in STYLE-GUIDE §3.2 and the scan's canonical list
 - Model: **Sonnet** writes (texts prescribed); main runs the tests and the scan.
-- Status: todo. Depends: FIX-X-01 … FIX-X-18 (the scan count is measured on the fixed modules). Applies J4's default (FINISH.md For Jorge); if Jorge rules J4 the other way before this task starts, cancel it and record the ruling (REVIEW-X.md For Jorge lists the markers that would need rewriting).
+- Status: done (S20261024-1001-claudecode). Depends: FIX-X-01 … FIX-X-18 (the scan count is measured on the fixed modules). Applies J4's default (FINISH.md For Jorge); if Jorge rules J4 the other way before this task starts, cancel it and record the ruling (REVIEW-X.md For Jorge lists the markers that would need rewriting).
 - Files: `STYLE-GUIDE.md` (§3.2 only), `labs/tools/consistency-scan.mjs`, `labs/tools/consistency-scan.test.mjs`.
 - Inputs: `_meta/reviews/REVIEW-X.md` decision 7, C4, C5 and For Jorge; FINISH.md §4.4 and J4; the Scripts rule of the finish-line common rules.
 - Do: insert C4 in STYLE-GUIDE §3.2 where C4 says; replace the `V` constant and `CANONICAL` list of `consistency-scan.mjs` with C5; add C5's test to `consistency-scan.test.mjs`. Nothing else changes.
 - Acceptance: `grep -cF 'Accepted variants of the version part' STYLE-GUIDE.md` 0 → 1; `grep -c 'TanStack Query' labs/tools/consistency-scan.mjs` 0 → 2; `node --test 'labs/tools/*.test.mjs'` exit 0; the scan's section 1 item count (REVIEW-X.md, Checks) 109 → 7 (132 before FIX-X-01…18), and the 7 are exactly the items REVIEW-X.md For Jorge lists; the guide-wide backtick-marker occurrence count is 1; finish links gate.
+
+### REVIEW-X-07 fix tasks (FIX-X-20 … FIX-X-24) · common rules
+- Plan: `_meta/reviews/REVIEW-X-07.md`, section Fix texts: each task applies its file's numbered old → new pairs verbatim, finding each by its old text. No two tasks share a file. Every task also passes the finish links gate (`node labs/tools/check-links.mjs` exit 0).
+
+### FIX-X-20 · S · CHEATSHEET.md: six bullets against their links
+- Model: main (claude-opus-5-5) applies the prescribed texts with one script (cheaper than a subagent spin-up for verbatim swaps) and runs the checks.
+- Status: done (S20261024-1030-claudecode). Depends: REVIEW-X-07.
+- Files: `CHEATSHEET.md`.
+- Inputs: REVIEW-X-07.md, Fix texts for FIX-X-20; findings M-F01 (cheat-sheet part), CS1-F01…F06.
+- Do: apply the pairs; nothing else changes.
+- Acceptance: bullets 372 = anchored 372; per-module prose ≤ 160 (08 ≤ 160) and file ≤ 7,500; `grep -cF 'forward with the receiver'` 1 → 0; `grep -cF 'parser running'` 0 → 1.
+
+### FIX-X-21 · S · Module 08: `defer` and module scripts wait for script-blocking CSS
+- Model: main (claude-opus-5-5) applies the prescribed texts with one script (cheaper than a subagent spin-up for verbatim swaps) and runs the checks.
+- Status: done (S20261024-1030-claudecode). Depends: REVIEW-X-07.
+- Files: `modules/08-browser-rendering-dom-events.md`.
+- Inputs: REVIEW-X-07.md, Fix texts for FIX-X-21; findings M-F01.
+- Do: apply the pairs; nothing else changes.
+- Acceptance: `grep -cF 'has no style sheet that is blocking scripts'` 0 → 1; `grep -cF 'and `defer` and module scripts do not'` 1 → 0; row 08 prose ≤ 10,000, no flag; `check-snippets . 08` exit 0.
+
+### FIX-X-22 · S · MOCK-INTERVIEWS.md: rubric red flags, Mock 8 P8 scoring, four outlines
+- Model: main (claude-opus-5-5) applies the prescribed texts with one script (cheaper than a subagent spin-up for verbatim swaps) and runs the checks.
+- Status: done (S20261024-1030-claudecode). Depends: REVIEW-X-07.
+- Files: `MOCK-INTERVIEWS.md`.
+- Inputs: REVIEW-X-07.md, Fix texts for FIX-X-22; findings MK-F01…F07.
+- Do: apply the pairs; nothing else changes.
+- Acceptance: `grep -c '^## Mock [1-8] · '` 8; every outline ≤ 120 words, each mock ≤ 1,800 prose words; Q-ID mentions = linked IDs; `grep -cF 'scores Correctness 0'` 1 → 0.
+
+### FIX-X-23 · S · README.md: two path sentences
+- Model: main (claude-opus-5-5) applies the prescribed texts with one script (cheaper than a subagent spin-up for verbatim swaps) and runs the checks.
+- Status: done (S20261024-1030-claudecode). Depends: REVIEW-X-07.
+- Files: `README.md`.
+- Inputs: REVIEW-X-07.md, Fix texts for FIX-X-23; findings RD-F03, RD-F04.
+- Do: apply the pairs; nothing else changes.
+- Acceptance: `grep -cF 'because 28 lists it'` 1 → 0; prose ≤ 5,000; `### ` under Study paths 5.
+
+### FIX-X-24 · S · Glossary: split five homonyms, regenerate
+- Model: main (claude-opus-5-5) applies the prescribed texts with one script (cheaper than a subagent spin-up for verbatim swaps) and runs the checks.
+- Status: done (S20261024-1030-claudecode). Depends: REVIEW-X-07.
+- Files: `_meta/GLOSSARY-TERMS.md`, `GLOSSARY.md` (regenerated with `node labs/tools/glossary.mjs --write`).
+- Inputs: REVIEW-X-07.md, Fix texts for FIX-X-24; findings RD-F01 (5 clear cases).
+- Do: apply the pairs; nothing else changes.
+- Acceptance: `glossary.mjs --check` exit 0; anchors `scope-oauth`, `state-oauth`, `signal-process`, `signal-telemetry`, `mdc-logging` present (slugs as the generator emits them); `<a id="zonejs"></a>` count 1.
+
+### FIX-X-25 · S · Ruling: the 7 remaining non-canonical markers are accepted in STYLE-GUIDE §3.2 and the scan
+- Model: **Sonnet** writes; main runs the tests and the scan.
+- Status: done (S20261024-1224-claudecode). Depends: FIX-X-19. Jorge ruled on 2026-10-24 (REVIEW-X.md For Jorge, "Left non-canonical after FIX-X-19"): amend §3.2, no module prose changes.
+- Files: `STYLE-GUIDE.md` (§3.2 only), `labs/tools/consistency-scan.mjs`, `labs/tools/consistency-scan.test.mjs`.
+- Inputs: `_meta/reviews/REVIEW-X.md` For Jorge; STYLE-GUIDE §3.2; the scan's `CANONICAL` list and marker extraction.
+- Do: §3.2 accepts (1) a bare `[Changed in ES20xx]` / `[Changed in TypeScript x.y]` with no `: …` text, (2) `[Deprecated since vX.Y]` with no replacement, or with `— no replacement` / `— remove it`; the scan's canonical list matches the same shapes; the scan skips marker-like text inside inline code spans (13:1016 `[Deprecated]`). One test per new shape and one for the code-span skip.
+- Acceptance: `node --test 'labs/tools/*.test.mjs'` exit 0; `node labs/tools/consistency-scan.mjs . --strict-markers` exit 0 (section 1: 0 items); no file under `modules/` changed; finish links gate.
+
+### Post-finish closeout (HOUSE-47 … HOUSE-50, FIX-X-26, FIX-X-27) · common rules
+- Jorge, 2026-10-24: "toma las decisiones que mejor te parezcan y cierra todo" (decide and close every open item; Jorge only runs git add and commit). Main (claude-opus-5-5) rules on each open item and runs every check; writers edit only their files and run nothing but read-only source inspection.
+
+### HOUSE-47 · S · Repo README: React guide link (J6)
+- Model: main. Files: `../README.md`. Do: point the React link at `react-full-stack-interview-guide/README.md` (the folder that exists). Acceptance: the link target exists; the guide link grep stays 1.
+
+### HOUSE-48 · S · Parse every Mermaid block (J5)
+- Model: main. Files: none in the repo (script and packed `mermaid` in the job tmp dir, deleted after). Do: `mermaid.parse` every ```mermaid block in the guide's Markdown in Playwright's Chromium (already installed for module 30). Acceptance: 0 parse errors, or a FIX for each failing block.
+
+### HOUSE-49 · M · Glossary homonyms, the rest (REVIEW-X-07 For Jorge)
+- Model: **Sonnet** judges and writes; main regenerates and checks. Files: `_meta/GLOSSARY-TERMS.md`; `GLOSSARY.md` (regenerated by main).
+- Do: the REVIEW-X-07 For Jorge method (Jaccard < 0.08 within a `normalizeKey` group, 78 pairs); for each real homonym add the existing qualifier convention (`scope (template)`); false positives unchanged. Acceptance: `glossary.mjs --write` then `--check` 0; check-links 0.
+
+### FIX-X-26 · M · Pending factual items in 17, 20, 22 (STATE standing notes)
+- Model: **Opus** (pilot module; stability-history judgment). Files: `modules/17-signals.md`, `modules/20-lifecycle-and-render-hooks.md`, `modules/22-rxjs-foundations.md`, the module-20 lab spec whose test title overclaims.
+- Items: 17 `effect` [Stable since v20.0] marker basis; Q17.02 "an Eager tick would refresh the field"; 17:153 `@Service` marker; Q17.39 module-10 pointer without anchor; 22 §6 problem paragraph pointing at Q22.24-Q22.26; 20 C4 `DestroyRef` marker and `checkNoChanges`/`takeUntilDestroyed` first mention; 20 test title "Section 7: the render queue runs only after a render". Acceptance: each item fixed with a recorded basis or shown already correct; check-snippets for 17, 20, 22 exit 0; module-20 lab tests pass; check-links 0.
+
+### FIX-X-27 · M · Pending factual items in 04, 05, 11, 13, 14, 39 and SYLLABUS (STATE standing notes)
+- Model: **Sonnet**. Files: `modules/04-js-async-event-loop.md`, `modules/05-js-modules-memory-modern-features.md`, `modules/11-accessibility.md`, `modules/13-components-and-templates.md`, `modules/14-directives-and-pipes.md`, `modules/39-version-history-and-migrations.md`, `SYLLABUS.md`.
+- Items: 39 §10-§12, Q39.20-Q39.23 never claim an in-memory run of control-flow or inject migrations; Exercises 13.1 and 13.2 match their lab solutions (EX-M13-03 splice); 05:853 tree-shaking of unused root services; 04:1148 initializer pointer; 14 arrow functions as pipe arguments on v22.2.1; 11 EN 301 549 hedge; SYLLABUS `::ng-deep` "deprecated" → "discouraged", "v20+ operators" (`typeof` 19.0, untagged template literals 19.2), 25 `min`/`max` [Changed in v22] is a Signal Forms rule. Acceptance: as FIX-X-26 for its modules; module-stats --strict 0.
+
+### HOUSE-50 · S · Rule and close every remaining standing note
+- Model: main. Files: `_meta/STATE.md`, `_meta/STATE-ARCHIVE.md`, `_meta/LOG.md`, `_meta/TASKS.md`, `VERSIONS.md` (refactor-jasmine-vitest row). Status: done (S20261024-1224-claudecode). Do: record a ruling for every open STATE note (see LOG), move them to closed, re-run the gates the closeout touched.

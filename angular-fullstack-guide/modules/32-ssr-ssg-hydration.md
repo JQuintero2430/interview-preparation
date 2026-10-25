@@ -521,7 +521,7 @@ What to notice: the click is handled once, by the real handler, after hydration.
 
 **Why a click runs once.** `invokeListeners` skips an element already marked as having handled that event (`handledEventElements`), the mark behind Core 21.2.11's fix: "prevent event replay double-invocation when element hydrates before app stability" ([CHANGELOG](https://github.com/angular/angular/blob/main/CHANGELOG.md), read 2026-10-14).
 
-**Why it is on by default.** Event replay `[Changed in v22.0: on by default through provideClientHydration()]`: the providers of `withIncrementalHydration()` start with `withEventReplay()`, and platform-browser 22.0.0 made incremental hydration the default ([§6](#6-incremental-hydration-defer-blocks-with-hydrate-triggers)). `Smoke: the generated config enables event replay without withEventReplay` finds the contract. After `withNoIncrementalHydration()` the [hydration guide](https://angular.dev/guide/hydration) (read 2026-10-14) adds `withEventReplay()`. VERSIONS.md calls it stable since v19; no changelog line says so, and Core 18.0.0 introduced it: "Add event delegation library to queue up events and replay them when the application is ready".
+**Why it is on by default.** Event replay [Changed in v22.0: on by default through `provideClientHydration()`]: the providers of `withIncrementalHydration()` start with `withEventReplay()`, and platform-browser 22.0.0 made incremental hydration the default ([§6](#6-incremental-hydration-defer-blocks-with-hydrate-triggers)). `Smoke: the generated config enables event replay without withEventReplay` finds the contract. After `withNoIncrementalHydration()` the [hydration guide](https://angular.dev/guide/hydration) (read 2026-10-14) adds `withEventReplay()`. VERSIONS.md calls it stable since v19; no changelog line says so, and Core 18.0.0 introduced it: "Add event delegation library to queue up events and replay them when the application is ready".
 
 **What is recorded.** Only types in a fixed list (`BUBBLE_EVENT_TYPES`, `CAPTURE_EVENT_TYPES`, `primitives-event-dispatch.mjs`, internal; read, not run): `click` and `input` are in it, `scroll` is not.
 
@@ -603,7 +603,7 @@ A product page server-renders a gallery, reviews and a footer. Full hydration ([
 
 ### Mental model
 
-**Incremental hydration** `[Stable since v20.0]` · `[Changed in v22.0: enabled by default by provideClientHydration()]` hydrates parts of a page separately. A **hydrate trigger** (`hydrate on interaction`, `idle`, `viewport`, `hover`, `immediate`, `timer(…)`, `hydrate when <expr>`, `hydrate never`) on a `@defer` block makes the server render the block's content; in the browser that content stays a **dehydrated block** (server DOM, no code, no listeners) until the trigger fires. Each such block is a **hydration boundary**: hydration stops at its edge. The triggers mirror the regular ones ([18 §6](18-control-flow-and-defer.md#6-triggers-and-prefetching)) and apply only to the first load; a later client-side render uses the regular trigger and the `@placeholder` ([incremental hydration guide](https://angular.dev/guide/incremental-hydration), read 2026-10-14). Analogy: locked, furnished rooms; a key opens one, hallway first.
+**Incremental hydration** [Stable since v20.0] · [Changed in v22.0: enabled by default by `provideClientHydration()`] hydrates parts of a page separately. A **hydrate trigger** (`hydrate on interaction`, `idle`, `viewport`, `hover`, `immediate`, `timer(…)`, `hydrate when <expr>`, `hydrate never`) on a `@defer` block makes the server render the block's content; in the browser that content stays a **dehydrated block** (server DOM, no code, no listeners) until the trigger fires. Each such block is a **hydration boundary**: hydration stops at its edge. The triggers mirror the regular ones ([18 §6](18-control-flow-and-defer.md#6-triggers-and-prefetching)) and apply only to the first load; a later client-side render uses the regular trigger and the `@placeholder` ([incremental hydration guide](https://angular.dev/guide/incremental-hydration), read 2026-10-14). Analogy: locked, furnished rooms; a key opens one, hallway first.
 
 ```mermaid
 stateDiagram-v2
@@ -627,7 +627,7 @@ What to notice: a `hydrate never` block stays dehydrated and still shows its ser
 
 **Why parents hydrate first.** A component needs its parent's injector and bindings. `triggerHydrationFromBlockName` (internal) calls `getParentBlockHydrationQueue`, which walks the `p` links up to the top-most block still in the registry and builds the queue from it down; `triggerHydrationForBlockQueue` then loads each block and waits a render before the next. `Section 6: nested blocks hydrate from the outermost block down` clicks the inner "Zoom" button and finds the gallery chunk and log before the zoom ones.
 
-Opt out with `withNoIncrementalHydration()` `[Added in v22.0]`; `withIncrementalHydration()` `[Deprecated since v22.0 — use the default of provideClientHydration()]` (typings: "Intent to remove in v24"). Drilled in [Q32.15](#q32-15), [Q32.16](#q32-16) and [Q32.17](#q32-17), and in [Exercise 32.4](#ex32-4).
+Opt out with `withNoIncrementalHydration()` [Added in v22.0]; `withIncrementalHydration()` [Deprecated since v22.0 — use the default of `provideClientHydration()`] (typings: "Intent to remove in v24"). Drilled in [Q32.15](#q32-15), [Q32.16](#q32-16) and [Q32.17](#q32-17), and in [Exercise 32.4](#ex32-4).
 
 ### Code
 
@@ -1060,7 +1060,7 @@ After an upgrade to v22, every page behind a load balancer answers 400. A CDN sh
 
 ### Mental model
 
-The build gives three shapes: **a Node server** (`server/server.mjs`, Express with `AngularNodeAppEngine`, [§2](#2-adding-angularssr-what-ng-add-generates-the-build-output-and-the-server-entry)); **another runtime** through **`AngularAppEngine`** `[Stable since v20.0]`, the engine that maps a web-standard `Request` to a `Response`, such as an **edge runtime** (JavaScript at a CDN's locations, without Node's modules); or **static output**, files from `outputMode: 'static'` with no server.
+The build gives three shapes: **a Node server** (`server/server.mjs`, Express with `AngularNodeAppEngine`, [§2](#2-adding-angularssr-what-ng-add-generates-the-build-output-and-the-server-entry)); **another runtime** through **`AngularAppEngine`** [Stable since v20.0], the engine that maps a web-standard `Request` to a `Response`, such as an **edge runtime** (JavaScript at a CDN's locations, without Node's modules); or **static output**, files from `outputMode: 'static'` with no server.
 
 A **shared cache** (a CDN or reverse proxy) stores one response and gives it to many users; **`Cache-Control`** is the header telling caches whether and how long to store it ([09 §4](09-web-networking-storage-security.md#4-http-caching)). **Host validation** rejects a request whose `Host` is not on your list. Analogy: a bakery baking to order (Node), a food truck (edge), a vending machine (static); only packaged goods can be stocked anywhere.
 
@@ -1078,7 +1078,7 @@ What to notice: only responses that are the same for every visitor belong in a s
 
 ### How it actually works
 
-**Why an unknown host gets 400 before rendering.** `AngularAppEngine.handle` (`@angular/ssr` 22.2.1, `fesm2022/ssr.mjs`) calls `validateRequest` (internal, `_validation-chunk.mjs`), which checks `Host`, `X-Forwarded-Host` and a `Forwarded` host, then the URL's hostname. A throw becomes a `text/plain` 400: `Section 9: a request with an unknown Host header gets 400` reads `Header "host" with value "evil.example" is not allowed.` Host validation `[Changed in v22.0: an unknown host gets 400 instead of a client-rendered page]`: "The server no longer falls back to Client-Side Rendering (CSR)" ([CLI CHANGELOG](https://github.com/angular/angular-cli/blob/main/CHANGELOG.md), 22.0.0, abridged).
+**Why an unknown host gets 400 before rendering.** `AngularAppEngine.handle` (`@angular/ssr` 22.2.1, `fesm2022/ssr.mjs`) calls `validateRequest` (internal, `_validation-chunk.mjs`), which checks `Host`, `X-Forwarded-Host` and a `Forwarded` host, then the URL's hostname. A throw becomes a `text/plain` 400: `Section 9: a request with an unknown Host header gets 400` reads `Header "host" with value "evil.example" is not allowed.` Host validation [Changed in v22.0: an unknown host gets 400 instead of a client-rendered page]: "The server no longer falls back to Client-Side Rendering (CSR)" ([CLI CHANGELOG](https://github.com/angular/angular-cli/blob/main/CHANGELOG.md), 22.0.0, abridged).
 
 **Why it worked under `ng serve`.** The list joins the engine's `allowedHosts` option, or `NG_ALLOWED_HOSTS` for `AngularNodeAppEngine`, with the build's `security.allowedHosts`; `*.example.com` matches subdomains only (`isHostAllowed`). The generated `[]` admits nothing, so the lab lists `"localhost"`. `ng serve` substitutes its own list ("Always allow the dev server host", `@angular/build` 22.2.1, `builders/dev-server/vite/index.js`; read, not run), so a missing name surfaces only in production.
 
@@ -1088,7 +1088,7 @@ What to notice: only responses that are the same for every visitor belong in a s
 
 **Caching follows the render mode.** `express.static` gives hashed assets `public, max-age=31536000` (`Section 9: hashed static assets are served with a one-year max-age`); names change with content ([12 §3](12-angular-how-it-works.md#3-building-the-application-builder-output-layout-and-budgets)). The engine adds no `Cache-Control` to a server-rendered page: `Section 9: a route's Cache-Control header reaches the server-rendered response` finds `private, no-store` on the route with `headers` and none on a plain `Server` page; `RESPONSE_INIT` sets it per request ([§7](#7-platform-safe-code-browser-apis-afternextrender-document-request-and-response_init)). A prerendered page gets an `ETag` and no `Cache-Control` unless its route adds one (`handleServe`, internal; read).
 
-**Other runtimes.** `ssr.platform: 'neutral'` `[Changed in v22.0: renamed from ssr.experimentalPlatform]` "avoids using Node.js-specific APIs" and "does not provide polyfills" (`@angular/build` 22.2.1, `schema.json`, abridged). `outputMode: 'static'` "does not generate a server file" ([server rendering guide](https://angular.dev/guide/ssr), read 2026-10-14).
+**Other runtimes.** `ssr.platform: 'neutral'` [Changed in v22.0: renamed from `ssr.experimentalPlatform`] "avoids using Node.js-specific APIs" and "does not provide polyfills" (`@angular/build` 22.2.1, `schema.json`, abridged). `outputMode: 'static'` "does not generate a server file" ([server rendering guide](https://angular.dev/guide/ssr), read 2026-10-14).
 
 Drilled in [Q32.25](#q32-25).
 
@@ -1130,7 +1130,7 @@ export const reqHandler = createRequestHandler(async (request: Request) => {
 
 #### Legacy
 
-`CommonEngine` (`@angular/ssr/node`) `[Deprecated since v22.0 — use AngularNodeAppEngine or AngularAppEngine]` renders a URL to an HTML string; its `render` options (typings) have no render mode, status or headers. `@schematics/angular` 22.2.1 still generates it without the application builder (`ssr/files/server-builder/server.ts.template`):
+`CommonEngine` (`@angular/ssr/node`) [Deprecated since v22.0 — use `AngularNodeAppEngine` or `AngularAppEngine`] renders a URL to an HTML string; its `render` options (typings) have no render mode, status or headers. `@schematics/angular` 22.2.1 still generates it without the application builder (`ssr/files/server-builder/server.ts.template`):
 
 ```ts
 // Partial: legacy CommonEngine server.ts; imports, `server`, `distFolder`, `indexHtml` and `bootstrap` as in the template
@@ -1612,7 +1612,7 @@ class SalesChart {
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** Event replay `[Changed in v22.0: on by default through provideClientHydration()]`. The server writes `jsaction` attributes on elements with listeners and an inline contract script at the top of `<body>` that queues those events. Once the app is stable, Angular passes the queue to the listeners it stored, once each. It is the default because `provideClientHydration()` now enables incremental hydration, whose providers begin with `withEventReplay()`.
+**Short answer (30 seconds).** Event replay [Changed in v22.0: on by default through `provideClientHydration()`]. The server writes `jsaction` attributes on elements with listeners and an inline contract script at the top of `<body>` that queues those events. Once the app is stable, Angular passes the queue to the listeners it stored, once each. It is the default because `provideClientHydration()` now enables incremental hydration, whose providers begin with `withEventReplay()`.
 
 **Full explanation.** While rendering, Angular records its listeners' event types, and `insertEventRecordScript` (`@angular/platform-server` 22.2.1, internal; read, not run) writes `window.__jsaction_bootstrap(document.body,"ng",["click"],[])`; `Section 5: the server HTML includes the event contract script and jsaction attributes` finds it. The contract keeps the queue on `window._ejsas[appId]`; the client replays only when it exists. After `appRef.whenStable()`, `initEventReplay` feeds the queue to the listeners, and `handledEventElements` blocks a second delivery (`@angular/core` 22.2.1, `core.mjs`, internal; read, not run). `withIncrementalHydration()` starts with `withEventReplay()` (same file, read 2026-10-15; [§5](#5-event-replay-keeping-the-clicks-made-before-the-code-arrives)).
 

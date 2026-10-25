@@ -211,7 +211,7 @@ describe('Section 7: under the hood', () => {
     ]);
   });
 
-  it('Section 7: the render queue runs only after a render', () => {
+  it('Section 7: an idle tick runs no render hook and a pass that refreshes one view runs the whole queue', () => {
     const fixture = TestBed.createComponent(QueueHost);
     fixture.detectChanges();
     const a: QueueA = fixture.debugElement.query(By.directive(QueueA)).componentInstance;

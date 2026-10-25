@@ -277,7 +277,7 @@ Drilled in [Q40.03](#q40-03), [Q40.04](#q40-04) and [Q40.05](#q40-05); practised
 
 ### Mental model
 
-A **signal** is a value container that records who reads it and notifies them on write ([17 §1](17-signals.md#1-why-signals-exist)). Vue's docs: "Fundamentally, signals are the same kind of reactivity primitive as Vue refs"; a **ref** is Vue's container, read and written through `.value`. A **rune** is a Svelte 5 keyword such as `$state`. A **render effect** writes to the DOM and re-runs when what it read changes. **Granularity** is the unit a write re-runs; **fine-grained reactivity** makes that unit a single DOM expression. Analogy: five makers' thermostats all report changes, but one rings the house, one each room, one each radiator.
+A **signal** is a value container that records who reads it and notifies them on write ([17 §1](17-signals.md#1-why-signals-exist)). Vue's docs: "Fundamentally, signals are the same kind of reactivity primitive as Vue refs"; a **ref** is Vue's container, read and written through `.value`. A **rune** is a Svelte 5 keyword such as `$state`. A **render effect** writes to the DOM and re-runs when what it read changes. **Granularity** is the unit a write re-runs; **fine-grained reactivity** makes that unit small: one view in Angular ([21 §1](21-change-detection.md#1-the-synchronization-problem-dirty-checking-and-fine-grained-reactivity)), and a single DOM expression in Solid, the finest grain. Analogy: five makers' thermostats all report changes, but one rings the house, one each room, one each radiator.
 
 ```mermaid
 flowchart LR

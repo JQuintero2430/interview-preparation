@@ -1,7 +1,7 @@
 // Run with: node --test 'labs/tools/*.test.mjs'
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { flagsFor, moduleStats, proseWords, syllabusRows } from './module-stats.mjs';
+import { capExceptions, capNote, flagsFor, moduleStats, proseWords, syllabusRows } from './module-stats.mjs';
 
 test('syllabusRows reads number, slug, part, kind and ceilings from section 1 only', () => {
   const md = '## 1. List\n| # | Slug | Part | Kind | Q | Ex | Prerequisites |\n|---|---|---|---|---|---|---|\n'
@@ -36,4 +36,26 @@ test('flagsFor reports floors, ceilings, the prose cap for capped parts and ever
   const angular = { part: 'D', ng: true, qMax: 40, exMax: 6 };
   const mix = { Concept: 10, Output: 10, 'Trade-off': 5, Design: 5 };
   assert.deepEqual(flagsFor({ questions: 30, exercises: 5, prose: 20_000, mix }, angular), []);
+});
+
+test('capExceptions reads the PROGRESS.md table; a module within its cap gets a note, not a flag', () => {
+  const md = '## A\n## Prose cap exceptions\n\n| Module | Cap | Ruled | Reason |\n|---|---|---|---|\n| 01 | 15,500 | 2026-10-24 | why |\n## B\n| 02 | 9 | 2026-01-01 | x |\n';
+  const ex = capExceptions(md);
+  assert.deepEqual([...ex], [['01', { cap: 15_500, ruled: '2026-10-24' }]]);
+  const row = { part: 'A', ng: false, qMax: 40, exMax: 6 };
+  const mix = { Concept: 10, Output: 10, 'Trade-off': 5, Design: 5 };
+  const stats = (prose) => ({ questions: 30, exercises: 5, prose, mix });
+  assert.deepEqual(flagsFor(stats(15_400), row, ex.get('01')), []);
+  assert.equal(capNote(stats(15_400), row, ex.get('01')), 'cap exception 15,500 (ruled 2026-10-24)');
+  assert.deepEqual(flagsFor(stats(15_501), row, ex.get('01')), ['prose 15501 > cap 10000']);
+  assert.equal(capNote(stats(15_501), row, ex.get('01')), '');
+});
+
+test('without a table the prose cap behaves as before', () => {
+  const row = { part: 'A', ng: false, qMax: 40, exMax: 6 };
+  const mix = { Concept: 10, Output: 10, 'Trade-off': 5, Design: 5 };
+  const ex = capExceptions('## Last full verification\n');
+  assert.equal(ex.size, 0);
+  assert.deepEqual(flagsFor({ questions: 30, exercises: 5, prose: 10_001, mix }, row, ex.get('01')), ['prose 10001 > cap 10000']);
+  assert.deepEqual(flagsFor({ questions: 30, exercises: 5, prose: 10_001, mix }, row), ['prose 10001 > cap 10000']);
 });

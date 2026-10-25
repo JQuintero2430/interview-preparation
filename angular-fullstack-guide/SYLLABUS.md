@@ -295,11 +295,11 @@ Every module also contains, by template: question bank, exercises, *Check your u
 
 **13 `components-and-templates`** (NG): Components and templates
 - [ ] Component anatomy: selector, template, styles, `imports`, metadata; the v22 file convention
-- [ ] Interpolation and template expressions (what is allowed; v20+ operators: exponentiation, `in`, `void`, template literals, `typeof`, verified)
+- [ ] Interpolation and template expressions (what is allowed; newer operators: `typeof` v19.0, untagged template literals v19.2, exponentiation, `in`, `void`, tagged templates v20.0, verified)
 - [ ] Property, attribute, class and style bindings; event binding; two-way binding `[()]` (desugaring)
 - [ ] Template reference variables, `@let` (pointer to 18)
 - [ ] Host element: `host` metadata vs `@HostBinding`/`@HostListener` (legacy), host-binding type checking (v21)
-- [ ] View encapsulation: Emulated (attribute rewriting), ShadowDom, None; `:host`, `:host-context`, `::ng-deep` (deprecated status)
+- [ ] View encapsulation: Emulated (attribute rewriting), ShadowDom, None; `:host`, `:host-context`, `::ng-deep` (discouraged status)
 - [ ] Styling strategies: component styles, global styles, CSS variables for theming, Tailwind integration
 - [ ] Safe navigation, non-null assertion in templates, `$any`
 - [ ] Framework vs platform: emulated encapsulation vs Shadow DOM
@@ -422,7 +422,7 @@ Every module also contains, by template: question bank, exercises, *Check your u
 **25 `forms-reactive-and-template-driven`** (NG): Reactive and template-driven forms
 - [ ] Template-driven forms (`ngModel`) vs reactive forms: architecture, testability, when each
 - [ ] `FormControl`, `FormGroup`, `FormArray`, `FormRecord`, `FormBuilder`, `NonNullableFormBuilder`; typed forms
-- [ ] Validators: built-in, custom sync, async (debounce, cancellation), cross-field (group-level); `min`/`max` numeric only `[Changed in v22]`
+- [ ] Validators: built-in, custom sync, async (debounce, cancellation), cross-field (group-level); Signal Forms `min`/`max` numeric only `[Changed in v22]` (`Validators.min`/`max` unchanged)
 - [ ] Status, `updateOn`, `valueChanges`/`statusChanges`, unified `events` stream
 - [ ] Dynamic forms and `FormArray` patterns; config-driven forms
 - [ ] `ControlValueAccessor`: contract, `NG_VALUE_ACCESSOR`, building a custom control, `Validator` interface

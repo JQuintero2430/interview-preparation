@@ -835,7 +835,7 @@ Read, not run (Security 7.1.1, Framework 7.0.9):
 - **Why does the cookie value fail?** `XorCsrfChannelInterceptor.preSend` unmasks `X-XSRF-TOKEN` (`XorCsrfTokenUtils.getTokenValue`), then compares with the raw token `CsrfTokenHandshakeInterceptor` copied: `CONNECT` needs the **masked token** ([42 §6](42-fullstack-authentication.md#6-csrf-with-cookiecsrftokenrepository-and-angulars-xsrf-support-csrfspa-in-spring-security-7)), unlike `csrf.spa()` on HTTP. A raw UUID decodes to 27 bytes, not 72.
 - **Docs versus source.** The reference: "CSRF is not configurable"; the internal `WebSocketMessageBrokerSecurityConfiguration` uses a `csrfChannelInterceptor` bean instead, which bearer-only APIs need, because without HTTP CSRF nothing is copied, so `CONNECT` fails.
 - **Why `HIGHEST_PRECEDENCE + 99`?** Security's interceptors read the user, so yours is "ordered ahead" (Framework token docs).
-- **Origin** must match the request's scheme, host and port unless allowed, so a TLS proxy needs `ForwardedHeaderFilter`; other clients fake it (Spring docs).
+- **Origin** must match the request's scheme, host and port unless allowed, so behind a TLS proxy Spring must read the forwarded headers ([44 §4](44-fullstack-delivery-and-operations.md#4-nginx-as-the-reverse-proxy-proxy_pass-forwarded-headers-into-spring-boot-and-sse-or-websocket-connections-through-the-proxy)); other clients fake it (Spring docs).
 
 ### Code
 

@@ -60,4 +60,6 @@ Each module's lifecycle: `PLAN` → `SEC`/`QB`/`EX` tasks → `CLOSE` → `REVIE
 
 ## Phase C: finish line (RUN.md §13)
 
+**Done 2026-10-24** (FINAL-VERIFY, S20261024-1224-claudecode; evidence in the final LOG entry).
+
 Planned only when every module above is CLOSEd and REVIEWed: cross-module consistency REVIEW, `QUESTION-INDEX.md` (scripted), `GLOSSARY.md`, `CHEATSHEET.md`, `MOCK-INTERVIEWS.md`, `README.md` (Mermaid prerequisite map, study paths by goal), and the single link in the repo-root `README.md`.

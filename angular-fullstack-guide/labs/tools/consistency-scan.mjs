@@ -10,15 +10,16 @@ import { questionTags } from './module-stats.mjs';
 
 const KEYWORDS = ['Developer preview', 'Experimental', 'Deprecated', 'Removed', 'Changed', 'Stable', 'Added', 'Baseline'];
 const MARKER = new RegExp(`\\[((?:${KEYWORDS.join('|')})[^\\]\\n]*)\\](?!\\()`, 'g');
-const V = String.raw`v\d+(?:\.\d+)?`;
+const V = String.raw`(?:(?:(?:NgRx|TanStack Query) )?v\d+(?:\.\d+){0,2}|ES\d{4}|TypeScript \d+\.\d+|Node \d+(?:\.\d+)?)`;
 const CANONICAL = [
   `Developer preview since ${V}`,
   `Experimental since ${V}`,
-  `Deprecated since ${V} — use .+`,
+  `Deprecated since ${V}(?: — (?:use .+|no replacement|remove it))?`,
   `Removed in ${V}`,
   `Changed in ${V}: .+`,
+  String.raw`Changed in (?:ES\d{4}|TypeScript \d+\.\d+)`,
   `Stable since ${V}`,
-  String.raw`Added in v\d+\.\d+`,
+  String.raw`Added in (?:(?:(?:NgRx|TanStack Query) )?v\d+\.\d+(?:\.\d+)?|ES\d{4}|TypeScript \d+\.\d+|Node \d+(?:\.\d+)?)(?:, ECMA-402(?: .+)?)?`,
   String.raw`Baseline \d{4}: (?:newly|widely) available, per MDN`,
   'Baseline: limited availability, per MDN',
 ].map((p) => new RegExp(`^${p}$`));
@@ -50,10 +51,11 @@ export function apiBefore(line, index) {
   return ticks.length ? ticks.at(-1)[1] : null;
 }
 
-// Markers of one module: [{ text, api, line }].
+// Markers of one module: [{ text, api, line }]. Marker-like text inside an inline code span is a mention, not a marker.
 export function markersOf(markdown) {
+  const inCode = (text, i) => [...text.matchAll(/`[^`]+`/g)].some((c) => i > c.index && i < c.index + c[0].length);
   return proseLines(markdown).flatMap(({ n, text }) =>
-    [...text.matchAll(MARKER)].map((m) => ({ text: m[1], api: apiBefore(text, m.index), line: n })));
+    [...text.matchAll(MARKER)].filter((m) => !inCode(text, m.index)).map((m) => ({ text: m[1], api: apiBefore(text, m.index), line: n })));
 }
 
 // Question headings of one module: [{ id, type, title, line }].

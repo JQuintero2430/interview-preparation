@@ -679,7 +679,7 @@ Every *Output* answer is a jsdom or lab-model result, asserted by a test named a
 
 **Short answer (30 seconds).** WCAG is the W3C standard whose criteria are the tests; the EAA is EU law (Directive (EU) 2019/882); EN 301 549 is a European standard using WCAG.
 
-**Full explanation.** The Directive names neither; Article 15 presumes conformity for harmonised standards cited in the Official Journal: EN 301 549 V3.2.1 maps WCAG 2.1 AA for Directive 2016/2102, V4.1.1 WCAG 2.2 for the EAA too, once cited. [Section 1](#1-why-accessibility-and-what-the-standards-require).
+**Full explanation.** The Directive names neither; Article 15 presumes conformity for harmonised standards cited in the Official Journal: EN 301 549 V3.2.1 maps WCAG 2.1 AA for Directive 2016/2102, V4.1.1 WCAG 2.2 for the EAA too, once cited (its citation status was not established here). [Section 1](#1-why-accessibility-and-what-the-standards-require).
 
 **Follow-ups an interviewer will ask.**
 - *Who is exempt?* Microenterprises providing services (Article 4(5)).

@@ -83,7 +83,7 @@ This was observed by actually generating a project, not read from documentation:
 | `TestBed.get`, `InjectFlags` | Removed in v20 | |
 | `ng-reflect-*` attributes | No longer emitted by default since v20 | |
 | Webpack builders (`@angular-devkit/build-angular`, `@ngtools/webpack`) | Deprecated in CLI 22.0 | Use the `@angular/build` builders. |
-| Vitest as the default runner | Default since v21 | Karma is still supported through the `unit-test` builder's `runner` option *(to confirm in the Testing module)*. The `refactor-jasmine-vitest` schematic is stable. |
+| Vitest as the default runner | Default since v21 | Karma is still supported through the `unit-test` builder's `runner` option (`karma` or `vitest`, default `vitest`; `@angular/build` 22.2.1 schema, [29 §3](modules/29-testing-angular.md#3-karma-jasmine-and-jest-the-legacy-and-alternative-runners-and-migrating-to-vitest)). The `refactor-jasmine-vitest` schematic: the CLI 22.0.0 CHANGELOG says it was stabilized, but the 22.2.1 collection entry still reads "[EXPERIMENTAL]" and the docs call it experimental (29 §3). |
 
 ## Version history matrix
 
