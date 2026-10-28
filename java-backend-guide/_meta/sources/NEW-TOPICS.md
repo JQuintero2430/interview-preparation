@@ -1,6 +1,6 @@
 # New topics
 
-Topics found in the source chunks that SYLLABUS §4 does not cover. EXTRACT tasks append rows; SYLLABUS-REVISE turns them into new topics or modules (append-only slugs). Source of the format: RUN.md §10.2.
+Topics found in the source chunks that SYLLABUS §4 did not cover initially. EXTRACT tasks appended rows; `SYLLABUS-REVISE` (S20261028-0812-antigravity) mapped every topic into `SYLLABUS.md` §4 checklist items (append-only) across the existing 55 modules. Source of the format: RUN.md §10.2. All 40 entries below are integrated into SYLLABUS §4.
 
 | Topic | Found in (ledger row ID) | Suggested module | Notes |
 |---|---|---|---|

@@ -14,12 +14,12 @@ Phases A to E of the job. Source of module data: [SYLLABUS §1](../SYLLABUS.md#1
 
 The pilot is written before its prerequisites 16 and 22; links to them are planned links until those modules exist.
 
-## Phase B: remaining extraction, then SYLLABUS-REVISE
+## Phase B: extraction, then SYLLABUS-REVISE
 
 | Step | Tasks | Notes |
 |---|---|---|
-| B1 | `EXTRACT-<chunk>` for the 44 remaining chunks, in INVENTORY order | May run while G1 is waiting. Chunks marked `needs: vision` (`spring-pdf-01..03`) run only in a harness with vision |
-| B2 | `SYLLABUS-REVISE` (L) | After every EXTRACT is `done` or its chunk is recorded unreadable: new topics and modules (append-only slugs), final mapping of every ledger row, refreshed size projection, extra EXTRACT / MOVE / DELETE tasks |
+| B1 | `EXTRACT-<chunk>` for the 47 chunks (all done) | 47/47 chunks extracted (all readable; 0 unreadable) |
+| B2 | `SYLLABUS-REVISE` (L) | Done: 40 new topics mapped to SYLLABUS §4, 1,247 ledger rows finalized, 11 DELETE tasks queued |
 
 Pilot questions found late become `FIX-M17-nn` tasks.
 

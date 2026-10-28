@@ -226,7 +226,7 @@ References:
 
 - Total chunks: 47 (core-java-240: 8, architect-answers-pdf: 6, core-java-pdf: 3, microservices-pdf: 3, spring-data-jpa-pdf: 3, spring-pdf: 3, system-design-pdf: 4, architect-md: 9, data-storage-md: 2, security-jpa-md: 5, honeywell-optum-md: 1).
 - Chunks needing vision: 3 (spring-pdf-01, spring-pdf-02, spring-pdf-03). Optional vision: page 5 diagram inside system-design-pdf-01.
-- Unreadable chunks: 0 (unreadable is decided only after a vision attempt during EXTRACT).
+- Unreadable chunks: 0 (confirmed after all 47 EXTRACT tasks completed; 0 MOVE tasks needed).
 - Total words (text layer): 107,169 across all sources; PDFs 57,916, Markdown 49,253 (Spring.pdf counts only 853 text-layer words, so its real content is larger).
 - References found outside the sources themselves: only java-backend-guide/_meta/PLANNING-PROMPT.md (lines 101, 102, 131), plus the angular-fullstack-guide and react-full-stack-interview-guide files listed above, which link to the four Markdown guides. No PDF is referenced outside PLANNING-PROMPT.md. The Honeywell guide links to the other three Markdown guides, and Architect-Level and Backend Study Guide cross-reference each other as listed.
 

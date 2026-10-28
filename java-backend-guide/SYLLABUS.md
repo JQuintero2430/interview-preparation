@@ -247,6 +247,10 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] `Object` methods overview (`toString`, `equals`/`hashCode` → 02, `clone` and why to avoid it, `finalize` deprecated → 09)
 - [ ] Pass-by-value of references; primitives vs wrappers, autoboxing, the `Integer` cache, `==` on wrappers, `NullPointerException` from unboxing
 - [ ] Numeric types: ranges, overflow, widening/narrowing, numeric promotion, `char` arithmetic, `BigDecimal` for money
+- [ ] Control flow, operators and expressions: integer division and remainder, `&` vs `&&`, `|` vs `||`, ternary operator, operator precedence, labels, `break`/`continue`
+- [ ] Bitwise and shift operators: `&`, `|`, `^`, `~`, signed (`>>`) vs unsigned (`>>>`) right shift, sign extension
+- [ ] Lexical structure and naming conventions: identifiers, reserved words, the `_` restriction, naming conventions for types, methods, fields, and constants
+- [ ] Marker interfaces (`Serializable`, `Cloneable`, `Remote`) vs annotations; comparison and design trade-offs
 - [ ] Enums: fields, constructors, abstract methods, `EnumMap`/`EnumSet`, enum singletons, `switch` on enums
 - [ ] Output drill: initialization order, overload resolution and hiding puzzles (asserted by tests)
 - Delegates: equality and immutability → 02; generics → 03; sealed types, records and pattern matching → 02, 07; class loading → 08
@@ -308,6 +312,8 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] I/O: streams vs readers, buffering, NIO.2 `Path`/`Files`, channels and buffers (overview), memory-mapped files (pointer)
 - [ ] Serialization: `Serializable`, `transient`, `serialVersionUID`, deserialization vulnerabilities and filters, why JSON/Protobuf replaced it
 - [ ] Exception handling at boundaries: logging once, not swallowing, `InterruptedException` handling → 11
+- [ ] Uncaught exception handling: default handler, per-thread `Thread.UncaughtExceptionHandler`, uncaught exceptions in thread pools
+- [ ] Java SE internationalization: `Locale`, `ResourceBundle`, property resource bundles, formatting dates/numbers per locale
 - Delegates: Spring exception handling → 18; logging → 44
 
 **07 `java-modern-language-features`**: Java 8 → 25 and what changed
@@ -317,6 +323,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Pattern matching for `switch`: guards, dominance, `null` handling, exhaustiveness and the `MatchException`
 - [ ] The module system (JPMS): `module-info.java`, exports/opens, reflection and frameworks, the classpath vs module path in practice
 - [ ] API changes worth knowing: `HttpClient`, sequenced collections, `String` and `Stream` additions, `Math` exact operations
+- [ ] Date and time: legacy `Date`, `Calendar`, `TimeZone` failure modes (mutability, month zero-indexing, thread-safety) vs modern `java.time` (JSR-310: `Instant`, `LocalDate`, `ZonedDateTime`, `Duration`)
 - [ ] Migration paths: 8 → 11 → 17 → 21 → 25 (removed APIs, `javax` → `jakarta` is Spring/Jakarta EE, not Java)
 - Delegates: virtual threads, structured concurrency and scoped values → 14; GC changes → 09
 
@@ -330,6 +337,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Class loaders: bootstrap, platform, application; parent delegation; custom loaders; classloader leaks in containers and hot reload
 - [ ] Bytecode basics: `javap`, the constant pool, `invokevirtual`/`invokeinterface`/`invokedynamic`
 - [ ] Reflection, `MethodHandle`s and their cost; how frameworks use them → 15
+- [ ] Native code and memory: Java Native Interface (JNI) overheads and safety hazards vs modern Foreign Function & Memory (FFM) API (status per VERSIONS.md)
 - Delegates: GC → 09; JIT → 10
 
 **09 `jvm-garbage-collection`**: garbage collectors and tuning
@@ -339,6 +347,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Reference types: soft, weak, phantom; `Cleaner`; finalization deprecated for removal
 - [ ] Tuning: heap sizing, pause goals, container awareness (`MaxRAMPercentage`), GC logging (`-Xlog:gc*`), reading a GC log
 - [ ] Trade-offs: throughput vs latency vs footprint; when to change collector
+- [ ] Safepoints and Time-To-Safepoint (TTSP): when safepoints occur (counted vs uncounted loops), diagnosing pause spikes with `-Xlog:safepoint`
 - [ ] Production scenarios: latency spikes from GC, allocation storms, humongous allocations
 - Delegates: heap dumps and leak hunting → 10
 
@@ -363,6 +372,8 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] `volatile`: what it guarantees and what it does not (atomicity of compound actions)
 - [ ] Safe publication, `final` field semantics, double-checked locking done right
 - [ ] `ThreadLocal`: uses, leaks in pools, `InheritableThreadLocal`
+- [ ] Concurrency vs parallelism; Amdahl's Law and Gustafson's Law; bounds of horizontal and thread scaling
+- [ ] Legacy thread grouping: `ThreadGroup` flaws, deprecation, and modern structured concurrency replacement
 - [ ] Thread safety strategies: confinement, immutability, synchronization
 - Delegates: locks and atomics → 12; virtual threads → 14
 
@@ -406,10 +417,12 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] IoC and DI; `BeanFactory` vs `ApplicationContext`; bean definitions and how configuration styles (annotations, `@Configuration`/`@Bean`, functional registration) produce them
 - [ ] Component scanning and stereotypes (`@Component`, `@Service`, `@Repository` exception translation, `@Controller`)
 - [ ] Injection styles (constructor, setter, field) and why constructor injection; `@Autowired` resolution (type, `@Qualifier`, `@Primary`, generics as qualifiers, collections of beans)
+- [ ] Injection styles and JSR standards: `@Autowired`, `@Value`, `@Resource` (JSR-250), `@Inject` (JSR-330 / Jakarta Dependency Injection); injection resolution precedence
 - [ ] Circular dependencies: why they fail by default since Boot 2.6, how to break them
 - [ ] Bean lifecycle: instantiation, population, `Aware` interfaces, `BeanPostProcessor`, `@PostConstruct`/`InitializingBean`/init methods, destruction callbacks
 - [ ] `BeanFactoryPostProcessor`, `@Configuration` proxying (full vs lite mode)
 - [ ] Scopes: singleton, prototype, request, session, application; injecting a shorter scope into a longer one (scoped proxies, `ObjectProvider`)
+- [ ] Advanced DI mechanics: method injection with `@Lookup`, custom bean scopes (`registerScope`, `SimpleThreadScope`), thread safety of non-singleton scopes
 - [ ] Application events: `ApplicationEventPublisher`, `@EventListener`, ordering, async listeners, `@TransactionalEventListener` → 17
 - [ ] `Environment`, `@Value`, property placeholders; profiles at the Framework level
 - [ ] The Spring annotation map: Framework annotations vs Boot annotations
@@ -474,6 +487,8 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] What `@SpringBootApplication` combines; `SpringApplication.run` startup sequence (environment, context creation, refresh, runners)
 - [ ] Auto-configuration: `AutoConfiguration.imports`, `@Conditional…` annotations, ordering, back-off when you define a bean, the conditions report (`--debug`)
 - [ ] Starters and writing your own starter
+- [ ] Developer tooling and operational configs: Spring Boot DevTools (restart, LiveReload, production exclusion); custom startup banners
+- [ ] Spring Mail integration: `JavaMailSender`, SMTP configuration, credentials, timeouts, and asynchronous dispatch
 - [ ] Externalized configuration: property source precedence, profiles, config data imports, `@ConfigurationProperties` (binding, validation, immutability) vs `@Value`
 - [ ] Logging configuration and log groups
 - [ ] Migrating Boot 2 → 3 → 4: `javax` → `jakarta`, Java baseline, property migrator, removed and renamed modules
@@ -529,6 +544,8 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Derived query methods and their keywords; `@Query`, `@Modifying` (clear automatically), native queries
 - [ ] Specifications, Query by Example, Querydsl (pointer)
 - [ ] Projections: interface, class (DTO), dynamic
+- [ ] Spring Data REST: exporting repositories as hypermedia HTTP resources, `@RepositoryRestResource`, rapid prototyping vs domain encapsulation trade-offs
+- [ ] Full-text search integrations: comparing database-native search (e.g. PostgreSQL `tsvector`), Hibernate Search, and Spring Data Elasticsearch
 - [ ] Paging and sorting, `Slice` vs `Page`, keyset scrolling
 - [ ] Custom repository fragments; soft deletes; multi-tenancy strategies (schema, discriminator, database)
 - [ ] Flyway vs Liquibase: versioned and repeatable migrations, checksums, baseline, running in tests and in the pipeline
@@ -539,7 +556,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Architecture: process per connection, shared buffers, WAL, checkpoints; why PgBouncer
 - [ ] MVCC: tuple versions, `xmin`/`xmax`, snapshots, visibility; VACUUM, autovacuum, bloat, transaction ID wraparound
 - [ ] Isolation levels as implemented (Read Committed, Repeatable Read as snapshot isolation, Serializable as SSI), serialization failures
-- [ ] Locks: row locks, `SELECT … FOR UPDATE/SHARE`, `SKIP LOCKED` queues, table locks and DDL, advisory locks, deadlock detection
+- [ ] Locks: row locks, `SELECT … FOR UPDATE/SHARE`, `SKIP LOCKED` queues, table locks and DDL, advisory locks, deadlock detection; comparison with MySQL/InnoDB (gap and next-key locks, deadlock victim selection)
 - [ ] Indexes: B-tree, hash, GIN, GiST, BRIN; composite, partial, covering, expression indexes; when an index is not used
 - [ ] Query planning: `EXPLAIN (ANALYZE, BUFFERS)`, statistics, join strategies, common plan problems
 - [ ] Partitioning (declarative), replication (streaming, logical), failover and read replicas
@@ -623,6 +640,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 **34 `grpc`**: gRPC services in Java
 - [ ] Protocol Buffers: schema, field numbers, evolution rules, well-known types
 - [ ] gRPC over HTTP/2; unary, server, client and bidirectional streaming
+- [ ] Transport protocols: HTTP/2 multiplexing, streams and flow control; TCP head-of-line blocking vs HTTP/3 (QUIC) packet-level multiplexing
 - [ ] Deadlines, cancellation, status codes, retries
 - [ ] Interceptors (auth, logging, tracing), metadata
 - [ ] Load balancing with long-lived connections; gRPC behind proxies
@@ -670,6 +688,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 **39 `api-security-and-secrets`**: securing APIs and their secrets
 - [ ] OWASP Top 10 and the OWASP API Security Top 10 (editions per SOURCES.md): broken object-level authorization, injection, SSRF, mass assignment, security misconfiguration
 - [ ] Input validation and output encoding at trust boundaries
+- [ ] Transport and data encryption: TLS termination at edge vs ingress re-encryption, end-to-end encryption, encryption in transit vs at rest, key management
 - [ ] Rate limiting and abuse protection at API, service and infrastructure levels
 - [ ] Secrets management: Vault, AWS Secrets Manager / Parameter Store, Kubernetes secrets, rotation without downtime
 - [ ] Zero trust and service-to-service security; mTLS
@@ -689,6 +708,8 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Idempotency, deduplication, the exactly-once illusion
 - [ ] Back-pressure, load balancing algorithms, rate-limiting algorithms (token bucket, leaky bucket, sliding window)
 - [ ] SQL vs NoSQL, OLTP vs OLAP, denormalization and materialized views, data retention and archival
+- [ ] Conflict-Free Replicated Data Types (CRDTs): state-based (CvRDT) vs operation-based (CmRDT), convergence without central coordination, G-Counter, PN-Counter
+- [ ] NoSQL database families: document, key-value, wide-column, and graph databases (Neo4j, property graph model); atomic updates without multi-document transactions (conditional writes, DynamoDB `TransactWriteItems`)
 - [ ] Multi-region and multi-tenant data architectures
 - Delegates: microservice patterns → 41–43; system design method → 53
 
@@ -696,6 +717,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Monolith vs modular monolith vs microservices; when microservices pay off; SOA vs microservices
 - [ ] Decomposition: business capabilities, bounded contexts, data ownership, database per service
 - [ ] Communication: sync (REST, gRPC) vs async (events, commands), choosing per interaction
+- [ ] Data composition and organization: API composition pattern (aggregating across services, failure handling) vs CQRS; Conway's Law, the Inverse Conway Maneuver, and team module ownership
 - [ ] API gateway, backend for frontend, service discovery (client-side vs server-side), configuration servers
 - [ ] Migration from a monolith: strangler fig, extracting a module into a service
 - [ ] Anti-patterns: distributed monolith, shared database, chatty services, nano-services
@@ -705,6 +727,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 
 **42 `resilience-patterns`**: staying up when dependencies fail
 - [ ] Timeouts everywhere (connect, read, overall budget), deadline propagation
+- [ ] Network and tail resilience: TCP half-open connections, keepalives, application timeout budgets; hedged requests and duplicate request mitigation against tail latency amplification
 - [ ] Retries: back-off, jitter, retry budgets, which errors to retry, retry storms
 - [ ] Circuit breakers: states, thresholds, half-open probing
 - [ ] Bulkheads (semaphore vs thread pool), rate limiters, time limiters
@@ -772,6 +795,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Maven lifecycle, phases, goals, plugins; the reactor and multi-module builds
 - [ ] Dependency management: scopes, transitive mediation (nearest wins), BOMs, `dependencyManagement`, exclusions, conflicts
 - [ ] Profiles, properties, reproducible builds, the Maven wrapper
+- [ ] Artifact packaging: JAR manifests, executable JARs, shaded/fat JARs, modular JARs, and container layering strategies
 - [ ] Gradle differences (task graph, incremental builds, version catalogs)
 - [ ] Repositories and artifact publishing (Nexus, Artifactory)
 - Delegates: pipelines → 50
@@ -780,6 +804,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Container images for Java: base images, layering, JVM container ergonomics, Jib and buildpacks
 - [ ] Kubernetes basics: pods, deployments, services, ingress, config maps and secrets
 - [ ] Probes (liveness, readiness, startup), resources (requests, limits, CPU throttling), HPA
+- [ ] High availability across zones and autoscaling: Multi-AZ workload architecture (topology spread constraints, cross-AZ traffic latency and cost); advanced autoscaling (KEDA event-driven scaling, predictive scaling, Spot instances and graceful reclamation)
 - [ ] Rollouts, rollbacks, pod disruption budgets, graceful shutdown in Kubernetes
 - [ ] AWS for a Java backend: EC2, ECS, EKS, Lambda (and Java cold starts), RDS/Aurora, S3, SQS/SNS, ElastiCache, IAM, CloudWatch; managed vs self-hosted
 - [ ] Production scenarios: OOMKilled pods, throttled CPU, a failing deploy
@@ -789,6 +814,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Pipeline stages for a Java service (build, unit and integration tests, static analysis, packaging, image build, deploy)
 - [ ] Trunk-based development vs Gitflow; versioning and immutable artifacts; environment promotion
 - [ ] Deployment strategies (rolling, blue/green, canary) and rollback; database migrations (Flyway/Liquibase) inside the pipeline
+- [ ] Delivery patterns: GitOps delivery (declarative repository as single source of truth, reconciliation loops with Argo CD/Flux) vs push pipelines; feature flags and the deployment vs release decoupling (dark launches, canary flips)
 - [ ] Jenkins pipeline as code: the `Jenkinsfile`, declarative vs scripted, `stages`, `steps`, `post`, `when`, `parallel`, `matrix`, `input`
 - [ ] Multibranch pipelines and pull-request builds; webhooks vs SCM polling
 - [ ] Jenkins architecture: controller and agents, executors, Docker agents, the Kubernetes plugin and pod templates
@@ -822,12 +848,14 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] A method: requirements, estimates, API, data model, high-level design, deep dives, trade-offs
 - [ ] Building blocks: DNS, load balancers, forward vs reverse proxies, API gateways, CDNs, caches, queues, object storage, search
 - [ ] Scalability (vertical vs horizontal), availability, reliability, latency vs throughput, single points of failure
+- [ ] Storage durability, backup and integrity case study: end-to-end checksums, silent data corruption, scrubbing; replication vs erasure coding; backup verification drills, RTO and RPO; durable client state (SQLite WAL, change detection)
 - [ ] Case studies chosen for a Java backend interview (for example: URL shortener, rate limiter, notification system, payment flow, file storage and backup with deduplication)
 - Delegates: theory → 40; frontend system design → `../angular-fullstack-guide/modules/45-frontend-system-design-method.md`
 
 **54 `architect-production-scenarios`**: cross-cutting production and architect questions
 - [ ] Incident drills as interviewers frame them, each resolved with the reasoning from its home module: transactions that do not roll back, duplicates on retry, pool exhaustion, collapse at load, GC spikes, leaks, failing deploys, health checks that lie
 - [ ] Architecture decisions: managed vs self-hosted, multi-region, write amplification, surviving traffic spikes, defending simple architectures
+- [ ] System resource limits and incident operations: OS socket exhaustion (`somaxconn`, ephemeral port depletion, file descriptors); incident command, runbooks, timelines, blameless postmortems, and mitigation vs root-cause fixes
 - [ ] Cross-cutting mental models (Little's law, queueing, back-pressure, blast radius)
 - Delegates: every drill links to its home module for the mechanism
 
@@ -835,6 +863,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] Behavioral answers with STAR; building a bank of production stories
 - [ ] Explaining trade-offs out loud; handling "I do not know"
 - [ ] AI-assisted development questions (how you use and review AI-generated code)
+- [ ] LLM system integration in interviews: architecture discussions around LLM gateways, token budgets, fallbacks, non-deterministic evaluation, and prompt injection defense
 - [ ] Questions to ask the interviewer
 - Delegates: front-end behavioral overlap → `../angular-fullstack-guide/modules/47-behavioral-and-interview-craft.md`, `../react-full-stack-interview-guide/27-interview-execution.md`
 
@@ -912,7 +941,7 @@ Made only from the headings in `_meta/sources/INVENTORY.md` (P1), never from con
 
 ## 8. Size projection
 
-Computed by a script from the §1 table on 2026-10-25 (re-run it in SYLLABUS-REVISE). Task counts are estimates; costs use `_meta/CALIBRATION.md` rows borrowed from the Angular guide.
+Computed by a script from the §1 table on 2026-10-25; refreshed by SYLLABUS-REVISE on 2026-10-28 (all 47 extraction chunks complete, 0 unreadable chunks, 40 new topics mapped append-only across existing 55 modules; module count stays at 55; 11 DELETE tasks queued under Phase D). Task counts are estimates; costs use `_meta/CALIBRATION.md` rows borrowed from the Angular guide.
 
 **Content totals (ceilings):** 55 modules (46 core, 9 supporting); 1444 questions; 182 exercises; 913,000 words of prose at the caps. The finished guide will land below these numbers, because ceilings are not quotas.
 

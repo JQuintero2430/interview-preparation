@@ -2,13 +2,13 @@
 
 Human-facing dashboard, one row per module. Updated by `CLOSE`, `SYLLABUS-REVISE` and `DELETE` tasks. The job's working memory is in `_meta/`: [STATE](_meta/STATE.md) (where the job stands), [TASKS](_meta/TASKS.md) (queue), [ROADMAP](_meta/ROADMAP.md) (phases and module order), [GATES](_meta/GATES.md) (decisions for Jorge), [LOG](_meta/LOG.md) (session log).
 
-**Last updated:** 2026-10-25 (planning P6)
+**Last updated:** 2026-10-28 (SYLLABUS-REVISE, S20261028-0812-antigravity)
 
 ## Phases
 
-- [x] Planning P1 to P6: inventory, versions, syllabus, style guide, labs scaffolding, job state (P7 dry run and P8 report pending)
-- [ ] Phase A: pilot module 17, then gate G1
-- [ ] Phase B: extraction of the remaining source chunks, then SYLLABUS-REVISE
+- [x] Planning P1 to P8: inventory, versions, syllabus, style guide, labs scaffolding, job state, dry run and report
+- [ ] Phase A: pilot module 17, then gate G1 (in progress)
+- [x] Phase B: extraction of all source chunks (47/47), then SYLLABUS-REVISE
 - [ ] Phase C: remaining modules
 - [ ] Phase D: sources moved or deleted (gate G2)
 - [ ] Phase E: finish line
@@ -17,7 +17,7 @@ Human-facing dashboard, one row per module. Updated by `CLOSE`, `SYLLABUS-REVISE
 
 | Row | Consolidated | Chunks extracted |
 |---|---|---|
-| The 11 files at the repository root ([inventory](_meta/sources/INVENTORY.md)) | 0/11 | 3/47 |
+| The 11 files at the repository root ([inventory](_meta/sources/INVENTORY.md)) | 0/11 | 47/47 |
 
 ## Modules
 
@@ -41,7 +41,7 @@ Status values: `planned`, `planning`, `writing`, `closed`, `reviewed`, `done` (c
 | 14 | [`concurrency-virtual-threads`](modules/14-concurrency-virtual-threads.md) | core | planned | 0/24 Q · 0/3 Ex |
 | 15 | [`spring-ioc-and-bean-lifecycle`](modules/15-spring-ioc-and-bean-lifecycle.md) | core | planned | 0/32 Q · 0/4 Ex |
 | 16 | [`spring-aop-and-proxies`](modules/16-spring-aop-and-proxies.md) | core | planned | 0/24 Q · 0/3 Ex |
-| 17 | [`spring-transactions`](modules/17-spring-transactions.md) | core (pilot) | planned | 0/40 Q · 0/6 Ex |
+| 17 | [`spring-transactions`](modules/17-spring-transactions.md) | core (pilot) | writing | 0/40 Q · 0/6 Ex |
 | 18 | [`spring-mvc-and-rest-controllers`](modules/18-spring-mvc-and-rest-controllers.md) | core | planned | 0/28 Q · 0/4 Ex |
 | 19 | [`spring-reactive-webflux`](modules/19-spring-reactive-webflux.md) | core | planned | 0/28 Q · 0/4 Ex |
 | 20 | [`spring-boot-autoconfiguration-and-config`](modules/20-spring-boot-autoconfiguration-and-config.md) | core | planned | 0/28 Q · 0/4 Ex |

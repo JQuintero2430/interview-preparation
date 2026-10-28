@@ -598,11 +598,81 @@ These may run while G1 is waiting. `needs: vision` chunks are skipped (left `tod
 - Done by: S20261025-1507-claudecode, claude-sonnet-5-5 subagent (spot-checked by claude-opus-5-5 main)
 
 ### SYLLABUS-REVISE · L
-- Status: `todo` · Deps: all 47 `EXTRACT-*` tasks `done`, or the chunk recorded unreadable in INVENTORY · needs: none · gate: none (allowed while G1 is open; SYLLABUS edits are append-only). The three `spring-pdf` chunks are `needs: vision`, so this task waits until a vision session has run them or recorded them unreadable
-- Files touched: `SYLLABUS.md`, `_meta/sources/*.md` (final targets), `_meta/sources/NEW-TOPICS.md`, `_meta/sources/INVENTORY.md`, `PROGRESS.md`, `_meta/ROADMAP.md`, `_meta/TASKS.md` (extra EXTRACT / MOVE / DELETE tasks), `_meta/STATE.md`, `_meta/LOG.md`
+- Status: `done` · Deps: all 47 `EXTRACT-*` tasks `done`, or the chunk recorded unreadable in INVENTORY · needs: none · gate: none
+- Files touched: `SYLLABUS.md`, `_meta/sources/*.md` (final targets), `_meta/sources/NEW-TOPICS.md`, `_meta/sources/INVENTORY.md`, `PROGRESS.md`, `_meta/ROADMAP.md`, `_meta/TASKS.md` (extra DELETE tasks), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: every ledger and NEW-TOPICS; SYLLABUS §1, §4, §8, §9, §10; RUN.md §10.2
 - Acceptance: new topics and modules added append-only (no slug renamed or renumbered); every ledger row mapped to a final target; the §8 size projection re-run; MOVE and DELETE tasks queued per source; ROADMAP Phase C and PROGRESS rows updated for any new module; `node java-backend-guide/labs/tools/check-links.mjs --planned java-backend-guide` and `node java-backend-guide/labs/tools/module-stats.mjs` exit 0.
-- Done by: none yet
+- Done by: S20261028-0812-antigravity (Gemini 3.8 Flash)
+
+## Phase D: source removal tasks (RUN.md §10.2, gate G2)
+
+Depends on gate G2 (Jorge ticks it only while no other guide session is running) and on every ledger row of the source being `written` in a CLOSEd module, `duplicate-of`, or "no interview content". 0 MOVE tasks needed because 0 chunks were unreadable. Steps per RUN.md §10.2: (1) write entries in `SOURCE-MAP.md`, (2) search repository for references, (3) rewrite references to new module anchors, (4) remove source file (`rm` if tracked).
+
+### DELETE-core-java-240 · S
+- Status: `blocked` · Deps: all modules with `core-java-240` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/core-java-240.md`, `../240-core-java-questions.pdf` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/core-java-240.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `240-core-java-questions.pdf` removed with `rm`; check-links exits 0.
+
+### DELETE-architect-answers-pdf · S
+- Status: `blocked` · Deps: all modules with `architect-answers-pdf` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/architect-answers-pdf.md`, `../Architect interview answers.pdf` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/architect-answers-pdf.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Architect interview answers.pdf` removed with `rm`; check-links exits 0.
+
+### DELETE-core-java-pdf · S
+- Status: `blocked` · Deps: all modules with `core-java-pdf` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/core-java-pdf.md`, `../Core Java.pdf` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/core-java-pdf.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Core Java.pdf` removed with `rm`; check-links exits 0.
+
+### DELETE-microservices-pdf · S
+- Status: `blocked` · Deps: all modules with `microservices-pdf` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/microservices-pdf.md`, `../Microservice Architecture.pdf` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/microservices-pdf.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Microservice Architecture.pdf` removed with `rm`; check-links exits 0.
+
+### DELETE-spring-data-jpa-pdf · S
+- Status: `blocked` · Deps: all modules with `spring-data-jpa-pdf` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/spring-data-jpa-pdf.md`, `../SPRING DATA JPA Complete Interview Preparation Guide.pdf` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/spring-data-jpa-pdf.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `SPRING DATA JPA Complete Interview Preparation Guide.pdf` removed with `rm`; check-links exits 0.
+
+### DELETE-spring-pdf · S
+- Status: `blocked` · Deps: all modules with `spring-pdf` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/spring-pdf.md`, `../Spring.pdf` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/spring-pdf.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Spring.pdf` removed with `rm`; check-links exits 0.
+
+### DELETE-system-design-pdf · S
+- Status: `blocked` · Deps: all modules with `system-design-pdf` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/system-design-pdf.md`, `../System Design Crash Course - Substack.pdf` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/system-design-pdf.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `System Design Crash Course - Substack.pdf` removed with `rm`; check-links exits 0.
+
+### DELETE-architect-md · S
+- Status: `blocked` · Deps: all modules with `architect-md` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/architect-md.md`, `../Architect-Level Production & Architect.md` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/architect-md.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Architect-Level Production & Architect.md` removed with `rm`; check-links exits 0.
+
+### DELETE-data-storage-md · S
+- Status: `blocked` · Deps: all modules with `data-storage-md` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/data-storage-md.md`, `../Backend Interview Study Guide - Data storage, behavioral & concurrency.md` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/data-storage-md.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Backend Interview Study Guide - Data storage, behavioral & concurrency.md` removed with `rm`; check-links exits 0.
+
+### DELETE-security-jpa-md · S
+- Status: `blocked` · Deps: all modules with `security-jpa-md` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/security-jpa-md.md`, `../Backend Study Guide - Security, JPA, Design Patterns & Spring.md` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/security-jpa-md.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Backend Study Guide - Security, JPA, Design Patterns & Spring.md` removed with `rm`; check-links exits 0.
+
+### DELETE-honeywell-optum-md · S
+- Status: `blocked` · Deps: all modules with `honeywell-optum-md` rows CLOSEd · needs: none · gate: G2
+- Files touched: `_meta/sources/SOURCE-MAP.md`, `_meta/sources/honeywell-optum-md.md`, `../Java Backend Interview Guide - Honeywell, Optum & Production Scenarios.md` (rm), `PROGRESS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: `_meta/sources/honeywell-optum-md.md`, `_meta/sources/INVENTORY.md`
+- Acceptance: all ledger rows written/duplicate/no-content; SOURCE-MAP entries written; references in repo rewritten and logged; `Java Backend Interview Guide - Honeywell, Optum & Production Scenarios.md` removed with `rm`; check-links exits 0.
 
 ## Small-task pool (Small mode only, RUN.md §4.4)
 

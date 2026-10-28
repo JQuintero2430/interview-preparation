@@ -5,9 +5,9 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 - **Phase:** Phase A (pilot). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
 - **Current module:** 17 `spring-transactions` (pilot, kind core, cap 22,000 words, lab `spring-transactions`). Planned: [M17](modules/M17.md), skeleton `modules/17-spring-transactions.md`, 23 tasks (SEC 14, QB 4, EX 4, CLOSE).
 - **In progress:** none
-- **Last finished task:** EXTRACT-data-storage-md-02 (S20261025-1603-codex; recovered batch 3).
-- **Next task:** `SYLLABUS-REVISE` (all 47 extractions now done). With Docker, prioritize `VERIFY-06`, then `HOUSE-01` and M17 tasks. M17 sections written: §2, §3, §4, §5, §11, §12.
-- **Counts:** modules done 0/55; sources consolidated 0/11; EXTRACT 47/47 chunks; PLAN 1/55; REVIEW 0/55.
+- **Last finished task:** SYLLABUS-REVISE (S20261028-0812-antigravity).
+- **Next task:** Without Docker, M17 tasks and VERIFY-06 are paused (needs Docker) and G1 blocks further PLAN tasks until pilot is closed and reviewed. With Docker active: `VERIFY-06`, `HOUSE-01`, and M17 tasks. Phase D DELETE tasks are queued (11) awaiting G2 and module completions.
+- **Counts:** modules done 0/55; sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 1/55; REVIEW 0/55.
 - **Open UNVERIFIED:** 1 (U06, needs: docker; [UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
   - G1 "Syllabus and pilot approved": not yet reachable (the pilot is not CLOSEd or REVIEWed); will block every `PLAN-Mxx` except M17.
