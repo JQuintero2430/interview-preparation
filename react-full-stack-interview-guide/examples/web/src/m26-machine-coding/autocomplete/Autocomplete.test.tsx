@@ -80,6 +80,17 @@ test('Escape closes the list first, then clears the text', async () => {
   expect(input()).toHaveValue('');
 });
 
+test('Escape clears at once when no listbox is displayed (no matches)', async () => {
+  const user = userEvent.setup();
+  render(<Autocomplete options={options} />);
+  await user.type(input(), 'zzz');
+  expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+
+  await user.keyboard('{Escape}');
+  expect(input()).toHaveValue('');
+  expect(screen.getByRole('status')).toHaveTextContent('');
+});
+
 test('no matches: no listbox, and a status message', async () => {
   const user = userEvent.setup();
   render(<Autocomplete options={options} />);

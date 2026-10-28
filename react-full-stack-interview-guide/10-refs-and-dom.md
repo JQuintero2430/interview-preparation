@@ -182,7 +182,7 @@ const itemsRef = useRef(new Map<string, HTMLLIElement>());
 {items.map((item) => (
   <li
     key={item.id}
-    ref={(node) => {
+    ref={(node: HTMLLIElement) => { // narrower than HTMLLIElement | null: allowed, see the TypeScript trap above
       itemsRef.current.set(item.id, node);
       return () => {
         itemsRef.current.delete(item.id); // React 19: no null-check branch needed
@@ -240,7 +240,7 @@ In the `react-dom` 19.3.0 development build, `commitAttachRef` stores whatever t
 ## 10.4 Ref as a prop vs `forwardRef`
 
 ### The problem
-A design-system `<TextInput>` wraps a real `<input>`. A form wants to focus it. Before React 19, `<TextInput ref={r} />` did **not** reach the inner input: `ref` was a reserved attribute that React stripped from props, and on a function component it silently attached to nothing (with a dev warning).
+A design-system `<TextInput>` wraps a real `<input>`. A form wants to focus it. Before React 19, `<TextInput ref={r} />` did **not** reach the inner input: `ref` was a reserved attribute that React stripped from props, and on a function component it attached to nothing (React only logged a dev warning).
 
 ### Mental model
 - **React 19:** `ref` is a regular prop on function components. Destructure it and pass it on.
@@ -393,9 +393,9 @@ A portal is a fiber of type `HostPortal` whose children commit into a different 
 - ✅ It escapes `overflow`/stacking-context traps, and context, state and React events keep working.
 - ❌ **Surprise bubbling:** a parent's `onClick`, `onKeyDown` or `onSubmit` fires for interactions inside a portaled child. A "click outside to close" handler that checks `wrapperRef.current.contains(event.target)` misclassifies clicks inside the portal. Check `dialogRef.current.contains(target)` on the portal node instead.
 - ❌ **SSR:** `document.body` doesn't exist on the server. Render portals only on the client (after mount, or behind `use(browser())` in 19.3, [21](21-concurrent-ssr-server-components.md#215-ssr-hydration-hydration-errors)), or into a container node you own.
-- ❌ **Accessibility is on you.** A portal moves DOM; it doesn't manage focus, trap Tab, hide the background from screen readers (`inert`/`aria-modal`) or restore focus on close. The native `<dialog>` element with `showModal()` gives you top-layer rendering, a focus trap-like behaviour and Escape handling without a portal; consider it first. Full focus trap: [26](26-machine-coding.md#266-modal-with-focus-trap).
+- ❌ **Accessibility is on you.** A portal moves DOM; it doesn't manage focus, trap Tab, hide the background from screen readers (`inert`/`aria-modal`) or restore focus on close. The native `<dialog>` element with `showModal()` gives you top-layer rendering, a focus trap-like behavior and Escape handling without a portal; consider it first. Full focus trap: [26](26-machine-coding.md#266-modal-with-focus-trap).
 
-> **Version notes.** **React 16.0** introduced `ReactDOM.createPortal` ([React v16.0 post](https://legacy.reactjs.org/blog/2017/09/26/react-v16.0.html)). Before that, libraries used `ReactDOM.unstable_renderSubtreeIntoContainer`, which lost context; 16.3 deprecated the `unstable_createPortal` alias. **React 17** moved event delegation from `document` to the root container ([React v17.0 post](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html)), which changed how `e.stopPropagation()` inside React interacts with native `document` listeners. **React 19.0** removed `unstable_renderSubtreeIntoContainer` (CHANGELOG 19.0.0). **React 19.3** hides portal contents when they are rendered inside a hidden `<Activity>` (CHANGELOG 19.3.0, [21](21-concurrent-ssr-server-components.md#219-activity)).
+> **Version notes.** **React 16.0** introduced `ReactDOM.createPortal` ([React v16.0 post](https://legacy.reactjs.org/blog/2017/09/26/react-v16.0.html)). Before that, libraries used `ReactDOM.unstable_renderSubtreeIntoContainer`, which passed legacy context through only because you handed it the parent component, and did not bubble React events through the React tree; 16.3 deprecated the `unstable_createPortal` alias. **React 17** moved event delegation from `document` to the root container ([React v17.0 post](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html)), which changed how `e.stopPropagation()` inside React interacts with native `document` listeners. **React 19.0** removed `unstable_renderSubtreeIntoContainer` (CHANGELOG 19.0.0). **React 19.3** hides portal contents when they are rendered inside a hidden `<Activity>` (CHANGELOG 19.3.0, [21](21-concurrent-ssr-server-components.md#219-activity)).
 
 ---
 
@@ -446,7 +446,7 @@ return <div ref={containerRef} />;      // no React children: the widget owns th
 React renders `<div ref={containerRef} />` with **no children**, so reconciliation never touches anything inside it, and the library may fill it freely. Effects run in declaration order within a component, so the "create" effect runs before the "update" effect on mount. On a data change, only the second effect re-runs. In Strict Mode dev, React runs `destroy`, then `create` and `update` again; the cleanup also sets `widgetRef.current = null`, so a stale instance can't be reused.
 
 Two React 19 alternatives:
-- **A callback ref with cleanup** for create/destroy: `ref={(node) => { const w = new ChartWidget(node); return () => w.destroy(); }}`. It is tied to the node itself, which helps when the container is rendered conditionally. Hoist or memoize the function, or it re-creates the widget on every render (10.3).
+- **A callback ref with cleanup** for create/destroy: `ref={(node: HTMLDivElement) => { const w = new ChartWidget(node); return () => w.destroy(); }}`. It is tied to the node itself, which helps when the container is rendered conditionally. Hoist or memoize the function, or it re-creates the widget on every render (10.3).
 - **`useLayoutEffect`** instead of `useEffect` when the library measures its container on creation and you want to avoid a flash.
 
 ### Trade-offs
@@ -596,7 +596,7 @@ No. Since React 19.0, Strict Mode double-invokes ref callbacks on initial mount 
 **Q13. How do you keep refs to a dynamic list of items?**
 <details><summary>Answer</summary>
 
-You can't call `useRef` per item (hooks can't run in loops). Keep a single `useRef(new Map())` and use a callback ref per item: `ref={(node) => { map.set(id, node); return () => { map.delete(id); }; }}`. Then a handler does `map.get(id)?.scrollIntoView()`. **A strong answer adds:** before React 19, the same callback checked `node === null` to delete. An alternative is to extract an `Item` component that owns its own ref and exposes behaviour via props.
+You can't call `useRef` per item (hooks can't run in loops). Keep a single `useRef(new Map())` and use a callback ref per item: `ref={(node) => { map.set(id, node); return () => { map.delete(id); }; }}`. Then a handler does `map.get(id)?.scrollIntoView()`. **A strong answer adds:** before React 19, the same callback checked `node === null` to delete. An alternative is to extract an `Item` component that owns its own ref and exposes behavior via props.
 
 </details>
 
@@ -638,7 +638,7 @@ It replaces what the parent's ref receives with an object you build: a public im
 **Q19. Why expose a handle instead of the `<video>` node itself?**
 <details><summary>Answer</summary>
 
-The raw node lets the parent do anything (change `src`, remove children, attach listeners) and couples it to your markup. A handle exposes only intent, so you can swap `<video>` for a third-party player later without breaking callers. **A strong answer adds:** it also enables adding behaviour such as analytics in `play()` or guarding `play()`'s rejected promise in one place.
+The raw node lets the parent do anything (change `src`, remove children, attach listeners) and couples it to your markup. A handle exposes only intent, so you can swap `<video>` for a third-party player later without breaking callers. **A strong answer adds:** it also enables adding behavior such as analytics in `play()` or guarding `play()`'s rejected promise in one place.
 
 </details>
 
@@ -750,7 +750,7 @@ String refs (`<input ref="name" />`, read via `this.refs.name`) were class-only,
 **Q35. How do you test components that use refs in jsdom?**
 <details><summary>Answer</summary>
 
-Test behaviour through the DOM: `toHaveFocus()` for focus management, the handle's effect for `useImperativeHandle`, `unmount()` to check cleanup. jsdom lacks layout (`getBoundingClientRect` returns zeros), media playback (`play()` is "not implemented") and Intersection/Resize observers, so stub them (`vi.spyOn(HTMLMediaElement.prototype, 'play')`) or move the test to a real browser. **A strong answer adds:** `mock.contexts[0]` checks *which* element the stubbed method was called on, as `VideoPlayer.test.tsx` does.
+Test behavior through the DOM: `toHaveFocus()` for focus management, the handle's effect for `useImperativeHandle`, `unmount()` to check cleanup. jsdom lacks layout (`getBoundingClientRect` returns zeros), media playback (`play()` is "not implemented") and Intersection/Resize observers, so stub them (`vi.spyOn(HTMLMediaElement.prototype, 'play')`) or move the test to a real browser. **A strong answer adds:** `mock.contexts[0]` checks *which* element the stubbed method was called on, as `VideoPlayer.test.tsx` does.
 
 </details>
 
@@ -769,7 +769,7 @@ React "disappears" the hidden subtree's layout side: layout effects are cleaned 
 
 ### Exercise 1: Auto-focus input (inline title editor)
 
-**Statement.** Build `EditableTitle({ initialTitle })`. It shows the title as an `<h2>` and an "Edit title" button. Clicking Edit replaces them with a labelled input (pre-filled, **focused, text selected**) and a Save button. Enter saves, Escape cancels, and in both cases **focus returns to the Edit button**.
+**Statement.** Build `EditableTitle({ initialTitle })`. It shows the title as an `<h2>` and an "Edit title" button. Clicking Edit replaces them with a labeled input (pre-filled, **focused, text selected**) and a Save button. Enter saves, Escape cancels, and in both cases **focus returns to the Edit button**.
 
 **Approach.**
 1. The input appears because of a state change, so focus it the moment it **attaches**: a callback ref. It needs no props or state, so define it at module scope, making it stable and avoiding a re-focus on every render.
@@ -855,7 +855,7 @@ export function EditableTitle({ initialTitle }: { initialTitle: string }) {
 **Walkthrough.** Clicking Edit sets `editing`, React commits the form, and in the layout phase calls `focusAndSelect(input)`, so the user can type over the selected text straight away. On Enter, the form submits. `finish` commits the non-editing view synchronously; the input unmounts, so `focusAndSelect(null)` is called and does nothing. The button mounts and its ref is attached, so `editButtonRef.current.focus()` succeeds on the next line. Without `flushSync`, the ref would still be `null` at that point, and focus would fall to `<body>`, losing the keyboard user's place.
 
 **Interviewer follow-ups.**
-- "Why not `useEffect(() => inputRef.current?.focus(), [editing])`?" It works, but runs after paint (a one-frame flash without focus) and spreads one behaviour across a ref and an effect. The callback ref is tied to the node itself.
+- "Why not `useEffect(() => inputRef.current?.focus(), [editing])`?" It works, but a passive effect can run after paint (React runs it before paint only when a discrete event such as this click caused the update, [09](09-effects.md#93-cleanup-and-the-effect-lifecycle)), and it spreads one behavior across a ref and an effect. The callback ref is tied to the node itself.
 - "Why not an inline arrow ref?" It would re-run on every render; re-selecting the text on every keystroke would make typing impossible.
 - "What about `autoFocus`?" It handles the focus but not the selection. It's fine for simple cases.
 - "Is `flushSync` bad?" It forces a synchronous render, which is fine for one small, user-initiated commit. Never call it in render or effects.
@@ -1177,7 +1177,7 @@ export function Chart({ data }: { data: readonly number[] }) {
 **Interviewer follow-ups.**
 - "The parent passes `data={[1, 2, 3]}` inline." A new array every render means an update every render. Memoize at the source, or compare contents before calling `update`.
 - "The library fires `onPointClick`." Register it in the lifetime effect, call a `useEffectEvent` wrapper so it sees the latest `onPointClick` prop, and unregister in cleanup.
-- "Use a callback ref instead?" `ref={useCallback((node) => { const w = new ChartWidget(node); widgetRef.current = w; return () => w.destroy(); }, [])}` works in React 19 and follows the node, not the component.
+- "Use a callback ref instead?" `ref={useCallback((node: HTMLDivElement) => { const w = new ChartWidget(node); widgetRef.current = w; return () => w.destroy(); }, [])}` works in React 19 and follows the node, not the component.
 
 **Tests.** [`Chart.test.tsx`](examples/web/src/m10-refs/Chart.test.tsx): lifecycle sequence, same-reference no-op, Strict Mode.
 
@@ -1332,7 +1332,7 @@ test('Strict Mode (dev, React 19): refs are attached, detached and attached agai
 
 1. **`ref.current` is `null` during the first render.** The node is attached in the commit. Code like `const width = ref.current.offsetWidth` at the top of a component crashes on mount.
 2. **Reading a ref during render shows stale UI.** React won't re-render when it changes, and `react-hooks/refs` reports it as an error.
-3. **Inline callback refs run on every render** (detach + attach). Harmless for `node => (x = node)` style assignments, but a bug for focus, measuring or subscriptions. Hoist the function or use `useCallback`.
+3. **Inline callback refs run on every render** (detach + attach). Harmless for `node => { x = node; }` style assignments, but a bug for focus, measuring or subscriptions. Hoist the function or use `useCallback`.
 4. **Implicit returns from ref callbacks are a TypeScript error** with @types/react 19: `ref={(el) => (this.el = el)}`. Use a block body.
 5. **Returning a cleanup turns off the `null` call.** If your callback still has an `if (node === null) teardown()` branch and also returns a function, the branch is dead code, and teardown must live in the cleanup.
 6. **React 18 ignores returned cleanups.** A library targeting both 18 and 19 must handle `null` and not rely on cleanups.

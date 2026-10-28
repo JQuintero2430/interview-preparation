@@ -28,7 +28,7 @@ describe('groupBy (runtime)', () => {
     });
   });
 
-  it('supports number and symbol keys', () => {
+  it('supports number keys', () => {
     const byLength = groupBy(['a', 'bb', 'cc'], (s) => s.length);
     expect(byLength[2]).toEqual(['bb', 'cc']);
   });

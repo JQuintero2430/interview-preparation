@@ -2,7 +2,7 @@
 
 > **How to use this module.** Sections 5.1–5.3 are the mental model (packages, versions, what a bundler does) and answer most "what happens when I run `npm run build`" questions. Sections 5.4–5.8 cover the choices interviewers probe: Vite vs webpack, Babel vs SWC vs esbuild, ESLint, env variables, and why CRA is gone. Sections 5.9–5.10 are monorepos and debugging. If you only have 20 minutes, read 5.2, 5.3, 5.8, the Gotchas and the Summary.
 
-**Prerequisites:** [Modules and `import`/`export`](01-javascript.md) · [`tsconfig` strictness flags](02-typescript.md#215-tsconfig-strictness-flags) · [What JSX compiles to](06-jsx-and-rendering-model.md#62-what-jsx-compiles-to)
+**Prerequisites:** [Modules and `import`/`export`](01-javascript.md#112-modules-esm-vs-commonjs-live-bindings-dynamic-import) · [`tsconfig` strictness flags](02-typescript.md#215-tsconfig-strictness-flags) · [What JSX compiles to](06-jsx-and-rendering-model.md#62-what-jsx-compiles-to)
 
 **Code for this module:** [`examples/web/src/m05-tooling/`](examples/web/src/m05-tooling/). Every file has a test next to it. Run them with `npx vitest run src/m05-tooling` from `examples/web`. The repo's real configs are the worked examples: [`package.json`](examples/web/package.json), [`vite.config.ts`](examples/web/vite.config.ts), [`tsconfig.json`](examples/web/tsconfig.json), [`eslint.config.js`](examples/web/eslint.config.js), [`next-rsc/package.json`](examples/next-rsc/package.json), [`next.config.ts`](examples/next-rsc/next.config.ts) and, for the Java side, [`spring-api/pom.xml`](examples/spring-api/pom.xml).
 
@@ -195,7 +195,7 @@ window.addEventListener('resize', track);
 
 **Code splitting** has three common forms: **entry** (multiple HTML pages), **dynamic** (`import()`), and **automatic vendor/shared chunking** (modules used by several chunks go into a shared chunk so they are cached once). Content-hashed filenames (`index-4f9a1c.js`) make the files immutable and safe to cache forever ([3.9](03-browser-and-web-platform.md#39-http-caching-cache-control-etag-validation-immutable-assets)).
 
-**HMR** (Hot Module Replacement) [Tooling] swaps a changed module in the running page without a reload. The dev server watches files, recompiles the one module, and tells the browser over a WebSocket to import the new version; **React Fast Refresh** [React] then re-renders the affected components while **preserving state** when only components changed. A module that exports non-components (constants, helpers) alongside components forces a full reload of that module's dependents, which is why `eslint-plugin-react-refresh` exists.
+**HMR** (Hot Module Replacement) [Tooling] swaps a changed module in the running page without a reload. The dev server watches files, recompiles the one module, and tells the browser over a WebSocket to import the new version; **React Fast Refresh** [React] then re-renders the affected components while **preserving state** when only components changed. A module that exports non-components (constants, helpers) alongside components cannot be refreshed in place, so the update propagates to its importers (often ending in a full page reload), which is why `eslint-plugin-react-refresh` exists.
 
 > The plugin has one rule, `react-refresh/only-export-components`, and three flat-config presets: `reactRefresh.configs.recommended()`, `.vite()` (allows constant and compound-component exports) and `.next()` (allows Next.js page exports such as `revalidate`) ([eslint-plugin-react-refresh README](https://github.com/ArnaudBarre/eslint-plugin-react-refresh)).
 
@@ -233,7 +233,7 @@ Both turn a module graph into chunks. They differ in **configuration style, defa
 **Rspack** [Tooling: Rspack] is a Rust bundler with a webpack-compatible API, designed to be a drop-in replacement for most webpack configs and loaders ([Rspack intro](https://rspack.rs/guide/start/introduction)). It is the migration path for big webpack apps that need speed without rewriting config. **Turbopack** is Vercel's Rust bundler; VERSIONS.md records it as the **default bundler in Next.js 16**. **Parcel** and **Rsbuild** (Rspack-based) are the other options React's docs list ([Build a React app from scratch](https://react.dev/learn/build-a-react-app-from-scratch)).
 
 ### Minimal code
-A webpack 5 config for a React + TS app (legacy; compare its size with the 8 lines of this repo's [`vite.config.ts`](examples/web/vite.config.ts)):
+A webpack 5 config for a React + TS app (legacy; compare its size with the 12 lines of this repo's [`vite.config.ts`](examples/web/vite.config.ts)):
 
 ```js
 // webpack.config.js (webpack 5; shown for recognition, not part of this repo)
@@ -276,7 +276,7 @@ One file configures the app build **and** Vitest, because Vitest reuses the Vite
 ### How it works internally
 - **Loaders vs plugins (webpack).** A *loader* transforms one file type (`.tsx` → JS). A *plugin* hooks the whole compilation (emit HTML, extract CSS, define constants).
 - **Plugins (Vite).** Rollup-compatible hooks (`resolveId`, `load`, `transform`) plus Vite-specific ones (`configureServer`, `handleHotUpdate`). `@vitejs/plugin-react` 6.1.1 (installed) adds the JSX/Fast Refresh handling. Its `package.json` lists optional peers `@rolldown/plugin-babel` and `babel-plugin-react-compiler`, so **Babel is no longer in the default path**: you only add it to run the React Compiler ([15.5](15-performance.md#155-the-react-compiler-and-how-it-changes-the-advice)). Vite 8's announcement states plugin-react v6 uses Oxc rather than Babel for the React Refresh transform.
-- **Dev architecture.** Webpack builds a bundle in memory; Vite transforms files on request (see the unverified note in 5.3).
+- **Dev architecture.** Webpack builds a bundle in memory; Vite transforms files on request (see the version notes in 5.3).
 
 > **Version notes.** **webpack 4** needed Node-polyfill defaults (`process`, `Buffer`) and `url-loader`/`file-loader`; **webpack 5** removed the auto-polyfills and replaced the loaders with built-in **asset modules** (`type: 'asset'`). **Create React App 5** hid a webpack 5 config behind `react-scripts` (and `eject` exposed it); see [5.8](#58-creating-a-project-in-2026). **Vite 5/6/7** use Rollup for builds; **Vite 8** uses Rolldown.
 
@@ -298,7 +298,7 @@ A **transpiler** [Tooling] parses source to an AST, transforms it, and prints co
 | Tool | Written in | Role today | Notes |
 |---|---|---|---|
 | **Babel** | JavaScript | the original; plugin ecosystem (React Compiler, styled-components, legacy decorators) | slowest; still required for **React Compiler** in most setups |
-| **SWC** | Rust | drop-in faster Babel; used by Next.js (before Turbopack) and `@vitejs/plugin-react-swc` | smaller plugin ecosystem |
+| **SWC** | Rust | drop-in faster Babel; used by Next.js (its compiler, also inside Turbopack) and `@vitejs/plugin-react-swc` | smaller plugin ecosystem |
 | **esbuild** | Go | very fast transform and bundle; powered Vite ≤ 7 dev | no type check; limited syntax lowering and no plugin API for AST edits |
 | **Oxc** | Rust | the transformer inside Vite 8 / Rolldown | `esbuild` option in Vite 8 is deprecated and mapped to `oxc` ([docs](https://vite.dev/config/shared-options.html)) |
 | **tsc** | TypeScript (7.0: Go) | **type-checks** and emits | run as `tsc --noEmit` next to a transpiler; this repo's `typecheck` script |
@@ -317,7 +317,7 @@ flowchart LR
 ```tsx
 const el = <Button kind="primary">Save</Button>;
 
-// Classic transform (React ≤ 16, Babel default before 7.9): needs `React` in scope
+// Classic transform (React ≤ 16, still Babel 7's default): needs `React` in scope
 const el = React.createElement(Button, { kind: 'primary' }, 'Save');
 
 // Automatic transform (React 17+): the compiler adds the import itself
@@ -367,20 +367,21 @@ This repo's flat config, verbatim ([`eslint.config.js`](examples/web/eslint.conf
 
 ```js
 import js from '@eslint/js';
+import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(
+export default defineConfig(
   { ignores: ['node_modules', 'dist', 'coverage'] },
   js.configs.recommended,
-  ...tseslint.configs.recommended,
+  tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,
   { languageOptions: { globals: globals.browser } },
 );
 ```
 
-The same file in the **legacy eslintrc** format (ESLint ≤ 8, and ≤ 9 behind `ESLINT_USE_FLAT_CONFIG=false`), for recognition:
+The same file in the **legacy eslintrc** format (ESLint ≤ 8, and ESLint 9 behind `ESLINT_USE_FLAT_CONFIG=false`), for recognition:
 
 ```json
 // .eslintrc.json (legacy; removed in ESLint 10)
@@ -401,7 +402,7 @@ The same file in the **legacy eslintrc** format (ESLint ≤ 8, and ≤ 9 behind 
 ### How it works internally
 - **Flat config** is one array of config objects in `eslint.config.js` (also `.mjs`, `.cjs`, `.ts`, `.mts`, `.cts`). For a given file, every object whose `files`/`ignores` match is merged in order, later ones winning ([ESLint docs](https://eslint.org/docs/latest/use/configure/configuration-files)). A config object with **only** `ignores` is a **global ignore**; the repo's first object relies on that.
 - `plugins` are **objects you import** (`reactHooks`), not strings resolved by name. That removes the `eslint-plugin-` naming magic and the "which plugin version did it resolve" problem of eslintrc.
-- The `eslint/config` helper `defineConfig([...])` (used in the react-hooks README example) adds type help and `extends`. This repo uses `tseslint.config(...)`, the typescript-eslint equivalent.
+- The `eslint/config` helper `defineConfig([...])` (used in the react-hooks README example) adds type help and `extends`, and this repo uses it. typescript-eslint's own `tseslint.config(...)` helper, common in older configs, is marked `@deprecated` in typescript-eslint 8.71 in favor of `defineConfig()` (verified in `node_modules/typescript-eslint/dist/config-helper.d.ts`); it still works. `defineConfig` flattens nested arrays, so `tseslint.configs.recommended` needs no spread.
 - **Type-aware rules** (`recommendedTypeChecked`) need `languageOptions.parserOptions.projectService` and are slower; this repo uses the non-type-aware `recommended`. [typescript-eslint docs](https://typescript-eslint.io).
 
 #### `eslint-plugin-react-hooks`
@@ -415,7 +416,7 @@ Two classic rules, plus (since v6/v7) the **React Compiler's diagnostics** surfa
 
 The [React reference](https://react.dev/reference/eslint-plugin-react-hooks) lists a `recommended` preset with 16 rules, and VERSIONS.md records installed **7.1.1**. In **this** repo `react-hooks/set-state-in-effect` reports as an **error** with the `recommended` preset (found while building the pilot module, see PROGRESS.md), which is why module code derives state during render instead of calling `setState` inside effects.
 
-> **Version notes.** **eslint-plugin-react-hooks v4** (the CRA-era one): eslintrc only, two rules, `plugin:react-hooks/recommended`. **v5.2.0**: added flat-config support (`configs['recommended-latest']`). **v6/v7**: flat config is the default for `recommended`; compiler-powered rules joined it; `recommended-legacy` is the eslintrc preset (VERSIONS.md row, "Flat config is the default `recommended` preset since v6"). The plugin README still says its eslintrc form (`extends: ["plugin:react-hooks/recommended"]`) is for "ESLint below 9.0.0".
+> **Version notes.** **eslint-plugin-react-hooks v4** (the CRA-era one): eslintrc only, two rules, `plugin:react-hooks/recommended`. **v5.2.0**: added flat-config support (`configs['recommended-latest']`). **v6.1**: flat config became the default `recommended` preset, eslintrc moved to `recommended-legacy`, and compiler-powered rules joined. **v7.0** slimmed the presets to `recommended` and `recommended-latest`: in the installed 7.1.1 the flat form is `reactHooks.configs.flat.recommended` (what this repo uses), `configs.recommended` is the eslintrc form (`extends: ["plugin:react-hooks/recommended"]`, which the README reserves for "ESLint below 9.0.0"), and there is no `recommended-legacy` key any more (verified in the plugin's `cjs` build; 7.0.0 CHANGELOG).
 >
 > The [plugin CHANGELOG](https://github.com/facebook/react/blob/main/packages/eslint-plugin-react-hooks/CHANGELOG.md) dates flat-config support to **5.2.0** ("Support flat config", #30774), not 5.0. 6.0.0 was published by accident and deprecated; **6.1.0** made flat config the default `recommended` preset and moved eslintrc to `recommended-legacy`.
 >
@@ -604,7 +605,7 @@ Values: `true` (separate `.map` plus a `//# sourceMappingURL=` comment), `'inlin
 - The `//# sourceMappingURL=` comment at the end of the JS points to the map. DevTools fetches it only when open.
 - Each map holds `sources`, `names` and `mappings` (a compact VLQ-encoded list of position pairs).
 - **In dev**, Vite serves each module separately with an inline map, so you debug the original files without doing anything. **In production**, you decide: serve maps (easy debugging, source exposed), hide them and upload to your error tracker (Sentry-style, [16.7](16-error-handling.md#167-logging-and-monitoring-source-maps)), or skip them.
-- **React DevTools** [Tool] shows the component tree and props; use the **Profiler** for render timing ([15.1](15-performance.md#151-measure-first-react-devtools-profiler-chrome-performance-panel-performance-tracks)). Production builds of React have no component names in warnings; the maps are what recover them.
+- **React DevTools** [Tooling: React DevTools] shows the component tree and props; use the **Profiler** for render timing ([15.1](15-performance.md#151-measure-first-react-devtools-profiler-chrome-performance-panel-performance-tracks)). In production the minifier shortens component names and React reports errors as codes, so the names in stack traces come back only through the maps.
 - **Debugger statements and breakpoints** work on original files when maps load. **Node/Vitest**: Vitest uses source maps so a failing test points at your `.ts` line.
 
 ### Trade-offs
@@ -654,7 +655,7 @@ npm 3–6 never installed peers and only warned about a bad version. npm 7+ inst
 **Q6. What are `overrides` / `resolutions` for, and what is the risk?**
 <details><summary>Answer</summary>
 
-They force a specific version of a package anywhere in the tree (npm `overrides`, Yarn `resolutions`, pnpm `pnpm.overrides`). Typical uses: security patches in a transitive dependency, or collapsing a duplicate. They only apply from the **root** `package.json` ([npm docs](https://docs.npmjs.com/cli/v11/configuring-npm/package-json#peerdependencies)). **A strong answer adds:** you are promising a combination the library authors did not test, so keep a comment and remove it when upstream catches up.
+They force a specific version of a package anywhere in the tree (npm `overrides`, Yarn `resolutions`, pnpm `pnpm.overrides`). Typical uses: security patches in a transitive dependency, or collapsing a duplicate. They only apply from the **root** `package.json` ([npm docs](https://docs.npmjs.com/cli/v11/configuring-npm/package-json#overrides)). **A strong answer adds:** you are promising a combination the library authors did not test, so keep a comment and remove it when upstream catches up.
 
 </details>
 
@@ -761,7 +762,7 @@ Flat config is a single array of config objects in `eslint.config.js` (plugins a
 **Q21. What does `eslint-plugin-react-hooks` check, and what changed in v6/v7?**
 <details><summary>Answer</summary>
 
-`rules-of-hooks` and `exhaustive-deps` since v1. Since v6 flat config is the default `recommended`, and the preset includes the React Compiler's diagnostics as rules (`set-state-in-effect`, `purity`, `refs`, …, 16 in total per the [React reference](https://react.dev/reference/eslint-plugin-react-hooks)). **A strong answer adds:** in this repo `set-state-in-effect` is an **error** in v7.1.1's `recommended`; `recommended-legacy` is the eslintrc form.
+`rules-of-hooks` since 1.0.0 and `exhaustive-deps` since 1.2.0 (February 2019; the rule is absent from the 1.1.0 tarball and present in 1.2.0, [npm](https://www.npmjs.com/package/eslint-plugin-react-hooks?activeTab=versions)). Since v6.1 flat config is the default, and the preset includes the React Compiler's diagnostics as rules (`set-state-in-effect`, `purity`, `refs`, …, 16 in total per the [React reference](https://react.dev/reference/eslint-plugin-react-hooks)). **A strong answer adds:** in this repo `set-state-in-effect` is an **error** in v7.1.1's `recommended`; in v7 the flat preset is `configs.flat.recommended` and eslintrc uses `plugin:react-hooks/recommended` (v6.1's `recommended-legacy` was removed in 7.0).
 
 </details>
 
@@ -1505,8 +1506,8 @@ export function maxSatisfying(versions: readonly string[], range: string): strin
 18. **ESLint 10 does not read `.eslintrc.*`.** Upgrade only after migrating to a flat config; the old format is no longer supported.
 19. **react-hooks v7 `recommended` reports `set-state-in-effect` as an error** (seen in this repo). Old code that sets state in an effect body now fails lint.
 20. **`create-react-app` still installs but is deprecated.** It prints a deprecation warning; do not start new work on it.
-21. **Node version drift.** This repo pins Node 24 because Vitest 5 does not support Node 25; a developer with the default Node 26/25 gets confusing failures. Pin with `.nvmrc` plus `engines`.
-22. **Source maps in production are public by default.** Use `hidden` maps and upload them to the error tracker.
+21. **Node version drift.** This repo pins Node 24 because Vitest 5 does not support Node 25; a developer on Node 25 gets confusing failures. Pin with `.nvmrc` plus `engines`.
+22. **Served source maps are public.** Vite's default is no maps, but `build.sourcemap: true` deploys `.map` files anyone can fetch. Use `hidden` maps and upload them to the error tracker.
 
 ---
 

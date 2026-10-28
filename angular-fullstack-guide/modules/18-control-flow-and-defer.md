@@ -1354,7 +1354,7 @@ function _forTrack0($index, $item) { /* @ts-ignore */
 return this.trackById; }
 ```
 
-`ng test` prints the `NG8115` warning for this fixture on purpose. Duplicates are recorded while old rows are matched ([section 2](#2-for-track-context-variables-empty-and-what-angular-can-iterate), read from `reconcile`), so a first render stays silent. After an update that reverses the orders, development mode logs the customer loop's warning below (`Q18.07 duplicate keys, an uninvoked track function included, …`); the function loop's reads `key "trackById" at index "0" and "1"`, then `"1" and "2"`.:
+`ng test` prints the `NG8115` warning for this fixture on purpose. Duplicates are recorded while old rows are matched ([section 2](#2-for-track-context-variables-empty-and-what-angular-can-iterate), read from `reconcile`), so a first render stays silent. After an update that reverses the orders, development mode logs the customer loop's warning below (`Q18.07 duplicate keys, an uninvoked track function included, …`); the function loop's reads `key "trackById" at index "0" and "1"`, then `"1" and "2"`:
 
 ```text
 NG0955: The provided track expression resulted in duplicated keys for a given collection. Adjust the tracking expression such that it uniquely identifies all the items in the collection. Duplicated keys were: 

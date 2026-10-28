@@ -49,18 +49,18 @@
   - X-01 `modules/06-ts-type-system-essentials.md:288` `[Added in ES2026]`
 - `[Added in ESN, ECMA-N]` (1)
   - X-01 `modules/01-js-values-types-coercion.md:172` `[Added in ES2022, ECMA-402]`
-- `[Added in ESN, ECMA-N `Intl.NumberFormat` vN]` (1)
-  - X-01 `modules/01-js-values-types-coercion.md:672` `[Added in ES2023, ECMA-402 `Intl.NumberFormat` v3]`
+- ``[Added in ESN, ECMA-N `Intl.NumberFormat` vN]`` (1)
+  - X-01 `modules/01-js-values-types-coercion.md:672` ``[Added in ES2023, ECMA-402 `Intl.NumberFormat` v3]``
 - `[Changed in Node N: libuv N.N runs timers after poll in each iteration; they used to run first. Timers still run once before the first iteration, which is why older articles start the list with them.]` (1)
   - X-01 `modules/04-js-async-event-loop.md:141` `[Changed in Node 20: libuv 1.45 runs timers after poll in each iteration; they used to run first. Timers still run once before the first iteration, which is why older articles start the list with them.]`
 - `[Changed in ESN: the normative PR "Reduce the number of ticks in async/await", merged into ECMA-N in February N]` (1)
   - X-01 `modules/04-js-async-event-loop.md:379` `[Changed in ES2019: the normative PR "Reduce the number of ticks in async/await", merged into ECMA-262 in February 2019]`
-- `[Changed in Node N.N: the `'module.exports'` key was added]` (1)
-  - X-01 `modules/05-js-modules-memory-modern-features.md:134` `[Changed in Node 23.0: the `'module.exports'` key was added]`
-- `[Changed in Node N.N: `require(esm)` needs no flag]` (1)
-  - X-01 `modules/05-js-modules-memory-modern-features.md:181` `[Changed in Node 22.12: `require(esm)` needs no flag]`
-- `[Changed in ESN: symbols as `WeakMap` keys]` (1)
-  - X-01 `modules/05-js-modules-memory-modern-features.md:333` `[Changed in ES2023: symbols as `WeakMap` keys]`
+- ``[Changed in Node N.N: the `'module.exports'` key was added]`` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:134` ``[Changed in Node 23.0: the `'module.exports'` key was added]``
+- ``[Changed in Node N.N: `require(esm)` needs no flag]`` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:181` ``[Changed in Node 22.12: `require(esm)` needs no flag]``
+- ``[Changed in ESN: symbols as `WeakMap` keys]`` (1)
+  - X-01 `modules/05-js-modules-memory-modern-features.md:333` ``[Changed in ES2023: symbols as `WeakMap` keys]``
 - `[Changed in ESN]` (1)
   - X-01 `modules/05-js-modules-memory-modern-features.md:370` `[Changed in ES2023]`
 - `[Changed in Node N.N: no flag needed]` (1)
@@ -95,14 +95,14 @@
 - `[Changed in TypeScript N.N]` (2)
   - X-01 `modules/06-ts-type-system-essentials.md:210` `[Changed in TypeScript 3.9]`
   - X-01 `modules/07-ts-advanced-types-and-decorators.md:46` `[Changed in TypeScript 5.3]`
-- `[Changed in TypeScript N.N: before, `N` was accepted]` (1)
-  - X-01 `modules/06-ts-type-system-essentials.md:310` `[Changed in TypeScript 5.0: before, `99` was accepted]`
-- `[Changed in TypeScript N.N: `strict`, `module`, `target`, `types`, `rootDir` and `noUncheckedSideEffectImports`]` (1)
-  - X-01 `modules/06-ts-type-system-essentials.md:361` `[Changed in TypeScript 6.0: `strict`, `module`, `target`, `types`, `rootDir` and `noUncheckedSideEffectImports`]`
+- ``[Changed in TypeScript N.N: before, `N` was accepted]`` (1)
+  - X-01 `modules/06-ts-type-system-essentials.md:310` ``[Changed in TypeScript 5.0: before, `99` was accepted]``
+- ``[Changed in TypeScript N.N: `strict`, `module`, `target`, `types`, `rootDir` and `noUncheckedSideEffectImports`]`` (1)
+  - X-01 `modules/06-ts-type-system-essentials.md:361` ``[Changed in TypeScript 6.0: `strict`, `module`, `target`, `types`, `rootDir` and `noUncheckedSideEffectImports`]``
 - `[Changed in TypeScript N.N: tail-recursive conditionals]` (1)
   - X-01 `modules/07-ts-advanced-types-and-decorators.md:147` `[Changed in TypeScript 4.5: tail-recursive conditionals]`
-- `[Changed in TypeScript N.N: it was `T extends null | undefined ? never : T`]` (1)
-  - X-01 `modules/07-ts-advanced-types-and-decorators.md:186` `[Changed in TypeScript 4.8: it was `T extends null | undefined ? never : T`]`
+- ``[Changed in TypeScript N.N: it was `T extends null | undefined ? never : T`]`` (1)
+  - X-01 `modules/07-ts-advanced-types-and-decorators.md:186` ``[Changed in TypeScript 4.8: it was `T extends null | undefined ? never : T`]``
 - `[Added in Angular N]` (1)
   - X-01 `modules/07-ts-advanced-types-and-decorators.md:443` `[Added in Angular 14]`
 - `[Baseline widely available since February N, per MDN's shadowRootMode page]` (1)
@@ -183,8 +183,8 @@
   - X-04 `modules/36-material-and-cdk.md:145` `[Changed in v22.0.4: reworked to handle Signal Forms]`
 - `[Added in vN.N.N]` (1)
   - X-04 `modules/36-material-and-cdk.md:508` `[Added in v22.2.1]`
-- `[Deprecated since vN.N.N — use `createDragRef` and `createDropListRef`]` (1)
-  - X-04 `modules/36-material-and-cdk.md:625` `[Deprecated since v21.0.6 — use `createDragRef` and `createDropListRef`]`
+- ``[Deprecated since vN.N.N — use `createDragRef` and `createDropListRef`]`` (1)
+  - X-04 `modules/36-material-and-cdk.md:625` ``[Deprecated since v21.0.6 — use `createDragRef` and `createDropListRef`]``
 
 ## 2. One API, different markers
 
@@ -198,7 +198,7 @@
   - `modules/16-dependency-injection.md:1600` `[Added in v18.0]`
   - `modules/19-component-communication-and-projection.md:472` `[Added in v22.2]`
   - `modules/25-forms-reactive-and-template-driven.md:817` `[Added in v20.0]`
-  - `modules/35-animations.md:501` `[Changed in v22.0: `VoidFunction`, was `Function`]`
+  - `modules/35-animations.md:501` ``[Changed in v22.0: `VoidFunction`, was `Function`]``
   - `modules/37-elements-pwa-errors-ecosystem.md:1521` `[Added in v19.0]`
 - `, ` X-01
   - `modules/06-ts-type-system-essentials.md:358` `[Added in TypeScript 5.6]`
@@ -213,36 +213,36 @@
   - `modules/32-ssr-ssg-hydration.md:630` `[Deprecated since v22.0 — use the default of provideClientHydration()]`
 - `@angular-devkit/build-angular` X-02
   - `modules/12-angular-how-it-works.md:263` `[Deprecated since CLI 22.0 — use @angular/build:application]`
-  - `modules/38-architecture-and-production-structure.md:639` `[Deprecated since v22.0 — use `@angular/build`]`
+  - `modules/38-architecture-and-production-structure.md:639` ``[Deprecated since v22.0 — use `@angular/build`]``
 - `APP_INITIALIZER` X-02
   - `modules/12-angular-how-it-works.md:532` `[Deprecated since v19 — use provideAppInitializer]`
   - `modules/16-dependency-injection.md:740` `[Deprecated since v19.0 — use provideAppInitializer]`
-  - `modules/39-version-history-and-migrations.md:482` `[Deprecated since v19 — use `provideAppInitializer`]`
+  - `modules/39-version-history-and-migrations.md:482` ``[Deprecated since v19 — use `provideAppInitializer`]``
 - `NG8023` X-02
   - `modules/13-components-and-templates.md:59` `[Changed in v22.0: "will now throw at compile time"]`
   - `modules/13-components-and-templates.md:1122` `[Changed in v22.0]`
 - `changeDetection` X-02
   - `modules/13-components-and-templates.md:1100` `[Changed in v19.0]`
   - `modules/14-directives-and-pipes.md:711` `[Changed in v22.0: the default]`
-  - `modules/21-change-detection.md:60` `[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]`
-  - `modules/31-performance.md:218` `[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]`
-  - `modules/31-performance.md:1084` `[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]`
-  - `modules/38-architecture-and-production-structure.md:142` `[Changed in v22.0: components without `changeDetection` are OnPush]`
-  - `modules/38-architecture-and-production-structure.md:1136` `[Changed in v22.0: components without `changeDetection` are OnPush]`
+  - `modules/21-change-detection.md:60` ``[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]``
+  - `modules/31-performance.md:218` ``[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]``
+  - `modules/31-performance.md:1084` ``[Changed in v22.0: "Component with undefined `changeDetection` property are now `OnPush` by default"]``
+  - `modules/38-architecture-and-production-structure.md:142` ``[Changed in v22.0: components without `changeDetection` are OnPush]``
+  - `modules/38-architecture-and-production-structure.md:1136` ``[Changed in v22.0: components without `changeDetection` are OnPush]``
 - `.component` X-02
   - `modules/13-components-and-templates.md:1100` `[Changed in v20.0]`
-  - `modules/39-version-history-and-migrations.md:483` `[Changed in v20.0: generated file names have no `.component` suffix]`
+  - `modules/39-version-history-and-migrations.md:483` ``[Changed in v20.0: generated file names have no `.component` suffix]``
 - `NgSwitch` X-02
-  - `modules/14-directives-and-pipes.md:2174` `[Deprecated since v20.0 — use `@if`, `@for`, `@switch`]`
+  - `modules/14-directives-and-pipes.md:2174` ``[Deprecated since v20.0 — use `@if`, `@for`, `@switch`]``
   - `modules/18-control-flow-and-defer.md:79` `[Deprecated since v20.0 — use @switch]`
 - `HttpClientModule` X-02
   - `modules/15-standalone-and-ngmodules.md:295` `[Deprecated since v18.0 — use provideHttpClient(withInterceptorsFromDi())]`
   - `modules/15-standalone-and-ngmodules.md:1168` `[Deprecated since v18.0 — use provideHttpClient(withInterceptorsFromDi())]`
-  - `modules/39-version-history-and-migrations.md:481` `[Deprecated since v18 — use `provideHttpClient`]`
+  - `modules/39-version-history-and-migrations.md:481` ``[Deprecated since v18 — use `provideHttpClient`]``
 - `*ngIf` X-02
   - `modules/15-standalone-and-ngmodules.md:486` `[Deprecated since v20.0 — use @if]`
   - `modules/18-control-flow-and-defer.md:34` `[Deprecated since v20.0 — use @if]`
-  - `modules/39-version-history-and-migrations.md:520` `[Deprecated since v20.0 — use `@if`]`
+  - `modules/39-version-history-and-migrations.md:520` ``[Deprecated since v20.0 — use `@if`]``
 - ` and ` X-03
   - `modules/22-rxjs-foundations.md:306` `[Deprecated since v7.0 — use share, connectable or connect]`
   - `modules/25-forms-reactive-and-template-driven.md:792` `[Added in v18.0]`

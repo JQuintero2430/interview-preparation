@@ -203,7 +203,7 @@ Targets: the question and exercise numbers in SYLLABUS §1 are ceilings. The flo
 
 ### 10.1 Content and code
 
-- Use only versions, APIs and defaults that appear in `VERSIONS.md` or are verified against the version it names. Mark every API that is not plainly stable with its status as STYLE-GUIDE defines it (preview, incubating, experimental, deprecated, removed). Teach the current Java LTS and the current Spring Boot as the default, with "Version notes" for what changed (Java 8 → current LTS, Spring Boot 2 → 3 → current) where companies still run the older way.
+- Use only versions, APIs and defaults that appear in `VERSIONS.md` or are verified against the version it names. Mark every API that is not plainly stable with its status as STYLE-GUIDE defines it (preview, incubator, experimental, deprecated, removed). Teach the current Java LTS and the current Spring Boot as the default, with "Version notes" for what changed (Java 8 → current LTS, Spring Boot 2 → 3 → current) where companies still run the older way.
 - Keep "what Spring does" apart from "what Java or the JVM does" ("Framework vs language" callout).
 - Cross-guide boundaries: the browser and frontend side of the Spring Boot integration belongs to `../angular-fullstack-guide/` (Part E) and `../react-full-stack-interview-guide/24-react-with-spring-boot.md`; link to them. Data structures and algorithms are out of scope (`../algorithms.html` is never touched). `../node-backend-guide/` and `../python-backend-guide/` will link to this guide's concept modules, so those modules stay self-contained and their slugs never change. Cross-guide links use relative paths. Every delegated topic is listed in SYLLABUS with its target.
 - Code in modules and labs:

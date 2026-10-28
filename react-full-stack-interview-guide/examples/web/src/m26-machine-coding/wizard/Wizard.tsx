@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 
 export type Values = { email: string; name: string };
 type Errors = Partial<Record<keyof Values, string>>;
@@ -18,7 +18,7 @@ function Field(props: {
   error: string | undefined;
   onChange: (value: string) => void;
 }) {
-  const errorId = `${props.label}-error`;
+  const errorId = useId(); // unique even if two wizards (or two fields with one label) share a page
   return (
     <div>
       <label>

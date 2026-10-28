@@ -312,7 +312,6 @@ A decorator is a function the class definition calls with the thing it decorates
 - **What standard decorators drop.** Parameter decorators: `constructor(@Inject(TOKEN) x: string)` is `TS1206: Decorators are not valid here.` without `experimentalDecorators`. They also do not work with `emitDecoratorMetadata` (5.0 notes). A separate metadata feature [Added in TypeScript 5.2] needs a `Symbol.metadata` polyfill ([5.2 notes](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-2.html)); its proposal is also at Stage 2.7 ([proposals list](https://github.com/tc39/proposals)).
 - **Angular.** The workspace schematic writes `"experimentalDecorators": true`, which in the lab lets a constructor parameter decorator such as `@Inject` compile. `ngc`, the Angular compiler's command-line tool, reads `@Component` from the source (AOT, at build time), not from TypeScript's emit: in the lab it emits `App` with no decorator call, a static `ɵfac`, a static `ɵcmp` from `ɵɵdefineComponent`, and the arguments only in a dev-mode `ɵsetClassMetadata` block, and turning the flag off left that unchanged. JIT (compiling at run time) differs, because the decorators really run: Angular's field decorators such as `@Input()` throw `Standard Angular field decorators are not supported in JIT mode.` when called the standard way, with `undefined` as the target (`@angular/core` 22.2.1; the lab asserts it). So the flavor cannot change AOT output, yet the workspace keeps the flag on and parameter decorators need it; `inject()` needs neither.
 
-
 ```mermaid
 flowchart LR
   subgraph define["Class definition"]
@@ -360,6 +359,7 @@ function trace(label: string) {
 
 Verified: the `Section 7:` tests in [`section-7-decorators.test.ts`](../labs/ts-js/src/modules/07-ts-advanced-types-and-decorators/section-7-decorators.test.ts) and [`decorators.spec.ts`](../labs/angular/src/app/modules/07-ts-advanced-types-and-decorators/decorators.spec.ts), which checks `ɵcmp` and `ɵfac` on a real component. Drill it with [Q07.13](#q07-13), [Q07.14](#q07-14) and [Q07.15](#q07-15).
 
+> [!TIP]
 > **Coming from the backend.** Java annotations are passive metadata that frameworks read by reflection at run time; Angular's decorators are closer to that, except they are read at build time and removed. **Where the analogy breaks:** a standard JavaScript decorator is a function that runs during class definition and can replace what it decorates.
 
 > [!NOTE]
@@ -392,7 +392,7 @@ The lab installs `zod` 4.6.5 as an exact dev dependency; every fact below is fro
 - **Building a schema.** `z.object({ id: z.string(), age: z.number().int(), email: z.string().optional(), nickname: z.string().nullable() })` describes the shape, and `z.infer<typeof User>` gives exactly `{ id: string; age: number; email?: string | undefined; nickname: string | null }` (lab).
 - **`parse` versus `safeParse`.** `parse` returns the data or throws a `ZodError` whose `issues` carry a `code`, a `path` such as `['id']` and a message (`Invalid input: expected string, received number`). `safeParse` never throws: it returns `{ success: true, data }` or `{ success: false, error }`, a [discriminated union](https://zod.dev/basics) narrowed on `success`.
 - **Unknown keys.** The [docs](https://zod.dev/api): "By default, unrecognized keys are *stripped* from the parsed result". In the lab a `role: 'admin'` sent to `User` is absent from the result. `z.strictObject` rejects it (`unrecognized_keys`), `z.looseObject` keeps it; the `.d.ts` names the modes `$strip`, `$strict` and `$loose`.
-- **Input and output types.** A `.transform` changes the value after validation, for `z.string().transform(text => Math.round(Number(text) * 100))`, `z.input` is `string` and `z.output` (which `z.infer` is an alias of) is `number`.
+- **Input and output types.** A `.transform` changes the value after validation: for `z.string().transform(text => Math.round(Number(text) * 100))`, `z.input` is `string` and `z.output` (which `z.infer` is an alias of) is `number`.
 
 ### Code
 
@@ -415,6 +415,7 @@ const user: User = result.data;
 
 Verified: the `Section 8:` tests in [`section-8-zod.test.ts`](../labs/ts-js/src/modules/07-ts-advanced-types-and-decorators/section-8-zod.test.ts). Drill it with [Q07.16](#q07-16), [Q07.17](#q07-17) and [Exercise 07.2](#ex07-2).
 
+> [!NOTE]
 > **Framework vs platform.** Zod is a library, not part of Angular or TypeScript. Nothing in either checks a response's shape at run time: `HttpClient.get<T>()` takes `T` as a type argument only (its `.d.ts`), so `get<User>()` validates nothing.
 
 ### Best practices and anti-patterns

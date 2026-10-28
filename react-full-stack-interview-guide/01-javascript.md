@@ -183,7 +183,7 @@ export function makeCounter() {
 Each call creates a new `count`; `increment` and `read` share it.
 
 ### How it works internally
-Every function object has an internal slot pointing at the environment (scope record) where it was created. A call creates a new environment whose parent is that captured one, so name lookup walks the chain outward. V8 only keeps alive the variables a closure actually references (and may allocate them on the heap instead of the stack).
+Every function object has an internal slot pointing at the environment (scope record) where it was created. A call creates a new environment whose parent is that captured one, so name lookup walks the chain outward. V8 keeps alive only the variables that some closure created in that scope references (and allocates them on the heap instead of the stack); all closures from one scope share that context, so a variable used by one closure stays alive as long as any of them does ([1.20](#120-memory-gc-leaks-from-closures-listeners-and-timers-weakmapweakref)).
 
 **The React connection.** A component function runs once per render. Each run creates new `const`s (`count`, handlers) and the handlers close over *that render's* values:
 
@@ -197,7 +197,7 @@ return { handler: () => captured,       // stale after setState
 This is why `setTimeout(() => alert(count), 3000)` shows the count from the render in which you clicked, and why an effect with `[]` deps keeps reading its first render's values. See [8.2](08-state.md#82-usestate-and-state-as-a-snapshot), [8.4](08-state.md#84-functional-updates) and [9.5](09-effects.md#95-stale-closures-in-effects-and-intervals). The fixes are all "stop depending on the old snapshot": a functional update, a correct dependency array, or a ref.
 
 ### Trade-offs
-Closures give private state and partial application for free (`once`, `memoize`, `debounce`). The costs: they can keep large objects alive unintentionally ([1.20](#120-memory-gc-leaks-from-closures-listeners-and-timers-weakmapweakref)), and the stale-snapshot behaviour surprises people who expect "the latest value".
+Closures give private state and partial application for free (`once`, `memoize`, `debounce`). The costs: they can keep large objects alive unintentionally ([1.20](#120-memory-gc-leaks-from-closures-listeners-and-timers-weakmapweakref)), and the stale-snapshot behavior surprises people who expect "the latest value".
 
 ---
 
@@ -451,7 +451,7 @@ Pre-2015 JavaScript had no module system, so every file shared one global namesp
 |---|---|---|
 | Syntax | `const x = require('x')`, `module.exports = ...` | `import x from 'x'`, `export const y` |
 | Loading | synchronous, at runtime | static analysis first (imports are hoisted), then evaluate |
-| Exports | a **copy** of the value at `require` time | **live bindings**: the importer reads the exporter's current variable |
+| Exports | the `module.exports` object; values destructured or assigned from it are **copies** taken at `require` time | **live bindings**: the importer reads the exporter's current variable |
 | `this` at top level | `module.exports` | `undefined` |
 | Strict mode | opt-in | always |
 | Tree shaking | hard (dynamic) | possible (static) |
@@ -487,7 +487,7 @@ New code is ESM (Vite, Vitest and TypeScript with `verbatimModuleSyntax` are ESM
 ### Mental model
 An **iterable** has a `[Symbol.iterator]()` method returning an **iterator**, an object with `next()` that returns `{ value, done }`. A **generator** (`function*`) is a function that can **pause** at `yield` and resume, and calling it returns an iterator without running any of the body yet.
 
-> **Java analogy.** `Iterable`/`Iterator` and `for (T x : iterable)`. **Where the analogy breaks:** generators have no Java equivalent: they are coroutines. A generator can also receive values (`it.next(v)` becomes the result of `yield`), which is how `async/await` and early `redux-saga` work.
+> **Java analogy.** `Iterable`/`Iterator` and `for (T x : iterable)`. **Where the analogy breaks:** generators have no Java equivalent: they are coroutines. A generator can also receive values (`it.next(v)` becomes the result of `yield`), which is how `async/await` is transpiled for old targets and how `redux-saga` works.
 
 ### Minimal code
 `puzzles.ts` (`p23Generator`):
@@ -584,7 +584,7 @@ async function loadDashboard(id: string): Promise<Dashboard> {
 - **`await` in a loop** is sequential on purpose (`for...of`), but `forEach(async ...)` does not wait at all; `map(async ...)` + `Promise.all` runs concurrently ([`p25`](examples/web/src/m01-javascript/puzzles.ts)).
 - **Ordering.** `await` of an already-settled native promise takes one microtask tick (engines since ES2019/V8 7.2), which is why `a1 end` precedes `then2` in [`p09`](examples/web/src/m01-javascript/puzzles.ts).
 - **Errors.** A rejected promise becomes a thrown exception at the `await`. `try { return promise } catch` does **not** catch the rejection (no `await`); `return await promise` does. An async function never throws synchronously: even a bad argument produces a rejected promise.
-- **Cancellation.** Pass an `AbortSignal` to `fetch`, to your own functions ([`retry.ts`](examples/web/src/m01-javascript/retry.ts) honours one) and to effects ([9.4](09-effects.md#94-race-conditions-and-abortcontroller)).
+- **Cancellation.** Pass an `AbortSignal` to `fetch`, to your own functions ([`retry.ts`](examples/web/src/m01-javascript/retry.ts) honors one) and to effects ([9.4](09-effects.md#94-race-conditions-and-abortcontroller)).
 - **Top-level `await`** works in ES modules, not in CJS.
 
 ### Trade-offs
@@ -638,7 +638,7 @@ log.push('sync 2');
 Consequences interviewers like:
 - **`setTimeout(fn, 0)` is not immediate.** It is a minimum delay (browsers clamp nested timers to ≥ 4 ms after five levels, per the HTML Standard's timer rules; Node clamps 0 to 1 ms). Timers are *queued macrotasks*, so a busy stack makes them late and a background tab throttles them.
 - **Microtasks run between timers**: `p12` logs `t1, m1, t2` (modern Node and browsers).
-- **Why React state updates feel "batched".** React schedules its work from events and from `scheduler` tasks (a `MessageChannel` macrotask loop), so many `setState` calls in one event become one render ([8.3](08-state.md)). `useEffect` runs after paint; `useLayoutEffect` before it ([9](09-effects.md)).
+- **Why React state updates feel "batched".** `setState` does not render; it queues an update, and React processes the root in a microtask (and, for non-urgent updates, in `scheduler` tasks driven by a `MessageChannel` macrotask loop), so many `setState` calls in one event become one render ([8.3](08-state.md#83-batching)). `useEffect` usually runs after paint; `useLayoutEffect` always before it ([9](09-effects.md)).
 - **Long tasks hurt Interaction to Next Paint.** Break work up, move it to a Web Worker, or yield (`await scheduler.yield()` where supported: Chrome/Edge 129+ and Firefox 142+, not Safari, so not Baseline; [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield), [web-features](https://web-platform-dx.github.io/web-features-explorer/features/scheduler/)) so rendering can happen.
 - **Node differs slightly**: it has phases (timers, poll, check for `setImmediate`...), and `process.nextTick` runs before promise microtasks. The browser model above is the one interviews use.
 
@@ -791,7 +791,7 @@ Do not micro-manage memory. Fix lifetimes: every `add`/`subscribe`/`set` needs i
 
 ## 1.21 Classic trick questions and output-prediction puzzles
 
-How to use: cover the answer, predict the output, then compare. Each puzzle is a function in [`puzzles.ts`](examples/web/src/m01-javascript/puzzles.ts) that returns its output as an array, and [`puzzles.test.ts`](examples/web/src/m01-javascript/puzzles.test.ts) asserts it exactly. Snippets below use `log(x)` for "append to the output". Solutions are marked "(verified by running it)" until each has been run.
+How to use: cover the answer, predict the output, then compare. Each puzzle is a function in [`puzzles.ts`](examples/web/src/m01-javascript/puzzles.ts) that returns its output as an array, and [`puzzles.test.ts`](examples/web/src/m01-javascript/puzzles.test.ts) asserts it exactly. Snippets below use `log(x)` for "append to the output". A solution marked "(verified by running it)" is the output asserted by that test.
 
 **P1. `typeof`** (`p01Typeof`): `[null, undefined, NaN, [], () => 1, 10n, Symbol('s'), new Date(0)].map(v => typeof v)`
 <details><summary>Solution</summary>
@@ -1156,7 +1156,7 @@ A function that pauses at `yield` and resumes on `next()`, returning a lazy iter
 **Q23. Promise states and the difference between `all`, `allSettled`, `race`, `any`?**
 <details><summary>Answer</summary>
 
-Pending, then fulfilled or rejected, once. `all` rejects on the first rejection; `allSettled` never rejects; `race` follows the first settlement; `any` follows the first fulfilment and rejects with `AggregateError`. **A strong answer adds:** `all` does not cancel the others.
+Pending, then fulfilled or rejected, once. `all` rejects on the first rejection; `allSettled` never rejects; `race` follows the first settlement; `any` follows the first fulfillment and rejects with `AggregateError`. **A strong answer adds:** `all` does not cancel the others.
 
 </details>
 
@@ -1184,14 +1184,14 @@ One stack runs a task to completion; then the whole microtask queue drains; then
 **Q27. Why does `Promise.resolve().then(...)` run before `setTimeout(..., 0)`?**
 <details><summary>Answer</summary>
 
-Microtasks run when the stack empties, before the next macrotask. **A strong answer adds:** timers also have a minimum delay (about 1-4 ms) and can be late.
+Microtasks run when the stack empties, before the next macrotask. **A strong answer adds:** timers can also be clamped (to 4 ms in browsers once nested more than five levels deep; Node turns 0 into 1 ms) and fire late when the stack is busy.
 
 </details>
 
 **Q28. How does `await` interact with the event loop?**
 <details><summary>Answer</summary>
 
-It suspends the function and queues its continuation as a microtask after the awaited promise settles. **A strong answer adds:** an already-settled native promise costs one tick (P9), a returned promise from `then` costs three (P11).
+It suspends the function and queues its continuation as a microtask after the awaited promise settles. **A strong answer adds:** awaiting an already-settled native promise costs one tick (P9), while returning a promise from a `then` handler costs two extra ticks (P11).
 
 </details>
 
@@ -1573,7 +1573,7 @@ function clone(value: unknown, seen: WeakMap<object, unknown>): unknown {
 
 <details><summary>Hints</summary>
 
-`fn.length` is the arity (it ignores defaults and rest). Never `push` into the shared array.
+`fn.length` is the arity: it counts only the parameters before the first default or rest parameter. Never `push` into the shared array.
 
 </details>
 
@@ -2011,7 +2011,7 @@ export class LRUCache<K, V> {
 21. **Object key order**: integer-like keys first, ascending (P14). Never depend on key order for logic that mixes numeric strings.
 22. **A debounced function created in a component body** is recreated every render, so it never debounces ([1.18](#118-debounce-and-throttle)).
 23. **`Array(3)` creates holes**; `map` skips them (P24). `Array.from({ length: 3 })` fills.
-24. **`==` with objects** compares references after coercion: `[1] == 1` is `true`, `[1] == [1]` is `false`.
+24. **`==` with objects**: two objects compare by reference, an object against a primitive is coerced first: `[1] == 1` is `true`, `[1] == [1]` is `false`.
 25. **Class fields with arrow functions** create a function per instance (memory cost), unlike prototype methods.
 26. **Unhandled rejections** crash Node 15+ processes by default and surface as `unhandledrejection` in browsers.
 
@@ -2023,7 +2023,7 @@ export class LRUCache<K, V> {
 |---|---|---|---|
 | "Use `var` for function-level scope; `let` is not supported everywhere" | Yes for IE ≤ 10 | Use `let`/`const`; transpilers handle old targets | ES2015 |
 | "Wrap code in an IIFE to avoid globals" | Yes in classic scripts | Every ES module has its own scope | ES modules (2015 spec; broad browser support 2018+) |
-| "JavaScript is single-threaded, so you cannot do parallel work" | Mostly | The main thread is single; Web Workers and `structuredClone`/`postMessage` give real parallelism | Workers 2009+ |
+| "JavaScript is single-threaded, so you cannot do parallel work" | Mostly | The main thread is single; Web Workers give real parallelism, exchanging data through `postMessage` (structured clone or transfer) | Workers 2009+ |
 | "Use `.bind(this)` or an arrow field for every class handler" | Yes for class components | Function components have no `this`; handlers are closures | Hooks, React 16.8 |
 | "Deep-copy with `JSON.parse(JSON.stringify(x))`" | Common, with known losses | `structuredClone` (keeps Dates, Maps, Sets, cycles) | Node 17 / browsers 2022 (check MDN for exact versions) |
 | "`sort` is not stable" | Yes in V8 for arrays > 10 items before 2018 | Stable | ES2019 |

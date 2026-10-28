@@ -2368,7 +2368,7 @@ async function titlesAfter(urls: string[], ...extra: Provider[]): Promise<string
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** `PathLocationStrategy`, the default, writes real paths under the base href: `/b?q=1`. `HashLocationStrategy`, from `withHashLocation()`, writes the route after `#`: `#/b?q=1`. A deep link or reload sends the path to the server. With paths the server must return `index.html` for app URLs it has no file for; with the hash the route is the fragment, never sent, so the server sees only `/`.
+**Short answer (30 seconds).** `PathLocationStrategy`, the default, writes real paths under the base href: `/b?q=1`. `HashLocationStrategy`, from `withHashLocation()`, writes the route after `#`: `#/b?q=1`. A deep link or reload sends the path to the server. With paths the server must return `index.html` for app URLs it has no file for; with the hash the route is the fragment, never sent, so the server sees the document path before `#` (`/` here, or `/app/` for an app hosted there).
 
 **Full explanation.** The same `routerLink` rendered `href="/b?q=1"` by default and `href="#/b?q=1"` under the hash strategy (`Section 10: the default strategy renders path hrefs`, `Section 10: withHashLocation renders hash hrefs`). `Location.path()` reported `/b?q=1` under both, so app code never sees the difference (`Section 10: Location reports the route without the hash prefix under withHashLocation`). The server rule is documented, not run. Angular's deployment guide (`adev/src/content/tools/cli/deployment.md`, branch `main`, 2026-10-10) says to configure the server to return `index.html` for a file it does not have; the fragment's exclusion is RFC 3986 §3.5 ([section 10](#10-the-router-and-the-platform-history-api-navigation-api-and-location-strategies)).
 
@@ -2971,10 +2971,9 @@ It keeps the previous title.
 
 </details>
 
-
 ## Connections
 
 - **Builds on:** [15 §4](15-standalone-and-ngmodules.md#4-lazy-loading-without-modules-loadcomponent-and-loadchildren-with-route-arrays) (`loadComponent` and `loadChildren`), [16 §5](16-dependency-injection.md#5-the-injector-tree-platform-root-route-and-element-injectors-and-the-modifiers) (route injectors), [19 §1](19-component-communication-and-projection.md#1-inputs-outputs-and-two-way-binding-the-parent-and-child-contract) (signal inputs), [23 §1](23-rxjs-in-depth.md#1-higher-order-observables-switchmap-mergemap-concatmap-and-exhaustmap) (`switchMap`), [08 §7](08-browser-rendering-dom-events.md#7-history-api-versus-navigation-api) (History API), [11 §5](11-accessibility.md#5-focus-management-in-spas-and-live-regions) (focus after navigation) and [17 §6](17-signals.md#6-resources-async-data-as-signals) (resources).
 - **Read next:** [25. Forms](25-forms-reactive-and-template-driven.md), [27. HttpClient](27-http-client.md), [31. Performance](31-performance.md) (preloading and chunks), [32. SSR, SSG and hydration](32-ssr-ssg-hydration.md), [33. Security](33-security.md) (guards are not access control) and [42. Full-stack authentication](42-fullstack-authentication.md).
-- **Uses these ideas later:** [25](25-forms-reactive-and-template-driven.md) (unsaved-changes guards), [29](29-testing-angular.md) (testing routed components), [31](31-performance.md), [32](32-ssr-ssg-hydration.md), [33](33-security.md), [34](34-i18n.md) (localized routes), [38](38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder) (routing a large app) and [42](42-fullstack-authentication.md), all file-level and not yet written.
+- **Uses these ideas later:** [25](25-forms-reactive-and-template-driven.md) (unsaved-changes guards), [29](29-testing-angular.md) (testing routed components), [31](31-performance.md), [32](32-ssr-ssg-hydration.md), [33](33-security.md), [34](34-i18n.md) (localized routes), [38](38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder) (routing a large app) and [42](42-fullstack-authentication.md).
 

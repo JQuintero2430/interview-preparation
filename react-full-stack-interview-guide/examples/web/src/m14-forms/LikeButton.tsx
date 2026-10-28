@@ -40,7 +40,7 @@ export function LikeButton({ postId, initial }: Props) {
       </button>
       <span>{shown.likes} likes</span>
       {error && (
-        <p role="alert" aria-live="polite">
+        <p role="alert">
           {error}
         </p>
       )}

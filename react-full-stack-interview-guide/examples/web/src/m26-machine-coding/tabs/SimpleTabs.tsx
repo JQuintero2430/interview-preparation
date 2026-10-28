@@ -38,7 +38,8 @@ export function SimpleTabs({ tabs, label }: { tabs: TabItem[]; label: string }) 
             id={`${baseId}-tab-${tab.id}`}
             data-tab={tab.id}
             aria-selected={tab.id === selectedId}
-            aria-controls={`${baseId}-panel-${tab.id}`}
+            // Only the selected panel is mounted, so only its tab may point at it.
+            aria-controls={tab.id === selectedId ? `${baseId}-panel-${tab.id}` : undefined}
             tabIndex={tab.id === selectedId ? 0 : -1} // roving tabindex
             onClick={() => setSelectedId(tab.id)}
           >

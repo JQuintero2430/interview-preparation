@@ -46,6 +46,9 @@
       "path": "./projects/animations-lab/tsconfig.app.json"
     },
     {
+      "path": "./projects/material-lab/tsconfig.app.json"
+    },
+    {
       "path": "./projects/elements-lab/tsconfig.app.json"
     },
     {

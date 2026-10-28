@@ -49,8 +49,8 @@ Not re-verified here: the NgRx marker versions (19.0, 19.1, 20.0, 21.0, 21.1, 22
 - **Evidence:** 23's own test (23:647, `Section 7: rxResource unsubscribes the previous stream when params change`) observed `value()` `undefined` in `loading` after a **params change**. It did not test `reload()`. The source keeps the stream when the request is unchanged, which is the reload case (`_resource-chunk.mjs:312`, `if (previous.value.extRequest.request === request) stream = previous.value.stream`, read). It also derives the `reloading` status from `extRequest.reload` (line 504). `rxResource` is built on `resource`. As written, the Summary says the opposite of 17 and 27. Line 708 also files a true statement (the value survives a reload) under misconceptions.
 - **Right side:** 17 and 27. In 23, "reloads" has to become "params change".
 - **Fix text:** in 23, two swaps:
-  1. `and \`rxResource\` cancels the previous stream and has no value while it reloads` → `and \`rxResource\` cancels the previous stream and has no value while it loads new params (\`reload()\` keeps the old one, [17 §6](17-signals.md#6-resources-async-data-as-signals))`
-  2. `- *"\`rxResource\` keeps the old value while reloading."*` → `- *"\`rxResource\` keeps the old value when its params change."*`
+  1. `` and `rxResource` cancels the previous stream and has no value while it reloads `` → `` and `rxResource` cancels the previous stream and has no value while it loads new params (`reload()` keeps the old one, [17 §6](17-signals.md#6-resources-async-data-as-signals)) ``
+  2. `` - *"`rxResource` keeps the old value while reloading."* `` → `` - *"`rxResource` keeps the old value when its params change."* ``
 
   Net about +12 words. Part D has no prose cap.
 
@@ -63,8 +63,8 @@ Not re-verified here: the NgRx marker versions (19.0, 19.1, 20.0, 21.0, 21.1, 22
 - **Evidence:** STYLE-GUIDE §3.2 says "Use the version from the `@publicApi vX` tag or the changelog", which are Angular's. Module 28 prefixes its library (`NgRx v22.0`, J4), and 22/23 do not. Neither module says which library its `vX` refers to: 22:28 and 23:29 say only where markers come from. So a reader sees `[Deprecated since v6.0 …]` for `merge` (RxJS 6.0) and for `ngModel` with reactive forms (Angular 6.0), and nothing tells the two apart. The scan's regexes accept the RxJS markers as canonical, so only a review can catch this. The versions themselves are RxJS versions and are right where checked (Runs).
 - **Right side:** the markers stay. Each module states once which library its versions refer to. The alternative is an `RxJS vX` prefix like NgRx's (For Jorge 2).
 - **Fix text:**
-  1. 22: `and documentation quotes name their file on the \`7.x\` branch.` → `and documentation quotes name their file on the \`7.x\` branch. A marker on an \`rxjs\` API gives the RxJS version (\`v6.4\` is RxJS 6.4); a marker on an Angular API gives the Angular version.`
-  2. 23: `Status markers come from typings tags and the RxJS CHANGELOG.` → `Status markers come from typings tags and the RxJS CHANGELOG; a marker on an \`rxjs\` API gives the RxJS version (\`v7.3\` is RxJS 7.3), one on an Angular API the Angular version.`
+  1. 22: `` and documentation quotes name their file on the `7.x` branch. `` → `` and documentation quotes name their file on the `7.x` branch. A marker on an `rxjs` API gives the RxJS version (`v6.4` is RxJS 6.4); a marker on an Angular API gives the Angular version. ``
+  2. 23: `Status markers come from typings tags and the RxJS CHANGELOG.` → `` Status markers come from typings tags and the RxJS CHANGELOG; a marker on an `rxjs` API gives the RxJS version (`v7.3` is RxJS 7.3), one on an Angular API the Angular version. ``
 
   +27 and +24 words.
 
@@ -194,8 +194,8 @@ Not re-verified here: the NgRx marker versions (19.0, 19.1, 20.0, 21.0, 21.1, 22
 - **Evidence:** `@angular/common/types/http-testing.d.ts:37` declares `get cancelled(): boolean` on `class TestRequest` (line 31), not on `abstract class HttpTestingController` (line 85) (read). 23's own body text gets it right: "That flag is the testing backend's report", read via `controller.expectOne(...)`. Only the definition says "its". The harvest builds GLOSSARY.md (RUN §13), and with one entry per term (J2) the two definitions have to agree. The "test double for the HTTP backend" wording also says something different from 27: the controller is the handle, and the in-memory backend is the double.
 - **Right side:** 27 and the typings.
 - **Fix text:**
-  1. `_meta/GLOSSARY-TERMS.md`: `Angular's test double for the HTTP backend; its \`cancelled\` flag reports that the test request's subscription was torn down` → `the test-side handle on the in-memory test backend; the \`cancelled\` flag of each \`TestRequest\` it returns reports that the request's subscription was torn down`
-  2. 23: `uses \`HttpTestingController\`, Angular's test double for the HTTP backend (` → `uses \`HttpTestingController\`, the test-side handle on Angular's in-memory HTTP test backend (`
+  1. `_meta/GLOSSARY-TERMS.md`: `` Angular's test double for the HTTP backend; its `cancelled` flag reports that the test request's subscription was torn down `` → `` the test-side handle on the in-memory test backend; the `cancelled` flag of each `TestRequest` it returns reports that the request's subscription was torn down ``
+  2. 23: `` uses `HttpTestingController`, Angular's test double for the HTTP backend ( `` → `` uses `HttpTestingController`, the test-side handle on Angular's in-memory HTTP test backend ( ``
 
   +3 words in 23.
 

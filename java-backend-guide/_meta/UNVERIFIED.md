@@ -1,0 +1,14 @@
+# UNVERIFIED
+
+Claims kept in the guide that are not yet verified. Each open item has a `VERIFY-nn` task at the front of the queue ([TASKS](TASKS.md)). Must be empty (zero open items) at the finish line. The first six rows come from [VERSIONS](../VERSIONS.md) "Open items" (planning step P2); they are version facts, not module content.
+
+| ID | Claim | Location | How to verify | needs: | Status |
+|---|---|---|---|---|---|
+| U01 | Redis current stable is 9.0.4 (endoflife.date) while the GitHub "latest release" tag is 8.10.2; the 9.x licence is unchecked (AGPLv3 availability is confirmed only for 8+) | `VERSIONS.md` version table (Redis row), Open items | `VERIFY-01`: redis.io release notes and the licence file of the 9.x tag at github.com/redis/redis | none | closed: no 9.x tag in github.com/redis/redis (git ls-remote, 2026-10-25); current 8.10.2; licence 8.0+ RSALv2/SSPLv1/AGPLv3 (LICENSE.txt at 8.10.2). VERIFY-01 |
+| U02 | Spring Boot 4.1 / Framework 7.0 / Security 7.1 OSS and commercial end dates (2027-07-31 / 2028-07-31) come from endoflife.date, not spring.io | `VERSIONS.md` version table, Support policies | `VERIFY-02`: spring.io project support pages or the Supported-Versions wiki | none | closed: dates confirmed by api.spring.io generations (2026-10-25); cells re-sourced. VERIFY-02 |
+| U03 | Oracle JDK and Temurin premier/extended end dates (for example 25: 2030-09-30 / 2033-09-30) come from endoflife.date; the Oracle roadmap page returned HTTP 403 | `VERSIONS.md` version table (Java rows), Support policies | `VERIFY-03`: Oracle Java SE support roadmap or Adoptium support page | none | closed: Oracle roadmap and adoptium.net/support read 2026-10-25; cells corrected (month granularity, Temurin "at least"). VERIFY-03 |
+| U04 | Semantic conventions v1.44.0: stability of the individual HTTP, database, messaging and RPC metrics was not read (only span pages and area READMEs) | `VERSIONS.md` Feature status notes (OpenTelemetry) | `VERIFY-04`: Stability column and Status line of `docs/*/*-metrics.md` at the tag | none | closed: metric Stability and page Status read at v1.44.0 (db folder is docs/db). VERIFY-04 |
+| U05 | JDK 21 status of structured concurrency (JEP 453, preview) and scoped values (JEP 446, preview) is from memory of the JEP lineage, not re-read | `VERSIONS.md` Java concurrency JEPs table | `VERIFY-05`: openjdk.org/jeps/453, /jeps/446 and the JDK 21 release page | none | closed: openjdk.org/jeps/453 and /446 both Preview, Closed/Delivered, Release 21. VERIFY-05 |
+| U06 | Installed Docker version was never captured (Docker not installed or running on this machine) | `VERSIONS.md` "Installed on this machine", Open items | `VERIFY-06`: `docker version --format '{{.Server.Version}}'` once Docker works | docker | open |
+
+Open items: 1 (U06, needs: docker).

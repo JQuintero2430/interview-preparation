@@ -50,7 +50,7 @@ export function NewsletterForm() {
         aria-describedby={error ? errorId : undefined}
       />
       {error && (
-        <p id={errorId} role="alert" aria-live="polite">
+        <p id={errorId} role="alert">
           {error.message}
         </p>
       )}

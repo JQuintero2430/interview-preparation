@@ -54,7 +54,7 @@ function ProjectPage() {
           aria-describedby={error ? 'project-name-error' : undefined}
         />
         {error && (
-          <p id="project-name-error" role="alert" aria-live="polite">
+          <p id="project-name-error" role="alert">
             {error}
           </p>
         )}

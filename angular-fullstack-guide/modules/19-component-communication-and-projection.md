@@ -75,7 +75,7 @@ inputs: { value: [1, "value"], size: [1, "size"] }, outputs: { value: "valueChan
 
 The `1` is `InputFlags.SignalBased` (`_debug_node-chunk.mjs`). So `[value]` and `(valueChange)` bind separately (`Section 1: a model accepts [value] and (valueChange) bound separately`); [Q13.16](13-components-and-templates.md#q13-16) owns the `[(x)]` desugaring.
 
-**Shared objects stay stale.** One child's handler appended `!` to `user().name`; that child then showed `x!` and its sibling still `x` (`Section 1: mutating a shared input object refreshes only the view that handled the event`). The sibling is OnPush [Changed in v22.0: the default] (a component with no `changeDetection` property, per [VERSIONS.md](../VERSIONS.md)): Angular refreshes it only when something marks it dirty (an input signal, an event inside it or a signal it reads changing), which an event in the other component does not ([Module 21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty) owns it). A service signal refreshes every reader ([section 2](#2-sharing-state-beyond-the-tree-services-with-signals-and-di-scoped-state)).
+**Shared objects stay stale.** One child's handler appended `!` to `user().name`; that child then showed `x!` and its sibling still `x` (`Section 1: mutating a shared input object refreshes only the view that handled the event`). The sibling is OnPush [Changed in v22.0: the default] (a component with no `changeDetection` property, per [VERSIONS.md](../VERSIONS.md)): Angular refreshes it only when something marks it dirty (an input changing, compared by reference; an event inside its view; a signal its template reads changing; or `markForCheck()`), which an event in the other component does not ([Module 21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty) owns it). A service signal refreshes every reader ([section 2](#2-sharing-state-beyond-the-tree-services-with-signals-and-di-scoped-state)).
 
 ### Code
 
@@ -2211,12 +2211,12 @@ export class Panel {
 }
 ```
 ```html
+<!-- Excerpt of labs/angular/src/app/modules/19-component-communication-and-projection/exercise-2-lazy-panel/panel.ts: the template -->
 <ng-content select="[panelTitle]">Untitled</ng-content>
 @if (open()) {
   <section><ng-container [ngTemplateOutlet]="body()?.template" /></section>
 }
 ```
-<sub>Source: [labs/angular/src/app/modules/19-component-communication-and-projection/exercise-2-lazy-panel/panel.ts](../labs/angular/src/app/modules/19-component-communication-and-projection/exercise-2-lazy-panel/panel.ts)</sub>
 
 **How each criterion is met.** Each criterion titles one test in `describe('E19.2 …')`; a counter in the body's constructor and `ngOnDestroy` backs the construction claims.
 - Fallback: a host without a title shows `Untitled`; one with `<h3 panelTitle>` shows `Details` only.
@@ -2226,7 +2226,7 @@ export class Panel {
 - `[(open)]`: a click sets the parent signal to `true`; a parent write of `false` removes the body.
 - Host fields: the body shows `host-field` and follows a change, since the host declares the template ([section 4](#4-template-driven-apis-ng-template-ngtemplateoutlet-and-typed-context)).
 
-**Alternative approach:** `@defer (when open())` ([Exercise 18.3](18-control-flow-and-defer.md#ex18-3)). **Trade-offs:** it also defers the child's code, but the body is written inside the panel, not declared by the caller.
+**Alternative approach:** `@defer (when open())` ([Exercise 18.3](18-control-flow-and-defer.md#ex18-3)). **Trade-offs:** it also defers the child's code, but the body is written inside the panel, not declared by the caller, and `when` fires once, so closing does not remove the body ([Q18.13](18-control-flow-and-defer.md#q18-13)).
 
 **Interviewer follow-ups.**
 - *"Why does the `@if` around `<ng-content>` fail?"* The declaring template already constructed the child ([Q19.10](#q19-10)).

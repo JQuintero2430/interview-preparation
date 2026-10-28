@@ -7,7 +7,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { basename, dirname, join, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const SKIP_DIRS = new Set(['node_modules', 'labs', '.git']);
+const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'out-tsc', '.angular', 'coverage', 'test-results', 'playwright-report', 'blob-report']);
 
 export function listMarkdown(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -18,7 +18,7 @@ export function listMarkdown(dir) {
 }
 
 export function stripCode(markdown) {
-  return markdown.replace(/^(```|~~~)[\s\S]*?^\1/gm, '').replace(/`[^`\n]*`/g, '');
+  return markdown.replace(/^(```|~~~)[\s\S]*?^\1/gm, '').replace(/(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)/g, '');
 }
 
 // GitHub's heading-anchor algorithm: lowercase, drop punctuation, spaces to hyphens,

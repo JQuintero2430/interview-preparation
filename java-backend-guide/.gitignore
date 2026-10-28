@@ -1,0 +1,18 @@
+# Maven build output
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Caches and scratch
+node_modules/
+.work/
+.DS_Store
+
+# Untracked sources removed by DELETE tasks (RUN.md §10.2); Jorge empties it
+attachments/.trash/

@@ -2,7 +2,7 @@
 
 > **What this covers:** the behavioral round for front-end and full-stack Angular roles: stories told in STAR with an explicit result, four front-end story types (a performance win, a migration, an incident and a disagreement over architecture), talking about legacy code and migrations without blame, live-coding etiquette for Angular tasks, take-home expectations, and the questions to ask about the team's front-end practice. Advice is worded as advice; the two exercises run in the labs.
 > **Prerequisites:** none. Helpful for §2 and §7: [45. The front-end system design method](45-frontend-system-design-method.md#1-the-front-end-system-design-interview-what-it-evaluates-its-formats-and-how-it-differs-from-a-backend-design-round) and [46. From method to case](46-system-design-case-studies.md#1-from-method-to-case-the-parts-every-case-study-carries-and-where-each-cases-difficulty-lies)
-> **Leads to:** [MOCK-INTERVIEWS.md](../MOCK-INTERVIEWS.md) (planned)
+> **Leads to:** [MOCK-INTERVIEWS.md](../MOCK-INTERVIEWS.md)
 > **Applies to:** Angular 22.2 facts as their owner modules state them; TypeScript 6.0 and Node 24 in `labs/ts-js`; documented only: this repository's backend guide, the Google SRE book chapter "Postmortem Culture: Learning from Failure", the Retrospective Wiki's quote of the Prime Directive, Wikipedia on characterization tests; reads 2026-10-23
 > **Study time:** ~2 hours reading + ~2 hours exercises and story practice
 > **Short on time:** read [§1](#1-the-behavioral-round-what-a-story-is-evidence-of-star-with-the-weight-on-action-and-an-explicit-result-and-a-story-bank), [§2](#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture) and [§4](#4-live-coding-an-angular-task-clarify-say-the-plan-build-in-working-increments-narrate-and-recover-when-stuck), then [Q47.01](#q47-01), [Q47.03](#q47-03), [Q47.07](#q47-07), [Q47.10](#q47-10) and [Q47.15](#q47-15), then the [Summary](#summary).
@@ -638,7 +638,7 @@ Fifteen questions follow the sections: stories, legacy code, live coding, take-h
 
 **Short answer (30 seconds).** Evidence of what you did and what changed (our framing). The backend guide's claim, unverified by us: "Interviewers write down outcomes. If your story has no ending, the note says "unclear impact.""
 
-**Full explanation.** The guide's shape ([§9](../../Backend%20Interview%20Study%20Guide%20-%20Data%20storage%2C%20behavioral%20%26%20concurrency.md)): "Result is non-negotiable and must be stated explicitly as the last thing you say." A listener cannot note an outcome left unsaid ([§1]](#1-the-behavioral-round-what-a-story-is-evidence-of-star-with-the-weight-on-action-and-an-explicit-result-and-a-story-bank).
+**Full explanation.** The guide's shape ([§9](../../Backend%20Interview%20Study%20Guide%20-%20Data%20storage%2C%20behavioral%20%26%20concurrency.md)): "Result is non-negotiable and must be stated explicitly as the last thing you say." A listener cannot note an outcome left unsaid ([§1](#1-the-behavioral-round-what-a-story-is-evidence-of-star-with-the-weight-on-action-and-an-explicit-result-and-a-story-bank)).
 
 **Follow-ups an interviewer will ask.**
 - *Is a negative result acceptable?* Yes: it "beats a good result left implied".
@@ -682,7 +682,7 @@ Two min  S and T 2 sentences, A about 150 words, R one sentence
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** Name the metric and its kind, then baseline, bottleneck, change and proof it held, with the result last ([§2]](#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture).
+**Short answer (30 seconds).** Name the metric and its kind, then baseline, bottleneck, change and proof it held, with the result last ([§2](#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture)).
 
 **Full explanation.** Vitals are judged on field data at p75, and a lab run explains why ([Q31.01](31-performance.md#q31-01)). The guide's CV-claim prompt asks how you "verified the improvement held under production load" ([§9.5](../../Backend%20Interview%20Study%20Guide%20-%20Data%20storage%2C%20behavioral%20%26%20concurrency.md)).
 
@@ -715,7 +715,7 @@ Result      Field INP at p75 went from 380 ms to 190 ms and held for four weeks;
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** Tell it in order: how you found out, the abandoned hypothesis, mitigation, root cause, prevention, result ([§2]](#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture).
+**Short answer (30 seconds).** Tell it in order: how you found out, the abandoned hypothesis, mitigation, root cause, prevention, result ([§2](#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture)).
 
 **Full explanation.** Mitigate before diagnosing. A blank screen after a release can be version skew, one tab running files from two releases ([Q44.17](44-fullstack-delivery-and-operations.md#q44-17)). Tell the beats of [§9.2](../../Backend%20Interview%20Study%20Guide%20-%20Data%20storage%2C%20behavioral%20%26%20concurrency.md), including "a hypothesis you abandoned".
 
@@ -748,7 +748,7 @@ Result      Users saw the empty page for 40 minutes; the alert has since caught
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** The decision, your position as a trade-off statement, your evidence, a lost or mixed outcome, and how you committed ([§2]](#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture).
+**Short answer (30 seconds).** The decision, your position as a trade-off statement, your evidence, a lost or mixed outcome, and how you committed ([§2](#2-four-front-end-stories-a-performance-win-a-migration-a-production-incident-and-a-disagreement-over-architecture)).
 
 **Full explanation.** The guide says "Pick a real one where you lost or the outcome was mixed" ([§9.4](../../Backend%20Interview%20Study%20Guide%20-%20Data%20storage%2C%20behavioral%20%26%20concurrency.md)). Phrase your position as the five-part trade-off statement of [45 §2](45-frontend-system-design-method.md#2-communicating-under-time-pressure-a-time-plan-complete-trade-off-statements-and-diagrams-at-three-zoom-levels). The example is a micro-frontends debate ([Q38.23](38-architecture-and-production-structure.md#q38-23) owns when they pay); it shows how you argued, not which option wins.
 
@@ -1199,6 +1199,6 @@ Its cost ([§5](#5-take-home-assignments-scope-and-time-box-what-the-repository-
 ## Connections
 
 - **Builds on:** [45 §1](45-frontend-system-design-method.md#1-the-front-end-system-design-interview-what-it-evaluates-its-formats-and-how-it-differs-from-a-backend-design-round) (the round types; machine coding), [45 §2](45-frontend-system-design-method.md#2-communicating-under-time-pressure-a-time-plan-complete-trade-off-statements-and-diagrams-at-three-zoom-levels) (trade-off statements in stories and READMEs), [46 §1](46-system-design-case-studies.md#1-from-method-to-case-the-parts-every-case-study-carries-and-where-each-cases-difficulty-lies) (a case told as a project story), [39 §10](39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints) (the migration story's plan), [31 §1](31-performance.md#1-measure-first-the-loop-lab-versus-field-and-what-each-tool-answers) (field or lab numbers in a performance story), [40 §8](40-framework-comparisons.md#8-choosing-a-framework-balanced-trade-offs-and-how-to-answer-why-angular) (the "why Angular" story) and [the backend guide](../../Backend%20Interview%20Study%20Guide%20-%20Data%20storage%2C%20behavioral%20%26%20concurrency.md) §9 and §10 (the general method and questions).
-- **Read next:** [MOCK-INTERVIEWS.md](../MOCK-INTERVIEWS.md) (planned), to practise with scoring notes.
-- **Uses these ideas later:** [MOCK-INTERVIEWS.md](../MOCK-INTERVIEWS.md) and [CHEATSHEET.md](../CHEATSHEET.md) (both planned): mocks to rehearse these stories and rounds aloud, and a sheet to re-read before one; file-level.
+- **Read next:** [MOCK-INTERVIEWS.md](../MOCK-INTERVIEWS.md), to practise with scoring notes.
+- **Uses these ideas later:** [MOCK-INTERVIEWS.md](../MOCK-INTERVIEWS.md) and [CHEATSHEET.md](../CHEATSHEET.md): mocks to rehearse these stories and rounds aloud, and a sheet to re-read before one; file-level.
 - **Comparisons:** [Q45.02](45-frontend-system-design-method.md#q45-02) (the round types versus how to behave in each), [Q40.13](40-framework-comparisons.md#q40-13) (the answer's structure versus the story of your decision) and [Q39.18](39-version-history-and-migrations.md#q39-18) (the migration choice versus telling it).

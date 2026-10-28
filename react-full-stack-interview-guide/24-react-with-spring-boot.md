@@ -293,7 +293,7 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     return http.build();
 }
 ```
-The older, explicit form that the 7.1 docs call "not recommended" but you will meet in existing code:
+The older, explicit form (the Spring Security 6.x docs recipe) that you will meet in existing code:
 
 ```java
 http.csrf(csrf -> csrf
@@ -311,11 +311,11 @@ function xsrfToken(): string | undefined {
 
 ### How it works internally
 - **Security 5.x**: CSRF on by default for session apps; `CookieCsrfTokenRepository.withHttpOnlyFalse()` was the standard SPA recipe and "just worked" with Angular's built-in XSRF support.
-- **Security 5.8/6.0**: the token is **loaded lazily** (deferred) and **XOR-masked per request** for BREACH protection. A masked value is what the server compares, but the cookie holds the *raw* token. A SPA that copies the cookie into the header therefore *fails* with 403 unless the request handler also accepts the raw value. That is the famous "CSRF broke my SPA after upgrading to Spring Boot 3" question.
+- **Security 5.8 (opt-in) / 6.0 (default)**: the token is **loaded lazily** (deferred) and **XOR-masked per request** for BREACH protection. A masked value is what the server compares, but the cookie holds the *raw* token. A SPA that copies the cookie into the header therefore *fails* with 403 unless the request handler also accepts the raw value. That is the famous "CSRF broke my SPA after upgrading to Spring Boot 3" question.
 - **Security 6.x docs**: a `SpaCsrfTokenRequestHandler` (resolve the raw token from the header, masked token from a form parameter) plus a filter that touches the deferred token so the cookie is written on the first response.
-- **Security 7.1.1 docs**: the same wrapped as `csrf.spa()`. `spa()` is new in **Spring Security 7.0** ("Since: 7.0" in the [`CsrfConfigurer` Javadoc](https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/config/annotation/web/configurers/CsrfConfigurer.html)); on 6.x use the handler class from that version's docs. Note that `spa()` replaces any token repository you configured before it ([issue #18718](https://github.com/spring-projects/spring-security/issues/18718)), so call it first.
+- **Security 7.1.1 docs**: the same wrapped as `csrf.spa()`. `spa()` is new in **Spring Security 7.0** ("Since: 7.0" in the [`CsrfConfigurer` Javadoc](https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/config/annotation/web/configurers/CsrfConfigurer.html)); on 6.x use the handler class from that version's docs. Note that `spa()` replaces any token repository you configured before it ([issue #18718](https://github.com/spring-projects/spring-security/issues/18718)), so call it first. The maintainer closed that issue as expected behavior ("the last call overrides any previous call") and fix PR #18720 was closed unmerged; `spa()` on `main` still assigns `CookieCsrfTokenRepository.withHttpOnlyFalse()`.
 - A bearer token in the `Authorization` header is **not** sent automatically, so a pure header-token API (no cookies) does not need CSRF protection and Spring's resource-server setup disables it (`http.csrf(csrf -> csrf.disable())` is correct *there*, wrong for cookie auth).
-- `SameSite=Lax` (the browser default since ~2020) already blocks cross-site `POST` cookies, but it is defense in depth, not a replacement: subdomains count as same-site, and old browsers ignore it.
+- `SameSite=Lax` (Chromium's default for cookies without a `SameSite` attribute since 2020; not every browser applies it by default, see [MDN `Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)) already blocks cross-site `POST` cookies, but it is defense in depth, not a replacement: subdomains count as same-site, and old browsers ignore it.
 
 ### Trade-offs
 - ✅ Cookie auth + CSRF token + `SameSite` is a mature, well-understood stack.
@@ -374,9 +374,9 @@ Spring fetches the issuer's JWKS (public keys) and validates signature, expiry a
 
 ### How it works internally
 - **Authorization Code + PKCE** replaced the **implicit flow** (token returned in the URL fragment, no code exchange). The OAuth 2.0 Security BCP (RFC 9700) says not to use implicit, and OAuth 2.1 drafts drop it, along with the password grant. If a legacy SPA uses `response_type=token`, the migration is: switch to `code`, add PKCE (S256), send `state`, and exchange at `/token`.
-- **Legacy Spring:** `spring-security-oauth2` (`@EnableResourceServer`, `@EnableAuthorizationServer`) is end-of-life. Spring Security 5.1+ introduced `oauth2ResourceServer()` and `oauth2Login()`; Spring Authorization Server replaces the server half.
+- **Legacy Spring:** `spring-security-oauth2` (`@EnableResourceServer`, `@EnableAuthorizationServer`) is end-of-life. Spring Security 5.0 introduced `oauth2Login()` and 5.1 added `oauth2ResourceServer()`; Spring Authorization Server replaces the server half.
 - **BFF (Backend For Frontend)**: instead of the SPA holding tokens, a small Spring service (often Spring Cloud Gateway with `oauth2Login()` and a `TokenRelay` filter) does the code flow, keeps tokens server-side, and gives the browser only a **session cookie**. The SPA calls `/api/*` on the BFF same-origin; the BFF adds `Authorization: Bearer …` towards the resource servers. XSS can no longer steal a token, because there is no token in the browser. It requires CSRF protection ([24.5](#245-csrf-with-cookie-auth)). For a servlet (MVC) stack the starter is `spring-cloud-starter-gateway-server-webmvc`, and it has its own `TokenRelay` filter ([Gateway Server MVC](https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway-server-webmvc/starter.html)); the WebFlux gateway is the other option. Check the Spring Cloud release train that matches your Boot version.
-- JWT validation specifics (algorithm allow-list, `aud` check, clock skew) live in `JwtDecoder`/`JwtValidators`; Spring defaults check `exp`, `nbf` and issuer when `issuer-uri` is set, not audience.
+- JWT validation specifics (algorithm allow-list, `aud` check, clock skew) live in `JwtDecoder`/`JwtValidators`; Spring defaults (`JwtValidators.createDefault`/`createDefaultWithIssuer`, Security 7.0–7.1.1) check `exp` and `nbf` (`JwtTimestampValidator`), the `typ` header (`JwtTypeValidator.jwt()`: `JWT` or absent, new in 7.0, so RFC 9068 `at+jwt` tokens need a custom validator), and issuer when `issuer-uri` is set; audience only when configured (Boot `spring.security.oauth2.resourceserver.jwt.audiences`).
 
 ### Trade-offs
 - **Tokens in the SPA (PKCE)**: no extra service, works with a pure static host; but the tokens are reachable by XSS, so keep the access token in memory with short expiry and use the refresh cookie pattern ([24.3](#243-auth-options-jwt-in-memory-vs-httponly-cookies)).
@@ -419,7 +419,7 @@ axios.interceptors.response.use(undefined, async (error) => {
   return axios(original);
 });
 ```
-Same idea, different spelling: axios rejects on non-2xx for you and gives interceptors; `fetch` gives you neither, so you write 60 lines once.
+Same idea, different spelling: axios rejects on non-2xx for you and gives interceptors; `fetch` gives you neither, so you write ~60 lines once.
 
 ### How it works internally
 - **Single flight**: `inflight ??= auth.refresh().finally(() => { inflight = null })`. The first 401 starts the refresh; every concurrent 401 awaits the same promise.
@@ -597,7 +597,7 @@ Make the server the **single source of truth**: Spring generates an OpenAPI docu
 
 > **Java/Spring analogy.** Schema-first vs code-first APIs, the same trade-off as JPA entities vs a DB migration tool. 
 >
-> **Where the analogy breaks:** it checks shape, not behaviour. Types can't tell you the 404 body is a problem+json unless the spec says so.
+> **Where the analogy breaks:** it checks shape, not behavior. Types can't tell you the 404 body is a problem+json unless the spec says so.
 
 ### Minimal code
 Commands from the openapi-typescript / openapi-fetch docs (checked on openapi-ts.dev; *not run in this repo*, since `examples/spring-api` has no springdoc):
@@ -793,7 +793,8 @@ Client: `examples/web/src/m24-spring-client/upload.ts` (full file in [Exercise 3
 - The signature (SigV4) covers the method, path, expiry and **signed headers**. Send a different `Content-Type` than the one signed and S3 answers **403 `SignatureDoesNotMatch`**.
 - **Do not send your `Authorization: Bearer` header to S3**: it would break the signature (S3 sees two auth schemes) and leak your token to another origin. The upload test asserts the S3 request carries no `Authorization`.
 - The bucket needs its **own CORS configuration** (S3's, not Spring's) allowing `PUT` from your origin and the headers you send, and exposing `ETag` if you need it. A bucket CORS mistake looks exactly like a Spring CORS mistake in the console.
-- `fetch` has no upload progress events. If you need a progress bar, use `XMLHttpRequest` (`upload.onprogress`) for step 2. > **Unverified in this repo:** a progress-bar test; MSW's XHR interception isn't covered here.
+- `fetch` has no upload progress events. If you need a progress bar, use `XMLHttpRequest` (`upload.onprogress`) for step 2.
+  > **Unverified in this repo:** a progress-bar test; MSW's XHR interception isn't covered here.
 - **Confirm** (step 3) lets the server verify the object exists, match size/type, and flip a DB row from `PENDING` to `READY`. Never trust the client's claim that it uploaded.
 - Files over ~100 MB use **multipart upload** with one presigned URL per part (5 MB minimum part size except the last).
 - Validate on the server: allowed types, max size (a presigned `PUT` itself does not enforce a size cap; presigned **POST** policies can via `content-length-range`).
@@ -987,14 +988,14 @@ A server component serving the SPA that performs OAuth itself, keeps tokens serv
 **Q14. What does a Spring Security resource server validate in a JWT?**
 <details><summary>Answer</summary>
 
-Signature against the issuer's JWKS, expiry (`exp`), not-before, and issuer (when configured via `issuer-uri`). It maps `scope` to `SCOPE_*` authorities. **A strong answer adds:** audience is not checked by default; add a validator. And it accepts *access* tokens only.
+Signature against the issuer's JWKS, expiry (`exp`), not-before, the `typ` header (`JWT` or absent; added to the defaults in Security 7.0), and issuer (when configured via `issuer-uri`). It maps `scope` to `SCOPE_*` authorities. **A strong answer adds:** audience is not checked by default; add a validator. And it accepts *access* tokens only.
 
 </details>
 
 **Q15. Show the old and new way to configure Spring Security.**
 <details><summary>Answer</summary>
 
-Old (≤5.6): `class SecurityConfig extends WebSecurityConfigurerAdapter { protected void configure(HttpSecurity http) { http.authorizeRequests().antMatchers(...).and().csrf()... } }`. 5.7 deprecated the adapter in favour of a `SecurityFilterChain` `@Bean`. 6.x removed it, replaced `authorizeRequests`/`antMatchers` with `authorizeHttpRequests`/`requestMatchers`, and moved to the lambda DSL. **A strong answer adds:** `and()` chaining is gone in 7, so the lambda DSL is the only form.
+Old (≤5.6): `class SecurityConfig extends WebSecurityConfigurerAdapter { protected void configure(HttpSecurity http) { http.authorizeRequests().antMatchers(...).and().csrf()... } }`. 5.7 deprecated the adapter in favour of a `SecurityFilterChain` `@Bean`. 6.0 removed it and `antMatchers` (use `requestMatchers`), deprecated `authorizeRequests` in favour of `authorizeHttpRequests`, and 6.1 deprecated the non-lambda DSL. **A strong answer adds:** `and()` chaining is gone in 7, so the lambda DSL is the only form.
 
 </details>
 
@@ -1008,7 +1009,7 @@ Every `javax.servlet`, `javax.persistence`, `javax.validation` import becomes `j
 **Q17. What changed in Boot 4 for testing a controller?**
 <details><summary>Answer</summary>
 
-Starters are modularized (`spring-boot-starter-webmvc`, `spring-boot-starter-webmvc-test`) and `@WebMvcTest` moved to `org.springframework.boot.webmvc.test.autoconfigure`. **A strong answer adds:** verified by building `examples/spring-api`; also with `MockMvc` constructor injection you need `@Autowired` on the constructor.
+Starters are modularized (`spring-boot-starter-webmvc`, `spring-boot-starter-webmvc-test`) and `@WebMvcTest` moved to `org.springframework.boot.webmvc.test.autoconfigure`. **A strong answer adds:** verified by building `examples/spring-api`. Not a Boot 4 change but easy to trip on: JUnit Jupiter constructor injection of `MockMvc` needs `@Autowired` on the constructor (or `@TestConstructor`).
 
 </details>
 
@@ -1412,7 +1413,7 @@ export function springApiHandlers() {
 </details>
 
 **Walkthrough.**
-1. `contract.ts` is the TypeScript copy of what the Java records serialize to. `createProject` returns `{ project, location }` because the 201 carries a body and a `Location`.
+1. `contract.ts` is the TypeScript copy of what the Java records serialize to. `api.create` returns a `CreatedProject` (`{ project, location }`) because the 201 carries a body and a `Location`.
 2. `readApiError` only trusts a body when the content type is problem+json *and* it matches the schema; otherwise the error has a status and no problem.
 3. `ProjectsPage` stores a 0-based `page`; the UI prints `number + 1`. Because `queryKey` includes `page`, every page is cached separately; `placeholderData: keepPreviousData` keeps the old rows on screen while the next arrive, and `isPlaceholderData` disables Next in that window to avoid skipping.
 4. `NewProjectForm` calls `fieldErrors(mutation.error)['name']` and wires `aria-describedby` to the message. A second submit resets `mutation.error` while pending, so the message disappears on retry.
@@ -1614,7 +1615,7 @@ export class UploadError extends Error {
  * Presigned upload in three steps. None of them sends the file through the Spring API.
  * 1. ask the API for a short-lived signed URL  2. PUT the bytes straight to S3  3. tell the API it is done.
  * The routes `/api/uploads` and `/api/uploads/confirm` are NOT in examples/spring-api; they are the contract
- * module 24.11 proposes.
+ * section 24.11 proposes.
  */
 export async function uploadFile(client: ApiClient, file: File): Promise<{ key: string }> {
   const presigned = await client.request<PresignedUpload>('/api/uploads', {

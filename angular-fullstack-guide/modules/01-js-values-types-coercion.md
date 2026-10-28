@@ -341,7 +341,7 @@ function numberAttribute(value, fallbackValue = NaN) {
 
 > [!NOTE]
 > **Framework vs platform.** `Number(x)`, ToBoolean and `==` are the platform. `booleanAttribute` and `numberAttribute` are Angular functions with their own rules: `booleanAttribute('false')` is `false`, while `Boolean('false')` is `true` (both read from the excerpt above and the ToBoolean table).
- The excerpt is the published 22.2.1 package build, which exists under `labs/angular/node_modules` only after `npm install`; the API pages are [`booleanAttribute`](https://angular.dev/api/core/booleanAttribute) and [`numberAttribute`](https://angular.dev/api/core/numberAttribute).
+> The excerpt is the published 22.2.1 package build, which exists under `labs/angular/node_modules` only after `npm install`; the API pages are [`booleanAttribute`](https://angular.dev/api/core/booleanAttribute) and [`numberAttribute`](https://angular.dev/api/core/numberAttribute).
 
 ### Best practices and anti-patterns
 
@@ -370,7 +370,7 @@ function numberAttribute(value, fallbackValue = NaN) {
 |---|---|---|---|---|
 | **IsLooselyEqual** | `==`, `!=` | false | equal | yes |
 | **IsStrictlyEqual** | `===`, `!==`, `indexOf`, `lastIndexOf`, `switch` | false | equal | no |
-| **SameValueZero** | `includes`, `Map`, `Set`, `TypedArray` search | **true** | equal | no |
+| **SameValueZero** | `includes` (arrays and typed arrays), `Map`, `Set` | **true** | equal | no |
 | **SameValue** | `Object.is`, `Object.defineProperty` checks, Angular signals' default `equal` | **true** | **different** | no |
 
 Sources: [§7.2.9 SameValue](https://tc39.es/ecma262/#sec-samevalue), [§7.2.10 SameValueZero](https://tc39.es/ecma262/#sec-samevaluezero), [§7.2.13 IsLooselyEqual](https://tc39.es/ecma262/#sec-islooselyequal), [§7.2.14 IsStrictlyEqual](https://tc39.es/ecma262/#sec-isstrictlyequal), and the [MDN overview](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Equality_comparisons_and_sameness). Objects are compared by identity under all four.

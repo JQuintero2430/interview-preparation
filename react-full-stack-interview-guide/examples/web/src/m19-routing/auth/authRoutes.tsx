@@ -52,7 +52,7 @@ function LoginPage() {
           aria-describedby={actionData ? 'login-error' : undefined}
         />
         {actionData && (
-          <p id="login-error" role="alert" aria-live="polite">
+          <p id="login-error" role="alert">
             {actionData.error}
           </p>
         )}

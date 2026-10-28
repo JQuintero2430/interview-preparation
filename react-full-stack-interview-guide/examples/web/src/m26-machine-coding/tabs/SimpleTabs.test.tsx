@@ -16,6 +16,18 @@ test('shows the first panel and exposes tab/tabpanel roles with the right wiring
   expect(screen.getAllByRole('tabpanel')).toHaveLength(1);
 });
 
+test('aria-controls is set only on the selected tab and points at the mounted panel', async () => {
+  const user = userEvent.setup();
+  render(<SimpleTabs tabs={tabs} label="Settings" />);
+  const profile = screen.getByRole('tab', { name: 'Profile' });
+  expect(profile).toHaveAttribute('aria-controls', screen.getByRole('tabpanel').id);
+  expect(screen.getByRole('tab', { name: 'Billing' })).not.toHaveAttribute('aria-controls');
+
+  await user.click(screen.getByRole('tab', { name: 'Billing' }));
+  expect(screen.getByRole('tab', { name: 'Billing' })).toHaveAttribute('aria-controls', screen.getByRole('tabpanel').id);
+  expect(profile).not.toHaveAttribute('aria-controls');
+});
+
 test('clicking a tab swaps the panel', async () => {
   const user = userEvent.setup();
   render(<SimpleTabs tabs={tabs} label="Settings" />);

@@ -708,7 +708,7 @@ What to notice: the first question is about the state, not the tool, because a p
 
 **Counts.** One host shows the same sum four ways. After an unrelated signal changed in the same view, the method ran again, the impure pipe ran again, the pure pipe and the `computed` did not (`Section 7: after an unrelated signal change a method runs again, a pure pipe and a computed do not`). After `list().push(4)` the pure pipe and the `computed` still showed 6, because the push never told the signal and the pipe saw no new reference (`Section 7: after an in-place push the pure pipe and the computed keep the old result`). After `list.update((l) => [...l, 4])` each ran once more (`Section 7: replacing the array recomputes the pure pipe and the computed once`), and `list.set([10, 20])` made the `computed` show 30 (`Section 7: a computed re-runs when the signal value is replaced inside the same view`).
 
-**How often a view is checked.** In v22 a component without a `changeDetection` property is **OnPush** [Changed in v22.0: the default], re-checked only when an input signal, an event inside it or a signal it reads changes ([VERSIONS.md](../VERSIONS.md), [21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)). Next to a sibling, an impure pipe and a method did not run when the sibling's signal changed and ran on a click inside and on the component's own signal (`Section 7: under OnPush a sibling signal change checks neither an impure pipe nor a method, an own change checks both`; [Q14.25](#q14-25)). Method versus `computed` in general is [Q17.07](17-signals.md#q17-07); `async` over signals is [Q17.40](17-signals.md#q17-40).
+**How often a view is checked.** In v22 a component without a `changeDetection` property is **OnPush** [Changed in v22.0: the default], re-checked only when an input changes, an event fires inside it, a signal it reads changes or `markForCheck` is called, as the `async` pipe does ([§8](#8-the-async-pipe-under-the-hood); [VERSIONS.md](../VERSIONS.md), [21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)). Next to a sibling, an impure pipe and a method did not run when the sibling's signal changed and ran on a click inside and on the component's own signal (`Section 7: under OnPush a sibling signal change checks neither an impure pipe nor a method, an own change checks both`; [Q14.25](#q14-25)). Method versus `computed` in general is [Q17.07](17-signals.md#q17-07); `async` over signals is [Q17.40](17-signals.md#q17-40).
 
 **Reuse.** A pipe is a named helper any template can import and a test can call as a function, and it reads only its arguments ([§5](#5-pipes-pure-and-impure-custom-pipes-injection-and-imports)). A `computed` is named component state that tracks its own reads. The advice rests on these counts and the [pipes page](https://angular.dev/guide/templates/pipes) (tag `v22.2.1`, read 2026-10-08), not on timings.
 
@@ -1255,7 +1255,7 @@ class Plain {}
 ### Q14.12 · Bug hunt · These host-directive declarations do not compile (`NG2017`, `NG2014`, `NG2019`, `NG8024`). Why?
 
 ```ts
-// Partial: Tone has input('calm'), Legacy is standalone: false, Must has input.required('must'), Shared has input('sharedId'); labA and labB each list Shared with a different alias
+// Partial: Tone has one input, defaulting to 'calm' and not named colour; Legacy is standalone: false; Must has a required input `must`; Shared has an input `sharedId`; labA and labB each list Shared with a different alias
 @Component({ selector: 'lab-c1', template: '', hostDirectives: [{ directive: Tone, inputs: ['colour'] }] }) class C1 {}
 @Component({ selector: 'lab-c2', template: '', hostDirectives: [Legacy] }) class C2 {}
 @Component({ selector: 'lab-c3', template: '', hostDirectives: [Must] }) class C3 {}
@@ -1894,11 +1894,11 @@ if (next === this.shown && this.view) {
 **Constraints.** Two small directives in one file: `FocusRing` (a class binding driven by `focus` and `blur`, no inputs) and `Hint` (an input `text` bound to `title`). The component lists both, exposes `text` under the alias `hint` and sets `role` and `tabindex` through `host`. No `extends`, no `NgModule`, and DI only to read the host directive. A shared `recorder` array logs each constructor. Not covered: keyboard handling, outputs, and the conflicting-alias error (`NG8024`), which stays in the dated `ngc` block of [section 3](#3-host-directives-the-composition-api).
 
 **Acceptance criteria.**
-- [ ] The host directives' constructors run before the component's, and the recorder shows `focus-ring`, `hint`, `menu-button`.
+- [ ] The host directives' constructors run before the component's and the recorder shows `focus-ring`, `hint`, `menu-button`.
 - [ ] Only `hint` is exposed: `hint="Open"` sets the title, while `text="x"` stays a plain attribute and sets nothing.
 - [ ] The host element keeps the component's `role` and `tabindex` and the directive's class binding after focus and blur.
 - [ ] `inject(Hint)` in the component returns the instance that owns the title.
-- [ ] The same directive written in the template is one instance: the recorder shows one `hint` constructor line and the template's input wins.
+- [ ] The same directive written in the template is **one** instance: the recorder shows one `hint` constructor line and the template's input wins.
 
 <details><summary>Hint 1</summary>
 

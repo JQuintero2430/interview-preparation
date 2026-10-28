@@ -113,7 +113,7 @@ class LabM26WhyHost {
 
 - *"Signal Forms is reactive forms with signals instead of Observables."* The source of truth moved from a control tree to a signal you own (`Section 1: the form keeps no copy of the model`); the name suggests a port.
 - *"Signal Forms is experimental."* Once true: `@experimental 21.0.0` in 21.2.25, until the 22.0.0 CHANGELOG line graduated it; the 22.2.1 typings say `@publicApi 22.0`.
-- *"Signal Forms replaces reactive forms, which are deprecated."* The comparison table lists reactive forms as `Stable`; "the new API" reads as "the replacement".
+- *"Signal Forms replaces reactive forms, which are deprecated."* The comparison table lists reactive forms as `Stable`; the cause is reading "new API" as "replacement".
 - *"A component needs `FormsModule` or `ReactiveFormsModule`."* The lab host imports `FormField` alone (`Section 1: a component that imports only FormField binds an input to the model`); habit from the older APIs.
 
 Drilled in [Q26.01](#q26-01) and [Q26.02](#q26-02); modelled in [Exercise 26.1](#ex26-1).
@@ -2098,5 +2098,5 @@ On any write to that field.
 
 - **Builds on:** [17 §2](17-signals.md#2-writable-signals) (writable signals), [17 §6](17-signals.md#6-resources-async-data-as-signals) (`resource` behind `validateAsync`), [17 §7](17-signals.md#7-signal-based-component-apis) (`model()`), [25 §1](25-forms-reactive-and-template-driven.md#1-two-forms-apis-template-driven-and-reactive-and-the-control-directive-and-accessor-triangle) (the two older APIs), [25 §10](25-forms-reactive-and-template-driven.md#10-controlvalueaccessor-and-the-validator-interface-custom-controls-under-the-hood) (the accessor path) and [16 §4](16-dependency-injection.md#4-the-injection-context-inject-runininjectioncontext-and-injectasync) (the injection context).
 - **Read next:** [27. HttpClient](27-http-client.md) (the server behind `validateHttp`), [28. State management](28-state-management.md) (form state among the kinds of state), [29. Testing Angular](29-testing-angular.md) (testing forms) and [36. Material and CDK](36-material-and-cdk.md#2-material-components-in-a-v22-app-standalone-imports-form-fields-dialogs-direction-and-motion) (Material form fields).
-- **Uses these ideas later:** [27](27-http-client.md), [28](28-state-management.md), [29](29-testing-angular.md) and [36](36-material-and-cdk.md), all file-level and not yet written.
+- **Uses these ideas later:** [27](27-http-client.md), [28](28-state-management.md), [29](29-testing-angular.md) and [36](36-material-and-cdk.md).
 - **Comparisons:** [25 §1](25-forms-reactive-and-template-driven.md#1-two-forms-apis-template-driven-and-reactive-and-the-control-directive-and-accessor-triangle) sets reactive and template-driven forms beside this API.

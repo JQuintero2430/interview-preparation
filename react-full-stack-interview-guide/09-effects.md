@@ -46,11 +46,11 @@ export function ChatRoom({ roomId }: { roomId: string }) {
 ```
 
 ### How it works internally
-`useEffect(setup, deps)` [React] does not run anything during render. It **records** an effect object (the setup function, its deps and a slot for the cleanup) on the component's fiber ([13](13-reconciliation-and-fiber.md#135-fiber-units-of-work-double-buffering-lanes-and-priorities)). After React commits the DOM changes, it walks the fibers that have effects flagged. For each one, it runs the previous cleanup (if the deps changed) and then the new setup. These are called **passive effects**, because React usually lets the browser paint before running them.
+`useEffect(setup, deps)` [React] does not run anything during render. It **records** an effect object (the setup function, its deps and a slot for the cleanup) on the component's fiber ([13](13-reconciliation-and-fiber.md#135-fiber-units-of-work-double-buffering-lanes-and-priorities)). After React commits the DOM changes, it walks the fibers that have effects flagged. It first runs the previous cleanup of every effect whose deps changed, then the new setups ([9.3](#93-cleanup-and-the-effect-lifecycle)). These are called **passive effects**, because React usually lets the browser paint before running them.
 
 ### Trade-offs
 - ✅ This is the only correct place for synchronization with non-React systems that must follow the component's lifetime.
-- ❌ It runs after paint, so it is too late for visual measurement (use [9.7](#97-uselayouteffect)).
+- ❌ It usually runs after paint, so it is too late for visual measurement (use [9.7](#97-uselayouteffect)).
 - ❌ It runs only on the client, never during server rendering.
 - ❌ It is the most overused hook in React. Most "effects" in real codebases should be derived values or event handlers ([9.6](#96-you-might-not-need-an-effect)).
 
@@ -591,7 +591,7 @@ Dependencies are compared with `Object.is`, which compares objects and functions
 **Q6. Is `useEffect(fn, [])` the same as `componentDidMount`?**
 <details><summary>Answer</summary>
 
-Close, not identical. (1) It runs after paint; `componentDidMount` ran before the browser painted, which is closer to `useLayoutEffect`. (2) In Strict Mode dev it runs, cleans up, and runs again. (3) It captures the first render's props and state forever (a closure), whereas `this.props` in a class always reads the latest. **A strong answer adds:** stop translating lifecycles. Ask "what am I synchronizing with?" instead. See the mapping table in [13](13-reconciliation-and-fiber.md#136-class-lifecycle-methods-and-their-hook-equivalents).
+Close, not identical. (1) It usually runs after paint (before paint when a discrete event such as a click caused the update); `componentDidMount` ran before the browser painted, which is closer to `useLayoutEffect`. (2) In Strict Mode dev it runs, cleans up, and runs again. (3) It captures the first render's props and state forever (a closure), whereas `this.props` in a class always reads the latest. **A strong answer adds:** stop translating lifecycles. Ask "what am I synchronizing with?" instead. See the mapping table in [13](13-reconciliation-and-fiber.md#136-class-lifecycle-methods-and-their-hook-equivalents).
 
 </details>
 
@@ -1317,7 +1317,7 @@ test('Strict Mode (dev): double render, then mount, simulated unmount, remount',
 
 | Claim | Once true? | True now | Since |
 |---|---|---|---|
-| "Effects = lifecycle methods (`[]` = didMount)" | A teaching shortcut when hooks launched | Effects are synchronization; `[]` captures the first render, runs after paint, and re-runs in Strict Mode dev | Hooks 16.8; Strict Mode re-run 18.0 |
+| "Effects = lifecycle methods (`[]` = didMount)" | A teaching shortcut when hooks launched | Effects are synchronization; `[]` captures the first render, usually runs after paint, and re-runs in Strict Mode dev | Hooks 16.8; Strict Mode re-run 18.0 |
 | "You'll get a memory-leak warning if you setState after unmount, so track `isMounted`" | Yes, React ≤ 17 warned | The warning was removed; delete `isMounted` hacks and use abort/ignore for correctness | React 18.0 |
 | "useEffect cleanup runs synchronously on unmount" | Yes in React 16 | Asynchronously, after the screen updates | React 17.0 |
 | "useEffect always runs after paint" | Mostly, pre-18 | Effects from discrete input (click/keydown) flush synchronously before paint | React 18.0 |

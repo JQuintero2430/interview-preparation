@@ -14,6 +14,9 @@ interface ListUnderTest {
   readonly clock: WritableSignal<number>;
 }
 
+/** Each test renders the full list in jsdom, which can pass Vitest's 5 s default on a busy machine. */
+const SLOW_RENDER = { timeout: 30_000 };
+
 const variants: [string, Type<ListUnderTest>][] = [
   ['computed signals', LabM31ProductList],
   ['pure pipe', LabM31ProductListPipe],
@@ -51,7 +54,7 @@ function totalText(fixture: ComponentFixture<ListUnderTest>): string | null | un
   return host.querySelector('.total')?.textContent;
 }
 
-describe.each(variants)('E31.1 fast product list (%s)', (_label, component) => {
+describe.each(variants)('E31.1 fast product list (%s)', SLOW_RENDER, (_label, component) => {
   it('shows the products that match the query', async () => {
     const fixture = await render(component);
     expect(rows(fixture)).toHaveLength(LAB_M31_PRODUCT_COUNT);

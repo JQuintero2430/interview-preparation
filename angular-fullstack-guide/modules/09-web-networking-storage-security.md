@@ -400,7 +400,7 @@ What to notice: one gate when storing, one on every request; `SameSite` is only 
 - **Scope.** Without `Domain` a cookie is **host-only**; with it, subdomains get it too. `Path` defaults to the URL's directory, so a cookie set at `/path/page` is invisible at `/` ([RFC 6265bis](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis); `Section 6: a cookie without Path…`).
 - **`Secure`, `HttpOnly`, prefixes.** `Secure` limits sending to `https:`. `HttpOnly` hides the cookie from `document.cookie` but it is "still sent with JavaScript-initiated requests" ([MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)). `__Secure-` requires `Secure`; `__Host-` also forbids `Domain` and requires `Path=/`, so subdomains cannot overwrite it (`Section 6: __Host- needs…`).
 - **`SameSite`.** A request is cross-site when initiator and target differ in **site** ([section 5](#5-the-same-origin-policy-and-cors)). `Strict` sends only same-site; `Lax` adds top-level navigations using a safe method; `None` needs `Secure`. Schemeful same-site treats `http` and `https` of one domain as cross-site; Chrome offered it behind a flag from 86 ([web.dev](https://web.dev/articles/schemeful-samesite), 2020-11-20); it gives no default-on date.
-- **Third-party and CHIPS.** A **third-party cookie** belongs to a site other than the one in the address bar. `Partitioned` (CHIPS, Cookies Having Independent Partitioned State) keeps one jar per top-level site and needs `Secure`; MDN: Baseline 2025, since December 2025 ([MDN](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Privacy_sandbox/Partitioned_cookies)).
+- **Third-party and CHIPS.** A **third-party cookie** belongs to a site other than the one in the address bar. `Partitioned` (CHIPS, Cookies Having Independent Partitioned State) keeps one jar per top-level site and needs `Secure` ([MDN](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Privacy_sandbox/Partitioned_cookies)). [Baseline 2025: newly available, per MDN]
 - **CSRF** (defined in [section 5](#5-the-same-origin-policy-and-cors)): `SameSite` is defense in depth; see [33](33-security.md#9-csrf-in-single-page-apps-when-cookies-make-you-vulnerable-samesite-and-angulars-xsrf-support), [42](42-fullstack-authentication.md#6-csrf-with-cookiecsrftokenrepository-and-angulars-xsrf-support-csrfspa-in-spring-security-7) ([Q09.17](#q09-17)).
 
 > [!TIP]
@@ -526,7 +526,7 @@ What to notice: trust starts from a per-response value an injected tag cannot kn
 - **Why allowlists fail.** A Google study found 94.68% of script-limiting policies ineffective: 14 of the 15 most allowlisted domains had unsafe endpoints (JSONP, hosted libraries) ([Google Research](https://research.google/pubs/pub45542)).
 - **Nonce.** Unguessable, "ideally 128+ bits", base64, new per response ([web.dev](https://web.dev/articles/strict-csp)); a static `index.html` cannot carry one (MDN), so use a template or a **hash**: `'sha256-…'` of the exact script text, which any change breaks (`Section 8: one extra space…`).
 - **`'strict-dynamic'`.** A nonce- or hash-trusted script may add scripts through non-parser-inserted elements ([CSP Level 3 §8.2](https://www.w3.org/TR/CSP3/)); supporting browsers then ignore `'unsafe-inline'` and allowlists. The cost: trusted scripts could create unsafe elements (MDN).
-- **Trusted Types** (Baseline 2026, newly available since February 2026, [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API)). `require-trusted-types-for 'script'` makes string input to sinks throw unless a policy from `createPolicy()` produced it; `trusted-types` allowlists policy names. You write the policy; none is supplied.
+- **Trusted Types** ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API)) [Baseline 2026: newly available, per MDN]. `require-trusted-types-for 'script'` makes string input to sinks throw unless a policy from `createPolicy()` produced it; `trusted-types` allowlists policy names. You write the policy; none is supplied.
 
 > [!NOTE]
 > **Framework vs platform.** CSP and Trusted Types are platform features. Angular's sanitizer, nonce support and Trusted Types integration are [33](33-security.md#3-sanitization-by-security-context-html-style-url-and-resource-url).
@@ -1017,7 +1017,7 @@ console.log(jar.getCookieStringSync(page));
 
 **Short answer (30 seconds).** `a=1`, then `a=1; srv=3`. Script cannot set `HttpOnly`, so `b` is ignored. `c` has a foreign `Domain`, `__Host-h` lacks `Secure`, and `p` has a path this page is not under. The server's `srv` exists but is hidden from script.
 
-**Full explanation.** Each rejected line breaks a different storing rule, and the jar sends `srv` because `HttpOnly` hides, not blocks. These are jsdom's (tough-cookie) results, not a browser's `SameSite` decision. Verified: `Q09.16` in [`cookies.test.ts`](../labs/ts-js/src/outputs/09-web-networking-storage-security/cookies.test.ts); [section 6](#6-cookies).
+**Full explanation.** `b`, `c` and `__Host-h` break storing rules; `p` is stored but matches only under `/other`. `HttpOnly` hides `srv` but the jar sends it. These are jsdom's (tough-cookie) results, not a browser's. Verified: `Q09.16` in [`cookies.test.ts`](../labs/ts-js/src/outputs/09-web-networking-storage-security/cookies.test.ts); [section 6](#6-cookies).
 
 **Follow-ups an interviewer will ask.**
 - *Why is `a` visible at `/path/page`?* Its default path is `/path`.
@@ -1260,7 +1260,7 @@ export const checkCors = (input: { request: CorsRequest; preflight?: CorsAnswer;
 **Alternative approach:** drive a real browser with a test server (module 30). **Trade-offs:** true enforcement, against a slow test that cannot assert the rules one by one.
 
 **Interviewer follow-ups.**
-- *"Does the preflight need `Allow-Credentials`?"* Yes for a credentialed request: the Fetch Standard performs the CORS check on the real request, so the preflight answer needs the exact origin and `true`.
+- *"Does the preflight need `Allow-Credentials`?"* Yes when credentialed: the Fetch Standard CORS-checks the preflight answer with the request's credentials mode, so it needs the exact origin and `true`.
 - *"Can `Allow-Headers: *` cover `Authorization`?"* No: the standard names `Authorization` as a non-wildcard header, and `*` is ignored for credentialed requests.
 
 **Tests:** [`cors-model.test.ts`](../labs/ts-js/src/modules/09-web-networking-storage-security/cors-model.test.ts)

@@ -7,7 +7,7 @@ describe('Disclosure', () => {
     render(<Disclosure summary="Shipping details">Ships in 3 days</Disclosure>);
     const button = screen.getByRole('button', { name: 'Shipping details' });
     expect(button).toHaveAttribute('aria-expanded', 'false');
-    // display:none/hidden content has no accessible name, so query it by text, not by role
+    // display:none/hidden content is excluded from the accessibility tree (getByRole skips it), so query it by text
     expect(screen.getByText('Ships in 3 days')).toBeInTheDocument();
     expect(screen.getByText('Ships in 3 days')).not.toBeVisible();
   });

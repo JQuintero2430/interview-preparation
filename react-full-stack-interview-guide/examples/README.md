@@ -4,7 +4,7 @@ This is the runnable code behind the guide. Every non-trivial snippet in a modul
 
 | Folder | What | Used by |
 |---|---|---|
-| `web/` | Vite + React 19 + TypeScript, Vitest + React Testing Library + user-event + jest-dom + MSW | Modules 01–20, 22, 24–26 |
+| `web/` | Vite + React 19 + TypeScript, Vitest + React Testing Library + user-event + jest-dom + MSW | Modules 01–27 |
 | `next-rsc/` | Next.js sub-project for Server Components and Server Actions (added with module 21) | Module 21 |
 | `spring-api/` | Minimal Spring Boot API (added with module 24) | Module 24 |
 | `scripts/check-links.mjs` | Checks every relative link and `#anchor` in the guide, and that every `// file:` code block matches its file exactly | Maintenance |
@@ -44,7 +44,7 @@ fnm use            # or: nvm use. Both read .nvmrc (24)
 node -v            # v24.x
 ```
 
-A Homebrew `node` (25.x) can stay installed. In shells where a version manager is active, its Node comes first on `PATH`.
+A Homebrew `node` of another major (for example 25.x or 26.x) can stay installed. In shells where a version manager is active, its Node 24 (from `.nvmrc`) comes first on `PATH`.
 
 ## Run the web examples
 

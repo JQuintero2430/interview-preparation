@@ -112,7 +112,7 @@ function handleChange(event: ChangeEvent<HTMLInputElement>) {
 ### How it works internally
 `startTransition(fn)` [React] sets an internal "current transition" marker, calls `fn` **immediately and synchronously** (it is not deferred like `setTimeout`), and every state update scheduled while that marker is set is assigned a **transition lane** instead of a sync lane. That is why the *synchronous* part of the function works with no more ceremony.
 
-React 19 added **async Actions**: if `fn` returns a promise, React keeps the transition open (`isPending === true`) until it settles. But the marker applies to the synchronous part only. After an `await`, the marker is gone, so state updates there are urgent unless you call `startTransition` again (documented on [react.dev/reference/react/useTransition](https://react.dev/reference/react/useTransition); this is why the example nests it). React 19.3 also changed transition scheduling so a slow Transition no longer blocks other independent ones (19.3 post, "Transition rendering"). Before that, "Multiple ongoing Transitions are currently batched together" (useTransition docs), so `isPending` stays true until **all** of them finish. The test `SearchTransition.test.tsx` ("an older response that arrives last is ignored") asserts this: `isPending` stays true while the older request is outstanding.
+React 19 added **async Actions**: if `fn` returns a promise, React keeps the transition open (`isPending === true`) until it settles. But the marker applies to the synchronous part only. After an `await`, the marker is gone, so state updates there are urgent unless you call `startTransition` again (documented on [react.dev/reference/react/useTransition](https://react.dev/reference/react/useTransition); this is why the example nests it). React 19.3 also changed transition *rendering*: Transitions now render independently instead of being entangled into a single render, so a slow Transition no longer holds up unrelated ones (19.3 changelog, #37290). The useTransition reference page still carries the older caveat that "React currently batches them together", which predates 19.3. Separately from rendering, one hook's `isPending` "stays `true` until all Actions complete and the final state is shown to the user" (useTransition docs). The test `SearchTransition.test.tsx` ("an older response that arrives last is ignored") asserts this on 19.3: `isPending` stays true while the older request is outstanding.
 
 Behaviors to know (all from the useTransition docs unless noted):
 - **Interruptible.** Another state update can restart the transition's render.
@@ -199,7 +199,7 @@ Asynchronous things (code, data, images in a transition) have no natural place i
 
 > **Java/Spring analogy.** A `try/catch` where the "exception" is a pending future, and the `catch` block renders a placeholder. Or a `CompletableFuture` that you `.join()` inside a `@ControllerAdvice` that returns a spinner.
 >
-> **Where the analogy breaks:** the render is **retried from the component that suspended**, not resumed, and any state of the suspended component created during that attempt is not kept. A suspending component that has never committed has no state to lose; one that has already committed is *hidden*, not unmounted, so its state survives.
+> **Where the analogy breaks:** the render is **retried** (the component function runs again from the top), not resumed, and any state of the suspended component created during that attempt is not kept. A suspending component that has never committed has no state to lose; one that has already committed is *hidden*, not unmounted, so its state survives.
 
 ### Minimal code
 `examples/web/src/m21-concurrent/SuspenseReveal.tsx`:
@@ -218,7 +218,7 @@ Asynchronous things (code, data, images in a transition) have no natural place i
 
 ### How it works internally: boundaries, fallbacks, reveal order
 
-**Who suspends.** In React 19 the supported ways are: reading a promise with `use(promise)`, `React.lazy` ([15.7](15-performance.md)), and Suspense-enabled frameworks and libraries (Relay, Next.js, TanStack Query's `useSuspenseQuery`). Throwing a promise by hand is an implementation detail, not an API. `use(promise)` needs a promise whose identity is **stable across retries** (from a cache, a Server Component prop, or `useState`), never one created during render ([17.10](17-data-fetching.md#1710-suspense-based-fetching-and-use)).
+**Who suspends.** In React 19 the supported ways are: reading a promise with `use(promise)`, `React.lazy` ([15.7](15-performance.md#157-code-splitting-with-lazy-and-suspense)), and Suspense-enabled frameworks and libraries (Relay, Next.js, TanStack Query's `useSuspenseQuery`). Throwing a promise by hand is an implementation detail, not an API. `use(promise)` needs a promise whose identity is **stable across retries** (from a cache, a Server Component prop, or `useState`), never one created during render ([17.10](17-data-fetching.md#1710-suspense-based-fetching-and-use)).
 
 **Reveal order** (all asserted by `SuspenseReveal.test.tsx`, "nested boundaries reveal from the outside in…"):
 1. If the **outer** boundary's own content has not resolved (the header), only the **outer fallback** shows. Inner boundaries do not show their fallbacks yet.
@@ -233,7 +233,7 @@ So **placement is a design decision**: one boundary around the page gives one bi
 
 **Throttling.** React throttles the reveal of Suspense content on the client (`FALLBACK_THROTTLE_MS = 300`, verified in `react-dom-client.development.js`) so quick successive reveals do not flicker. In `act()` this throttle is bypassed, which is why tests do not wait. React 19.2 added a similar batching for **server-streamed** boundaries ([21.6](#216-streaming-ssr-and-selective-hydration)).
 
-**Errors.** Suspense handles *pending*, not *failed*. A rejected promise throws on the retry, and the nearest error boundary catches it ([16](16-error-handling.md)). The common pairing is `<ErrorBoundary><Suspense>…</Suspense></ErrorBoundary>`, with the error boundary **outside** so the fallback is not replaced by the error.
+**Errors.** Suspense handles *pending*, not *failed*. A rejected promise throws on the retry, and the nearest error boundary catches it ([16](16-error-handling.md)). The common pairing is `<ErrorBoundary><Suspense>…</Suspense></ErrorBoundary>`, with the error boundary **outside**, so one region has a pending state (Suspense) and a failed state (the error boundary), and an error thrown while rendering the fallback is caught too.
 
 **Testing trap (verified in this repo).** A component that suspends on `use(promise)` at first render must be rendered with `await act(async () => render(...))`. A plain `render` never retries it, and React logs "A component suspended inside an `act` scope, but the `act` call was not awaited" ([17.10](17-data-fetching.md#1710-suspense-based-fetching-and-use), [20.5](20-testing.md#205-async-utilities-and-act)). Every Suspense test here uses the awaited form.
 
@@ -370,14 +370,14 @@ sequenceDiagram
 ```
 
 - **The HTML swap needs no framework JavaScript.** The inline `<script>` that moves the streamed content into place is tiny and runs immediately (Next.js streaming guide). The page paints progressively before hydration even starts.
-- **Each Suspense boundary is also a hydration unit.** React hydrates boundaries independently. If a click or key event lands on an un-hydrated boundary, React **raises that boundary's priority**, hydrates it first, and **replays** the event afterward (unverified detail: the event replay comes from the React 18 Working Group discussion on selective hydration, which was not re-fetched for this guide). A hydration of one boundary can also be interrupted by a more urgent one.
+- **Each Suspense boundary is also a hydration unit.** React hydrates boundaries independently. If a click or key event lands on an un-hydrated boundary, React **raises that boundary's priority**, hydrates it **synchronously during the event's capture phase**, "just in time to handle the click" ([React 18 WG: New Suspense SSR Architecture](https://github.com/reactwg/react-18/discussions/37)). Do not claim React replays every event: a maintainer reply in the same discussion says replaying was later removed "for most cases". A hydration of one boundary can also be interrupted by a more urgent one.
 - **Code splitting no longer blocks hydration.** In React 17, `lazy` components could not be hydrated before they loaded and would force a deopt. In 18, a `lazy` inside a `<Suspense>` hydrates when its chunk arrives, and the rest of the page does not wait.
 - **Errors.** An error *inside* a boundary during streaming does not fail the response: React emits that boundary's fallback and **retries on the client**; `onError` still fires on the server. An error in the **shell** triggers `onShellError`, so you can still send a proper 500 ([16](16-error-handling.md#161-what-happens-when-a-render-throws), react.dev renderToPipeableStream).
 - **`onAllReady` for crawlers and static generation.** It fires once *everything*, including suspended content, has rendered. Use it instead of `onShellReady` when the consumer cannot handle a partial page (a bot, a prerender) (react.dev).
 - **Batched reveals (19.2).** React now holds streamed boundary reveals for a short time and applies several together, to avoid chaining animations and to match client behavior. It stops batching when the page nears 2.5 s, so it cannot hurt Largest Contentful Paint (19.2 post).
 - **HTTP status.** The status line and headers go out with the shell. **You cannot change the status after streaming started**, which is why a `notFound()` or redirect must happen *before* the shell is sent (in Next.js, in the page or `proxy.ts`, not inside a late Suspense boundary).
 
-> **Version notes.** **React ≤ 17:** `renderToString` (synchronous, no Suspense) and `renderToNodeStream` (streamed *without* Suspense support, **removed in 19**). **React 18.0:** `renderToPipeableStream` (Node) and `renderToReadableStream` (web streams/edge) with Suspense; `hydrateRoot` with selective hydration. **React 19.2:** `prerender`, `resume`, `resumeAndPrerender` (Partial Pre-rendering) and web-stream variants in Node; for Node, React still recommends the Node Streams API because it is faster and supports compression (19.2 post). **Legacy `renderToString`** still exists and, per react.dev, "does not support streaming or waiting for data": a suspended component makes it emit the nearest fallback and the client renders that part. **Migration path:** `renderToString` → `renderToPipeableStream` (dynamic pages) or `prerenderToNodeStream` (static generation).
+> **Version notes.** **React ≤ 17:** `renderToString` (synchronous, no Suspense) and `renderToNodeStream` (streamed *without* Suspense support, **removed in 19**). **React 18.0:** `renderToPipeableStream` (Node) and `renderToReadableStream` (web streams/edge) with Suspense; `hydrateRoot` with selective hydration. **React 19.0:** `prerender` / `prerenderToNodeStream` in `react-dom/static` for static generation. **React 19.2:** `resume`, `resumeAndPrerender` (Partial Pre-rendering: `prerender` can now leave postponed holes to resume later) and web-stream variants in Node; for Node, React still recommends the Node Streams API because it is faster and supports compression (19.2 post). **Legacy `renderToString`** still exists and, per react.dev, "does not support streaming or waiting for data": a suspended component makes it emit the nearest fallback and the client renders that part. **Migration path:** `renderToString` → `renderToPipeableStream` (dynamic pages) or `prerenderToNodeStream` (static generation).
 
 ### Trade-offs
 - ✅ Time to first byte and first paint no longer depend on the slowest query.
@@ -495,7 +495,7 @@ A **Server Function** [React] is an async function marked `'use server'`. React 
 
 > **Java/Spring analogy.** A Server Function is a `@PostMapping` controller method that the framework generates a URL and a client stub for. It is an RPC endpoint, not a local call.
 >
-> **Where the analogy breaks:** you never write the URL, the DTO or the `fetch`. Because the plumbing is invisible, it is easy to forget it is an endpoint with **no authentication, no validation and no CSRF protection of its own** unless you add them.
+> **Where the analogy breaks:** you never write the URL, the DTO or the `fetch`. Because the plumbing is invisible, it is easy to forget it is an endpoint with **no authentication and no validation of its own** unless you add them (React adds no CSRF protection either; Next.js adds an `Origin` check, below).
 
 ### Minimal code
 `examples/next-rsc/app/server-action/` (Exercise 3):
@@ -540,7 +540,7 @@ return <form action={formAction}>…<SubmitButton /></form>;   // SubmitButton u
 6. Keep database access in a `server-only` data-access layer, so the action file stays thin.
 7. Do not rely on **hiding** the action: "nobody imports it" is not an access control.
 
-> **Version notes.** **Next.js 13.x (2023):** Server Actions experimental (`experimental.serverActions`). **Next.js 14:** stable and on by default (verified: the `serverActions` config doc says "stable in Next.js 14"). **React 19.0:** "Server Actions" renamed **Server Functions** in the React docs; `useActionState` replaces `useFormState` (Next.js 15 upgrade guide: `useFormState` is deprecated). **React 19.3:** `onReset` fires after Server Actions and `submit` events include the `submitter` (19.3 post). **Next.js 16:** `updateTag` (read-your-writes) and `refresh()` are Server Action-only APIs; `revalidateTag` takes a second argument. **Legacy:** before Server Functions you wrote an API route (`pages/api/…`) or a Route Handler and `fetch`ed it; that is still right when non-React clients or third parties call your endpoint ([21.13](#2113-route-handlers-and-proxyts)).
+> **Version notes.** **Next.js 13.x (2023):** Server Actions experimental (`experimental.serverActions`). **Next.js 14:** stable and on by default (verified: the `serverActions` config doc says "stable in Next.js 14"). **React 19 era:** "Server Actions" renamed **Server Functions** in the React docs (September 2024, per react.dev `'use server'`); `useActionState` replaces `useFormState` (Next.js 15 upgrade guide: `useFormState` is deprecated). **React 19.3:** `onReset` fires after Server Actions and `submit` events include the `submitter` (19.3 post). **Next.js 16:** `updateTag` (read-your-writes) and `refresh()` are Server Action-only APIs; `revalidateTag` takes a second argument. **Legacy:** before Server Functions you wrote an API route (`pages/api/…`) or a Route Handler and `fetch`ed it; that is still right when non-React clients or third parties call your endpoint ([21.13](#2113-route-handlers-and-proxyts)).
 
 ### Trade-offs
 - ✅ No hand-written endpoint, DTO or client for UI mutations; type-checked end to end; works before hydration.
@@ -591,7 +591,7 @@ Caveats from the docs, each one a likely interview trap:
 - **Pre-rendering reads only Suspense-activating data**: a promise read with `use` is fetched while hidden; data fetched in an effect is not (the effect does not run).
 - Inside `<ViewTransition>`, becoming visible/hidden triggers `enter`/`exit` animations.
 - It participates in **selective hydration**: a hidden tab's content can hydrate later while the tab buttons are interactive sooner.
-- **Next.js 16 with Cache Components uses `<Activity>` for client navigation**: the previous route is set to `hidden` rather than unmounted, so back-navigation keeps state and effects are cleaned up. A few recent routes are kept hidden (verified: Next docs `cacheComponents`, "Navigation with Activity"). Patterns that assumed unmount on navigation (dialogs, an `onbeforeunload` listener, a `useEffect` that sets up on mount) behave differently; see Next's *Preserving UI state* guide.
+- **Next.js 16 with Cache Components uses `<Activity>` for client navigation**: the previous route is set to `hidden` rather than unmounted, so back-navigation keeps state and effects are cleaned up. Up to 3 routes are kept hidden; beyond that the oldest is evicted and re-renders fresh (Next 16.3.8 docs: *Preserving UI state*, "Next.js preserves up to 3 routes"; `cacheComponents`, "Navigation with Activity"). Patterns that assumed unmount on navigation (dialogs, an `onbeforeunload` listener, a `useEffect` that sets up on mount) behave differently; see Next's *Preserving UI state* guide.
 - More modes are planned ("In the future, we plan to add more modes", 19.2 post).
 
 > **Version notes.** **React 18 era:** `Offscreen` was an internal/`unstable_` component used by React's own Suspense machinery and in experimental builds; the public name was announced as **Activity** and shipped stable in **React 19.2 (2025-10-01)** with `visible` and `hidden` (VERSIONS.md). **Legacy workaround:** keep both tabs mounted and hide with CSS, or lift the state up/store it in a context or store so unmounting does not lose it. **Migration path:** replace `style={{ display: tab === 'A' ? 'block' : 'none' }}` with `<Activity>` *and* review each effect: a subscription that you relied on staying alive while hidden will now be torn down.
@@ -695,7 +695,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 ```
 
 ### How it works internally
-- **Static vs dynamic is decided by what the render touches.** Request-time APIs (`cookies()`, `headers()`, `searchParams`, `connection()`) and, in the non-Cache-Components model, uncached data in a route with `dynamic = 'force-dynamic'`, make the route dynamic. Everything else is prerendered at build.
+- **Static vs dynamic is decided by what the render touches.** Request-time APIs (`cookies()`, `headers()`, `searchParams`, `connection()`) and, in the non-Cache-Components model, a `fetch` with `cache: 'no-store'` / `revalidate: 0` or the segment config `dynamic = 'force-dynamic'`, make the route dynamic (`caching-without-cache-components.md`). Everything else is prerendered at build.
 - **Streaming is independent of the strategy.** A dynamic page can still stream through `loading.tsx` / `<Suspense>` ([21.6](#216-streaming-ssr-and-selective-hydration)); `loading.tsx` wraps `page.tsx` in a Suspense boundary (Next streaming guide).
 - **RSC payload vs HTML.** The first request gets HTML *and* the embedded payload (for hydration). A client-side navigation fetches **only the payload** (an `rsc: 1` request) and no HTML (Next streaming guide).
 
@@ -872,7 +872,7 @@ export const config = { matcher: '/dashboard/:path*' };
   | A read for your own pages | An async Server Component |
   | A cross-cutting redirect/rewrite/header | `proxy.ts` (or `next.config` `redirects`) |
 
-> **Version notes.** **Pages Router:** `pages/api/*.ts` with `(req, res)` Node-style handlers. **Next 13.2:** Route Handlers introduced in the App Router. **Next 12–15:** `middleware.ts` (edge runtime). **Next 15:** `GET` handlers uncached by default (verified). **Next 16:** `middleware.ts` **deprecated**, renamed to **`proxy.ts`** with a `proxy` export, Node runtime; config flags renamed (`skipMiddlewareUrlNormalize` → `skipProxyUrlNormalize`); a codemod does the rename (verified). **Migration path:** `mv middleware.ts proxy.ts`, rename the function to `proxy`; keep `middleware.ts` only if you need the edge runtime. The 13.2 date is from the release post: "Route Handlers are available in 13.2 for the App Router" ([Next.js 13.2](https://nextjs.org/blog/next-13-2), 2023-02-23).
+> **Version notes.** **Pages Router:** `pages/api/*.ts` with `(req, res)` Node-style handlers. **Next 13.2:** Route Handlers introduced in the App Router. **Next 12–15:** `middleware.ts` (edge runtime; Node.js runtime experimental in 15.2, stable in 15.5, per the `proxy.md` version history). **Next 15:** `GET` handlers uncached by default (verified). **Next 16:** `middleware.ts` **deprecated**, renamed to **`proxy.ts`** with a `proxy` export, Node runtime; config flags renamed (`skipMiddlewareUrlNormalize` → `skipProxyUrlNormalize`); a codemod does the rename (verified). **Migration path:** `mv middleware.ts proxy.ts`, rename the function to `proxy`; keep `middleware.ts` only if you need the edge runtime. The 13.2 date is from the release post: "Route Handlers are available in 13.2 for the App Router" ([Next.js 13.2](https://nextjs.org/blog/next-13-2), 2023-02-23).
 
 ### Trade-offs
 - ✅ Standard Web APIs, co-located with the app; trivial webhooks.
@@ -996,7 +996,7 @@ The transition marker only applies to updates scheduled **synchronously** inside
 **Q5. When does `isPending` become true and false?**
 <details><summary>Answer</summary>
 
-True from the start of `startTransition` until **all** pending transitions/Actions of that hook have finished (multiple ongoing Transitions are batched). False once the last one settles and the resulting render commits. **A strong answer adds:** `SearchTransition.test.tsx` shows it staying true while an older request is outstanding even after the newest one resolved.
+True from the start of `startTransition` until **all** pending transitions/Actions of that hook have finished (react.dev: it "stays `true` until all Actions complete"). False once the last one settles and the resulting render commits. **A strong answer adds:** `SearchTransition.test.tsx` shows it staying true while an older request is outstanding even after the newest one resolved.
 
 </details>
 
@@ -1017,7 +1017,7 @@ No. It has **no fixed delay**: the background render starts right after the urge
 **Q8. Predict the renders: `useDeferredValue(text)` where `text` goes from "a" to "ab".**
 <details><summary>Answer</summary>
 
-Two renders: `text=ab deferred=a` (urgent: the child with the old deferred value can bail out), then `text=ab deferred=ab` (background). On mount there is only one render with both equal, unless you passed `initialValue`. Asserted in `DeferredLog.test.tsx` ([Exercise 4](#exercise-4-predict-the-output-usedeferredvalue-render-log)). **A strong answer adds:** inside a transition it is one render, both new.
+Two renders: `text=ab deferred=a` (urgent: the child with the old deferred value can bail out), then `text=ab deferred=ab` (background). On mount there is only one render with both equal, unless you passed `initialValue`. Asserted in `DeferredLog.test.tsx` ([Exercise 4](#exercise-4-predict-the-output-usedeferredvalue-render-log)). **A strong answer adds:** inside a transition no render pairs the new text with the old deferred value; with `useTransition` the log still starts with an urgent `isPending` render that has the old text.
 
 </details>
 
@@ -2252,9 +2252,9 @@ test('the legacy root APIs are gone from react-dom in React 19', () => {
 **Walkthrough.** `renderToString` produces `<p>server</p>`. In (a) the client's first render says `client`, React cannot adopt the node, reports a recoverable error and re-renders on the client, so the DOM ends with `client`. In (b) the warning is suppressed and React leaves the DOM alone: the user still sees `server` although React thinks `client` (a stale-looking, inconsistent state). In (c) the hydration pass uses `getServerSnapshot` (`server`), matches the HTML, then the store re-renders with `client`: no error. (d) checks the removed legacy APIs.
 
 **Interviewer follow-ups.**
-- "How do you do (c) with a plain `useEffect`?" `const [v, setV] = useState('server'); useEffect(() => setV(client), [])`, but React 19's lint rule `set-state-in-effect` flags it; `useSyncExternalStore` is the lint-clean form for external values.
+- "How do you do (c) with a plain `useEffect`?" `const [v, setV] = useState('server'); useEffect(() => setV(client), [])`, but the `set-state-in-effect` rule of `eslint-plugin-react-hooks` 7 flags it; `useSyncExternalStore` is the lint-clean form for external values.
 - "Could this mismatch be silent in production?" The message differs in production builds, but the recoverable error path is the same.
-- "What would `Date.now()` in render do?" Mismatch every time the second changes between server and client.
+- "What would `Date.now()` in render do?" A mismatch on practically every load: the millisecond value differs between the server render and the client's first render.
 
 **Tests.** [`Hydration.test.tsx`](examples/web/src/m21-concurrent/Hydration.test.tsx). Verified by running it: `react-dom/server` resolves and all 5 tests pass under Vitest/jsdom.
 
@@ -2314,7 +2314,7 @@ test('the legacy root APIs are gone from react-dom in React 19', () => {
 | "Server Components are experimental" | Yes in 18 / Next 13 beta | Stable in React 19 (for frameworks); Next.js App Router stable since 13.4 | React 19.0 / Next 13.4 |
 | "`'use server'` marks Server Components" | Never | It marks Server Functions callable from the client | — |
 | "Server Actions are safe because they are not in the URL space" | Never | Public POST endpoints; authenticate, authorize and validate | — |
-| "Server Actions" naming | Yes (Next 13–14 docs) | "Server Functions" in React; "Server Action" when used as a form action | React 19.0 |
+| "Server Actions" naming | Yes (Next 13–14 docs) | "Server Functions" in React; "Server Action" when used as a form action | react.dev docs, Sept 2024 (before 19.0) |
 | "Next.js caches `fetch` by default" | Yes in 13 and 14 | Uncached by default in 15; explicit `'use cache'` in 16 with Cache Components | Next 15.0 / 16.0 |
 | "`unstable_cache` is how you cache non-fetch data" | Yes in 14–15 | Previous model; `'use cache'` + `cacheLife` + `cacheTag` with Cache Components | Next 16.0 |
 | "`revalidateTag(tag)` is enough" | Yes in 13–15 | Requires a profile (`'max'`) in 16; `updateTag` for read-your-writes | Next 16.0 |

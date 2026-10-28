@@ -247,22 +247,19 @@ A waiter checks that the table is free before serving; a bad one serves after co
 stateDiagram-v2
   state "exactly one?" as one
   state "receives events" as events
-  state "not inert" as inert
   [*] --> resolve
   resolve --> one
   one --> visible
   visible --> stable
   stable --> events
   events --> enabled
-  enabled --> inert
-  inert --> act
+  enabled --> act
   act --> [*]
   one --> resolve: retry
   visible --> resolve: retry
   stable --> resolve: retry
   events --> resolve: retry
   enabled --> resolve: retry
-  inert --> resolve: retry
   resolve --> TimeoutError: timeout ends
   TimeoutError --> [*]
 ```
@@ -271,7 +268,7 @@ What to notice: every failed check loops back and retries until the timeout; not
 
 ### How it actually works
 
-**The checks.** Before `click`, Playwright checks that the locator resolves to exactly one element ([§4](#4-locators-page-objects-and-fixtures)) that is visible, stable (the same bounding box for two animation frames), receives events (nothing covers it), enabled and not inert; otherwise the action fails with **`TimeoutError`**, Playwright's error for an expired wait ([Auto-waiting](https://playwright.dev/docs/actionability), `main`, read 2026-10-13). In the lab the error is named `TimeoutError`, starts `locator.click: Timeout 500ms exceeded.` and logs `element is not enabled` and `retrying click action` (`Section 3: an action fails with TimeoutError when its target never becomes actionable`).
+**The checks.** Before `click`, Playwright checks that the locator resolves to exactly one element ([§4](#4-locators-page-objects-and-fixtures)) that is visible, stable (the same bounding box for two animation frames), receives events (nothing covers it) and enabled; otherwise the action fails with **`TimeoutError`**, Playwright's error for an expired wait ([Auto-waiting](https://playwright.dev/docs/actionability), `main`, read 2026-10-13). The page on `main` also lists a "Not Inert" check, added after 1.64.0 (Playwright PR #43211, merged 2026-10-08); the `release-1.63` page lists only these. In the lab the error is named `TimeoutError`, starts `locator.click: Timeout 500ms exceeded.` and logs `element is not enabled` and `retrying click action` (`Section 3: an action fails with TimeoutError when its target never becomes actionable`).
 
 **Where it polls.** Read from `playwright` and `playwright-core` 1.63.0 (read, not run; names internal, "may change in any release"): `lib/matchers/expect.js` sends `toHaveText` as `locator._expect("to.have.text", …)` with the 5 s `defaultExpectTimeout`. It reaches `Frame.expect` in `lib/coreBundle.js` (bundled `server/frames.ts`): one check, then `retryWithProgressAndBackoff` repeats it after waits of 20, 50, 100, 100 and then 500 ms (steps above a fifth of the timeout are dropped). Actions retry through the same function, via `_retryWithProgressIfNotConnected`.
 
@@ -935,7 +932,7 @@ The team proposes one Playwright test per component of the cart, coupon, address
 ### Q30.04 · Output · A button's label changes to "Saved" 500 ms after a click: does `await expect(button).toHaveText('Saved')` pass, and what does `await button.textContent()` return right after the click?
 
 ```ts
-// Complete: runs in `labs/e2e/tests/outputs/q30-outputs.spec.ts` (`test('Q30.04 …')`); `page` is the test's page
+// Partial: runs in `labs/e2e/tests/outputs/q30-outputs.spec.ts` (`test('Q30.04 …')`); `page` is the test's page
 await page.setContent(`<button>Save</button>
 <script>
   document.querySelector('button').addEventListener('click', (event) => {
@@ -970,7 +967,7 @@ await expect(button).toHaveText('Saved');
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** Playwright retries the checks before an action (one element, visible, stable, receives events, enabled, not inert) until the action's timeout, then acts once, and retries web-first assertions until the 5 s `expect` timeout. A value you read yourself is never retried. Cypress retries queries and assertions as one chain; `.click()` runs once after an actionability wait.
+**Short answer (30 seconds).** Playwright retries the checks before an action (one element, visible, stable, receives events, enabled) until the action's timeout, then acts once, and retries web-first assertions until the 5 s `expect` timeout. A value you read yourself is never retried. Cypress retries queries and assertions as one chain; `.click()` runs once after an actionability wait.
 
 **Full explanation.** In `playwright` 1.63.0 `toHaveText` checks once, then repeats after waits of 20, 50, 100, 100 and 500 ms (read, not run; [§3](#3-auto-waiting-actionability-checks-web-first-assertions-and-cypress-retry-ability)). In the lab `click` waits for a disabled button to become enabled (`Section 3: click waits for a disabled button to become enabled`) and fails with `TimeoutError` when it never does (`Section 3: an action fails with TimeoutError when its target never becomes actionable`). Cypress (documented only): "Queries link up, retrying the entire chain together" and "Non-queries only execute once"; `.click()` is not retried because "it could change something in the application". The run is [Q30.04](#q30-04).
 
@@ -995,7 +992,7 @@ expect(await status.textContent()).toBe('Saved'); // one snapshot
 ### Q30.06 · Output · Two rows each have a "Delete" button: what does `page.getByRole('button', { name: 'Delete' }).click()` do, and how do you target one row?
 
 ```ts
-// Complete: runs in `labs/e2e/tests/outputs/q30-outputs.spec.ts` (`test('Q30.06 …')`); `page` is the test's page
+// Partial: runs in `labs/e2e/tests/outputs/q30-outputs.spec.ts` (`test('Q30.06 …')`); `page` is the test's page
 await page.setContent(`<ul>
   <li>Milk <button>Delete</button></li>
   <li>Bread <button>Delete</button></li>
@@ -1075,7 +1072,7 @@ await page.getByRole('button', { name: 'Delete' }).click();
 ### Q30.09 · Output · Two `page.route` handlers match the same API URL: which one answers, and what changes when the later one calls `route.fallback()`?
 
 ```ts
-// Complete: runs in `labs/e2e/tests/outputs/q30-outputs.spec.ts` (`test('Q30.09 …')`); the page itself is routed, so no request leaves the machine
+// Partial: runs in `labs/e2e/tests/outputs/q30-outputs.spec.ts` (`test('Q30.09 …')`); the page itself is routed, so no request leaves the machine
 const ORIGIN = 'http://q30-09.test';
 
 async function answerFromHandlers(page: Page, laterFallsBack: boolean): Promise<{ body: string; order: string[] }> {
@@ -1701,5 +1698,5 @@ No, in 1.63.0 by test count, and a file stays whole unless `fullyParallel` is se
 
 - **Builds on:** [29 §1](29-testing-angular.md#1-what-to-test-where-unit-integration-component-and-end-to-end-tests-the-pyramid-and-the-trophy) (the levels this module's top level sits on), [29 §11](29-testing-angular.md#11-component-harnesses-and-angular-testing-library) (role queries one level down), [11 §7](11-accessibility.md#7-testing-accessibility) (what accessibility scans miss) and [27 §11](27-http-client.md#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace) (the HTTP seam that `page.route` fakes in the browser instead).
 - **Read next:** [31. Performance](31-performance.md) (measuring the built app) and [38. Architecture and production structure](38-architecture-and-production-structure.md#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews) (the pipeline stages and where end-to-end projects live).
-- **Uses these ideas later:** [31](31-performance.md) (budgets beside tests), [38](38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder) (test layout in a workspace), [41](41-fullstack-api-contracts.md) (contract tests), [44](44-fullstack-delivery-and-operations.md) (CI/CD around sharded runs) and [46](46-system-design-case-studies.md) (flaky suites as failure modes), all file-level and not yet written.
+- **Uses these ideas later:** [31](31-performance.md) (budgets beside tests), [38](38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder) (test layout in a workspace), [41](41-fullstack-api-contracts.md) (contract tests), [44](44-fullstack-delivery-and-operations.md) (CI/CD around sharded runs) and [46](46-system-design-case-studies.md) (flaky suites as failure modes).
 - **Comparisons:** [Q29.02](29-testing-angular.md#q29-02) sets the pyramid beside the trophy, and [Q11.19](11-accessibility.md#q11-19) places accessibility checks beside the scan of [Q30.12](#q30-12).

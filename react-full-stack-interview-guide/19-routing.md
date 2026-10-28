@@ -311,7 +311,8 @@ export const userContext = createContext<User>();
 
 export function requireUser(session: Session): MiddlewareFunction {
   return ({ request, context }) => {
-    if (!session.user) throw redirect(loginUrl(new URL(request.url).pathname));
+    const { pathname, search } = new URL(request.url);
+    if (!session.user) throw redirect(loginUrl(pathname + search));
     context.set(userContext, session.user);   // typed: loaders call context.get(userContext)
   };
 }
@@ -434,7 +435,7 @@ Framework mode splits every route module for you (*illustrative, not run*), so y
 - ❌ Don't lazy-load the shell/layout that every route needs, or tiny routes where the chunk overhead beats the code size.
 - ❌ If the chunk request fails, the navigation errors: show a retry in the error element and consider a one-time reload for a stale deploy (a hashed chunk that no longer exists).
 
-> **Version notes.** **v6.4:** `lazy` is a function returning route properties. **v7.5.0 (2025-04-04):** object-based `lazy` for per-property splitting; middleware could be lazy only via the object form (an unstable key at the time). **v8.4.0:** lazy import errors during SPA navigations are preserved instead of being replaced by a missing-`dataStrategy` error (changelog 8.4.0). `React.lazy` + `<Suspense>` still work in declarative mode.
+> **Version notes.** **v6.9.0:** `lazy` arrives as a function returning route properties (v6 CHANGELOG). **v7.5.0 (2025-04-04):** object-based `lazy` for per-property splitting; middleware could be lazy only via the object form (an unstable key at the time). **v8.4.0:** lazy import errors during SPA navigations are preserved instead of being replaced by a missing-`dataStrategy` error (changelog 8.4.0). `React.lazy` + `<Suspense>` still work in declarative mode.
 
 ---
 
@@ -474,7 +475,7 @@ The router stores errors in `state.errors` keyed by the **route id of the bounda
 - ❌ A single root boundary is a last resort. It replaces the whole screen.
 - ❌ Do not use error boundaries for validation: that is action data (Exercise 3).
 
-> **Version notes.** **v6.4:** `errorElement` (an element). **v7:** `ErrorBoundary` as a component prop exists next to `errorElement` (they are mutually exclusive); framework mode exports `ErrorBoundary` from the route module. **v8.0.0** removed the internal `hasErrorBoundary` field from route objects and `lazy` definitions (the router infers it). Also, "client middleware errors load lazy route error boundaries before bubbling" (8.0.0 changelog).
+> **Version notes.** **v6.4:** `errorElement` (an element). **v6.9.0:** `Component`/`ErrorBoundary` component fields arrive next to `element`/`errorElement` (define only one of each pair; if both are set, the component field wins, per the v6 CHANGELOG); framework mode exports `ErrorBoundary` from the route module. **v8.0.0** removed the internal `hasErrorBoundary` field from route objects and `lazy` definitions (the router infers it). Also, "client middleware errors load lazy route error boundaries before bubbling" (8.0.0 changelog).
 
 ---
 
@@ -722,7 +723,7 @@ A `Response` with a `Location` header (status 302 by default). Return or throw i
 **Q22. What is `data()` for?**
 <details><summary>Answer</summary>
 
-It wraps a value with status/headers (`data(body, { status: 404 })`), replacing v6's `json()` helper, which v7 removed. Returned, it is data with a status; thrown, it becomes an error response with `status`/`data` that `isRouteErrorResponse` recognises. **A strong answer adds:** `Response.json()` is the platform replacement if you need a real `Response`.
+It wraps a value with status/headers (`data(body, { status: 404 })`), replacing v6's `json()` helper, which v7 removed. Returned, it is data with a status; thrown, it becomes an error response with `status`/`data` that `isRouteErrorResponse` recognizes. **A strong answer adds:** `Response.json()` is the platform replacement if you need a real `Response`.
 
 </details>
 
@@ -954,7 +955,7 @@ function LoginPage() {
           aria-describedby={actionData ? 'login-error' : undefined}
         />
         {actionData && (
-          <p id="login-error" role="alert" aria-live="polite">
+          <p id="login-error" role="alert">
             {actionData.error}
           </p>
         )}
@@ -1427,7 +1428,7 @@ function ProjectPage() {
           aria-describedby={error ? 'project-name-error' : undefined}
         />
         {error && (
-          <p id="project-name-error" role="alert" aria-live="polite">
+          <p id="project-name-error" role="alert">
             {error}
           </p>
         )}
@@ -1967,7 +1968,7 @@ Test: [`lazyRoutes.test.tsx`](examples/web/src/m19-routing/lazy/lazyRoutes.test.
 | "`future.v8_*` flags must be set in v8" | Yes while on v7 | The flags are removed; the behavior is the default | v8.0.0 |
 | "`useFetcher<MyData>()`" | Yes (v6) | `useFetcher<typeof loader>()` | v7.0.0 |
 | "`fallbackElement` on `RouterProvider`" | Yes (v6.4–v6) | `HydrateFallback`/`hydrateFallbackElement` on a route | v7.0.0 |
-| "`<Prompt>` blocks navigation" | Yes (v5) | `useBlocker` (and `usePrompt`) in data/framework mode | v6 |
+| "`<Prompt>` blocks navigation" | Yes (v5) | `useBlocker` (and the still-unstable `unstable_usePrompt`) in data/framework mode | v6.7 (`unstable_useBlocker`); `useBlocker` stable in 6.19 |
 | "A route component guard is how you protect routes" | The only option in declarative | Middleware on a layout route runs before the loaders | v8 |
 | "Client-only apps need `BrowserRouter`; SSR needs Next.js" | Often said | Framework mode gives SSR/SPA/static with React Router; declarative still fits SPAs | v7.0.0 |
 
@@ -2002,4 +2003,4 @@ React Router is one library with three additive modes: **declarative** (`<Routes
 
 ---
 
-**Next:** [20 — Testing](20-testing.md) is already written; continue with [21 — Concurrent React, SSR and Server Components](21-concurrent-ssr-server-components.md) · **Related:** [08 URL state](08-state.md#82-usestate-and-state-as-a-snapshot) · [09 Race conditions](09-effects.md#94-race-conditions-and-abortcontroller) · [14 Router actions vs React Actions](14-forms-and-actions.md#147-useactionstate) · [15 Lazy routes](15-performance.md#157-code-splitting-with-lazy-and-suspense) · [16 Error routes](16-error-handling.md#162-error-boundaries) · [17 Loaders and caches](17-data-fetching.md#178-prefetching-and-dependent-queries) · [20 Testing routers](20-testing.md#208-testing-with-context-routers-and-query-clients) · [21 Framework mode vs Next.js](21-concurrent-ssr-server-components.md#2114-react-router-framework-mode--remix-comparison) · [23 `react-router-dom` in legacy code](23-ecosystem-libraries.md#233-deprecated-or-archived-libraries-you-will-meet-in-legacy-code)
+**Next:** [20 — Testing](20-testing.md) · **Related:** [08 URL state](08-state.md#82-usestate-and-state-as-a-snapshot) · [09 Race conditions](09-effects.md#94-race-conditions-and-abortcontroller) · [14 Router actions vs React Actions](14-forms-and-actions.md#147-useactionstate) · [15 Lazy routes](15-performance.md#157-code-splitting-with-lazy-and-suspense) · [16 Error routes](16-error-handling.md#162-error-boundaries) · [17 Loaders and caches](17-data-fetching.md#178-prefetching-and-dependent-queries) · [20 Testing routers](20-testing.md#208-testing-with-context-routers-and-query-clients) · [21 Framework mode vs Next.js](21-concurrent-ssr-server-components.md#2114-react-router-framework-mode--remix-comparison) · [23 `react-router-dom` in legacy code](23-ecosystem-libraries.md#233-deprecated-or-archived-libraries-you-will-meet-in-legacy-code)

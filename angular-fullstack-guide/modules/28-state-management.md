@@ -1081,7 +1081,7 @@ What to notice: rollback restores the one change that failed, not a whole snapsh
 
 **History.** Edit, edit, undo, edit left `past` `[0, 1]`, `present` `3` and `future` `[]`; `redo` after an `undo` brought the undone value back (`Section 10: undo and redo move the present between the stacks`).
 
-**Where each sits.** NgRx Entity is the normalization ([§7](#7-ngrx-entity-router-store-and-store-devtools), F9). A meta-reducer ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)) wraps every reducer, so it is where whole-store undo would sit; not run here. In a SignalStore, `withEntities` is the pair ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)). **Conflicts:** two clients editing one record need the server to refuse a stale write, and the client needs the version it read: [27 §3](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext) reads the `ETag` header, and [module 41](41-fullstack-api-contracts.md#5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular) owns the contract.
+**Where each sits.** NgRx Entity is the normalization ([§7](#7-ngrx-entity-router-store-and-store-devtools)). A meta-reducer ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)) wraps every reducer, so it is where whole-store undo would sit; not run here. In a SignalStore, `withEntities` is the pair ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)). **Conflicts:** two clients editing one record need the server to refuse a stale write, and the client needs the version it read: [27 §3](27-http-client.md#3-making-requests-typed-responses-observe-responsetype-immutable-params-and-headers-and-httpcontext) reads the `ETag` header, and [module 41](41-fullstack-api-contracts.md#5-error-contracts-with-problemdetail-rfc-9457-and-mapping-them-in-angular) owns the contract.
 
 ### Code
 
@@ -1462,7 +1462,7 @@ Each answer is five parts; Output answers state the run asserted in `q28-outputs
 ### Q28.05 · Output · One state signal holds items, a filter and a loading flag: which computeds re-run when only the flag changes?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.05 …')`); imports computed and signal from @angular/core
+// Partial: runs in a spec (`it('Q28.05 …')`); imports computed and signal from @angular/core
 const state = signal({ items: ['a'], filter: '', loading: false });
 const runs = { items: 0, count: 0, loading: 0 };
 const items = computed(() => {
@@ -1536,7 +1536,7 @@ load(query: string): void {
 ### Q28.07 · Output · A `BehaviorSubject` store with a `select` built from `map` and `distinctUntilChanged`: what does a subscriber receive after a flag change, an items change and an in-place push?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.07 …')`); imports BehaviorSubject, distinctUntilChanged and map from rxjs
+// Partial: runs in a spec (`it('Q28.07 …')`); imports BehaviorSubject, distinctUntilChanged and map from rxjs
 interface ListState {
   items: string[];
   loading: boolean;
@@ -1590,7 +1590,7 @@ console.log(received);
 ### Q28.09 · Output · `createActionGroup` with source `Todos Page` and events `Add Todo` and `Clear All`: which creator names and type strings does it produce?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.09 …')`); imports createActionGroup, emptyProps and props from @ngrx/store
+// Partial: runs in a spec (`it('Q28.09 …')`); imports createActionGroup, emptyProps and props from @ngrx/store
 const TodosPage = createActionGroup({
   source: 'Todos Page',
   events: {
@@ -1639,7 +1639,7 @@ console.log([Object.keys(TodosPage), TodosPage.addTodo({ title: 'a' }), TodosPag
 ### Q28.11 · Output · `createFeature` named `todos` with a reducer over `items` and `n`: which members does it return?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.11 …')`); imports createFeature and createReducer from @ngrx/store
+// Partial: runs in a spec (`it('Q28.11 …')`); imports createFeature and createReducer from @ngrx/store
 interface TodosState {
   items: string[];
   n: number;
@@ -1670,7 +1670,7 @@ console.log(Object.keys(feature));
 ### Q28.12 · Output · A `createSelector` projector called with the same state, a new root with the same slice and a new slice with equal contents: how many times does it run?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.12 …')`); imports createFeature, createReducer and createSelector from @ngrx/store
+// Partial: runs in a spec (`it('Q28.12 …')`); imports createFeature, createReducer and createSelector from @ngrx/store
 interface TodosState {
   items: string[];
   n: number;
@@ -1714,7 +1714,7 @@ console.log(runs);
 // Partial: a component over a store with todosFeature as in section 5; imports omitted
 const selectById = createSelector(
   todosFeature.selectItems,
-  (items, props: { id: number }) => items.find((todo) => todo.id === props.id),
+  (items: { id: number }[], props: { id: number }) => items.find((todo) => todo.id === props.id),
 );
 const selectByIdFactory = (id: number) =>
   createSelector(todosFeature.selectItems, (items) => items.find((todo) => todo.id === id));
@@ -1789,7 +1789,7 @@ export class LabM28TodoRow {
 ### Q28.16 · Output · A non-dispatching effect throws on the second of three actions and has no `catchError`: which actions reach it, and what is logged?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.16 …')`); imports ErrorHandler and inject from @angular/core, TestBed from @angular/core/testing, Actions, createEffect, ofType and provideEffects from @ngrx/effects, Store, createAction, props and provideStore from @ngrx/store, and tap from rxjs
+// Partial: runs in a spec (`it('Q28.16 …')`); imports ErrorHandler and inject from @angular/core, TestBed from @angular/core/testing, Actions, createEffect, ofType and provideEffects from @ngrx/effects, Store, createAction, props and provideStore from @ngrx/store, and tap from rxjs
 const load = createAction('Load', props<{ n: number }>());
 const log: string[] = [];
 const throwOnSecond = createEffect(
@@ -1866,7 +1866,7 @@ const loadEffect = createEffect(
 ### Q28.18 · Output · An entity adapter with a `sortComparer`: what are `ids` and `entities` after `addMany`, and does `updateOne` keep the untouched entity's reference?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.18 …')`); imports createEntityAdapter from @ngrx/entity
+// Partial: runs in a spec (`it('Q28.18 …')`); imports createEntityAdapter from @ngrx/entity
 interface Order {
   id: number;
   title: string;
@@ -1927,7 +1927,7 @@ console.log([s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1]
 
 **Short answer (30 seconds).** Time travel needs pure reducers, because the tools replay the recorded actions through them, and actions and state the extension can serialize to show and export. `maxAge` caps how many recorded actions are kept, with at least 2. `logOnly` limits the extension to a few features and leaves out jumping.
 
-**Full explanation.** Read from the `@ngrx/store-devtools` 22.0.1 source, `recomputeStates` (internal) replays the recorded actions through the reducer, so a reducer that reads the clock or a random number gives a different state on replay ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). Read from `@ngrx/store` 22.0.1, the serializability checks are off by default even in development, so a class instance in an action is not reported unless `strictStateSerializability` or `strictActionSerializability` is set; whether the extension then displays it correctly is documented only. `provideStoreDevtools({ maxAge: 3 })` kept `@ngrx/store/init`, `x4` and `x5` after seven emissions, and `maxAge: 1` threw "Devtools 'maxAge' cannot be less than 2, got 1" (`Section 7: provideStoreDevtools provides without the browser extension`; `Section 7: provideStoreDevtools rejects a maxAge below two`). Read, `createConfig` (internal) turns `logOnly` into the features `pause`, `export` and `test` only, so `jump`, `skip` and `dispatch` are absent. The docs default `maxAge` to `false`, infinite, and pass `logOnly: !isDevMode()`. The extension and a jump in a browser were not run.
+**Full explanation.** Read from the `@ngrx/store-devtools` 22.0.1 source, `recomputeStates` (internal) replays the recorded actions through the reducer, so a reducer that reads the clock or a random number gives a different state on replay ([§4](#4-ngrx-store-actions-reducers-createactiongroup-createfeature-and-runtime-checks)). Read from `@ngrx/store` 22.0.1, the serializability checks are off by default even in development, so a class instance in an action is not reported unless `strictStateSerializability` or `strictActionSerializability` is set; whether the extension then displays it correctly is documented only. `provideStoreDevtools({ maxAge: 3 })` kept `@ngrx/store/init`, `x4` and `x5` after five dispatches, and `maxAge: 1` threw "Devtools 'maxAge' cannot be less than 2, got 1" (`Section 7: provideStoreDevtools provides without the browser extension`; `Section 7: provideStoreDevtools rejects a maxAge below two`). Read, `createConfig` (internal) turns `logOnly` into the features `pause`, `export` and `test` only, so `jump`, `skip` and `dispatch` are absent. The docs default `maxAge` to `false`, infinite, and pass `logOnly: !isDevMode()`. The extension and a jump in a browser were not run.
 
 **Follow-ups an interviewer will ask.**
 - *Does time travel undo side effects?* By reasoning, no: it recomputes state from actions, and an HTTP call already sent stays sent.
@@ -1959,7 +1959,7 @@ console.log([s1.ids, Object.keys(s1.entities), s2.entities[1] === s1.entities[1]
 ### Q28.22 · Output · Mutating state read from NgRx Store and from a SignalStore in development, and calling `patchState` from outside a store: which throw, and which fail to compile?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.22 …')`); imports TestBed from @angular/core/testing, Store, createAction, createFeature, createReducer, on, props, provideState and provideStore from @ngrx/store, and getState, patchState, signalStore and withState from @ngrx/signals
+// Partial: runs in a spec (`it('Q28.22 …')`); imports TestBed from @angular/core/testing, Store, createAction, createFeature, createReducer, on, props, provideState and provideStore from @ngrx/store, and getState, patchState, signalStore and withState from @ngrx/signals
 const addTodo = createAction('[Todos Page] Add Todo', props<{ title: string }>());
 const feature = createFeature({
   name: 'todos',
@@ -2022,7 +2022,7 @@ console.log(JSON.stringify(getState(store)));
 ### Q28.24 · Output · An `rxMethod` called with a value, a signal and an Observable, and one created outside an injection context: what reaches the pipeline, and what is reported?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.24 …')`); imports signal from @angular/core, TestBed from @angular/core/testing, signalStore and withMethods from @ngrx/signals, rxMethod from @ngrx/signals/rxjs-interop, and Subject and tap from rxjs
+// Partial: runs in a spec (`it('Q28.24 …')`); imports signal from @angular/core, TestBed from @angular/core/testing, signalStore and withMethods from @ngrx/signals, rxMethod from @ngrx/signals/rxjs-interop, and Subject and tap from rxjs
 const got: number[] = [];
 const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 const RunStore = signalStore(
@@ -2065,7 +2065,7 @@ rxMethod<number>(tap(() => undefined)); // the test body is not an injection con
 ### Q28.25 · Output · `withEntities` after two adds and a toggle: what do `ids`, `entityMap` and `entities` hold, and why does `addEntity` with a literal `done: false` fail to compile?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.25 …')`); imports TestBed from @angular/core/testing, patchState, signalStore and withMethods from @ngrx/signals, and addEntity, updateEntity and withEntities from @ngrx/signals/entities
+// Partial: runs in a spec (`it('Q28.25 …')`); imports TestBed from @angular/core/testing, patchState, signalStore and withMethods from @ngrx/signals, and addEntity, updateEntity and withEntities from @ngrx/signals/entities
 interface Todo {
   id: number;
   title: string;
@@ -2101,7 +2101,7 @@ console.log([store.ids(), JSON.stringify(store.entityMap()), store.entities()]);
 
 **Short answer (30 seconds).** `[1, 2]`, `{"1":{"id":1,"title":"x","done":false},"2":{"id":2,"title":"y","done":true}}`, and the two objects in id order, because `entities` is computed from `ids` and `entityMap`. The literal fails because `addEntity` infers its entity type from the argument.
 
-**Full explanation.** Asserted by `Q28.25 two adds and a toggle leave ids, entityMap and entities in step`. `ids` fixes the order, `entityMap` finds by id, `entities` is the computed list following `ids`. The `addLiteral` line failed with `TS2345` ("Type 'boolean' is not assignable to type 'false'"). By reasoning, the literal narrows the generic to `{ id: number; title: string; done: false }`, which no longer matches the store's `done: boolean`. A typed variable, as in `add`, or `addEntity<LabM28Todo>(…)` compiles ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
+**Full explanation.** Asserted by `Q28.25 two adds and a toggle leave ids, entityMap and entities in step`. `ids` fixes the order, `entityMap` finds by id, `entities` is the computed list following `ids`. The `addLiteral` line failed with `TS2345` ("Type 'boolean' is not assignable to type 'false'"). By reasoning, the literal narrows the generic to `{ id: number; title: string; done: false }`, which no longer matches the store's `done: boolean`. A typed variable, as in `add`, or `addEntity<Todo>(…)` compiles ([§9](#9-signalstore-in-depth-rxmethod-withentities-custom-features-and-the-events-plugin)).
 
 **Follow-ups an interviewer will ask.**
 - *Why keep both `ids` and `entityMap`?* Order and lookup are separate jobs; [Q28.29](#q28-29) covers the cost.
@@ -2218,7 +2218,7 @@ const AuthorsStore = signalStore({ providedIn: 'root' }, withRequestStatus(), wi
 ### Q28.30 · Output · Undo and redo with past, present and future stacks: what do the stacks hold after edit, edit, undo, edit?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.30 …')`); no imports
+// Partial: runs in a spec (`it('Q28.30 …')`); no imports
 interface History {
   readonly past: readonly number[];
   readonly present: number;
@@ -2322,7 +2322,7 @@ const branched = edit(undone, 3);
 ### Q28.34 · Output · `patchState` with an unchanged value and with an unknown key: which computeds re-run, and what is logged?
 
 ```ts
-// Complete: runs in a spec (`it('Q28.34 …')`); imports computed from @angular/core, TestBed from @angular/core/testing, and getState, patchState, signalState and watchState from @ngrx/signals
+// Partial: runs in a spec (`it('Q28.34 …')`); imports computed from @angular/core, TestBed from @angular/core/testing, and getState, patchState, signalState and watchState from @ngrx/signals
 const runs: string[] = [];
 const seen: string[] = [];
 const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -2790,5 +2790,5 @@ No, it is pure helpers over `ids` and an entity map; a `sortComparer` decides th
 
 - **Builds on:** [17 §2](17-signals.md#2-writable-signals) (writable signals, behind the service store), [17 §6](17-signals.md#6-resources-async-data-as-signals) (resources, for server reads), [19 §2](19-component-communication-and-projection.md#2-sharing-state-beyond-the-tree-services-with-signals-and-di-scoped-state) (the shared service), [22 §4](22-rxjs-foundations.md#4-subjects-subject-behaviorsubject-replaysubject-and-asyncsubject) (`BehaviorSubject`), [23 §2](23-rxjs-in-depth.md#2-choosing-a-flattening-operator-races-lost-writes-cancellation-and-recursion) (flattening in effects) and [27 §10](27-http-client.md#10-httpresource-signal-driven-requests-and-when-to-prefer-it-over-httpclient) (`httpResource` for server data).
 - **Read next:** [29. Testing Angular](29-testing-angular.md) (testing stores, where `MockStore` belongs), [38. Architecture and production structure](38-architecture-and-production-structure.md#3-facades-and-the-data-access-layer) (where stores live) and [45. Front-end system design method](45-frontend-system-design-method.md#5-state-and-api-design-where-each-piece-of-state-lives-and-the-api-the-screens-need) (state in a design answer).
-- **Uses these ideas later:** [29](29-testing-angular.md) (`MockStore` and store specs), [31](31-performance.md) (speed at scale), [38](38-architecture-and-production-structure.md#3-facades-and-the-data-access-layer) (where stores live) and [45](45-frontend-system-design-method.md) (state in a design), all file-level and not yet written.
+- **Uses these ideas later:** [29](29-testing-angular.md) (`MockStore` and store specs), [31](31-performance.md) (speed at scale), [38](38-architecture-and-production-structure.md#3-facades-and-the-data-access-layer) (where stores live) and [45](45-frontend-system-design-method.md) (state in a design).
 - **Comparisons:** [Q17.40](17-signals.md#q17-40) sets when to leave a `BehaviorSubject` store as it is beside the migration in [section 3](#3-the-service-with-behaviorsubject-store-the-legacy-but-common-pattern-and-its-migration).

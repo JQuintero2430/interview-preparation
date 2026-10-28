@@ -43,15 +43,15 @@ sequenceDiagram
   participant C as Child
   participant L as Leaf
   Note over P,L: created - three constructors, no hook yet
-  P->>C: pre-order hooks - onChanges, onInit, doCheck
-  C->>L: pre-order hooks - onChanges, onInit, doCheck
-  L-->>C: after hooks - content, then view
-  C-->>P: after hooks - content, then view
+  P->>C: pre-order hooks, then content hooks
+  C->>L: pre-order hooks, then content hooks
+  L-->>C: view hooks - afterViewInit, afterViewChecked
+  C-->>P: view hooks - afterViewInit, afterViewChecked
   Note over P,L: rendered - render callbacks, once everything is in the DOM
   Note over P,L: destroyed - ngOnDestroy, deepest first
 ```
 
-What to notice: the pre-order hooks go down the tree and the "after" hooks come back up, so a child's `ngAfterViewInit` precedes its parent's. **Pre-order** means a node before its children, **post-order** a node after them.
+What to notice: the pre-order hooks go down the tree, each component's content hooks run after its projected content's hooks and before its own view's children's hooks, and the view hooks come back up, so a child's `ngAfterViewInit` precedes its parent's. **Pre-order** means a node before its children, **post-order** a node after them.
 
 ### How it actually works
 
@@ -837,7 +837,7 @@ Drilled in [Q20.22](#q20-22), [Q20.23](#q20-23), [Q20.24](#q20-24) and [Q20.25](
 
 ## Summary
 
-A component's hooks run in a fixed order: the constructors first, then `ngOnChanges`, `ngOnInit` and `ngDoCheck` going down the tree, the "after" hooks coming back up so that a child's `ngAfterViewInit` precedes its parent's, and `ngOnDestroy` deepest first. `ngOnChanges` runs before `ngOnInit`, whatever the docs' table lists, and a component's hooks belong to its declaring view, so `ngDoCheck` fires when only the parent changed ([1](#1-the-lifecycle-map-phases-and-the-order-of-the-hooks)). Construction (the constructor and field initializers) is the only phase with an injection context and sees only input defaults: a required input read there throws `NG0950` and `inject()` in `ngOnInit` throws `NG0203` ([2](#2-constructor-ngoninit-and-inputs-what-exists-when)). With signals, `computed` and `effect` take over deriving and reacting, yet `ngOnChanges` still runs for signal inputs, hooks read signals untracked and an in-place mutation reaches no hook ([3](#3-which-hooks-still-matter-with-signals)).
+A component's hooks run in a fixed order: the constructors first, then `ngOnChanges`, `ngOnInit` and `ngDoCheck` going down the tree, each component's content hooks after its projected content's hooks and before its own view's children's hooks, the view hooks coming back up so that a child's `ngAfterViewInit` precedes its parent's, and `ngOnDestroy` deepest first. `ngOnChanges` runs before `ngOnInit`, whatever the docs' table lists, and a component's hooks belong to its declaring view, so `ngDoCheck` fires when only the parent changed ([1](#1-the-lifecycle-map-phases-and-the-order-of-the-hooks)). Construction (the constructor and field initializers) is the only phase with an injection context and sees only input defaults: a required input read there throws `NG0950` and `inject()` in `ngOnInit` throws `NG0203` ([2](#2-constructor-ngoninit-and-inputs-what-exists-when)). With signals, `computed` and `effect` take over deriving and reacting, yet `ngOnChanges` still runs for signal inputs, hooks read signals untracked and an in-place mutation reaches no hook ([3](#3-which-hooks-still-matter-with-signals)).
 
 `afterNextRender` and `afterEveryRender` run after the application render, phase by phase across components (`earlyRead`, `write`, `mixedReadWrite`, `read`), each phase receiving the previous one's value; they are registered in the constructor or with an injector, DOM work belongs in them and not in `ngAfterViewInit`, and an unconditional signal write in one ends in `NG0103` ([4](#4-render-hooks-afternextrender-aftereveryrender-and-their-phases)). Teardown runs `ngOnDestroy`, then the `DestroyRef` callbacks and effect cleanups in a fixed order; `takeUntilDestroyed` ends streams only and needs an injection context or an explicit ref, timers and listeners need their own cleanup, and `onDestroy` on a destroyed component's ref throws `NG0911` ([5](#5-teardown-ngondestroy-destroyref-and-takeuntildestroyed)).
 
@@ -855,7 +855,7 @@ Every answer links its section. An *Output* answer is asserted exactly by its `Q
 
 **Short answer (30 seconds).** The constructor runs first. Then, for each component, `ngOnChanges` (only when a bound input changed), `ngOnInit` (once), `ngDoCheck`, `ngAfterContentInit` (once), `ngAfterContentChecked`, `ngAfterViewInit` (once) and `ngAfterViewChecked`. `ngOnDestroy` runs at removal, and the render callbacks run after the whole render.
 
-**Full explanation.** The eight hooks fall into three groups. `ngOnChanges`, `ngOnInit` and `ngDoCheck` are **pre-order**: a parent before its children. The content and view hooks are **post-order**: a child's `ngAfterViewInit` precedes its parent's, and `ngOnDestroy` also goes deepest first. The `Init` hooks run once, the `Checked` ones on every pass that checks the component's declaring view, so a parent's signal change can run a child's `ngDoCheck` and not the parent's own ([section 1](#1-the-lifecycle-map-phases-and-the-order-of-the-hooks)).
+**Full explanation.** The eight hooks fall into three groups. `ngOnChanges`, `ngOnInit` and `ngDoCheck` are **pre-order**: a parent before its children. The content hooks run after a component's projected content but before its own view's children; the view hooks are **post-order**: a child's `ngAfterViewInit` precedes its parent's, and `ngOnDestroy` also goes deepest first. The `Init` hooks run once, the `Checked` ones on every pass that checks the component's declaring view, so a parent's signal change can run a child's `ngDoCheck` and not the parent's own ([section 1](#1-the-lifecycle-map-phases-and-the-order-of-the-hooks)).
 
 `ngOnChanges` comes before `ngOnInit`. The docs' summary table lists them the other way round; the docs' text and the run agree with each other (`Section 1: ngOnChanges runs before ngOnInit`). The full order for a tree is [Q20.02](#q20-02), the reason for the two directions [Q20.22](#q20-22), and [Exercise 20.1](#ex20-1) traces it.
 
@@ -863,7 +863,7 @@ Every answer links its section. An *Output* answer is asserted exactly by its `Q
 - *Which hooks matter once state lives in signals?* `ngOnInit` and `ngOnDestroy` stay; the rest have signal replacements ([Q20.06](#q20-06)).
 - *Where do the render callbacks sit?* After the view hooks of every component, in a separate queue ([Q20.10](#q20-10)).
 
-**Trap to avoid.** Expecting a parent's `ngAfterViewInit` before its child's: the "after" hooks climb the tree.
+**Trap to avoid.** Expecting a parent's `ngAfterViewInit` before its child's: the view hooks climb the tree.
 
 </details>
 
@@ -897,7 +897,7 @@ class Q02Child extends Recorded {
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** All four constructors run first, then the pre-order hooks go down the tree, the "after" hooks come back up, and the render callbacks come last:
+**Short answer (30 seconds).** All four constructors run first, then the pre-order and content hooks go down the tree, the view hooks come back up, and the render callbacks come last:
 
 ```text
 parent.ctor
@@ -934,7 +934,7 @@ child.afterNextRender
 child.afterEveryRender
 ```
 
-**Full explanation.** In this tree all four components are created before any hook runs, so no constructor is interleaved with a hook. `Parent` has no bound input and never gets `ngOnChanges`; `Child` and `Leaf` do, because `[v]` is bound. `Sib` is a node of `Parent`'s template after the `Child` tag, so its pre-order hooks follow `Child`'s. On the way back up, content hooks come before view hooks, and `Leaf`, `Sib`, `Child`, `Parent` is deepest first. The render callbacks wait for every view hook ([section 4](#4-render-hooks-afternextrender-aftereveryrender-and-their-phases)). `Q20.02` asserts every line, and `Section 1: constructors run before any hook and the hooks run in the documented groups` asserts the same tree. The mechanism is [Q20.22](#q20-22).
+**Full explanation.** In this tree all four components are created before any hook runs, so no constructor is interleaved with a hook. `Parent` has no bound input and never gets `ngOnChanges`; `Child` and `Leaf` do, because `[v]` is bound. `Sib` is a node of `Parent`'s template after the `Child` tag, so its pre-order hooks follow `Child`'s. Each component's content hooks follow its projected content's hooks; on the way back up the view hooks go `Leaf`, `Sib`, `Child`, `Parent`, deepest first. The render callbacks wait for every view hook ([section 4](#4-render-hooks-afternextrender-aftereveryrender-and-their-phases)). `Q20.02` asserts every line, and `Section 1: constructors run before any hook and the hooks run in the documented groups` asserts the same tree. The mechanism is [Q20.22](#q20-22).
 
 **Follow-ups an interviewer will ask.**
 - *Which hooks run when only the parent's signal changes?* [Q20.23](#q20-23).
@@ -1475,7 +1475,7 @@ ngOnInit(): void {
 ```
 
 **Follow-ups an interviewer will ask.**
-- *Does `takeUntilDestroyed` stop the timer too?* No: it ends streams ([Q20.15](#q20-15)). The fixed ticker clears its interval through an effect cleanup ([Q17.14](17-signals.md#q17-14)) and left no pending timer (`E20.4`: destroying the component stops the interval and removes the window listener).
+- *Does `takeUntilDestroyed` stop the timer too?* No: it ends streams ([Q20.15](#q20-15)). The fixed ticker clears its interval through an effect cleanup ([Q17.17](17-signals.md#q17-17)) and left no pending timer (`E20.4`: destroying the component stops the interval and removes the window listener).
 - *And the subscription?* `ticks.pipe(takeUntilDestroyed()).subscribe(…)` in a constructor, as in `Q20.05`.
 
 **Trap to avoid.** An inline arrow in `removeEventListener`: it is a new function, so nothing is removed. Keep it in a `const`.
@@ -1850,7 +1850,7 @@ export class TracerHost {
 
 **Acceptance criteria.**
 - [ ] on the first render the constructors come first and the hooks follow the order of the documented groups
-- [ ] the "after" hooks run deepest first (a leaf before its parent)
+- [ ] the view hooks run deepest first (a leaf before its parent)
 - [ ] a projected node's pre-order hooks run after its host's and before its host's own child's
 - [ ] a change read only by a parent's template runs the child's check hooks and not the parent's own
 - [ ] removing the tree runs ngOnDestroy deepest first
@@ -2194,7 +2194,7 @@ The spec fakes only `setInterval` and `clearInterval`, so `vi.getTimerCount()` c
 
 <details><summary>Whose `ngAfterViewInit` runs first, a child's or its parent's?</summary>
 
-The child's: the pre-order hooks go down the tree and the "after" hooks come back up.
+The child's: the pre-order and content hooks go down the tree and the view hooks come back up.
 
 </details>
 

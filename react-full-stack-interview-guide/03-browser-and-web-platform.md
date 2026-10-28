@@ -108,9 +108,9 @@ const off = delegate(list, 'click', 'li[data-id]', (event, li) => {
 - **`preventDefault()`** cancels the browser's default action (following a link, submitting a form, toggling a checkbox), **not** propagation. The two are independent. It works only if the event is `cancelable` and the listener is not `passive`.
 - **Passive listeners.** `{ passive: true }` promises never to call `preventDefault`, so scrolling need not wait for JavaScript. Browsers treat `touchstart`, `touchmove` and `wheel` listeners on `window`, `document` and `body` as passive by default: touch listeners since Chrome 56 ([Chrome blog](https://developer.chrome.com/blog/scrolling-intervention)), `wheel`/`mousewheel` since Chrome 73 ([Chrome blog](https://developer.chrome.com/blog/scrolling-intervention-2)). Calling `preventDefault()` in a passive listener is ignored with a console warning.
 - **Which events bubble.** Most do. `focus`, `blur`, `mouseenter`, `mouseleave`, `load`, `error` (on elements) do not; use `focusin`/`focusout` and `mouseover`/`mouseout` to delegate them.
-- **Order on one node.** Listeners run in registration order. Per the current DOM Standard, capture listeners on the target itself run before its non-capture listeners: dispatch walks the whole path once with phase "capturing" and once with "bubbling", and the target is in both walks ([DOM Standard: dispatching events](https://dom.spec.whatwg.org/#concept-event-dispatch)). Older engines ran target listeners in registration order regardless of `capture`. > **Unverified:** the Chrome version that adopted the spec order (often quoted as 89); the [chromestatus entry](https://chromestatus.com/feature/5892189387227136) read on 2026-10-04 still says "No active development", so do not rely on capture-before-bubble ordering at the target across browsers.
+- **Order on one node.** Listeners run in registration order. Per the current DOM Standard, capture listeners on the target itself run before its non-capture listeners: dispatch walks the whole path once with phase "capturing" and once with "bubbling", and the target is in both walks ([DOM Standard: dispatching events](https://dom.spec.whatwg.org/#concept-event-dispatch)). Older engines ran target listeners in registration order regardless of `capture`. **Unverified:** the Chrome version that adopted the spec order (often quoted as 89); the [chromestatus entry](https://chromestatus.com/feature/5892189387227136) read on 2026-10-04 still says "No active development", so do not rely on capture-before-bubble ordering at the target across browsers.
 - **`once`, `signal`.** `{ once: true }` removes the listener after one call. `{ signal }` removes it when the `AbortSignal` aborts, so one `AbortController` can unregister many listeners (the same pattern as 3.6).
-- **Microtasks between listeners.** When the user clicks, the browser calls each listener from its own task and the microtask queue is drained **after each listener** returns (the JS stack is empty). When your code calls `el.click()` or `dispatchEvent`, the stack is not empty, so microtasks wait until the whole dispatch finishes. This is why tests (jsdom) using `el.click()` can log a different order than a real click (Exercise 4, [01](01-javascript.md#116-the-event-loop-call-stack-microtasks-vs-macrotasks-rendering-steps)).
+- **Microtasks between listeners.** When the user clicks, the browser invokes each listener with an empty JS stack, so a microtask checkpoint runs **after each listener** returns (all listeners still belong to one task). When your code calls `el.click()` or `dispatchEvent`, the stack is not empty, so microtasks wait until the whole dispatch finishes. This is why tests (jsdom) using `el.click()` can log a different order than a real click (Exercise 4, [01](01-javascript.md#116-the-event-loop-call-stack-microtasks-vs-macrotasks-rendering-steps)).
 - **Trusted vs synthetic events.** `event.isTrusted` is `true` only for browser-generated events. `dispatchEvent(new Event(...))` is untrusted and cannot trigger some default actions (a synthetic `click` on a link does navigate, but synthetic key events do not insert text).
 
 ### Trade-offs
@@ -131,7 +131,7 @@ React installs **one listener per event type on the root container** (the elemen
 
 > **Java/Spring analogy.** Spring MVC's `DispatcherServlet` is the single front controller; mappings decide which `@Controller` method runs. React's root listener is the dispatcher, and your `onClick` props are the mappings.
 >
-> **Where the analogy breaks:** `DispatcherServlet` is the *only* servlet for the app. React's dispatcher sits in the middle of the DOM path: native listeners **below** the root (on the element) run before React, listeners **above** it (on `document`, `window`) run after.
+> **Where the analogy breaks:** `DispatcherServlet` is the *only* servlet for the app. React's dispatcher sits in the middle of the DOM path: native listeners **below** the root (on the element) run before React's bubble handlers (React's capture handlers already ran on the way down), listeners **above** it (on `document`, `window`) run after.
 
 ### Minimal code
 Tested in [`ReactDelegation.tsx`](examples/web/src/m03-browser/ReactDelegation.tsx) and [`ReactDelegation.test.tsx`](examples/web/src/m03-browser/ReactDelegation.test.tsx) (Exercise 1, part B):
@@ -151,13 +151,13 @@ Verified by reading `react-dom` 19.3.0's `react-dom-client.development.js` in th
 Consequences you can rely on:
 - **Order for one click** (tested in Exercise 4): document-capture → React capture handlers (`onClickCapture`, at the root, outer to inner) → native listeners on the target element → React bubble handlers (inner to outer) → document-bubble. A native listener on the button runs **before** React's `onClick`.
 - **React `e.stopPropagation()`** calls the native `stopPropagation` too. The native event stops at the root, so listeners on `document`/`window` never see it (React 17+).
-- **A native `stopPropagation()` below the root starves React.** If a ref-attached native listener on the button stops propagation, no React handler (not even on the same button) runs, because the event never reaches the root.
+- **A native `stopPropagation()` below the root starves React.** If a ref-attached native listener on the button stops propagation, no React bubble-phase handler (not even `onClick` on the same button) runs, because the event never bubbles back to the root. React capture handlers (`onClickCapture`) already ran on the way down.
 - **Portals.** Events from a portal bubble through the **React tree**, not the DOM tree, so a click in a modal rendered into `document.body` still reaches an `onClick` on the component that rendered the portal ([10.6](10-refs-and-dom.md#106-portals)).
-- **`onFocus`/`onBlur` bubble** in React (unlike native `focus`/`blur`): React uses `focusin`/`focusout` under the hood since 17. `onScroll` stopped bubbling in 17 (it matched the native behaviour).
+- **`onFocus`/`onBlur` bubble** in React (unlike native `focus`/`blur`): React uses `focusin`/`focusout` under the hood since 17. `onScroll` stopped bubbling in 17 (it matched the native behavior).
 - **`onChange` on inputs** fires on every keystroke (React maps it to the native `input` event); the native `change` event fires on blur.
-- **Event priority.** Discrete events (click, keydown) are flushed synchronously at the end of the event; continuous ones (mousemove, scroll) may be batched or deferred ([21](21-concurrent-ssr-server-components.md)).
+- **Event priority.** Updates from discrete events (click, keydown) get the sync lane and are rendered in a microtask right after the handler, before the browser can paint ([8.3](08-state.md#83-batching)); continuous ones (mousemove, scroll) may be batched or deferred ([21](21-concurrent-ssr-server-components.md)).
 
-> **Version notes.** **React ≤16:** handlers were delegated on `document`; `e.stopPropagation()` could not stop native listeners on `document`, and the workaround was `e.nativeEvent.stopImmediatePropagation()`. Synthetic events were **pooled**: the event object was reused and its fields nulled after the handler, so `setTimeout(() => console.log(e.target))` printed `null` unless you called `e.persist()`. **React 17 (Oct 2020):** delegation moved to the root container, so several React versions (or React plus a micro-frontend) can coexist; pooling was removed; `persist()` became a no-op; `onScroll` stopped bubbling; `onFocus`/`onBlur` use `focusin`/`focusout`. **React 18/19:** unchanged model. Source: [React 17 release post](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html) and the `react-dom` 19.3.0 source read in this repo. See [VERSIONS.md](VERSIONS.md).
+> **Version notes.** **React ≤16:** handlers were delegated on `document`; `e.stopPropagation()` could not stop native listeners on `document`, and the workaround was `e.nativeEvent.stopImmediatePropagation()`. Synthetic events were **pooled**: the event object was reused and its fields nulled after the handler, so `setTimeout(() => console.log(e.target))` printed `null` unless you called `e.persist()`. **React 17 (Oct 2020):** delegation moved to the root container, so several React versions (or React plus a micro-frontend) can coexist; pooling was removed; `persist()` became a no-op; `onScroll` stopped bubbling; `onFocus`/`onBlur` use `focusin`/`focusout`; capture handlers (`onClickCapture`) use real capture-phase listeners. **React 18/19:** unchanged model. Source: [React 17 release post](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html) and the `react-dom` 19.3.0 source read in this repo. See [VERSIONS.md](VERSIONS.md).
 
 > ⚠️ **Correction.** "React attaches handlers to the DOM nodes, so `stopPropagation` in React behaves like the DOM's." Only partly: in React 16 it did not stop `document` listeners; in 17+ it does, but a native listener below the root can still pre-empt React entirely.
 
@@ -331,8 +331,8 @@ try {
 
 ### How it works internally
 - **`Request`/`Response`/`Headers`.** Plain objects of the Fetch Standard. `new Request(url, init)` then `fetch(request)`; `res.clone()` tees the body so it can be read twice. A body can be consumed **once** (`bodyUsed`); a second `res.json()` throws `TypeError`.
-- **Key options.** `method`, `headers`, `body` (string, `FormData`, `Blob`, `URLSearchParams`, stream), `credentials` (`'same-origin'` is the default; `'include'` sends cookies cross-origin, 3.7), `mode` (`'cors'` default; `'no-cors'` gives an **opaque** response you cannot read), `cache` (HTTP cache mode: `'no-store'`, `'reload'`, `'force-cache'`, …), `redirect`, `signal`, `keepalive` (lets a request outlive the page, for analytics on unload), `priority`/`fetchpriority`.
-- **Content-Type.** Passing a `FormData` body: do **not** set `Content-Type`, the browser adds the multipart boundary. Passing a JSON string: set `Content-Type: application/json` yourself (and note that triggers a CORS preflight, 3.7).
+- **Key options.** `method`, `headers`, `body` (string, `FormData`, `Blob`, `URLSearchParams`, stream), `credentials` (`'same-origin'` is the default; `'include'` sends cookies cross-origin, 3.7), `mode` (`'cors'` default; `'no-cors'` gives an **opaque** response you cannot read), `cache` (HTTP cache mode: `'no-store'`, `'reload'`, `'force-cache'`, …), `redirect`, `signal`, `keepalive` (lets a request outlive the page, for analytics on unload), `priority` (the `fetch` counterpart of the HTML `fetchpriority` attribute).
+- **Content-Type.** Passing a `FormData` body: do **not** set `Content-Type`, the browser adds the multipart boundary. Passing a JSON string: set `Content-Type: application/json` yourself (and note that, cross-origin, it triggers a CORS preflight, 3.7).
 - **Streaming responses.** `res.body` is a `ReadableStream<Uint8Array>`. Read chunks with `getReader()` or pipe through `TextDecoderStream`; this is how progressive rendering, NDJSON and server-sent token streams work:
 
 ```ts
@@ -406,7 +406,7 @@ sequenceDiagram
 - **Cookies still need `SameSite`.** A cross-**site** request with credentials needs the cookie to be `SameSite=None; Secure` (3.5). A cross-origin but same-site call (`app.` → `api.example.com`) works with `Lax`.
 - **`mode: 'no-cors'`** yields an *opaque* response (status 0, no body readable). It exists for fire-and-forget (analytics) and for `<img>`/`<script>` loads, not as a "fix" for a CORS error.
 - **Not preflighted: `<img>`, `<script src>`, `<link>`, forms.** These embed or navigate and were never subject to read restrictions. (JSONP exploited this; never use it.)
-- **Errors** appear in the console, but the JavaScript sees only `TypeError: Failed to fetch`. A **redirect** on a preflighted request fails; configure the final URL.
+- **Errors** appear in the console, but the JavaScript sees only `TypeError: Failed to fetch`. A **redirect** in answer to the preflight (`OPTIONS`) fails, and some browsers also refuse to follow a redirect on the actual preflighted request; point the client at the final URL ([MDN CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS)).
 - **A dev proxy** (Vite `server.proxy`) makes API calls same-origin, avoiding CORS locally; production still needs the real configuration or the same proxying at a gateway ([24.1](24-react-with-spring-boot.md)).
 
 ### Trade-offs
@@ -521,7 +521,7 @@ Cache-Control: public, max-age=31536000, immutable
 - **`immutable`** (RFC 8246): the resource will not change during its freshness lifetime, so the browser skips revalidation even on reload (which otherwise revalidates everything).
 - **`stale-while-revalidate=N`** (RFC 5861): serve stale immediately and refresh in the background for N more seconds. `stale-if-error` serves stale when the origin fails.
 - **`Vary`.** Tells caches which request headers select a variant (`Vary: Accept-Encoding`, `Vary: Origin` for CORS reflection, 3.7). `Vary: *` effectively disables caching.
-- **Reload behavior.** Navigation reuses fresh entries. A normal **reload** revalidates the main resource; a **hard reload** bypasses the cache. DevTools "Disable cache" affects only the open panel.
+- **Reload behavior.** Navigation reuses fresh entries. A normal **reload** revalidates the main resource; a **hard reload** bypasses the cache. DevTools "Disable cache" applies only while DevTools is open.
 - **Back/forward cache (bfcache)** restores a whole page, including JS heap, instantly. `Cache-Control: no-store` and `unload` handlers used to disqualify pages; check current Chrome rules. It is separate from the HTTP cache.
 - **`fetch` `cache` option** maps to these modes (`'no-store'`, `'reload'`, `'no-cache'`, `'force-cache'`, `'only-if-cached'`).
 - **Bundlers.** Vite and webpack emit **content-hashed filenames** so each deploy gets new URLs for changed files while unchanged chunks stay cached. A deploy that deletes old hashed files breaks users still holding the old `index.html` (they request `app.OLD.js` and get 404; keep old assets for a while).
@@ -571,12 +571,12 @@ self.addEventListener('fetch', (e) => {
 
 ### How it works internally
 - **Lifecycle.** `register` → **installing** (`install` event: pre-cache) → **waiting** (a previous worker still controls open pages) → **activating** (`activate` event: delete old caches) → **activated**. `self.skipWaiting()` skips waiting; `clients.claim()` takes control of open pages immediately. A new worker takes effect only after all tabs using the old one close, unless you skip waiting, a frequent source of "my deploy did not show up".
-- **Updates.** On navigation (and about daily) the browser re-fetches `sw.js` and compares **bytes**; any difference starts an update. `sw.js` itself must not be cached for long (`Cache-Control: no-cache`).
+- **Updates.** On navigation (and about daily) the browser re-fetches `sw.js` and compares **bytes**; any difference starts an update. Since Chrome 68 the update check bypasses the browser's HTTP cache for `sw.js` itself (default `updateViaCache: 'imports'`, [Chrome blog](https://developer.chrome.com/blog/fresher-sw)), but CDNs and imported scripts can still serve stale bytes, so serve `sw.js` with `Cache-Control: no-cache`.
 - **Scope.** A worker controls pages **under its URL path** (`/sw.js` controls `/`; `/app/sw.js` only `/app/`) unless the server sends `Service-Worker-Allowed`.
 - **Strategies** (Workbox implements them): *cache-first* (static assets), *network-first* (HTML, fresh data), *stale-while-revalidate* (fast and eventually fresh), *network-only*, *cache-only*. Choose per request type.
 - **PWA basics.** An installable PWA needs HTTPS, a **Web App Manifest** (`name`, `icons`, `start_url`, `display`) and (on some platforms) a service worker with a `fetch` handler. Push notifications use the Push API plus Notifications; Background Sync is Chromium-only.
 - **Constraints.** No DOM, no `localStorage`/synchronous APIs; async everything; `respondWith` must be called synchronously during the event; `event.waitUntil` keeps it alive for async work.
-- **Tooling.** Use Workbox (or `vite-plugin-pwa`) rather than hand-rolling versioning and precaching manifests. `vite-plugin-pwa` builds its service worker with Workbox's `workbox-build` ([vite-plugin-pwa guide](https://vite-pwa-org.netlify.app/guide/)). > **Unverified:** whether it is still the default choice in 2026 versus alternatives; no official ranking exists, so check your framework's docs.
+- **Tooling.** Use Workbox (or `vite-plugin-pwa`) rather than hand-rolling versioning and precaching manifests. `vite-plugin-pwa` builds its service worker with Workbox's `workbox-build` ([vite-plugin-pwa guide](https://vite-pwa-org.netlify.app/guide/)). **Unverified:** whether it is still the default choice in 2026 versus alternatives; no official ranking exists, so check your framework's docs.
 - **Legacy.** `<html manifest="x.appcache">` (AppCache) is deprecated and was removed from major engines. Chrome 85 (August 2020) removed it by default and the origin trial ended on 5 October 2021; Firefox removed it from Beta/Nightly in September 2019 ([web.dev: AppCache removal](https://web.dev/articles/appcache-removal)). The only action in a legacy app is to migrate to a service worker.
 
 ### Trade-offs
@@ -753,7 +753,7 @@ Capture (window down to the target's parent), target, then bubble (back up). `ad
 **Q3. `stopPropagation` vs `stopImmediatePropagation` vs `preventDefault`?**
 <details><summary>Answer</summary>
 
-`stopPropagation` stops the event reaching other nodes on its path (other listeners on the same node still run). `stopImmediatePropagation` also stops the remaining listeners on the same node. `preventDefault` cancels the browser default action (navigation, form submit), not propagation, and does nothing in a passive listener. **A strong answer adds:** they are independent, and returning `false` from a native `onclick` property does both `preventDefault` and `stopPropagation`, but `return false` in React does nothing.
+`stopPropagation` stops the event reaching other nodes on its path (other listeners on the same node still run). `stopImmediatePropagation` also stops the remaining listeners on the same node. `preventDefault` cancels the browser default action (navigation, form submit), not propagation, and does nothing in a passive listener. **A strong answer adds:** they are independent; returning `false` from a native `onclick` property handler only cancels the default (it does **not** stop propagation, [HTML: event handler processing algorithm](https://html.spec.whatwg.org/multipage/webappapis.html#the-event-handler-processing-algorithm); jQuery handlers are the ones where `return false` does both), and `return false` in React does nothing.
 
 </details>
 
@@ -1150,7 +1150,7 @@ export function Stopper({
 **Walkthrough.**
 - `delegate` is the manual version of what React does at the root. `closest` makes clicks on nested children map to the intended row, so one listener serves rows that did not exist at registration.
 - The "outside the root" guard matters when selectors are generic: `closest('li')` from a node inside `#inner` would find an `li` that wraps the whole widget.
-- Part B, in React 17+: the React handler runs at the root. `e.stopPropagation()` there calls the native one, so the event never reaches `document`: listeners on `document` do not fire. In React 16 they did, because React was on `document` itself. A native `stopPropagation` on the button stops the event below the root, so React never sees it. After the handler, the synthetic event is still readable (`type`, `target`) but `currentTarget` is `null`; the pooling behavior of ≤16 is gone.
+- Part B, in React 17+: the React handler runs at the root. `e.stopPropagation()` there calls the native one, so the event never reaches `document`: listeners on `document` do not fire. In React 16 they did, because React was on `document` itself. A native `stopPropagation` on the button stops the event below the root, so React's bubble-phase `onClick` never sees it. After the handler, the synthetic event is still readable (`type`, `target`) but `currentTarget` is `null`; the pooling behavior of ≤16 is gone.
 
 **Interviewer follow-ups.**
 - How would you delegate `focus`/`blur`? (`focusin`/`focusout`, or capture-phase listener on the root.)
@@ -1466,7 +1466,7 @@ test('Part 2: microtasks do not run between listeners of a script-dispatched cli
 - Part 2: during `button.click()` the stack is not empty between listeners, so the microtask checkpoint is deferred until the whole dispatch returns: `l1, l2, after click(), microtask`. With a real user click the browser runs a microtask checkpoint after each listener, producing `l1, microtask, l2`; jsdom cannot show that.
 
 **Interviewer follow-ups.**
-- What changes in React 16? (React's handlers run at `document` in the bubble phase; `onClickCapture` at `document` capture, so native button listeners still precede them.)
+- What changes in React 16? (React's single `click` listener sat on `document` in the bubble phase and simulated both phases there, so `onClickCapture` and `onClick` both ran after the native button listener; React 17 moved capture handlers to real capture-phase listeners, [React 17 RC post](https://legacy.reactjs.org/blog/2020/08/10/react-v17-rc.html).)
 - Where would `stopPropagation` in `react:button capture` stop things?
 - How does a portal change step 4? (Bubble follows the React tree.)
 
@@ -1478,8 +1478,8 @@ test('Part 2: microtasks do not run between listeners of a script-dispatched cli
 
 1. **`fetch` resolves on 404/500.** Only network failure, CORS violation and abort reject. Always check `res.ok`.
 2. **A response body is single-use.** `res.json()` after `res.text()` throws; `res.clone()` first.
-3. **`return false` does not stop propagation in React.** Call `e.preventDefault()`/`e.stopPropagation()`.
-4. **A native `stopPropagation` below the React root starves React.** Native listeners on the target run before React's handlers, and can hide the event from React entirely.
+3. **`return false` does nothing in React** (and natively it only cancels the default in an `on…` property handler; it never stops propagation outside jQuery). Call `e.preventDefault()`/`e.stopPropagation()`.
+4. **A native `stopPropagation` below the React root starves React.** Native listeners on the target run before React's bubble handlers (`onClick`), and stopping propagation there hides the event from them (only `onClickCapture` handlers, which already ran, are unaffected).
 5. **Reading `e.currentTarget` after `await` gives `null`** (React 17+ resets it; React ≤16 nulled every field via pooling). Read what you need into a local first.
 6. **`no-cache` does not mean "don't cache".** It means "revalidate before reuse". `no-store` is the "don't store" one.
 7. **Long `max-age` on a non-hashed URL cannot be revoked.** The URL is the invalidation key.

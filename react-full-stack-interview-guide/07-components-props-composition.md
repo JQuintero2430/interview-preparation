@@ -239,7 +239,7 @@ function UserListPage() {
 ### How it works internally
 Nothing in React knows about this pattern. The reason it existed was that, before hooks (React 16.8), the only ways to reuse stateful logic were class components, HOCs and render props, so separating "logic" from "markup" required separate components. A custom hook is a function that calls hooks, and it carries the logic without adding a component to the tree.
 
-> **Unverified:** Dan Abramov's 2015 article "Presentational and Container Components" carries a later update note saying he no longer recommends splitting components this way because hooks cover it. Check the article (overreacted / Medium) for the exact wording and date before quoting it.
+Dan Abramov's 2015 article "Presentational and Container Components" now opens with an "Update from 2019": "I don’t suggest splitting your components like this anymore", because "Hooks let me do the same thing without an arbitrary division" ([Medium](https://medium.com/@dan_abramov/smart-and-dumb-components-7ca2f9a7c7d0)).
 
 ### Trade-offs
 - ✅ Still useful as a **guideline**: keep leaf UI components prop-driven so they are easy to test and show in a design system.
@@ -1267,7 +1267,7 @@ test('4) which components re-render when Counter’s state changes', async () =>
 12. **`cloneElement`-based compound components break when a part is wrapped.** Use context.
 13. **`this.props` in an async callback of a class component** is the latest props, not the ones from the render that started the work.
 14. **`this.setState` merges; `useState` setters replace.** `setUser({ name })` drops the other fields.
-15. **Passing `Child` vs `<Child />`.** A prop typed `ComponentType` receives the component and renders it later with its own props. A prop typed `ReactNode` receives an already created element. Mixing them up gives "Functions are not valid as a React child" or "Objects are not valid as a React child".
+15. **Passing `Child` vs `<Child />`.** A prop typed `ComponentType` receives the component and renders it later with its own props. A prop typed `ReactNode` receives an already created element. Mixing them up gives "Functions are not valid as a React child" (a component rendered as `{Child}`, a dev warning) or "Element type is invalid: expected a string … but got: object" (an element rendered as `<Prop />`, an error).
 16. **Hidden panels with `hidden` stay mounted.** Their effects keep running and their state persists. That is often what you want for tabs, but not for a heavy panel that polls.
 
 ---

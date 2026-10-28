@@ -35,7 +35,7 @@ export function FormField({ label, registration, type = 'text', autoComplete, hi
       />
       {hint && <p id={hintId}>{hint}</p>}
       {error && (
-        <p id={errorId} role="alert" aria-live="polite">
+        <p id={errorId} role="alert">
           {error}
         </p>
       )}

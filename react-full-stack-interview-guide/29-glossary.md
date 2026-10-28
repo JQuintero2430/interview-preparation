@@ -10,21 +10,21 @@
 
 ## A
 
-**`<Activity>`** [React] — Component (since React 19.2) with `visible`/`hidden` modes that hides a subtree while preserving its state and cleaning up its effects. → [21 §21.9](21-concurrent-ssr-server-components.md#219-activity)
+**`AbortController`** [Browser] — Object whose `signal` cancels a `fetch` or any listening operation; the standard cleanup for effect races. → [09 §9.4](09-effects.md#94-race-conditions-and-abortcontroller)
 
 **Accessibility tree** [Browser] — The browser's parallel tree of roles, names and states, derived from the DOM, that assistive technology reads. → [04 §4.2](04-html-css-accessibility.md#42-accessibility-the-accessibility-tree-aria-rules-names-roles-states)
 
-**Action (React)** [React] — Since React 19, a function passed to `<form action>` or run inside a transition, with pending, error and optimistic state handled by React. → [14 §14.6](14-forms-and-actions.md#146-actions-form-actionfn)
+**`act`** [React] — Test helper exported from `react` (RTL re-exports it and wraps its own helpers in it) that flushes React updates and effects so assertions see the settled UI. → [20 §20.5](20-testing.md#205-async-utilities-and-act)
 
 **Action (React Router)** [Framework: React Router] — A route function that handles non-GET submissions (mutations) and then triggers revalidation of loaders. → [19 §19.5](19-routing.md#195-loaders-actions-usefetcher)
 
-**`act`** [Library: React Testing Library] — Test helper that flushes React updates and effects so assertions see the settled UI. → [20 §20.5](20-testing.md#205-async-utilities-and-act)
+**Action (React)** [React] — Since React 19, a function passed to `<form action>` or run inside a transition, with pending, error and optimistic state handled by React. → [14 §14.6](14-forms-and-actions.md#146-actions-form-actionfn)
 
-**Atom** [Library: Jotai] — A small, independent unit of state that components subscribe to individually. → [18 §18.9](18-state-management.md#189-atoms-jotai)
-
-**Automatic batching** [React] — Since React 18, all state updates in one tick (events, promises, timeouts) are grouped into one render. → [08 §8.3](08-state.md#83-batching)
+**`<Activity>`** [React] — Component (since React 19.2) with `visible`/`hidden` modes that hides a subtree while preserving its state and cleaning up its effects. → [21 §21.9](21-concurrent-ssr-server-components.md#219-activity)
 
 **APG (ARIA Authoring Practices Guide)** [Browser] — W3C's reference for keyboard interaction and ARIA patterns of widgets such as tabs, dialogs and comboboxes. → [04 §4.3](04-html-css-accessibility.md#43-focus-management-and-keyboard-navigation-roving-tabindex)
+
+**App Router** [Framework: Next.js] — Next.js's file-system router (the `app/` directory) built on Server Components, layouts and streaming. → [21 §21.11](21-concurrent-ssr-server-components.md#2111-nextjs-app-router-as-the-reference-rendering-strategies)
 
 **ARIA** [Browser] — Accessible Rich Internet Applications: attributes that add roles, names and states to the accessibility tree; the first rule is to prefer native HTML. → [04 §4.2](04-html-css-accessibility.md#42-accessibility-the-accessibility-tree-aria-rules-names-roles-states)
 
@@ -38,11 +38,11 @@
 
 **`async`/`await`** [JS] — Syntax over Promises that lets asynchronous code read sequentially; errors surface through `try/catch`. → [01 §1.15](01-javascript.md#115-asyncawait-and-error-handling)
 
-**`AbortController`** [Browser] — Object whose `signal` cancels a `fetch` or any listening operation; the standard cleanup for effect races. → [09 §9.4](09-effects.md#94-race-conditions-and-abortcontroller)
+**Atom** [Library: Jotai] — A small, independent unit of state that components subscribe to individually. → [18 §18.9](18-state-management.md#189-atoms-jotai)
 
-**App Router** [Framework: Next.js] — Next.js's file-system router (the `app/` directory) built on Server Components, layouts and streaming. → [21 §21.11](21-concurrent-ssr-server-components.md#2111-nextjs-app-router-as-the-reference-rendering-strategies)
+**Autocomplete / typeahead** [React] — System-design and machine-coding favorite: debounce, cancel stale requests, keyboard navigation, combobox ARIA. → [25 §25.2](25-frontend-system-design.md#252-autocompletetypeahead)
 
-**Autocomplete / typeahead** [React] — System-design and machine-coding favourite: debounce, cancel stale requests, keyboard navigation, combobox ARIA. → [25 §25.2](25-frontend-system-design.md#252-autocompletetypeahead)
+**Automatic batching** [React] — Since React 18 (with `createRoot`), all state updates in one tick (events, promises, timeouts) are grouped into one render. → [08 §8.3](08-state.md#83-batching)
 
 ## B
 
@@ -72,15 +72,13 @@
 
 **`cacheLife` / `cacheTag`** [Framework: Next.js] — Next.js 16 helpers setting the lifetime and the invalidation label of a `'use cache'` entry. → [21 §21.12](21-concurrent-ssr-server-components.md#2112-nextjs-16-caching)
 
-**Callback ref** [React] — A function passed as `ref`; since React 19 it may return a cleanup function. → [10 §10.3](10-refs-and-dom.md#103-callback-refs-and-ref-cleanup-functions)
-
 **`call` / `apply`** [JS] — Function methods that invoke with an explicit `this`; `apply` takes an array of arguments. → [01 §1.6](01-javascript.md#16-this-and-binding-callapplybind-arrow-functions)
+
+**Callback ref** [React] — A function passed as `ref`; since React 19 it may return a cleanup function. → [10 §10.3](10-refs-and-dom.md#103-callback-refs-and-ref-cleanup-functions)
 
 **Capture phase** [Browser] — The event phase where an event travels from the window down to the target. → [03 §3.2](03-browser-and-web-platform.md#32-events-capture--target--bubble-stoppropagation-preventdefault-delegation)
 
 **Cascade** [Browser] — CSS algorithm choosing the winning declaration by origin, layer, specificity and order. → [04 §4.5](04-html-css-accessibility.md#45-cascade-specificity-layer-inheritance)
-
-**`@layer`** [Browser] — CSS cascade layers that order groups of rules independently of specificity. → [04 §4.5](04-html-css-accessibility.md#45-cascade-specificity-layer-inheritance)
 
 **CDN** [Browser] — Content Delivery Network: edge servers that cache static assets near users. → [22 §22.12](22-production-project-structure.md#2212-deployment-targets-staticcdn-node-server-served-from-spring)
 
@@ -94,9 +92,9 @@
 
 **Clickjacking** [Browser] — Attack that frames your page invisibly to trick clicks; blocked with `frame-ancestors` or `X-Frame-Options`. → [03 §3.8](03-browser-and-web-platform.md#38-web-security-xss-csrf-csp-clickjacking-samesite-trusted-types)
 
-**CLS (Cumulative Layout Shift)** [Browser] — Core Web Vital measuring unexpected layout movement. → [03 §3.11](03-browser-and-web-platform.md#311-core-web-vitals-and-how-they-are-measured)
-
 **Closure** [JS] — A function together with the variables of the scope where it was created; the cause of stale closures in hooks. → [01 §1.5](01-javascript.md#15-closures)
+
+**CLS (Cumulative Layout Shift)** [Browser] — Core Web Vital measuring unexpected layout movement. → [03 §3.11](03-browser-and-web-platform.md#311-core-web-vitals-and-how-they-are-measured)
 
 **Code splitting** [Tooling: bundler] — Breaking the bundle into chunks loaded on demand, via dynamic `import()` or `lazy`. → [15 §15.7](15-performance.md#157-code-splitting-with-lazy-and-suspense)
 
@@ -104,13 +102,13 @@
 
 **Colocation** [React] — Keeping state as close as possible to where it is used. → [08 §8.8](08-state.md#88-colocation-and-lifting-state-up)
 
-**Commit phase** [React] — The step where React applies the computed changes to the DOM and runs layout effects and effects; it cannot be interrupted. → [06 §6.10](06-jsx-and-rendering-model.md#610-render-phase-vs-commit-phase)
-
-**Compound components** [React] — Components that share implicit state to form one API, such as `<Tabs>`, `<Tabs.List>`, `<Tabs.Panel>`. → [07 §7.6](07-components-props-composition.md#76-compound-components)
+**Commit phase** [React] — The step where React applies the computed changes to the DOM, attaches refs and runs layout effects; it cannot be interrupted. Passive effects (`useEffect`) run afterwards, usually after paint. → [06 §6.10](06-jsx-and-rendering-model.md#610-render-phase-vs-commit-phase)
 
 **Composite (rendering step)** [Browser] — Final pipeline step where the GPU combines painted layers. → [03 §3.4](03-browser-and-web-platform.md#34-the-rendering-pipeline-parse--style--layout--paint--composite-reflow-and-layout-thrashing)
 
 **Composition** [React] — Building UI by combining components through `children` and props instead of inheritance. → [07 §7.3](07-components-props-composition.md#73-composition-vs-inheritance)
+
+**Compound components** [React] — Components that share implicit state to form one API, such as `<Tabs>`, `<Tabs.List>`, `<Tabs.Panel>`. → [07 §7.6](07-components-props-composition.md#76-compound-components)
 
 **Concurrent rendering** [React] — React 18+ model where a render can be paused, resumed or abandoned so urgent updates stay responsive. → [21 §21.1](21-concurrent-ssr-server-components.md#211-concurrent-rendering-interruptible-rendering)
 
@@ -130,23 +128,23 @@
 
 **Cookie** [Browser] — Small key/value sent automatically with matching requests; `HttpOnly`, `Secure` and `SameSite` flags matter for auth. → [03 §3.5](03-browser-and-web-platform.md#35-storage-cookies-localstorage-sessionstorage-indexeddb-cache-api)
 
-**Core Web Vitals** [Browser] — Google's user-centred metrics: LCP, INP and CLS. → [03 §3.11](03-browser-and-web-platform.md#311-core-web-vitals-and-how-they-are-measured)
+**Core Web Vitals** [Browser] — Google's user-centered metrics: LCP, INP and CLS. → [03 §3.11](03-browser-and-web-platform.md#311-core-web-vitals-and-how-they-are-measured)
 
 **CORS (Cross-Origin Resource Sharing)** [Browser] — Header protocol by which a server permits cross-origin browser requests; enforced by the browser, not the server. → [03 §3.7](03-browser-and-web-platform.md#37-cors-from-the-browsers-side-simple-vs-preflighted-credentials)
 
-**`CorsConfigurationSource`** [Backend: Spring] — Spring Security bean that supplies the CORS rules (origins, methods, credentials) to the filter chain. → [24 §24.2](24-react-with-spring-boot.md#242-cors-preflight-credentials-spring-corsconfigurationsource)
+**`CorsConfigurationSource`** [Backend: Spring] — Spring Web interface whose bean supplies the CORS rules (origins, methods, credentials) to Spring Security's filter chain (`http.cors(...)`). → [24 §24.2](24-react-with-spring-boot.md#242-cors-preflight-credentials-spring-corsconfigurationsource)
 
 **Countdown timer** [React] — Machine-coding exercise exposing interval cleanup and drift correction. → [26 §26.13](26-machine-coding.md#2613-countdown-timer)
+
+**CRA (Create React App)** [Tooling: CRA] — Deprecated (2025-02-14) scaffold; legacy codebases still run on it. → [05 §5.8](05-tooling-and-setup.md#58-creating-a-project-in-2026)
+
+**CRDT (Conflict-free Replicated Data Type)** [System design] — Data structure that merges concurrent edits without a central arbiter; used in collaborative editors. → [25 §25.11](25-frontend-system-design.md#2511-collaborative-editor)
 
 **`createAsyncThunk`** [Library: RTK] — Redux Toolkit helper generating pending, fulfilled and rejected actions around an async function. → [18 §18.5](18-state-management.md#185-thunks-and-createasyncthunk)
 
 **`createContext`** [React] — Creates a context object with a default value. → [11 §11.2](11-context.md#112-createcontext-context-value-vs-provider)
 
 **`createRoot`** [React DOM] — React 18+ entry point that enables concurrent features; replaced `ReactDOM.render`. → [06 §6.12](06-jsx-and-rendering-model.md#612-createroot-hydrateroot-root-options)
-
-**CRDT (Conflict-free Replicated Data Type)** [System design] — Data structure that merges concurrent edits without a central arbiter; used in collaborative editors. → [25 §25.11](25-frontend-system-design.md#2511-collaborative-editor)
-
-**CRA (Create React App)** [Tooling: CRA] — Deprecated (2025-02-14) scaffold; legacy codebases still run on it. → [05 §5.8](05-tooling-and-setup.md#58-creating-a-project-in-2026)
 
 **CSRF (Cross-Site Request Forgery)** [Browser] — Attack that makes a victim's browser send an authenticated request; mitigated by tokens and `SameSite`. → [24 §24.5](24-react-with-spring-boot.md#245-csrf-with-cookie-auth)
 
@@ -208,11 +206,11 @@
 
 **ErrorBoundary** [React] — A class component (or `react-error-boundary`) that catches render errors in its subtree and shows a fallback. → [16 §16.2](16-error-handling.md#162-error-boundaries)
 
+**esbuild** [Tooling: esbuild] — Very fast Go-based bundler/transpiler. → [05 §5.5](05-tooling-and-setup.md#55-transpilers-babel-swc-esbuild-what-jsx-transform-means)
+
 **ESLint** [Tooling: ESLint] — Linter; v10 uses flat config only. → [05 §5.6](05-tooling-and-setup.md#56-eslint-flat-config-eslint-plugin-react-hooks-prettier-and-the-line-between-them)
 
 **`eslint-plugin-react-hooks`** [Tooling: ESLint] — Plugin enforcing rules of hooks and exhaustive dependencies; v7 also carries React Compiler rules. → [12 §12.3](12-hooks-and-custom-hooks.md#123-the-lint-rule-and-react-compiler-rules)
-
-**esbuild** [Tooling: esbuild] — Very fast Go-based bundler/transpiler. → [05 §5.5](05-tooling-and-setup.md#55-transpilers-babel-swc-esbuild-what-jsx-transform-means)
 
 **ESM (ECMAScript Modules)** [JS] — Standard `import`/`export` module system with live bindings and static analysis. → [01 §1.12](01-javascript.md#112-modules-esm-vs-commonjs-live-bindings-dynamic-import)
 
@@ -268,25 +266,25 @@
 
 ## H
 
-**Headless UI** [Library: Radix] — Components with behaviour and accessibility but no styling. → [04 §4.12](04-html-css-accessibility.md#412-component-libraries-mui-radix-shadcnui-headless-vs-styled)
+**Headless UI** [Library: Radix] — Components with behavior and accessibility but no styling. → [04 §4.12](04-html-css-accessibility.md#412-component-libraries-mui-radix-shadcnui-headless-vs-styled)
+
+**History API** [Browser] — `pushState`/`popstate` interface that client-side routers build on. → [19 §19.1](19-routing.md#191-client-side-routing-and-the-history-api)
 
 **HMR (Hot Module Replacement)** [Tooling: bundler] — Swapping changed modules in the running page without a full reload. → [05 §5.3](05-tooling-and-setup.md#53-bundling-concepts-module-graph-tree-shaking-code-splitting-hmr)
 
 **HOC (Higher-Order Component)** [React] — A function that takes a component and returns an enhanced one; mostly replaced by hooks. → [07 §7.7](07-components-props-composition.md#77-render-props-and-hocs)
 
-**Hoisting** [JS] — Declarations are registered before code runs; `var` is initialised to `undefined`, `let`/`const` are not usable (TDZ). → [01 §1.4](01-javascript.md#14-hoisting-and-the-tdz)
+**Hoisting** [JS] — Declarations are registered before code runs; `var` is initialized to `undefined`, `let`/`const` are not usable (TDZ). → [01 §1.4](01-javascript.md#14-hoisting-and-the-tdz)
 
 **Hook** [React] — Function starting with `use` that taps into React features from function components (since React 16.8). → [12 §12.1](12-hooks-and-custom-hooks.md#121-the-rules-of-hooks)
 
 **Hooks API reference** [React] — Table of every built-in hook with purpose and version. → [12 §12.14](12-hooks-and-custom-hooks.md#1214-full-hooks-api-reference-table)
 
+**`hydrateRoot`** [React DOM] — Entry point that hydrates server HTML into a React root. → [06 §6.12](06-jsx-and-rendering-model.md#612-createroot-hydrateroot-root-options)
+
 **Hydration** [React DOM] — Attaching React to server-rendered HTML so it becomes interactive (`hydrateRoot`). → [21 §21.5](21-concurrent-ssr-server-components.md#215-ssr-hydration-hydration-errors)
 
 **Hydration error / mismatch** [React DOM] — Server and client markup differ; fixed by deterministic rendering. → [21 §21.5](21-concurrent-ssr-server-components.md#215-ssr-hydration-hydration-errors)
-
-**`hydrateRoot`** [React DOM] — Entry point that hydrates server HTML into a React root. → [06 §6.12](06-jsx-and-rendering-model.md#612-createroot-hydrateroot-root-options)
-
-**History API** [Browser] — `pushState`/`popstate` interface that client-side routers build on. → [19 §19.1](19-routing.md#191-client-side-routing-and-the-history-api)
 
 ## I
 
@@ -304,27 +302,27 @@
 
 **`infer`** [TS] — Keyword in conditional types that captures a type for reuse. → [02 §2.10](02-typescript.md#210-mapped-conditional-and-template-literal-types-infer)
 
+**Inference (type)** [TS] — The compiler working out types from values and context. → [02 §2.3](02-typescript.md#23-inference-and-contextual-typing)
+
 **Infinite feed / infinite scroll** [React] — List that loads more as you scroll, built with `IntersectionObserver` or infinite queries. → [26 §26.9](26-machine-coding.md#269-infinite-scroll)
 
 **Infinite query** [Library: TanStack Query] — `useInfiniteQuery`, which accumulates pages with a cursor. → [17 §17.7](17-data-fetching.md#177-pagination-and-infinite-queries)
 
-**INP (Interaction to Next Paint)** [Browser] — Core Web Vital for responsiveness; it replaced FID. → [03 §3.11](03-browser-and-web-platform.md#311-core-web-vitals-and-how-they-are-measured)
-
 **Inheritance (CSS)** [Browser] — Some properties pass from parent to child by default. → [04 §4.5](04-html-css-accessibility.md#45-cascade-specificity-layer-inheritance)
 
-**Inference (type)** [TS] — The compiler working out types from values and context. → [02 §2.3](02-typescript.md#23-inference-and-contextual-typing)
+**INP (Interaction to Next Paint)** [Browser] — Core Web Vital for responsiveness; it replaced FID. → [03 §3.11](03-browser-and-web-platform.md#311-core-web-vitals-and-how-they-are-measured)
 
 **`instanceof`** [JS] — Operator that checks the prototype chain; also a narrowing guard in TypeScript. → [02 §2.6](02-typescript.md#26-narrowing-typeof-in-instanceof-type-predicates-assertion-functions)
 
 **Interface** [TS] — Object-shape declaration that supports declaration merging; compare with `type`. → [02 §2.12](02-typescript.md#212-interface-vs-type)
 
-**IntersectionObserver** [Browser] — API reporting when elements enter or leave a viewport; used for lazy loading and infinite scroll. → [03 §3.12](03-browser-and-web-platform.md#312-observers-intersection-resize-mutation-performance)
-
 **Intersection type** [TS] — `A & B`: a value that satisfies both. → [02 §2.5](02-typescript.md#25-unions-and-intersections)
 
-**Iterator** [JS] — Object with a `next()` method following the iteration protocol. → [01 §1.13](01-javascript.md#113-iterators-and-generators)
+**IntersectionObserver** [Browser] — API reporting when elements enter or leave a viewport; used for lazy loading and infinite scroll. → [03 §3.12](03-browser-and-web-platform.md#312-observers-intersection-resize-mutation-performance)
 
 **ISR (Incremental Static Regeneration)** [Framework: Next.js] — Static pages regenerated in the background after a time or tag-based invalidation. → [21 §21.11](21-concurrent-ssr-server-components.md#2111-nextjs-app-router-as-the-reference-rendering-strategies)
+
+**Iterator** [JS] — Object with a `next()` method following the iteration protocol. → [01 §1.13](01-javascript.md#113-iterators-and-generators)
 
 ## J
 
@@ -350,6 +348,8 @@
 
 **Lanes** [React] — Fiber's priority bit-flags that decide which updates are rendered first. → [13 §13.5](13-reconciliation-and-fiber.md#135-fiber-units-of-work-double-buffering-lanes-and-priorities)
 
+**`@layer`** [Browser] — CSS cascade layers that order groups of rules independently of specificity. → [04 §4.5](04-html-css-accessibility.md#45-cascade-specificity-layer-inheritance)
+
 **Layout thrashing** [Browser] — Alternating DOM reads and writes that force repeated synchronous reflows. → [03 §3.4](03-browser-and-web-platform.md#34-the-rendering-pipeline-parse--style--layout--paint--composite-reflow-and-layout-thrashing)
 
 **`lazy`** [React] — Wraps a dynamic import into a component rendered through Suspense. → [15 §15.7](15-performance.md#157-code-splitting-with-lazy-and-suspense)
@@ -360,9 +360,9 @@
 
 **LCP (Largest Contentful Paint)** [Browser] — Core Web Vital for loading speed. → [03 §3.11](03-browser-and-web-platform.md#311-core-web-vitals-and-how-they-are-measured)
 
-**Lifting state up** [React] — Moving state to the nearest common parent of the components that need it. → [08 §8.8](08-state.md#88-colocation-and-lifting-state-up)
-
 **Lifecycle methods** [React] — Class hooks such as `componentDidMount`; each has a hook equivalent. → [13 §13.6](13-reconciliation-and-fiber.md#136-class-lifecycle-methods-and-their-hook-equivalents)
+
+**Lifting state up** [React] — Moving state to the nearest common parent of the components that need it. → [08 §8.8](08-state.md#88-colocation-and-lifting-state-up)
 
 **Live binding** [JS] — ESM imports reflect later changes of the exporting module's variable. → [01 §1.12](01-javascript.md#112-modules-esm-vs-commonjs-live-bindings-dynamic-import)
 
@@ -384,9 +384,9 @@
 
 **Memoization** [React] — Caching a result so unchanged inputs skip recomputation (`useMemo`, `React.memo`, selectors). → [15 §15.4](15-performance.md#154-usememo-and-usecallback-and-when-they-waste-effort)
 
-**Microtask** [JS] — Job (Promise callback, `queueMicrotask`) that runs after the current script, before the next macrotask. → [01 §1.16](01-javascript.md#116-the-event-loop-call-stack-microtasks-vs-macrotasks-rendering-steps)
-
 **Micro-frontends** [React] — Splitting a UI into independently deployed apps composed at runtime. → [22 §22.13](22-production-project-structure.md#2213-micro-frontends)
+
+**Microtask** [JS] — Job (Promise callback, `queueMicrotask`) that runs after the current script, before the next macrotask. → [01 §1.16](01-javascript.md#116-the-event-loop-call-stack-microtasks-vs-macrotasks-rendering-steps)
 
 **Middleware (React Router)** [Framework: React Router] — Functions that run around loaders and actions; always on in v8. → [19 §19.6](19-routing.md#196-middleware)
 
@@ -402,13 +402,13 @@
 
 **MSW (Mock Service Worker)** [Library: MSW] — Library that intercepts network requests in tests; v3 renamed `onUnhandledRequest` to `onUnhandledFrame`. → [20 §20.6](20-testing.md#206-msw-for-network-mocking)
 
-**MutationObserver** [Browser] — API that reports DOM changes. → [03 §3.12](03-browser-and-web-platform.md#312-observers-intersection-resize-mutation-performance)
-
-**Mutation (TanStack Query)** [Library: TanStack Query] — `useMutation` for writes; usually followed by invalidation. → [17 §17.5](17-data-fetching.md#175-invalidation-and-mutations)
-
 **MUI** [Library: MUI] — Material UI, a styled React component library. → [04 §4.12](04-html-css-accessibility.md#412-component-libraries-mui-radix-shadcnui-headless-vs-styled)
 
 **Multi-step form / wizard** [React] — Form split over steps, with shared state and per-step validation. → [14 §14.10](14-forms-and-actions.md#1410-multi-step-forms)
+
+**Mutation (TanStack Query)** [Library: TanStack Query] — `useMutation` for writes; usually followed by invalidation. → [17 §17.5](17-data-fetching.md#175-invalidation-and-mutations)
+
+**MutationObserver** [Browser] — API that reports DOM changes. → [03 §3.12](03-browser-and-web-platform.md#312-observers-intersection-resize-mutation-performance)
 
 ## N
 
@@ -424,11 +424,11 @@
 
 ## O
 
+**OAuth 2.0** [Protocol: OAuth 2.0] — Authorization framework for delegated access via tokens. → [24 §24.6](24-react-with-spring-boot.md#246-oauth2oidc-with-pkce-bff-pattern-spring-security-resource-server)
+
 **`Object.is`** [JS] — Equality used by React for state and dependency comparisons; differs from `===` for `NaN` and `-0`. → [09 §9.2](09-effects.md#92-dependencies-and-the-objectis-comparison)
 
 **OIDC (OpenID Connect)** [Protocol: OIDC] — Identity layer on top of OAuth 2.0 that adds an ID token and user info. → [24 §24.6](24-react-with-spring-boot.md#246-oauth2oidc-with-pkce-bff-pattern-spring-security-resource-server)
-
-**OAuth 2.0** [Protocol: OAuth 2.0] — Authorization framework for delegated access via tokens. → [24 §24.6](24-react-with-spring-boot.md#246-oauth2oidc-with-pkce-bff-pattern-spring-security-resource-server)
 
 **OpenAPI** [Protocol: OpenAPI] — Machine-readable API contract used to generate TypeScript types and clients. → [24 §24.9](24-react-with-spring-boot.md#249-openapi--typescript-generation)
 
@@ -442,33 +442,35 @@
 
 ## P
 
-**Paint** [Browser] — Pipeline step that draws pixels for elements. → [03 §3.4](03-browser-and-web-platform.md#34-the-rendering-pipeline-parse--style--layout--paint--composite-reflow-and-layout-thrashing)
-
 **Pagination contract** [Backend: Spring] — Agreement on page/size vs cursor parameters and response shape between API and UI. → [24 §24.10](24-react-with-spring-boot.md#2410-pagination-contracts)
+
+**Paint** [Browser] — Pipeline step that draws pixels for elements. → [03 §3.4](03-browser-and-web-platform.md#34-the-rendering-pipeline-parse--style--layout--paint--composite-reflow-and-layout-thrashing)
 
 **Params / search params** [Framework: React Router] — Path segments and query-string values read through hooks. → [19 §19.4](19-routing.md#194-params-and-search-params)
 
 **Peer dependency** [Tooling: npm] — A dependency the host project must provide. → [05 §5.2](05-tooling-and-setup.md#52-semver-and-ranges-peer-dependencies)
 
-**Playwright** [Library: Playwright] — Cross-browser E2E and component test tool. → [20 §20.11](20-testing.md#2011-e2e-with-playwright-and-cypress)
-
 **PKCE (Proof Key for Code Exchange)** [Protocol: PKCE] — OAuth extension that binds the authorization code to a client-generated secret, so public clients need no client secret. → [24 §24.6](24-react-with-spring-boot.md#246-oauth2oidc-with-pkce-bff-pattern-spring-security-resource-server)
+
+**Playwright** [Library: Playwright] — Cross-browser E2E and component test tool. → [20 §20.11](20-testing.md#2011-e2e-with-playwright-and-cypress)
 
 **Polymorphic component** [React] — Component that can render as different elements via an `as` prop. → [07 §7.9](07-components-props-composition.md#79-polymorphic-components-and-prop-spreading)
 
-**Portal** [React DOM] — `createPortal` renders children into a different DOM node while keeping React tree behaviour. → [10 §10.6](10-refs-and-dom.md#106-portals)
+**Portal** [React DOM] — `createPortal` renders children into a different DOM node while keeping React tree behavior. → [10 §10.6](10-refs-and-dom.md#106-portals)
 
 **Positioning** [Browser] — CSS `static`, `relative`, `absolute`, `fixed`, `sticky`. → [04 §4.8](04-html-css-accessibility.md#48-positioning-and-stacking-contexts)
 
 **PPR (Partial Prerendering)** [Framework: Next.js] — Static shell served instantly with dynamic holes streamed in; folded into Cache Components in Next.js 16. → [21 §21.12](21-concurrent-ssr-server-components.md#2112-nextjs-16-caching)
 
+**Prefetching** [Library: TanStack Query] — Loading data before it is needed. → [17 §17.8](17-data-fetching.md#178-prefetching-and-dependent-queries)
+
 **Preflight** [Browser] — The `OPTIONS` request a browser sends before a non-simple cross-origin request. → [03 §3.7](03-browser-and-web-platform.md#37-cors-from-the-browsers-side-simple-vs-preflighted-credentials)
 
 **Prettier** [Tooling: Prettier] — Opinionated formatter; ESLint checks correctness, Prettier formats. → [05 §5.6](05-tooling-and-setup.md#56-eslint-flat-config-eslint-plugin-react-hooks-prettier-and-the-line-between-them)
 
-**Prefetching** [Library: TanStack Query] — Loading data before it is needed. → [17 §17.8](17-data-fetching.md#178-prefetching-and-dependent-queries)
-
 **Problem Details / `ProblemDetail`** [Backend: Spring] — RFC 9457 error body (Spring's `ProblemDetail` class) that the UI maps to messages. → [24 §24.8](24-react-with-spring-boot.md#248-problemdetail-error-mapping)
+
+**Promise** [JS] — Object representing a future value, with `then`, `catch`, `finally`. → [01 §1.14](01-javascript.md#114-promises)
 
 **Prop drilling** [React] — Passing props through layers that do not use them. → [11 §11.1](11-context.md#111-prop-drilling-and-when-it-is-fine)
 
@@ -476,13 +478,11 @@
 
 **Props** [React] — Read-only inputs a parent passes to a component. → [07 §7.4](07-components-props-composition.md#74-props-vs-state)
 
-**Promise** [JS] — Object representing a future value, with `then`, `catch`, `finally`. → [01 §1.14](01-javascript.md#114-promises)
+**Protected route** [Framework: React Router] — Route that redirects unauthenticated users. → [19 §19.7](19-routing.md#197-protected-routes-and-auth-redirects)
 
 **Prototype** [JS] — The object a value delegates to when a property is missing; `class` is syntax over it. → [01 §1.7](01-javascript.md#17-prototypes-class-and-how-they-differ-from-java-classes)
 
 **`proxy.ts`** [Framework: Next.js] — Next.js 16 replacement for `middleware.ts`, running on the Node runtime. → [21 §21.13](21-concurrent-ssr-server-components.md#2113-route-handlers-and-proxyts)
-
-**Protected route** [Framework: React Router] — Route that redirects unauthenticated users. → [19 §19.7](19-routing.md#197-protected-routes-and-auth-redirects)
 
 **Pure component / `PureComponent`** [React] — Class that skips renders when props and state are shallow-equal; `React.memo` is the function equivalent. → [13 §13.7](13-reconciliation-and-fiber.md#137-getderivedstatefromprops-shouldcomponentupdate-purecomponent)
 
@@ -492,11 +492,11 @@
 
 ## Q
 
+**Query client** [Library: TanStack Query] — The cache and configuration object behind all queries; create one per test. → [20 §20.8](20-testing.md#208-testing-with-context-routers-and-query-clients)
+
 **Query key** [Library: TanStack Query] — Array that identifies a cached query; changing it fetches a different entry. → [17 §17.4](17-data-fetching.md#174-tanstack-query-query-keys-staletime-vs-gctime)
 
 **Query priority (RTL)** [Library: React Testing Library] — Prefer queries by role, label and text over test ids. → [20 §20.3](20-testing.md#203-react-testing-library-and-query-priority)
-
-**Query client** [Library: TanStack Query] — The cache and configuration object behind all queries; create one per test. → [20 §20.8](20-testing.md#208-testing-with-context-routers-and-query-clients)
 
 ## R
 
@@ -508,19 +508,21 @@
 
 **React Hook Form** [Library: React Hook Form] — Uncontrolled-first form library; pairs with Zod resolvers. → [14 §14.3](14-forms-and-actions.md#143-react-hook-form--zod)
 
-**`React.memo`** [React] — Skips re-rendering a component when props are shallow-equal. → [15 §15.3](15-performance.md#153-reactmemo)
-
 **React Router** [Library: React Router] — Routing library; v8 removed `react-router-dom` and has framework, data and declarative modes. → [19 §19.2](19-routing.md#192-react-router-8-framework-data-and-declarative-modes)
 
 **React Testing Library (RTL)** [Library: React Testing Library] — Tests components the way users use them. → [20 §20.3](20-testing.md#203-react-testing-library-and-query-priority)
 
 **`react-error-boundary`** [Library: react-error-boundary] — Package offering a ready-made boundary with reset support. → [16 §16.3](16-error-handling.md#163-react-error-boundary)
 
+**`React.memo`** [React] — Skips re-rendering a component when props are shallow-equal. → [15 §15.3](15-performance.md#153-reactmemo)
+
 **Reconciliation** [React] — Comparing the new element tree with the previous one to compute minimal DOM changes. → [13 §13.2](13-reconciliation-and-fiber.md#132-diffing-heuristics-type-then-key)
+
+**Reducer** [React] — Pure `(state, action) => state` function; used by `useReducer` and Redux. → [08 §8.10](08-state.md#810-usereducer)
 
 **Redux** [Library: Redux] — Predictable global store built on actions and reducers. → [18 §18.3](18-state-management.md#183-redux-core-ideas-and-legacy-redux)
 
-**Reducer** [React] — Pure `(state, action) => state` function; used by `useReducer` and Redux. → [08 §8.10](08-state.md#810-usereducer)
+**Ref** [React] — A mutable box (`useRef`) whose change does not trigger a render. → [10 §10.1](10-refs-and-dom.md#101-useref-as-a-mutable-box-that-does-not-trigger-renders)
 
 **Reflow** [Browser] — Recalculating layout after a geometry change. → [03 §3.4](03-browser-and-web-platform.md#34-the-rendering-pipeline-parse--style--layout--paint--composite-reflow-and-layout-thrashing)
 
@@ -530,19 +532,17 @@
 
 **Render props** [React] — A prop that is a function returning UI. → [07 §7.7](07-components-props-composition.md#77-render-props-and-hocs)
 
-**Resource server** [Backend: Spring] — Spring Security role that validates bearer tokens and protects the API. → [24 §24.6](24-react-with-spring-boot.md#246-oauth2oidc-with-pkce-bff-pattern-spring-security-resource-server)
-
 **ResizeObserver** [Browser] — API reporting size changes of elements. → [03 §3.12](03-browser-and-web-platform.md#312-observers-intersection-resize-mutation-performance)
+
+**Resource server** [Backend: Spring] — Spring Security role that validates bearer tokens and protects the API. → [24 §24.6](24-react-with-spring-boot.md#246-oauth2oidc-with-pkce-bff-pattern-spring-security-resource-server)
 
 **Responsive design** [Browser] — Layouts adapting to viewport via fluid units and queries. → [04 §4.9](04-html-css-accessibility.md#49-responsive-design-media-and-container-queries-units-mobile-first)
 
 **Rest parameters / spread** [JS] — `...` collects remaining arguments or expands iterables and objects. → [01 §1.10](01-javascript.md#110-spread-rest-destructuring-optional-chaining-nullish-coalescing)
 
-**Ref** [React] — A mutable box (`useRef`) whose change does not trigger a render. → [10 §10.1](10-refs-and-dom.md#101-useref-as-a-mutable-box-that-does-not-trigger-renders)
+**Route handler** [Framework: Next.js] — `route.ts` file defining an HTTP endpoint in the App Router. → [21 §21.13](21-concurrent-ssr-server-components.md#2113-route-handlers-and-proxyts)
 
 **Roving tabindex** [Browser] — Keyboard pattern where one item in a group has `tabindex="0"` and arrows move it. → [04 §4.3](04-html-css-accessibility.md#43-focus-management-and-keyboard-navigation-roving-tabindex)
-
-**Route handler** [Framework: Next.js] — `route.ts` file defining an HTTP endpoint in the App Router. → [21 §21.13](21-concurrent-ssr-server-components.md#2113-route-handlers-and-proxyts)
 
 **RSC (React Server Components)** [React] — Components that run only on the server and ship no JavaScript to the client. → [21 §21.7](21-concurrent-ssr-server-components.md#217-server-components-the-mental-model-clientserver-boundary)
 
@@ -554,7 +554,11 @@
 
 **SameSite** [Browser] — Cookie attribute (`Strict`, `Lax`, `None`) controlling cross-site sending; a CSRF mitigation. → [03 §3.8](03-browser-and-web-platform.md#38-web-security-xss-csrf-csp-clickjacking-samesite-trusted-types)
 
+**`satisfies`** [TS] — Operator that checks a value against a type without widening its inferred type. → [02 §2.11](02-typescript.md#211-unknown-vs-any-vs-never-satisfies)
+
 **Scope** [JS] — Region where a name is visible: global, function, block. → [01 §1.3](01-javascript.md#13-scope-global-function-block)
+
+**Selective hydration** [React DOM] — Hydrating Suspense boundaries independently and in priority order. → [21 §21.6](21-concurrent-ssr-server-components.md#216-streaming-ssr-and-selective-hydration)
 
 **Selector (Redux)** [Library: RTK] — Function reading derived data from the store, memoized with `createSelector`. → [18 §18.6](18-state-management.md#186-selectors-and-memoization)
 
@@ -570,11 +574,7 @@
 
 **Service worker** [Browser] — Background script that proxies network requests, enabling offline and push. → [03 §3.10](03-browser-and-web-platform.md#310-service-workers-and-pwa-basics)
 
-**Selective hydration** [React DOM] — Hydrating Suspense boundaries independently and in priority order. → [21 §21.6](21-concurrent-ssr-server-components.md#216-streaming-ssr-and-selective-hydration)
-
 **SessionStorage** [Browser] — Per-tab string storage cleared on close. → [03 §3.5](03-browser-and-web-platform.md#35-storage-cookies-localstorage-sessionstorage-indexeddb-cache-api)
-
-**`satisfies`** [TS] — Operator that checks a value against a type without widening its inferred type. → [02 §2.11](02-typescript.md#211-unknown-vs-any-vs-never-satisfies)
 
 **shadcn/ui** [Library: shadcn/ui] — Copy-into-your-repo components built on Radix and Tailwind. → [04 §4.12](04-html-css-accessibility.md#412-component-libraries-mui-radix-shadcnui-headless-vs-styled)
 
@@ -602,17 +602,19 @@
 
 **`staleTime`** [Library: TanStack Query] — How long fetched data counts as fresh (default 0). → [17 §17.4](17-data-fetching.md#174-tanstack-query-query-keys-staletime-vs-gctime)
 
-**STAR** [Interview] — Situation, Task, Action, Result: a structure for behavioural answers. → [27 §27.4](27-interview-execution.md#274-behavioral-questions-for-front-endfull-stack)
+**STAR** [Interview] — Situation, Task, Action, Result: a structure for behavioral answers. → [27 §27.4](27-interview-execution.md#274-behavioral-questions-for-front-endfull-stack)
 
 **State** [React] — Data remembered by a component between renders. → [08 §8.2](08-state.md#82-usestate-and-state-as-a-snapshot)
 
 **State as a snapshot** [React] — Each render sees fixed state values; setting state schedules a new render. → [08 §8.2](08-state.md#82-usestate-and-state-as-a-snapshot)
 
-**State machine** [React] — Explicit states and transitions, modelled in a reducer or XState. → [08 §8.11](08-state.md#811-state-machines-in-a-reducer)
+**State machine** [React] — Explicit states and transitions, modeled in a reducer or XState. → [08 §8.11](08-state.md#811-state-machines-in-a-reducer)
 
-**Strict Mode** [React] — Development wrapper that double-invokes renders and remounts effects to expose impurity. → [06 §6.11](06-jsx-and-rendering-model.md#611-strict-mode-double-invocation-and-why)
+**STOMP** [Protocol: STOMP] — Simple text messaging protocol, commonly used over WebSocket in Spring. → [24 §24.12](24-react-with-spring-boot.md#2412-real-time-websocketstomp-sse)
 
 **Streaming SSR** [React DOM] — Sending HTML in chunks as Suspense boundaries resolve. → [21 §21.6](21-concurrent-ssr-server-components.md#216-streaming-ssr-and-selective-hydration)
+
+**Strict Mode** [React] — Development wrapper that double-invokes renders and remounts effects to expose impurity. → [06 §6.11](06-jsx-and-rendering-model.md#611-strict-mode-double-invocation-and-why)
 
 **Structural sharing** [JS] — Reusing unchanged parts of old data in the new immutable copy. → [01 §1.9](01-javascript.md#19-immutability-and-structural-sharing)
 
@@ -658,9 +660,9 @@
 
 **`tsconfig` strict** [TS] — Compiler flags (`strict`, `noUncheckedIndexedAccess`…) that tighten checking. → [02 §2.15](02-typescript.md#215-tsconfig-strictness-flags)
 
-**TypeScript 6/7** [TS] — 6.0 was the last JS-based compiler; 7.0 is the native Go port, with the `tsc` command unchanged. → [02 §2.17](02-typescript.md#217-typescript-67-the-native-compiler-and-what-changed)
-
 **`typeof`** [JS] — Operator returning a type string; `typeof null` is `"object"`. → [01 §1.1](01-javascript.md#11-values-types-and-typeof-quirks)
+
+**TypeScript 6/7** [TS] — 6.0 was the last JS-based compiler; 7.0 is the native Go port, with the `tsc` command unchanged. → [02 §2.17](02-typescript.md#217-typescript-67-the-native-compiler-and-what-changed)
 
 ## U
 
@@ -672,11 +674,11 @@
 
 **`use`** [React] — Since React 19, API that reads a Promise or context during render and may be called conditionally. → [17 §17.10](17-data-fetching.md#1710-suspense-based-fetching-and-use)
 
+**`'use cache'`** [Framework: Next.js] — Next.js 16 directive caching a function, component or file's result. → [21 §21.12](21-concurrent-ssr-server-components.md#2112-nextjs-16-caching)
+
 **`'use client'`** [React] — Directive marking the client boundary of the module graph. → [21 §21.8](21-concurrent-ssr-server-components.md#218-use-client-and-use-server-server-functions-and-their-security)
 
 **`'use server'`** [React] — Directive that marks Server Functions (not Server Components). → [21 §21.8](21-concurrent-ssr-server-components.md#218-use-client-and-use-server-server-functions-and-their-security)
-
-**`'use cache'`** [Framework: Next.js] — Next.js 16 directive caching a function, component or file's result. → [21 §21.12](21-concurrent-ssr-server-components.md#2112-nextjs-16-caching)
 
 **`useActionState`** [React] — Since React 19, hook that wraps an action and returns state, a wrapped action and pending flag. → [14 §14.7](14-forms-and-actions.md#147-useactionstate)
 
@@ -686,9 +688,11 @@
 
 **`useDeferredValue`** [React] — Returns a lagging copy of a value so urgent UI renders first. → [21 §21.3](21-concurrent-ssr-server-components.md#213-usedeferredvalue)
 
-**`useEffect`** [React] — Hook that runs side effects after commit. → [09 §9.1](09-effects.md#91-effects-as-synchronization-with-external-systems)
+**`useEffect`** [React] — Hook that runs side effects after commit, usually after paint. → [09 §9.1](09-effects.md#91-effects-as-synchronization-with-external-systems)
 
 **`useEffectEvent`** [React] — Since React 19.2, wraps logic that reads latest values without being an effect dependency. → [09 §9.9](09-effects.md#99-useeffectevent)
+
+**`useFetcher`** [Framework: React Router] — Calls loaders or actions without navigating. → [19 §19.5](19-routing.md#195-loaders-actions-usefetcher)
 
 **`useFormStatus`** [React DOM] — Since React 19, reads the pending state of the parent `<form>`. → [14 §14.8](14-forms-and-actions.md#148-useformstatus)
 
@@ -696,13 +700,15 @@
 
 **`useImperativeHandle`** [React] — Customizes the value a parent's ref receives. → [10 §10.5](10-refs-and-dom.md#105-useimperativehandle)
 
-**`useInsertionEffect`** [React] — Effect for CSS-in-JS libraries that runs before layout. → [09 §9.8](09-effects.md#98-useinsertioneffect)
+**`useInsertionEffect`** [React] — Effect for CSS-in-JS libraries that runs before any layout effects. → [09 §9.8](09-effects.md#98-useinsertioneffect)
 
 **`useLayoutEffect`** [React] — Effect that runs synchronously after DOM mutations and before paint. → [09 §9.7](09-effects.md#97-uselayouteffect)
 
 **`useMemo`** [React] — Caches a computed value between renders. → [15 §15.4](15-performance.md#154-usememo-and-usecallback-and-when-they-waste-effort)
 
 **`useOptimistic`** [React] — Since React 19, shows temporary state while an action is pending. → [14 §14.9](14-forms-and-actions.md#149-useoptimistic)
+
+**user-event** [Library: React Testing Library] — Simulates realistic user interaction sequences; preferred over `fireEvent`. → [20 §20.4](20-testing.md#204-user-event-vs-fireevent)
 
 **`useReducer`** [React] — State hook built on a reducer function. → [08 §8.10](08-state.md#810-usereducer)
 
@@ -714,39 +720,33 @@
 
 **`useTransition`** [React] — Hook returning `[isPending, startTransition]` for non-urgent updates. → [21 §21.2](21-concurrent-ssr-server-components.md#212-usetransition-and-starttransition)
 
-**`useFetcher`** [Framework: React Router] — Calls loaders or actions without navigating. → [19 §19.5](19-routing.md#195-loaders-actions-usefetcher)
-
-**user-event** [Library: React Testing Library] — Simulates realistic user interaction sequences; preferred over `fireEvent`. → [20 §20.4](20-testing.md#204-user-event-vs-fireevent)
-
 **Utility types** [TS] — Built-ins such as `Partial`, `Pick`, `Omit`, `Record`, `ReturnType`. → [02 §2.9](02-typescript.md#29-utility-types)
 
 ## V
 
-**Vite** [Tooling: Vite] — Dev server and bundler using native ESM; v8 is current. → [05 §5.4](05-tooling-and-setup.md#54-vite-vs-webpack)
+**`<ViewTransition>`** [React] — Component (stable in React 19.3) animating DOM changes through the View Transitions API. → [21 §21.10](21-concurrent-ssr-server-components.md#2110-viewtransition)
 
 **Virtual DOM** [React] — Lightweight tree of elements React diffs to update the real DOM. → [13 §13.1](13-reconciliation-and-fiber.md#131-why-a-virtual-dom)
 
 **Virtualization** [Library: TanStack Virtual] — Rendering only visible rows of a long list. → [15 §15.8](15-performance.md#158-virtualization)
 
-**`<ViewTransition>`** [React] — Component (stable in React 19.3) animating DOM changes through the View Transitions API. → [21 §21.10](21-concurrent-ssr-server-components.md#2110-viewtransition)
+**Vite** [Tooling: Vite] — Dev server and bundler using native ESM; v8 is current. → [05 §5.4](05-tooling-and-setup.md#54-vite-vs-webpack)
 
 **Vitest** [Library: Vitest] — Vite-native test runner (v5 current). → [20 §20.2](20-testing.md#202-vitest-vs-jest)
 
 ## W
 
-**WeakMap / WeakRef** [JS] — Collections and references that do not stop garbage collection of their targets. → [01 §1.20](01-javascript.md#120-memory-gc-leaks-from-closures-listeners-and-timers-weakmapweakref)
-
 **WCAG** [Browser] — Web Content Accessibility Guidelines, the standard behind accessibility audits. → [04 §4.2](04-html-css-accessibility.md#42-accessibility-the-accessibility-tree-aria-rules-names-roles-states)
 
-**WebSocket** [Browser] — Full-duplex persistent connection; Spring commonly layers STOMP on it. → [24 §24.12](24-react-with-spring-boot.md#2412-real-time-websocketstomp-sse)
-
-**STOMP** [Protocol: STOMP] — Simple text messaging protocol, commonly used over WebSocket in Spring. → [24 §24.12](24-react-with-spring-boot.md#2412-real-time-websocketstomp-sse)
+**WeakMap / WeakRef** [JS] — Collections and references that do not stop garbage collection of their targets. → [01 §1.20](01-javascript.md#120-memory-gc-leaks-from-closures-listeners-and-timers-weakmapweakref)
 
 **Web Vitals** [Browser] — Field metrics measured in the browser (LCP, INP, CLS). → [15 §15.12](15-performance.md#1512-web-vitals-in-react)
 
 **Web Worker** [Browser] — Background thread that keeps heavy work off the main thread. → [03 §3.13](03-browser-and-web-platform.md#313-workers-and-the-main-thread)
 
 **webpack** [Tooling: webpack] — Mature, configurable bundler. → [05 §5.4](05-tooling-and-setup.md#54-vite-vs-webpack)
+
+**WebSocket** [Browser] — Full-duplex persistent connection; Spring commonly layers STOMP on it. → [24 §24.12](24-react-with-spring-boot.md#2412-real-time-websocketstomp-sse)
 
 ## X
 

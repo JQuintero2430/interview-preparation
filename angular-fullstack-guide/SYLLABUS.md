@@ -4,7 +4,7 @@
 **Written against:** [VERSIONS.md](VERSIONS.md) (Angular 22.2.1, TypeScript 6.0, RxJS 7.8.2, snapshot 2026-10-03).
 **Format rules:** [STYLE-GUIDE.md](STYLE-GUIDE.md).
 
-This file is the plan. It lists every module with its slug, its topic checklist, its prerequisites, its question and exercise targets, and its lab folder. Topic checkboxes are ticked in [PROGRESS.md](PROGRESS.md), not here.
+This file is the plan. It lists every module with its slug, its topic checklist, its prerequisites, its question and exercise targets, and its lab folder. Topic checkboxes stay unticked here; module completion is tracked in [PROGRESS.md](PROGRESS.md).
 
 **Legend.** **NG** marks an Angular module (floor: 25 questions and 4 exercises). Every other module has a floor of 15 questions and 2 exercises. "Q / Ex" are **upper limits, not quotas** (decision 4): write only the questions a topic genuinely supports. No filler is written to reach a number, and the reviewer deletes duplicates and shallow answers. The floors are guidance, and a module may finish below one when the topic is exhausted. The coordinator then records the reason in PROGRESS.md. ⇢ marks a link to an existing backend guide in this repository, which we link to instead of duplicating.
 
@@ -73,7 +73,7 @@ Full-stack material also runs through modules 27 (HTTP), 33 (security) and 46 (c
 
 ## 2. Knowledge map (prerequisites)
 
-The README will carry the same graph. An arrow means "read before".
+The README carries the full map, built from the prerequisites in §1; this one is simplified. An arrow means "read before".
 
 ```mermaid
 flowchart LR
@@ -624,6 +624,8 @@ Backend snippets target Spring Boot 4.x / Spring Security 7 (version verified at
 Root-level practice files (Phase 5): [CHEATSHEET.md](CHEATSHEET.md), [MOCK-INTERVIEWS.md](MOCK-INTERVIEWS.md) (target: 8 full mocks, spanning Angular core, RxJS/state, full stack, system design and architecture, each with model answers and scoring notes), [GLOSSARY.md](GLOSSARY.md), [QUESTION-INDEX.md](QUESTION-INDEX.md).
 
 ## 5. Labs
+
+The tree below is the approved plan. The labs as built add four projects (`security-lab`, `i18n-lab`, `animations-lab`, `material-lab`) and more checks in `tools/`; [README.md](README.md#labs) describes the workspaces and checks as built.
 
 ```
 labs/

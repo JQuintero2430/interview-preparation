@@ -59,7 +59,7 @@ describe('typed components (compile-time, checked by tsc)', () => {
     render(<Button variant="sparkly" />);
     // @ts-expect-error - a 'link' Alert requires href
     render(<Alert kind="link">x</Alert>);
-    // @ts-expect-error - an 'button' Alert has no href
+    // @ts-expect-error - a 'button' Alert has no href
     render(<Alert kind="button" onClick={() => {}} href="/x">x</Alert>);
   });
 

@@ -6,7 +6,7 @@ import { makePuzzleStore, ReduxPuzzle } from './ReduxRenderPuzzle';
 import { log } from './renderLog';
 import { resetPuzzleStore, ZustandPuzzle } from './ZustandRenderPuzzle';
 
-// PREDICTIONS written before running. The coordinator runs this file and corrects any line that differs.
+// PREDICT-THE-OUTPUT. Every expected value below was confirmed by running the test.
 
 let warn: MockInstance<typeof console.warn>;
 

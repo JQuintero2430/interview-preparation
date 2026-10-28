@@ -251,6 +251,8 @@ The compiler is **not installed** in `examples/web`, so this module has no runna
 
 ```bash
 npm install -D babel-plugin-react-compiler@latest
+# Vite 8 + @vitejs/plugin-react 6 (config below) also needs, per the plugin's README:
+npm install -D @rolldown/plugin-babel @babel/core
 ```
 ```js
 // vite.config.js with @vitejs/plugin-react 6 (this repo has 6.1.1, which exports reactCompilerPreset)
@@ -451,7 +453,7 @@ The test renders 10,000 rows and asserts that only 17 list items exist, and that
 ### How it works internally
 Read from `@tanstack/virtual-core` 3.14.13 in `node_modules`:
 - On mount, the virtualizer reads the scroll element's size from `offsetWidth`/`offsetHeight` and then subscribes with a `ResizeObserver` (if the window has one). It listens to `scroll` events for the offset.
-- It keeps a measurement for every index (`start`, `size`, `end`), initially from `estimateSize`. To find the window it **binary-searches** the first row whose start is at or after the scroll offset, then walks forward until rows pass the viewport's bottom. The default `overscan` is 1.
+- It keeps a measurement for every index (`start`, `size`, `end`), initially from `estimateSize`. To find the window it **binary-searches** for the row the scroll offset falls in (the last row whose start is at or before the offset), then walks forward until rows pass the viewport's bottom. The default `overscan` is 1.
 - Only when the visible range or `isScrolling` changes does it notify React, which re-renders the list. The React adapter re-renders through `flushSync` for scroll-driven updates by default (`useFlushSync`), so rows are in place before paint.
 - Variable heights: attach `ref={virtualizer.measureElement}` and `data-index` to each row; the real size, measured by a `ResizeObserver`, replaces the estimate.
 - SSR or tests without layout: `initialRect` gives the size to use before measurement. jsdom has no layout, so `VirtualList.test.tsx` stubs `offsetHeight`.
@@ -641,7 +643,7 @@ onLCP(send);
 On the Spring side, a `@PostMapping("/api/vitals")` that records into Micrometer histograms gives you p75 dashboards per route ([22](22-production-project-structure.md#229-analytics)).
 
 ### How React affects INP
-- A click or keypress is a **discrete** event: React processes its updates **synchronously** at the highest priority, so a slow render there is processing duration. That's where 15.2–15.6 pay off.
+- A click or keypress is a **discrete** event: React gives its updates the highest (sync) priority and renders them without yielding, in a microtask before the browser can paint, so a slow render there is processing duration. That's where 15.2–15.6 pay off.
 - Transitions (15.9) move the expensive part out of the interaction: the next paint (the input showing the new character) happens before the heavy render.
 - Long work in the handler itself (parsing a big JSON, sorting 50,000 items) blocks just the same. Move it to a Web Worker ([03](03-browser-and-web-platform.md#313-workers-and-the-main-thread)), chunk it, or yield (`await scheduler.yield()` where available).
 - Hydration is main-thread work too: a huge hydration task delays the first interactions. Streaming SSR and selective hydration help ([21](21-concurrent-ssr-server-components.md#216-streaming-ssr-and-selective-hydration)).

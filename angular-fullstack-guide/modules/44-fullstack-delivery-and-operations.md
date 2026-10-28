@@ -290,7 +290,7 @@ What to notice: redirects search again.
 
 ```nginx
 # labs/angular/deploy/nginx/default.conf.template — documented only, not built: Docker is not run in the labs
-# (abridged: the file's comments give each line's reason)
+# (abridged: section 4's map and proxy locations and the file's comments, which give each line's reason, are left out)
 server {
     listen 8080;
     root /usr/share/nginx/html;
@@ -307,7 +307,7 @@ server {
         add_header Cache-Control "public, max-age=31536000, immutable";
         try_files $uri =404;
     }
-    location = /config.json { add_header Cache-Control "no-store"; }
+    location = /config.json { alias /tmp/app-config/config.json; add_header Cache-Control "no-store"; }
     location / {
         add_header Cache-Control "no-cache";
         try_files $uri $uri/ /index.html;

@@ -148,7 +148,7 @@ No. It tells the compiler to trust you, and the types are erased at runtime. `as
 **Q2. What is the type of `e` in `catch (e)` under `strict`?**
 <details><summary>Answer</summary>
 
-`unknown`. Narrow with `instanceof Error` before reading `.message`. [TS] · [02 §2.6](02-typescript.md#26-narrowing-typeof-in-instanceof-type-predicates-assertion-functions)
+`unknown` (`useUnknownInCatchVariables`, part of `strict`). Narrow with `instanceof Error` before reading `.message`. [TS] · [02 §2.11](02-typescript.md#211-unknown-vs-any-vs-never-satisfies)
 
 </details>
 
@@ -197,7 +197,7 @@ Interfaces can merge by declaration and extend; type aliases can name unions, tu
 **Q9. Why does a generic arrow function in a `.tsx` file need `<T,>`?**
 <details><summary>Answer</summary>
 
-Otherwise the parser reads `<T>` as a JSX element. `<T,>` or `<T extends unknown>` disambiguates. [TS] · [02 §2.8](02-typescript.md#28-generics-and-constraints)
+Otherwise the parser reads `<T>` as a JSX element. `<T,>` or `<T extends unknown>` disambiguates. [TS] · [02 §2.13](02-typescript.md#213-typing-react-props-children-events-refs-generic-components-componentprops)
 
 </details>
 
@@ -218,7 +218,7 @@ No, types are erased. Parse untrusted data (`unknown`) with a schema such as Zod
 **Q12. A Vitest run passes. Does that mean the types are correct?**
 <details><summary>Answer</summary>
 
-No. Vitest never type-checks; only `tsc` does, so run `tsc --noEmit` in CI. [Tooling: Vitest] · [02 §2.15](02-typescript.md#215-tsconfig-strictness-flags)
+No. Vitest strips types per file and does not type-check (unless you opt in to its `typecheck` mode); `tsc` is the checker, so run `tsc --noEmit` in CI. [Tooling: Vitest] · [02 §2.1](02-typescript.md#21-why-static-types-on-a-dynamic-runtime)
 
 </details>
 
@@ -257,7 +257,7 @@ Capture (window down to the target), target, then bubble (back up). Delegation u
 **Q4. Where does React 17+ attach its event listeners?**
 <details><summary>Answer</summary>
 
-At the root container, not on `document`. Native listeners below the root run before React's handlers, so a native `stopPropagation` can hide the event from React. [React DOM] · [03 §3.3](03-browser-and-web-platform.md#33-how-reacts-event-system-relates-to-native-events)
+At the root container, not on `document`. Native listeners below the root run before React's bubble-phase handlers (`onClick`), so a native `stopPropagation` there can hide the event from React. [React DOM] · [03 §3.3](03-browser-and-web-platform.md#33-how-reacts-event-system-relates-to-native-events)
 
 </details>
 
@@ -489,7 +489,7 @@ Deprecated on 2025-02-14. It still installs and legacy codebases run on it; use 
 **Q10. Should production source maps be public?**
 <details><summary>Answer</summary>
 
-By default they are. Use hidden source maps and upload them to the error tracker. [Tooling: bundlers] · [05 §5.10](05-tooling-and-setup.md#510-source-maps-and-debugging)
+No. Any `.map` file you deploy is public (Vite's default is no production maps, but `build.sourcemap: true` serves them). Use hidden source maps and upload them to the error tracker. [Tooling: bundlers] · [05 §5.10](05-tooling-and-setup.md#510-source-maps-and-debugging)
 
 </details>
 
@@ -577,7 +577,7 @@ The initial `root.render`, a state update (from a setter or reducer dispatch), a
 **Q12. Render phase versus commit phase: where do effects and DOM writes happen?**
 <details><summary>Answer</summary>
 
-Render computes the next tree and must be pure. The commit applies DOM changes, then layout effects, and passive effects run after paint. [React] · [06 §6.10](06-jsx-and-rendering-model.md#610-render-phase-vs-commit-phase)
+Render computes the next tree and must be pure. The commit applies DOM changes, then layout effects (before paint); passive effects usually run after paint (before it when a discrete event such as a click caused the update). [React] · [06 §6.10](06-jsx-and-rendering-model.md#610-render-phase-vs-commit-phase)
 
 </details>
 
@@ -746,14 +746,14 @@ When several fields change together, transitions follow rules, or you want a tes
 **Q11. Why does a `console.log` inside a state initializer or updater appear twice in dev?**
 <details><summary>Answer</summary>
 
-Strict Mode double-invokes initializers, updaters and reducers as a purity check, in development only. [React] · [08 §8.2](08-state.md#82-usestate-and-state-as-a-snapshot)
+Strict Mode double-invokes initializers, updaters and reducers as a purity check, in development only. [React] · [08 §8.6](08-state.md#86-lazy-initialization)
 
 </details>
 
 **Q12. Does `setCount(1, callback)` run the callback?**
 <details><summary>Answer</summary>
 
-No. Hook setters have no callback and React warns. Use the event handler or an effect. [React] · [08 §8.2](08-state.md#82-usestate-and-state-as-a-snapshot)
+No. Hook setters have no callback and React warns. Use the event handler or an effect. [React] · [08 §8.10](08-state.md#810-usereducer)
 
 </details>
 
@@ -1144,7 +1144,7 @@ No. Sync, input-continuous and default lanes render without yielding in 19.3; on
 **Q10. Is `componentDidMount` the same as `useEffect(fn, [])`?**
 <details><summary>Answer</summary>
 
-No. The class method runs in the layout phase, before paint; the effect runs after paint and re-runs in Strict Mode dev. [React] · [13 §13.6](13-reconciliation-and-fiber.md#136-class-lifecycle-methods-and-their-hook-equivalents)
+No. The class method runs in the layout phase, before paint; the effect usually runs after paint and re-runs in Strict Mode dev. [React] · [13 §13.6](13-reconciliation-and-fiber.md#136-class-lifecycle-methods-and-their-hook-equivalents)
 
 </details>
 
@@ -1327,7 +1327,7 @@ A new component type on each render, which resets state. Declare it at module le
 **Q10. What does virtualization cost?**
 <details><summary>Answer</summary>
 
-Ctrl+F stops finding off-screen rows and assistive tech sees only the rendered window (set `aria-rowcount` etc.). jsdom cannot test it without stubs. [React] · [15 §15.8](15-performance.md#158-virtualization)
+Ctrl+F stops finding off-screen rows and assistive tech sees only the rendered window (set `aria-setsize`/`aria-posinset` on list rows). jsdom cannot test it without stubs. [React] · [15 §15.8](15-performance.md#158-virtualization)
 
 </details>
 
@@ -1647,7 +1647,7 @@ For workflows with explicit states and transitions (wizards, payment flows) wher
 **Q13. Redux status checks: `connect` and `createStore`?**
 <details><summary>Answer</summary>
 
-Both still work but are `@deprecated` in types (`createStore` since Redux 4.2.0); use hooks and `configureStore`. Recoil is archived: do not start new code with it. [Library: Redux] · [18 §18.3](18-state-management.md#183-redux-core-ideas-and-legacy-redux)
+Both still work but are `@deprecated` in types (`createStore` since Redux 4.2.0, `connect` since react-redux 9.3.0); use hooks and `configureStore`. Recoil is archived: do not start new code with it. [Library: Redux] · [18 §18.3](18-state-management.md#183-redux-core-ideas-and-legacy-redux)
 
 </details>
 
@@ -1883,7 +1883,7 @@ No. The marker covers only the synchronous part, so wrap the update in another `
 **Q3. What did React 19 add to transitions?**
 <details><summary>Answer</summary>
 
-Async Actions: the function may be `async`, and `isPending` stays true until it settles. In 18 it had to be synchronous. [React] · [21 §21.2](21-concurrent-ssr-server-components.md#212-usetransition-and-starttransition)
+Async Actions: the function may be `async`, and `isPending` stays true until all pending Actions complete. In 18 it had to be synchronous. [React] · [21 §21.2](21-concurrent-ssr-server-components.md#212-usetransition-and-starttransition)
 
 </details>
 
@@ -2196,7 +2196,7 @@ Auth headers, 401 refresh, error mapping and `res.ok` checks (since `fetch` does
 **Q10. What is `ProblemDetail`, and what is the real contract?**
 <details><summary>Answer</summary>
 
-RFC 9457's `application/problem+json` (`type`, `title`, `status`, `detail`, `instance` plus extensions). The client has no `catch`, so the `type` URI is the contract; do not branch on `title`/`detail` text. [Backend: Spring] · [24 §24.8](24-react-with-spring-boot.md#248-problemdetail-error-mapping)
+RFC 9457's `application/problem+json` (`type`, `title`, `status`, `detail`, `instance` plus extensions). The client has no `catch (ProjectNotFoundException)`, only `status` and `type`, so the `type` URI is the contract; do not branch on `title`/`detail` text. [Backend: Spring] · [24 §24.8](24-react-with-spring-boot.md#248-problemdetail-error-mapping)
 
 </details>
 
@@ -2557,7 +2557,7 @@ The date-only string is parsed as UTC; the other as local time. Formatted locall
 **D13. A hook is called after an early `return`. What happens?**
 <details><summary>Answer</summary>
 
-It is a conditional hook: it works until the condition changes, then React throws a hook-count error (or silently swaps state if types and count match). [React] · [12 §12.1](12-hooks-and-custom-hooks.md#121-the-rules-of-hooks)
+It is a conditional hook: it works until the condition changes, then the hook count changes and React throws ("Rendered more hooks than during the previous render" or "Rendered fewer hooks than expected. This may be caused by an accidental early return statement."). [React] · [12 §12.1](12-hooks-and-custom-hooks.md#121-the-rules-of-hooks)
 
 </details>
 

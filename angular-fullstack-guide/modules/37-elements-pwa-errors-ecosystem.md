@@ -766,6 +766,7 @@ What to notice: both paths report to the `ErrorHandler`; the boundary adds a fal
 } @error (let err; reset = $reset; when err.message === 'network') {
   <p role="alert">first: {{ err.message }}</p>
 } @error (when $error.message.startsWith('net')) {
+  <p role="alert">second: {{ $error.message }}</p>
 } @error {
   <p role="alert">catch-all: {{ $error.message }}</p>
 ```
@@ -1486,7 +1487,7 @@ updates.versionUpdates
   .pipe(filter((event) => event.type === 'VERSION_READY'))
   .subscribe(() => updates.activateUpdate());
 
-@Component({ selector: 'app-root', template: `<router-outlet />` })
+@Component({ selector: 'app-root', imports: [RouterOutlet], template: `<router-outlet />` })
 class App {
   private readonly updates = inject(SwUpdate);
   constructor() {
@@ -2098,10 +2099,9 @@ No; offline comes from the cache rules.
 
 </details>
 
-
 ## Connections
 
 - **Builds on:** [04 §8](04-js-async-event-loop.md#8-unhandled-rejections-queuemicrotask-and-starvation) and [05 §6](05-js-modules-memory-modern-features.md#6-errors-subclasses-causes-aggregation-and-global-handlers) (listeners and error types), [08 §5](08-browser-rendering-dom-events.md#5-web-components-custom-elements-shadow-dom-and-templates) (custom elements), [09 §9](09-web-networking-storage-security.md#9-service-workers-and-the-pwa-manifest) (the browser's service worker), [12 §6](12-angular-how-it-works.md#6-bootstrapping-bootstrapapplication-the-platform-and-initializers) (`createApplication`), [16 §7](16-dependency-injection.md#7-injectiontoken-multi-providers-environment-providers-and-initializers) (tokens and initializers), [21 §5](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks) and [27 §5](27-http-client.md#5-errors-httperrorresponse-an-error-mapping-layer-and-retry-with-backoff-and-jitter) (the mapping layer under the error UX).
 - **Read next:** [38. Architecture and production structure](38-architecture-and-production-structure.md#8-micro-frontends-module-federation-native-federation-and-when-they-are-justified) (micro-frontends, where Elements is one integration option) and [44. Full-stack delivery and operations](44-fullstack-delivery-and-operations.md#9-frontend-error-tracking-and-real-user-monitoring-releases-source-maps-beacons-and-sampling) (the logging pipeline behind the reporter in §11).
-- **Uses these ideas later:** [38](38-architecture-and-production-structure.md#8-micro-frontends-module-federation-native-federation-and-when-they-are-justified) (Elements as an integration), [39](39-version-history-and-migrations.md#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy), [43](43-fullstack-realtime.md) (sending Web Push from the server) and [44](44-fullstack-delivery-and-operations.md) (alerting on the reports), all file-level.
+- **Uses these ideas later:** [38](38-architecture-and-production-structure.md#8-micro-frontends-module-federation-native-federation-and-when-they-are-justified) (Elements as an integration), [39](39-version-history-and-migrations.md#3-how-angular-ships-semantic-versioning-the-release-cadence-support-windows-and-the-deprecation-policy), [43](43-fullstack-realtime.md) (sending Web Push from the server) and [44](44-fullstack-delivery-and-operations.md) (alerting on the reports).
 - **Comparisons:** [Q09.22](09-web-networking-storage-security.md#q09-22) (caching strategies), [Q27.16](27-http-client.md#q27-16) (the mapping layer) and [Q36.24](36-material-and-cdk.md#q36-24) (a design system or a UI kit).

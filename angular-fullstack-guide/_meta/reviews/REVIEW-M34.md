@@ -250,7 +250,7 @@ Stay file-level (headers, Leads to, Read next, Uses these ideas later, as REVIEW
 | 15 | Japanese segmentation: eight words, `en` the same (146) | section-2 test | Match |
 | 16 | ICU 78.3 / CLDR 48.0 asserted (136) | section-2 test; `node -e` | Match |
 | 17 | Chromium `3:30 PM` with U+0020 (136) | e2e section-2 spec | Match |
-| 18 | `customId || computeMsgId(messageString, meaning || '')` (280) | `_localize-chunk.mjs` 147 | Match |
+| 18 | `customId \|\| computeMsgId(messageString, meaning \|\| '')` (280) | `_localize-chunk.mjs` 147 | Match |
 | 19 | `computePlaceholderName`, `stripBlock` (278, 282) | `_localize-chunk.mjs` 225, 252 | Match |
 | 20 | `loadTranslations`/`clearTranslations`/null-prototype map (648) | `localize.mjs` 78-92 | Match |
 | 21 | Miss and placeholder mismatch throw, `translate` warns and returns source (648) | `localize.mjs` 21-39, 93-101 | Match |
@@ -276,7 +276,7 @@ Stay file-level (headers, Leads to, Read next, Uses these ideas later, as REVIEW
 | 41 | `getMappedScope`, `_handleMissingKey`, `getTextToInterpolate` exist (716, 718) | transloco; ngx-translate | Match |
 | 42 | `formatCurrency` digits from `getNumberOfCurrencyDigits`; `JPY`/`CLP` 0, unknown 2 (818) | common 1103-1110, 103-164, 439-446 | Match |
 | 43 | Q34.23 `toFixed` value cited to the yen test (1546) | `section-10-money.test.ts` 17 | **Mismatch of citation (N-3)** |
-| 44 | `Directionality` reads `body.dir || documentElement.dir` once (894) | cdk 21-31 | Match |
+| 44 | `Directionality` reads `body.dir \|\| documentElement.dir` once (894) | cdk 21-31 | Match |
 | 45 | Q34.24 gaps 184/16, 200/0, text right 0, `ltr` (1564) | e2e outputs 53-65; `ng test` outputs 240 | Match |
 | 46 | `withI18nSupport` `@publicApi 20.0` (968) | `platform-browser.d.ts` 421-423 | Match |
 | 47 | Q34.15 follow-up on missing translations (1360) | `schema.json`; `angular.json` production | **Partial (T-3)** |

@@ -51,7 +51,7 @@ test('clicking a header cycles ascending, descending, unsorted and sets aria-sor
   expect(names()).toEqual(['Grace', 'Alan', 'Ada', 'Linus']);
 
   await user.click(button);
-  expect(header).toHaveAttribute('aria-sort', 'none');
+  expect(header).not.toHaveAttribute('aria-sort');
   expect(names()).toEqual(['Ada', 'Linus', 'Grace', 'Alan']);
 });
 
@@ -61,7 +61,7 @@ test('sorting another column resets the previous one', async () => {
   await user.click(within(screen.getByRole('columnheader', { name: 'Age' })).getByRole('button'));
   await user.click(within(screen.getByRole('columnheader', { name: 'Name' })).getByRole('button'));
 
-  expect(screen.getByRole('columnheader', { name: 'Age' })).toHaveAttribute('aria-sort', 'none');
+  expect(screen.getByRole('columnheader', { name: 'Age' })).not.toHaveAttribute('aria-sort');
   expect(screen.getByRole('columnheader', { name: 'Name' })).toHaveAttribute('aria-sort', 'ascending');
 });
 

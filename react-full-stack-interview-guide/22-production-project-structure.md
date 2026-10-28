@@ -170,7 +170,7 @@ export function Button({ variant = 'primary', className = '', ...rest }: ButtonP
 
 ### How it works internally
 - **Headless vs styled.** Headless libraries (Radix, React Aria, Headless UI) give behavior and accessibility without styling; styled kits (MUI, Chakra, Mantine) give both. Choosing is a build-versus-buy decision covered in [23](23-ecosystem-libraries.md).
-- **Storybook** (or Ladle, Histoire) is the usual catalogue: one story per state, run in CI as visual or accessibility tests.
+- **Storybook** (or Ladle, Histoire) is the usual catalog: one story per state, run in CI as visual or accessibility tests.
 - **Versioning.** A published design system needs semver discipline; a monorepo workspace package can be changed together with its consumers in one pull request, which is why many teams start there.
 - **Theming** by CSS variables swaps themes (dark mode, brands) with no re-render of the React tree.
 
@@ -214,7 +214,7 @@ The layer's boundaries are what make it testable: component tests mock the netwo
 Error normalization is the contract between layers: the client turns every failure into one `ApiError` carrying the Spring `ProblemDetail` ([24.8](24-react-with-spring-boot.md#248-problemdetail-error-mapping)), and the UI decides how to present it. The request id the client attaches goes into logs (22.6) so a front-end report links to a Spring log line.
 
 ### Trade-offs
-- axios vs `fetch`: `fetch` is enough; axios mostly adds interceptors, which a 60-line wrapper provides ([24.7](24-react-with-spring-boot.md#247-an-api-client-with-interceptors)).
+- axios vs `fetch`: `fetch` is enough; axios mostly adds interceptors, which a ~60-line wrapper provides ([24.7](24-react-with-spring-boot.md#247-an-api-client-with-interceptors)).
 - Generated clients (OpenAPI) remove a class of drift bugs but couple you to the generator's output shape.
 - Do not put endpoint functions inside components or hooks. Keep them importable from a plain Node test.
 
@@ -314,7 +314,7 @@ cartLog.info('oauth callback', { url: scrubUrl(location.href) }); // ?code=… m
 - **Capture** is covered in [16.7](16-error-handling.md#167-logging-and-monitoring-source-maps): the three React 19 root callbacks, the window listeners, a `WeakSet` to deduplicate the same Error arriving by two paths.
 - **Enrich** by wrapping: the logger merges the base context, the child context and the call context, then redacts the merge, so a sensitive key added at any layer is still masked. Redaction runs on the merged object, not on each source, on purpose.
 - **Never break the caller.** The sink call is wrapped in `try`/`catch` (tested: a throwing sink does not escape). A logger that throws inside an error handler turns one error into two.
-- **Depth cap.** `redact` returns `'[truncated]'` at depth 4, so a cyclic object (an Error with a `cause` chain that points back, a DOM node, a React fiber) cannot recurse forever. The cyclic test proves it.
+- **Depth cap.** `redact` returns `'[truncated]'` at depth 4, so a cyclic object (a DOM node, a React fiber, any object graph that points back at itself) cannot recurse forever. The cyclic test proves it. (An `Error` never recurses: it is flattened to `{ name, message }` first, so its `cause` chain is dropped.)
 - **Correlate with the backend.** The API client sends an `X-Request-Id` (or W3C `traceparent`) header; the same id goes into the log context and appears in the Spring log via MDC. This is the single most useful field in a full-stack incident.
 - **Source maps.** Generate them in the build, upload them to the monitoring service, and do not serve them publicly (16.7 and its Vite `build.sourcemap` caveat: re-read the [Vite build options](https://vite.dev/config/build-options) before quoting values).
 - **Transport.** `navigator.sendBeacon` survives page unload where `fetch` may not; vendor SDKs (Sentry, Datadog RUM) wrap this plus batching and sampling.
@@ -548,7 +548,7 @@ jobs:
 - **`concurrency` with `cancel-in-progress`.** A new push to the same PR cancels the superseded run. Scoping the group by `github.ref`, as the sample does, keeps a PR's runs from cancelling the runs of `main`.
 - **`permissions: contents: read`** at the top follows least privilege: the `GITHUB_TOKEN` gets write access only on the job that pushes an image.
 - **One build, promoted.** Build the image once from the commit SHA and promote *that* image through staging to production. Rebuilding for production tests one artifact and ships another.
-- **Bundle budgets.** Fail the build if the main chunk grows past a threshold (a script that reads `dist/assets/*.js` sizes, `size-limit`, or Lighthouse CI). > **Unverified:** the current option names of those tools.
+- **Bundle budgets.** Fail the build if the main chunk grows past a threshold (a script that reads `dist/assets/*.js` sizes, `size-limit`, or Lighthouse CI). **Unverified:** the current option names of those tools.
 - **Dependency hygiene.** Dependabot or Renovate PRs, `npm audit` as a non-blocking report (blocking on every advisory makes the build flaky for reasons unrelated to your change), and pinning actions to a major or a commit SHA.
 - **Same checks as locally.** The CI steps should be the `package.json` scripts (`lint`, `typecheck`, `test`, `build`), so a developer reproduces a failure with one command.
 - **Architecture gate.** The import-rule checker from 22.2 is a CI step like any other: a test that runs it over `src/` and expects no violations.
@@ -557,7 +557,7 @@ jobs:
 - E2E tests on every PR are slow and flaky if mis-scoped. Keep a small smoke suite blocking and run the full suite on `main` or nightly ([20](20-testing.md)).
 - Preview deploys per PR (Vercel, Netlify, Cloudflare Pages, or a namespace per PR on Kubernetes) catch what unit tests cannot and let designers review; they cost infrastructure and need secrets handled carefully for forks.
 - Monorepo CI needs change detection (run the front-end pipeline only when `web/**` changed), or every Java change pays for it.
-- The sample pins `actions/*@v7`, the current major of `actions/checkout`, `actions/setup-node` and `actions/upload-artifact` on their releases pages (checked 2026-10-04; [checkout](https://github.com/actions/checkout/releases), [setup-node](https://github.com/actions/setup-node/releases)). Read each major's breaking changes and pin what your organization allows.
+- The sample pins `actions/*@v7`, the current major of `actions/checkout`, `actions/setup-node` and `actions/upload-artifact` on their releases pages (checked 2026-10-04; [checkout](https://github.com/actions/checkout/releases), [setup-node](https://github.com/actions/setup-node/releases)), plus `docker/login-action@v4` and `docker/build-push-action@v7`, whose current majors date from March 2026 ([login-action](https://github.com/docker/login-action/releases), [build-push-action](https://github.com/docker/build-push-action/releases)). With `defaults.run.working-directory: web`, only `run:` steps move into `web/`; action inputs such as `node-version-file` and `cache-dependency-path` stay relative to the repository root, hence `web/.nvmrc`. Read each major's breaking changes and pin what your organization allows.
 
 ---
 
@@ -622,7 +622,7 @@ Three sample files in `examples/web/src/m22-production/deploy/` (**not built or 
 - **Why the fallback exists.** A client-side route is a path the *browser* understands. On a hard refresh the browser asks the *server* for `/orders/7`; unless the server answers with `index.html`, the app never loads and you get a 404.
 - **Why the order matters in nginx.** `location /assets/` with `try_files $uri =404` returns a real 404 for a missing hashed chunk. If the fallback served `index.html` for a stale `index-abc.js` request, the browser would try to execute HTML as JavaScript and fail with a cryptic syntax error; a clean 404 lets your app detect "new version deployed" and reload.
 - **Header inheritance trap in nginx.** `add_header` directives in a `location` **replace** those from the enclosing `server`: they are inherited "if and only if there are no `add_header` directives defined on the current level" ([nginx docs](https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header)). nginx **1.29.3** added `add_header_inherit merge` to append the parent's headers instead, but older versions (most distro packages) don't have it. Put security headers (CSP, `X-Content-Type-Options`) in every location that sets its own, or use an include.
-- **Server-side redirects.** The `/api/` proxy (`proxy_pass http://api:8080;`) is what makes the browser see one origin: no CORS, first-party cookies ([24.1](24-react-with-spring-boot.md#241-architecture-options)). nginx resolves the `api` hostname at start-up; if it does not resolve, nginx refuses to start. In Kubernetes, `api` is the Service name.
+- **Reverse proxy, not a redirect.** The `/api/` proxy (`proxy_pass http://api:8080;`) is what makes the browser see one origin: no CORS, first-party cookies ([24.1](24-react-with-spring-boot.md#241-architecture-options)). nginx resolves the `api` hostname at start-up; if it does not resolve, nginx refuses to start. In Kubernetes, `api` is the Service name.
 - **Rollbacks.** With hashed assets and an immutable image per SHA, a rollback is "point at the previous image": the old `index.html` references old hashed files that are still in that image. On a CDN, **keep old assets for a while** after a deploy, or users with an open tab fetch chunks that were deleted.
 - **Environment-specific behavior** in a static deployment comes from runtime `config.json` (22.5), not from different builds.
 
@@ -708,8 +708,9 @@ repo/
 │   ├── .github/workflows/web-ci.yml  CI pipeline (22.10); path-filtered to web/**
 │   ├── .nvmrc                        pins the Node version for dev and CI
 │   ├── .env.example                  documented build-time variables (VITE_*), no secrets
-│   ├── Dockerfile                    multi-stage build, nginx runtime (22.11)
-│   ├── nginx.conf                    SPA fallback, cache headers, /api proxy (22.12)
+│   ├── deploy/
+│   │   ├── Dockerfile                multi-stage build, nginx runtime (22.11)
+│   │   └── nginx.conf                SPA fallback, cache headers, /api proxy (22.12)
 │   ├── index.html                    Vite entry: the one HTML file; links /src/main.tsx
 │   ├── package.json                  scripts: dev, build, lint, typecheck, test
 │   ├── package-lock.json             exact dependency tree; CI uses npm ci
@@ -959,7 +960,7 @@ Return `index.html` for any path that is not a real file (nginx `try_files $uri 
 **Q25. What cache headers does a Vite build want?**
 <details><summary>Answer</summary>
 
-`Cache-Control: public, max-age=31536000, immutable` for hashed files under `/assets/`; `no-cache` (revalidate) for `index.html` and `config.json`. **A strong answer adds:** keep old assets for a while after deploys for users with open tabs.
+`Cache-Control: public, max-age=31536000, immutable` for hashed files under `/assets/`; `no-cache` (revalidate) for `index.html`; `no-store` for the runtime `config.json` (as in the sample `nginx.conf`). **A strong answer adds:** keep old assets for a while after deploys for users with open tabs.
 
 </details>
 
@@ -1689,7 +1690,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: web/.nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
@@ -1712,7 +1713,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: web/.nvmrc
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
@@ -1728,12 +1729,12 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v7
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: web
           file: web/deploy/Dockerfile

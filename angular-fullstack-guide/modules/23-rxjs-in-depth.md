@@ -151,7 +151,7 @@ Choose by **what the work is**:
 - **writes whose order matters**: `concatMap`;
 - **independent jobs**, with a limit: `mergeMap(fn, n)`.
 
-`expand` (each result may ask for the next) and `mergeScan`/`switchScan` [Added in v7.0] (an **accumulator**, the running state `scan` carries, [22 §6](22-rxjs-foundations.md#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)) are flattening with feedback. A kitchen: a changed order replaces the old ticket, "no second order until this one is served", tickets cooked in the order they came, or n cooks at once.
+`expand` (each result may ask for the next) and `mergeScan`/`switchScan` (`switchScan` [Added in v7.0]; an **accumulator**, the running state `scan` carries, [22 §6](22-rxjs-foundations.md#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)) are flattening with feedback. A kitchen: a changed order replaces the old ticket, "no second order until this one is served", tickets cooked in the order they came, or n cooks at once.
 
 ```mermaid
 flowchart TD
@@ -1739,7 +1739,7 @@ console.log(stopRun('after'));
 
 **Short answer (30 seconds).** Ask whether the value has a *when*. State the template reads now is a signal; events, time, cancellation and coordination of async sources stay RxJS; convert once at the edge, with `toSignal` or `rxResource`. This is design guidance on the tested facts of [section 7](#7-rxjs-and-signals-decision-rules-tosignal-toobservable-and-rxresource), not a documented rule set.
 
-**Full explanation.** Signals win where the read is synchronous: no subscription to end. RxJS wins where the problem has time: a debounce, a request to cancel, two sources to combine. Each conversion has a price the lab asserts. `toObservable` hands over the last of a batch ([Q23.25](#q23-25)). `toSignal` needs an injection context, and an errored source makes every read throw ([Q23.24](#q23-24)). `rxResource` shows `value()` `undefined` while it reloads. Hence a search box: term as a signal, the timing in RxJS, the answer back as a signal.
+**Full explanation.** Signals win where the read is synchronous: no subscription to end. RxJS wins where the problem has time: a debounce, a request to cancel, two sources to combine. Each conversion has a price the lab asserts. `toObservable` hands over the last of a batch ([Q23.25](#q23-25)). `toSignal` needs an injection context, and an errored source makes every read throw ([Q23.24](#q23-24)). `rxResource` shows `value()` `undefined` while it loads new params; `reload()` keeps the old value ([17 §6](17-signals.md#6-resources-async-data-as-signals)). Hence a search box: term as a signal, the timing in RxJS, the answer back as a signal.
 
 **Follow-ups an interviewer will ask.**
 - *Should a service keep a `BehaviorSubject` per field?* No: a field read synchronously fits a signal; migrating at scale is [Q17.40](17-signals.md#q17-40).

@@ -6,7 +6,7 @@
 
 **Code for this module:** [`examples/web/src/m04-html-css/`](examples/web/src/m04-html-css/). Every component has a test next to it. Run them with `npx vitest run src/m04-html-css` from `examples/web`.
 
-> **What was run and what was not.** The tests check what jsdom can check: DOM structure, roles, names, ARIA attributes, class names, keyboard behavior and focus. jsdom has **no layout engine**, so nothing here proves that a Grid area is painted in the right place or that a `z-index` wins. Those statements come from MDN and the CSS specifications, and each one is labelled "(spec)" in the text. Treat them as read, not run.
+> **What was run and what was not.** The tests check what jsdom can check: DOM structure, roles, names, ARIA attributes, class names, keyboard behavior and focus. jsdom has **no layout engine**, so nothing here proves that a Grid area is painted in the right place or that a `z-index` wins. Those statements come from MDN and the CSS specifications, and each one is labeled "(spec)" in the text. Treat them as read, not run.
 
 ---
 
@@ -74,7 +74,7 @@ The browser derives a second tree from the DOM, the **accessibility tree** [Brow
 | **Name** | What is it called? | "Save" |
 | **Description** | Extra help | "Saves the draft" |
 | **State / properties** | What condition is it in? | `expanded=false`, `pressed=true`, `invalid=true` |
-| **Relations** | What is it linked to? | controls, labelled-by, described-by |
+| **Relations** | What is it linked to? | controls, labeled-by, described-by |
 
 ```mermaid
 flowchart LR
@@ -156,7 +156,7 @@ An icon-only button therefore needs `aria-label="Close"` (or visually hidden tex
 | Visually hidden CSS (`clip`, 1px box) | no | yes | yes |
 | `opacity: 0` | no | yes | yes |
 
-`inert` is Baseline Widely available, across browsers since April 2023 ([MDN inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert), read 2026-10-04). In React 19 `inert` is a recognised boolean prop. React 18 did not know the attribute, so the workaround was `inert=""` (plus a type declaration to silence TypeScript); in React 19 the empty string counts as `false`, so that old workaround now turns `inert` **off** ([React PR #24730](https://github.com/facebook/react/pull/24730), listed under 19.0.0 in the [React CHANGELOG](https://github.com/facebook/react/blob/main/CHANGELOG.md)).
+`inert` is Baseline Widely available, across browsers since April 2023 ([MDN inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert), read 2026-10-04). In React 19 `inert` is a recognized boolean prop. React 18 did not know the attribute, so the workaround was `inert=""` (plus a type declaration to silence TypeScript); in React 19 the empty string counts as `false`, so that old workaround now turns `inert` **off** ([React PR #24730](https://github.com/facebook/react/pull/24730), listed under 19.0.0 in the [React CHANGELOG](https://github.com/facebook/react/blob/main/CHANGELOG.md)).
 
 **Live regions.** A region must exist in the DOM **before** its content changes to be reliably announced. Rendering `<div role="alert">Saved</div>` fresh is flaky across screen readers. Render the empty container early and update its text.
 
@@ -217,7 +217,7 @@ The key handler maps ArrowLeft/ArrowRight (with wrap), Home and End to `buttons[
 ### How it works internally
 - `element.focus()` works on anything focusable (native controls, anything with `tabindex`). Calling it inside an **event handler** is fine. Calling it during **render** is a side effect and forbidden; in an effect or a ref callback it is legitimate ([10.2](10-refs-and-dom.md#102-dom-refs-and-when-to-use-them), [10.3](10-refs-and-dom.md#103-callback-refs-and-ref-cleanup-functions)).
 - React's `onFocus`/`onBlur` **bubble** (they use `focusin`/`focusout` semantics), unlike native `focus`/`blur`. That is why a container can listen to `onBlur` for "focus left the widget" and check `e.relatedTarget`.
-- **Focus-visible.** `:focus-visible` shows the ring for keyboard focus and not for mouse clicks on buttons. Never write `outline: none` without a replacement; WCAG 2.4.7 requires a visible indicator and 2.4.11 (2.2) says it must not be hidden behind sticky UI. `:focus-visible` is Baseline Widely available, across browsers since March 2022 ([MDN `:focus-visible`](https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible)).
+- **Focus-visible.** `:focus-visible` shows the ring for keyboard focus and not for mouse clicks on buttons. Never write `outline: none` without a replacement; WCAG 2.4.7 requires a visible indicator and 2.4.11 (2.2) says the focused component must not be entirely hidden by author content such as sticky headers. `:focus-visible` is Baseline Widely available, across browsers since March 2022 ([MDN `:focus-visible`](https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible)).
 - **Dialogs.** On open, move focus **into** the dialog (the dialog itself with `tabIndex={-1}`, or its first control). Keep Tab inside while it is modal. On close, **return focus to the trigger**. A native `<dialog>` opened with `showModal()` does the inert background, Esc and initial focus for you (MDN: Baseline Widely available since March 2022; read 2026-10-04). Our hand-written version needs the pieces: [10.6 portals](10-refs-and-dom.md#106-portals) and the trap in [26.6](26-machine-coding.md#266-modal-with-focus-trap).
 - **Route changes** in SPAs do not move focus; the browser does not reload. Move focus to the new `<h1>` or a wrapper with `tabIndex={-1}` and update `document.title` ([19](19-routing.md)).
 - **Skip link.** A first-in-DOM `<a href="#main-content">` that becomes visible on focus satisfies WCAG 2.4.1 (Bypass Blocks). Target `<main tabIndex={-1}>` so it can receive focus.
@@ -426,7 +426,7 @@ A grid container defines **tracks** (rows and columns); children are placed into
 ```
 
 ### How it works internally
-- **`fr`** divides the **remaining** space after fixed tracks and gaps. `1fr` is really `minmax(auto, 1fr)`, so content can blow the track out. `minmax(0, 1fr)` is the Grid twin of the flex `min-width: 0` trap (spec: CSS Grid §7.2.3).
+- **`fr`** divides the **remaining** space after fixed tracks and gaps. `1fr` is really `minmax(auto, 1fr)`, so content can blow the track out. `minmax(0, 1fr)` is the Grid twin of the flex `min-width: 0` trap (spec: CSS Grid §7.2.4).
 - **`auto-fill` vs `auto-fit`** with `repeat(…, minmax(16rem, 1fr))`: both create as many tracks as fit; with few items, `auto-fill` keeps empty tracks and `auto-fit` collapses them so items stretch.
 - **Implicit grid.** Items that do not fit the template create extra rows (`grid-auto-rows`) or columns (`grid-auto-columns`). `grid-auto-flow: dense` backfills holes and **reorders visually** (an a11y hazard).
 - **Subgrid** lets a child grid reuse the parent's tracks (aligning card titles, bodies and footers across cards). Available across browsers since September 2023 ([MDN Subgrid](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Subgrid)).
@@ -492,7 +492,7 @@ Components in `examples/web/src/m04-html-css/` (Exercise 3):
 - `position: fixed` or `sticky` (always)
 - a **flex or grid child** with `z-index` ≠ `auto`
 - `opacity` **< 1**
-- `transform`, `filter`, `backdrop-filter`, `perspective`, `clip-path`, `mask`, `mix-blend-mode` other than their initial value
+- `transform` (and the individual `translate`, `rotate`, `scale`), `filter`, `backdrop-filter`, `perspective`, `clip-path`, `mask`, `mix-blend-mode` other than their initial value
 - `isolation: isolate`
 - `will-change` naming any of the above
 - `contain: layout | paint | strict | content`
@@ -505,7 +505,7 @@ Components in `examples/web/src/m04-html-css/` (Exercise 3):
 **Fixes, in order of preference:**
 1. **Portal** [React DOM]: `createPortal(modal, document.body)` renders the DOM node **outside** the offending ancestor, while React events and context still bubble through the **React** tree ([10.6](10-refs-and-dom.md#106-portals)).
 2. **Native top layer**: a `<dialog>` opened with `showModal()` and elements with the `popover` attribute render in the **top layer**, above all stacking contexts regardless of z-index (MDN: `<dialog>` Baseline Widely available since March 2022). In React, call `ref.current?.showModal()` from an effect or event handler.
-3. **Remove the culprit** (`transform` where `translate` would do, `will-change` left on permanently).
+3. **Remove the culprit** (a `transform` left on a wrapper after its animation finished, `will-change` left on permanently). Swapping `transform` for the `translate` property does not help: it creates the same stacking context and containing block.
 4. **Contain your own z-indexes** with `isolation: isolate` on a component root, so its internal z-indexes cannot leak and its siblings cannot surprise it.
 5. Use a **z-index scale** (CSS custom properties: `--z-dropdown: 100; --z-modal: 1000`) instead of ever-larger magic numbers.
 
@@ -610,7 +610,7 @@ const style = { '--accent': accent } as CSSProperties;
 - **Custom properties** are strings substituted at computed-value time. An unregistered property has no type, so it cannot be animated or validated. `@property` registers a type, initial value and inheritance (and is relied on by Tailwind v4, see 4.11). `@property` has been Baseline since July 2024, when Firefox 128 shipped it ([web-features: registered custom properties](https://web-platform-dx.github.io/web-features-explorer/features/registered-custom-properties/)).
 - **`:has()`** is Baseline Widely available, across browsers since December 2023 ([MDN `:has()`](https://developer.mozilla.org/en-US/docs/Web/CSS/:has), read 2026-10-04). Its argument is a **relative selector list**, and it takes the specificity of its most specific argument. It can be expensive on huge DOMs; keep the subject narrow (`.card:has(img)`, not `*:has(img)`).
 - **Nesting.** The relaxed syntax (bare `.title { }` without `&`) is supported in current engines; the old strict form required `&` for type selectors. You **cannot** concatenate (`&__title` for BEM) the way Sass can (MDN, read 2026-10-04). Nesting has been Baseline since December 2023 (Chrome 120 and Safari 17.2) and Widely available since June 2026 ([web-features: nesting](https://web-platform-dx.github.io/web-features-explorer/features/nesting/)).
-- **React note.** The `style` prop accepts custom properties only as string keys beginning with `--`; React calls `style.setProperty` for them, and TypeScript's `CSSProperties` needs the cast above. The test checks `card.style.getPropertyValue('--accent')` (jsdom's CSSStyleDeclaration; run-confirmation pending, see the report).
+- **React note.** The `style` prop accepts custom properties only as string keys beginning with `--`; React calls `style.setProperty` for them, and TypeScript's `CSSProperties` needs the cast above. The test checks `card.style.getPropertyValue('--accent')` (jsdom's `CSSStyleDeclaration` handles `--*` properties; read in the jsdom 30 source).
 - Other modern pieces worth naming: `color-mix()`, `oklch()`, `light-dark()`, `@starting-style`, `text-wrap: balance`, `aspect-ratio`, the `popover` attribute, view transitions ([21.10](21-concurrent-ssr-server-components.md#2110-viewtransition)). Status read from [web-features](https://web-platform-dx.github.io/web-features-explorer/) on 2026-10-04: `aspect-ratio`, `color-mix()` and `oklch()` are Widely available; `light-dark()` and `text-wrap: balance` (May 2024), `@starting-style` (August 2024), `popover` (January 2025) and same-document view transitions (October 2025, Firefox 144) are Newly available, so check your support targets for those.
 
 ### Trade-offs
@@ -674,6 +674,7 @@ Tailwind (illustrative, **not run**: no Tailwind in `examples/web`):
 **Tailwind** [Library: Tailwind CSS]. A scanner finds class-name strings in your source and generates only the utilities used. Because it scans **text**, dynamic names like `` `bg-${color}-500` `` never match; write full class names (or a lookup map).
 
 *v3 to v4* (tailwindcss.com upgrade guide, read 2026-10-04; VERSIONS.md: v4 latest 4.3.3, v3 LTS 3.4.19):
+
 | v3 | v4 |
 |---|---|
 | `@tailwind base; @tailwind components; @tailwind utilities;` | `@import "tailwindcss";` |
@@ -685,15 +686,16 @@ Tailwind (illustrative, **not run**: no Tailwind in `examples/web`):
 | PostCSS plugin `tailwindcss` | `@tailwindcss/postcss`; also `@tailwindcss/vite`, `@tailwindcss/cli` |
 | `!flex` important | `flex!` (trailing) |
 | browsers: broad | Safari 16.4+, Chrome 111+, Firefox 128+ (relies on `@property`, `color-mix()`, layers) |
+
 Upgrade tool: `npx @tailwindcss/upgrade` (Node 20+).
 
 **Runtime CSS-in-JS** [Library: styled-components, Emotion]. `styled.button` serializes the template with the component's props into a CSS string during render, hashes it to a class name, and injects a `<style>` rule into the document. Two consequences:
 1. **Per-render cost** on the client main thread, and a style-insertion step that React 18 added a hook for, `useInsertionEffect` ([9.8](09-effects.md#98-useinsertioneffect)), precisely so libraries could inject rules before layout.
 2. **They depend on React context and hooks**, so they cannot run in a **Server Component** ([21.7](21-concurrent-ssr-server-components.md#217-server-components-the-mental-model-clientserver-boundary)). Components using them need `'use client'`, and SSR needs a **registry** that collects rules while streaming and flushes them into `<head>`. You can still server-render client components, but you lose the "ships no JS for this component" benefit.
 
-Status (read 2026-10-04): the styled-components maintainer announced **maintenance mode on 2025-03-17** and said he would not recommend it for new projects, noting it does not work in Server Components without `'use client'` (["Thank you", Open Collective, 2025-03-17](https://opencollective.com/styled-components/updates/thank-you)). In March 2026 the same maintainer wrote that he had put "a functional RSC setup together" and pointed to a 6.4.0 release candidate, and v7 prereleases followed (["A Whole New World"](https://opencollective.com/styled-components/updates/a-whole-new-world), [releases](https://github.com/styled-components/styled-components/releases)), so check the current release before calling it RSC-incompatible. > **Unverified:** Emotion's maintenance status; check the dates on [its releases page](https://github.com/emotion-js/emotion/releases). MUI's own Emotion-based styling is discussed in 4.12.
+Status (read 2026-10-04): the styled-components maintainer announced **maintenance mode on 2025-03-17** and said he would not recommend it for new projects, noting it does not work in Server Components without `'use client'` (["Thank you", Open Collective, 2025-03-17](https://opencollective.com/styled-components/updates/thank-you)). In March 2026 the same maintainer wrote that he had put "a functional RSC setup together" and pointed to a 6.4.0 release candidate, and v7 prereleases followed (["A Whole New World"](https://opencollective.com/styled-components/updates/a-whole-new-world), [releases](https://github.com/styled-components/styled-components/releases)), so check the current release before calling it RSC-incompatible. **Unverified:** Emotion's maintenance status; check the dates on [its releases page](https://github.com/emotion-js/emotion/releases). MUI's own Emotion-based styling is discussed in 4.12.
 
-**Zero-runtime** options (vanilla-extract, Linaria, StyleX, Panda CSS) extract CSS at build time and emit class names, so they are RSC-compatible. MUI introduced its own zero-runtime engine, Pigment CSS, as an opt-in in Material UI v6 ([upgrade to v6](https://mui.com/material-ui/migration/upgrade-to-v6/)). > **Unverified:** the current maintenance state of vanilla-extract, Linaria, StyleX, Panda CSS and Pigment CSS; check each project's releases page for recent activity before recommending one.
+**Zero-runtime** options (vanilla-extract, Linaria, StyleX, Panda CSS) extract CSS at build time and emit class names, so they are RSC-compatible. MUI introduced its own zero-runtime engine, Pigment CSS, as an opt-in in Material UI v6 ([upgrade to v6](https://mui.com/material-ui/migration/upgrade-to-v6/)). **Unverified:** the current maintenance state of vanilla-extract, Linaria, StyleX, Panda CSS and Pigment CSS; check each project's releases page for recent activity before recommending one.
 
 ### Trade-offs: what I would pick
 - **Default: CSS Modules + custom properties** for a team that owns the design. Zero runtime, RSC-safe, nothing to learn, easy to test (class names via regex, ARIA via roles).
@@ -750,7 +752,7 @@ import { Button } from '@mui/material';
 ### How it works internally
 - **Radix Primitives** "handle aria and role attributes, focus management, and keyboard navigation", ship **unstyled**, and expose composition via `asChild`, which renders your element instead of the default one and merges props, refs and handlers into it ([Radix intro](https://www.radix-ui.com/primitives/docs/overview/introduction), read 2026-10-04). It can be installed per component (`@radix-ui/react-*`) or as the umbrella `radix-ui` package. Dialog content renders in a **portal**, which is exactly the stacking-context fix from 4.8, with the focus trap and focus return handled for you.
 - **shadcn/ui** describes itself as "not a component library. It is how you build your component library": a CLI and registry that **copies the component source** into your project ([ui.shadcn.com/docs](https://ui.shadcn.com/docs), read 2026-10-04). Components are typically Radix + Tailwind; the CLI initializes new projects with Tailwind v4, and existing Tailwind v3 / React 18 apps keep working ([shadcn/ui Tailwind v4 notes](https://ui.shadcn.com/docs/tailwind-v4)).
-- **MUI (Material UI)** [Library: MUI] ships styled components with a theme system on Emotion by default. **Major versions (read from mui.com blog and migration pages, 2026-10-04):** Material UI went **v7 directly to v9; there is no v8**, to align its major version with MUI X; v9 removes deprecated props such as `component` and `componentsProps` on many components (the replacement is the slots / `slotProps` API) and improved Tabs and Menu accessibility ([Introducing Material UI and MUI X v9](https://mui.com/blog/introducing-mui-v9/), [upgrade to v9](https://mui.com/material-ui/migration/upgrade-to-v9/)). VERSIONS.md lists `@mui/material` 9.4.0 and v7 = 7.3.11. Earlier majors: v5 replaced JSS with Emotion as the default styling engine ([v4→v5 migration](https://mui.com/material-ui/migration/migration-v4/)); v6 stabilized CSS theme variables (`CssVarsProvider`, `extendTheme`), added `theme.applyStyles()` and introduced opt-in Pigment CSS ([upgrade to v6](https://mui.com/material-ui/migration/upgrade-to-v6/)); v7 changed the package layout to a proper ESM/CommonJS `exports` map, moved Lab components into `@mui/material` and removed deprecated APIs such as `createMuiTheme` and `Hidden` ([upgrade to v7](https://mui.com/material-ui/migration/upgrade-to-v7/)).
+- **MUI (Material UI)** [Library: MUI] ships styled components with a theme system on Emotion by default. **Major versions (read from mui.com blog and migration pages, 2026-10-04):** Material UI went **v7 directly to v9; there is no v8**, to align its major version with MUI X; v9 removes deprecated props such as `components` and `componentsProps` on many components (the replacement is the slots / `slotProps` API) and improved Tabs and Menu accessibility ([Introducing Material UI and MUI X v9](https://mui.com/blog/introducing-mui-v9/), [upgrade to v9](https://mui.com/material-ui/migration/upgrade-to-v9/)). VERSIONS.md lists `@mui/material` 9.4.0 and v7 = 7.3.11. Earlier majors: v5 replaced JSS with Emotion as the default styling engine ([v4→v5 migration](https://mui.com/material-ui/migration/migration-v4/)); v6 stabilized CSS theme variables (`CssVarsProvider`, `extendTheme`), added `theme.applyStyles()` and introduced opt-in Pigment CSS ([upgrade to v6](https://mui.com/material-ui/migration/upgrade-to-v6/)); v7 changed the package layout to a proper ESM/CommonJS `exports` map, moved Lab components into `@mui/material` and removed deprecated APIs such as `createMuiTheme` and `Hidden` ([upgrade to v7](https://mui.com/material-ui/migration/upgrade-to-v7/)).
 - **Headless libraries** differ in model: Radix gives **components** (compound parts), React Aria gives **hooks** (`useButton`, `useComboBox`) and a components layer, Headless UI is a Tailwind-Labs set of components. **Base UI** is an unstyled React component library from the teams behind Radix, Material UI and Floating UI, maintained in the MUI organization and past 1.0 ([Base UI: About](https://base-ui.com/react/overview/about)).
 
 ### Trade-offs
@@ -806,7 +808,7 @@ On the **control** that shows or hides content: disclosure buttons, accordion he
 **Q6. What is the difference between `display: none`, `visibility: hidden`, `aria-hidden`, `opacity: 0` and `inert`?**
 <details><summary>Answer</summary>
 
-See the table in 4.2. `display: none` and `visibility: hidden` remove from layout/paint and the accessibility tree; `aria-hidden` removes **only** from the tree and leaves the element focusable; `opacity: 0` keeps everything; `inert` removes focus, interaction and the tree while staying visible. **A strong answer adds:** in jsdom, `toBeVisible()` fails for `hidden` and `display: none`, and such elements have no accessible name so `getByRole({ name })` cannot find them (use `getByText`), which `Disclosure.test.tsx` relies on.
+See the table in 4.2. `display: none` and `visibility: hidden` remove from layout/paint and the accessibility tree; `aria-hidden` removes **only** from the tree and leaves the element focusable; `opacity: 0` keeps everything; `inert` removes focus, interaction and the tree while staying visible. **A strong answer adds:** in jsdom, `toBeVisible()` fails for `hidden` and `display: none`, and such elements are excluded from the accessibility tree, so `getByRole` skips them by default (`{ hidden: true }` includes them; or use `getByText`), which `Disclosure.test.tsx` relies on.
 
 </details>
 
@@ -1027,7 +1029,7 @@ Each exercise has a test file in `examples/web/src/m04-html-css/`. **Layout and 
 1. Which element? A native `<button type="button">`: role, focus, Enter/Space come free.
 2. State: `open` boolean, `aria-expanded={open}`.
 3. Id: `useId()` for the panel, referenced by `aria-controls`.
-4. Hiding: the `hidden` attribute (removes from layout and tree; our tests use `getByText`, because hidden content has no accessible name).
+4. Hiding: the `hidden` attribute (removes from layout and tree; our tests use `getByText`, because hidden content is excluded from the accessibility tree and `getByRole` skips it by default).
 
 <details><summary>Hints</summary>
 
@@ -1083,7 +1085,7 @@ export function Disclosure({ summary, children, defaultOpen = false }: Props) {
 **Interviewer follow-ups.**
 - "Why not `<details>`/`<summary>`?" It is a good native option (use it when you do not need controlled state or animation). The button version is controllable from React and animatable.
 - "Make it an accordion." Lift `openId` to a parent so one opens at a time, use headings around the buttons, and follow [26.4](26-machine-coding.md#264-accordion).
-- "Animate the height." Animate with CSS grid-rows transition or the Web Animations API; keep `hidden` semantics for the end state. > **Unverified:** the exact cross-browser recipe (the `grid-template-rows: 0fr → 1fr` transition, and whether `interpolate-size` / `calc-size()` is usable in your target browsers); check MDN `grid-template-rows` and `interpolate-size` compatibility tables.
+- "Animate the height." Animate with CSS grid-rows transition or the Web Animations API; keep `hidden` semantics for the end state. **Unverified:** the exact cross-browser recipe (the `grid-template-rows: 0fr → 1fr` transition, and whether `interpolate-size` / `calc-size()` is usable in your target browsers); check MDN `grid-template-rows` and `interpolate-size` compatibility tables.
 - "SSR?" `useId` is stable between server and client, so there is no hydration mismatch.
 
 **Tests.** [`Disclosure.test.tsx`](examples/web/src/m04-html-css/Disclosure.test.tsx): collapsed state, `aria-controls` wiring, click toggle, Tab/Enter/Space with focus retained, `defaultOpen`.
@@ -1331,8 +1333,8 @@ import { useState } from 'react';
 import { CenteredModal } from './CenteredModal';
 
 // The "animated page wrapper" that breaks position: fixed and z-index for its descendants.
-// Any of transform, filter, perspective, opacity < 1, will-change: transform, contain: paint
-// on an ancestor does the same thing.
+// Any of transform, filter, perspective, will-change: transform, contain: paint on an ancestor
+// does the same thing (opacity < 1 traps z-index only, not position: fixed).
 export function TransformedPage({ portal }: { portal: boolean }) {
   const [open, setOpen] = useState(false);
   return (
@@ -1547,7 +1549,7 @@ export function AccentCard({ title, accent, children }: Props) {
 5. **`outline: none` with no replacement** removes the only focus indicator (WCAG 2.4.7). Use `:focus-visible` styles.
 6. **A live region created together with its text** is announced unreliably. Mount the empty region first.
 7. **`aria-label` on a `<div>` or `<span>` with no role** is ignored by many screen readers. Names belong on interactive or landmark elements.
-8. **`display: none` content has no accessible name.** In tests, `getByRole('region', { name })` cannot find a hidden panel; use `getByText`. (Verified in this repo's jsdom tests.)
+8. **`display: none` content is excluded from the accessibility tree.** In tests, `getByRole('region', { name })` skips a hidden panel by default; pass `{ hidden: true }` or use `getByText`. (Verified in this repo's jsdom tests.)
 9. **`z-index` on a non-positioned element does nothing** (except flex/grid items). It looks like a bug; it is the rule.
 10. **`opacity: 0.99`, `transform`, `filter`, `will-change` create stacking contexts.** A "harmless" animation class on a wrapper can bury a dropdown.
 11. **A transformed ancestor re-parents `position: fixed`.** The modal covers the wrapper, not the viewport. Portal it out.
@@ -1556,7 +1558,7 @@ export function AccentCard({ title, accent, children }: Props) {
 14. **`100vh` on mobile** includes the area under dynamic toolbars; use `100dvh` (or `svh`) when the content must fit. The units are Baseline since December 2022 ([web-features](https://web-platform-dx.github.io/web-features-explorer/features/viewport-unit-variants/)).
 15. **Margins do not collapse in flex/grid**, but do between block siblings; adding `padding: 1px` to a parent "fixes" a collapse for the wrong reason. Prefer `gap` and `flow-root`.
 16. **`className` for Tailwind built dynamically** (`` `text-${color}-500` ``) is never generated, because the scanner reads source text. Use complete class names.
-17. **CSS Module class names are not stable in tests.** Assert with a regex (`/_main_/`) and never copy a hash into an expectation.
+17. **CSS Module class names in tests are not your real class names.** Vitest's default `stable` strategy returns `_<name>_<hash of the file path>`, so the hash changes when the file moves and never matches production. Assert with a regex (`/_main_/`) and never copy a hash into an expectation.
 18. **jsdom's `getComputedStyle`** handles inline styles and some stylesheet rules; it computes no layout. `getBoundingClientRect` returns zeros, so "is it above the header" is unverifiable there.
 19. **Styled-components in a Server Component** fails: it needs `'use client'`. The maintainer put the library into maintenance mode on 2025-03-17.
 20. **`React.CSSProperties` rejects `--x` keys.** Cast the object. Also, number values get `px` automatically **only** for non-unitless properties (`opacity: 0.5` stays `0.5`; `lineHeight: 1.5` stays unitless).

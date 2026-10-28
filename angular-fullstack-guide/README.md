@@ -381,7 +381,7 @@ The guide's own checks live in `labs/tools/`, run from the guide root:
 
 A question may carry two tags, such as `Difference · Output`.
 
-**Code.** A snippet is one of four kinds: complete (identical to a lab file, with a source link under it), an excerpt of a lab file (its first line names the file), an output snippet (the code the test named after the question ID runs), or partial (its first line says what is omitted or assumed). Java and Spring snippets begin with a comment saying they are illustrative and not compiled in the labs; their APIs are checked against the Spring documentation.
+**Code.** A snippet is one of five kinds: complete (identical to a lab file, with a source link under it), an excerpt of a lab file (its first line names the file), an output snippet (the code the test named after the question ID runs), partial (its first line says what is omitted or assumed), or Java and Spring, which begins with a comment saying it is illustrative and not compiled in the labs; its APIs are checked against the Spring documentation.
 
 **Callouts.** *Framework vs platform* separates what Angular adds from what TypeScript, JavaScript or the browser provide natively. *Coming from the backend* compares a Spring or Java idea with its Angular counterpart and states where the analogy breaks. *Legacy / deprecated* marks the old way, why it changed and the migration path.
 

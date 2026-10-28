@@ -51,7 +51,7 @@ These are templates. Replace the nouns, keep the shape.
 | Phase | What to say |
 |---|---|
 | Opening (min 0–5) | "Let me restate it to check I have it: [one sentence]. Questions before I start: is the data static or fetched? Do I need keyboard and screen-reader support? Is there anything out of scope? I will assume [X] and write it at the top of the file so we can change it." |
-| Skeleton | "I will start with static JSX and hard-coded data so there is something on screen, then add behaviour. The component is `[Name]`, its props are [A, B]." |
+| Skeleton | "I will start with static JSX and hard-coded data so there is something on screen, then add behavior. The component is `[Name]`, its props are [A, B]." |
 | State shape | "The source of truth is `[items]` and `[filter]`. The visible rows and the count are derived, so they are not state. If I stored them I would have to keep three things in sync." |
 | Before running | "I expect typing in the box to filter the list immediately and the count to drop to 2." |
 | After a surprise | "That is not what I expected. The count did not update. My first guess is [stale value / wrong key / I am mutating]. I will check by [logging X / reading the handler]." |
@@ -138,8 +138,8 @@ Common practice (varies by company; treat as opinion, not fact):
 - **Does it run on the first try?** A reviewer who cannot start the project in two minutes may stop. Test on a fresh clone.
 - **Does it satisfy the stated requirements?** Re-read the brief; list each requirement in the README.
 - **Scope discipline.** A finished small solution beats an unfinished ambitious one. The usual instruction is "spend about N hours"; respect it, and say honestly what that bought.
-- **Tests.** A few meaningful tests of behaviour, as [20](20-testing.md) shows, beat a coverage number. Test one happy path, one error path and the trickiest logic.
-- **Trade-offs are visible.** Reviewers read for judgement. "I did not add Redux because…" is a stronger signal than adding it.
+- **Tests.** A few meaningful tests of behavior, as [20](20-testing.md) shows, beat a coverage number. Test one happy path, one error path and the trickiest logic.
+- **Trade-offs are visible.** Reviewers read for judgment. "I did not add Redux because…" is a stronger signal than adding it.
 - **Code quality.** Small components, derived state, no dead code, typed props, sensible names, consistent formatting (run the formatter and linter).
 - **Accessibility and error/empty/loading states.** These are the details that distinguish a thoughtful solution from a demo.
 - **Git history** (if you submit a repo): a few meaningful commits, not one "final" commit and not forty "wip" commits.
@@ -181,18 +181,18 @@ Read it as passes. Each item is a question to ask of the code.
 | **3. Accessibility** | Is every control a real element (`button`, `a`, `input`) with an accessible name? Are labels associated? Do async changes (loading, errors, result counts) reach a screen reader (`role="status"`, `role="alert"`)? Is it keyboard-operable? ([04](04-html-css-accessibility.md)) |
 | **4. Performance** | Only after correctness: unneeded renders, work in render, huge lists, a request per keystroke ([15](15-performance.md)). Name a measurement before recommending memoization. |
 | **5. Security** | `dangerouslySetInnerHTML` with untrusted data, user input in URLs, secrets in the client bundle, tokens in `localStorage`, unvalidated server data trusted by type only ([03](03-browser-and-web-platform.md), [24](24-react-with-spring-boot.md)). |
-| **6. Tests** | What would I assert? Is the behaviour testable (injectable fetcher, no hidden global)? Does a test exist for the unhappy path ([20](20-testing.md))? |
+| **6. Tests** | What would I assert? Is the behavior testable (injectable fetcher, no hidden global)? Does a test exist for the unhappy path ([20](20-testing.md))? |
 | **7. Naming and structure** | Do names say what things are (`users`, not `data`)? Is the component doing too much? Is there a custom hook hiding there? |
 
 #### How to deliver the review
-Say, in this order: **(1)** one-sentence summary of what the component does, **(2)** the most important issue and why it hurts the *user*, **(3)** the others grouped by pass, **(4)** what you would change first, **(5)** what is good. Label severity ("must fix", "should fix", "nit"). Phrase findings as the behaviour that goes wrong: "if the user types `ab` quickly, the results for `a` can replace the results for `ab`", not "you forgot an abort".
+Say, in this order: **(1)** one-sentence summary of what the component does, **(2)** the most important issue and why it hurts the *user*, **(3)** the others grouped by pass, **(4)** what you would change first, **(5)** what is good. Label severity ("must fix", "should fix", "nit"). Phrase findings as the behavior that goes wrong: "if the user types `ab` quickly, the results for `a` can replace the results for `ab`", not "you forgot an abort".
 
 ### How it works internally: the example component
-`examples/web/src/m27-interview/UserSearchFlawed.tsx` is a user search box. It type-checks and passes lint; every flaw is a behaviour or design flaw. This is deliberate: the hooks lint rules catch some bugs mechanically ([9.6](09-effects.md#96-you-might-not-need-an-effect)), but review is for the rest.
+`examples/web/src/m27-interview/UserSearchFlawed.tsx` is a user search box. It type-checks and passes lint; every flaw is a behavior or design flaw. This is deliberate: the hooks lint rules catch some bugs mechanically ([9.6](09-effects.md#96-you-might-not-need-an-effect)), but review is for the rest.
 
 The flaws, in the order a good reviewer would raise them:
 
-1. **Race condition [React/Browser].** `handleChange` starts a request per keystroke and writes whatever returns, in arrival order. Responses can arrive in a different order than they were sent, so the list can show results for an older query. There is no `AbortController` and no check that the response belongs to the current query.
+1. **Race condition [React] [Browser].** `handleChange` starts a request per keystroke and writes whatever returns, in arrival order. Responses can arrive in a different order than they were sent, so the list can show results for an older query. There is no `AbortController` and no check that the response belongs to the current query.
 2. **Loading flag is wrong.** `setLoading(false)` runs when *any* request finishes, so the spinner disappears while the latest request is still pending.
 3. **No error handling.** A rejected promise is never caught: no message, and an unhandled rejection in the browser console.
 4. **Derived state stored in state.** `count` is `users.length`, kept in a second `useState` and set by hand. It is one line from drifting out of sync.
@@ -204,11 +204,11 @@ The flaws, in the order a good reviewer would raise them:
 
 `UserSearchFixed.tsx` fixes 1–7 this way: the request lives in an **effect** keyed on the trimmed query, because the effect is genuinely synchronizing with an external system; the cleanup calls `abort()`; the stored result carries the query it answered, so the component only *shows* an answer whose query equals the current one; `loading` and the result count are **derived during render**; an error is stored and rendered in `role="alert"`; the input has a `<label>`; results are `<ul>` with real `<button>`s keyed by `id`; the status has `role="status"`.
 
-> **Version notes.** React 18 Strict Mode runs the effect twice in development (setup, cleanup, setup), so the first request is aborted immediately. The fixed component is correct under that because abort is exactly what cleanup is for ([9.10](09-effects.md#910-strict-mode-remounting-and-what-it-reveals)). With React 19 and a data library, the same job is usually a query hook that does the abort and cache for you ([17](17-data-fetching.md)).
+> **Version notes.** Since React 18, Strict Mode runs the effect twice in development (setup, cleanup, setup), so the first request is aborted immediately. The fixed component is correct under that because abort is exactly what cleanup is for ([9.10](09-effects.md#910-strict-mode-remounting-and-what-it-reveals)). With React 19 and a data library, the same job is usually a query hook that does the abort and cache for you ([17](17-data-fetching.md)).
 
 ### Trade-offs
 - ✅ A pass-ordered review is quick to run and easy for the interviewer to follow.
-- ✅ Behavioural phrasing makes the cost of each issue concrete.
+- ✅ Behavioral phrasing makes the cost of each issue concrete.
 - ❌ Do not rewrite everything. In an interview, fix the top two or three issues, list the rest and ask which to continue with.
 - ❌ Do not criticise the author. Prefer "what happens if…" to "this is wrong".
 
@@ -298,7 +298,7 @@ Common practice is that behavioral prompts probe a small set of traits: ownershi
 
 ### Trade-offs
 - ✅ A bank of reusable stories means you can answer most prompts with something you have already told aloud.
-- ❌ A memorised script sounds memorised. Know the beats, not the sentences.
+- ❌ A memorized script sounds memorized. Know the beats, not the sentences.
 - ❌ Backend stories without a front-end bridge leave the interviewer wondering about fit. End each with one sentence on how the lesson applies to a UI or full-stack team, but do not invent front-end experience you do not have.
 
 ---
@@ -335,7 +335,7 @@ Practise it aloud until it takes about 60 seconds and ends with a reason about *
 | Strength | How it helps a full-stack team |
 |---|---|
 | API design and contracts | You can design endpoints, pagination and errors that make the UI simple, and can review a front-end team's API needs ([24](24-react-with-spring-boot.md)). |
-| Data modelling (PostgreSQL) | Normalised thinking helps shape client-side state and caches; you know what a join costs. |
+| Data modeling (PostgreSQL) | Normalized thinking helps shape client-side state and caches; you know what a join costs. |
 | Reliability and failure modes | Timeouts, retries, idempotency, partial failure: these are the unhappy paths UIs forget ([16](16-error-handling.md)). |
 | Caching and consistency (Redis) | Maps directly to client caches, `staleTime` and invalidation ([17](17-data-fetching.md)). |
 | Security | AuthN/AuthZ, CORS, CSRF, token storage: the browser side of what you have secured on the server ([03](03-browser-and-web-platform.md)). |
@@ -478,21 +478,21 @@ Respect the box and say what it bought. Finish the required flow well (loading, 
 **Q8. Which tests do you include in a take-home?**
 <details><summary>Answer</summary>
 
-A few that assert behaviour through the UI: the main happy path, one error or empty path, and the trickiest logic (a reducer, a race, a pure helper). Coverage percentage is not the goal ([20](20-testing.md)). **A strong answer adds:** the tests are written against what the user sees, so a refactor does not break them.
+A few that assert behavior through the UI: the main happy path, one error or empty path, and the trickiest logic (a reducer, a race, a pure helper). Coverage percentage is not the goal ([20](20-testing.md)). **A strong answer adds:** the tests are written against what the user sees, so a refactor does not break them.
 
 </details>
 
 **Q9. What do you put in the README?**
 <details><summary>Answer</summary>
 
-How to run and test, what is implemented against each requirement, decisions and trade-offs (including what you did not use and why), known gaps, and time spent. **A strong answer adds:** a "what I would do next" list, which shows judgement.
+How to run and test, what is implemented against each requirement, decisions and trade-offs (including what you did not use and why), known gaps, and time spent. **A strong answer adds:** a "what I would do next" list, which shows judgment.
 
 </details>
 
 **Q10. You are asked to review a component. How do you start?**
 <details><summary>Answer</summary>
 
-Summarise what it does, then review in passes, highest risk first: correctness (including unhappy paths and overlapping events), React-specific issues, accessibility, performance, security, tests, naming. Report the most user-impacting issue first. **A strong answer adds:** you phrase findings as behaviour ("typing quickly can show the wrong results") and mark severity.
+Summarize what it does, then review in passes, highest risk first: correctness (including unhappy paths and overlapping events), React-specific issues, accessibility, performance, security, tests, naming. Report the most user-impacting issue first. **A strong answer adds:** you phrase findings as behavior ("typing quickly can show the wrong results") and mark severity.
 
 </details>
 
@@ -527,7 +527,7 @@ When items are reordered, inserted or removed, React matches by key, so an index
 **Q15. Name a bug a linter will not catch that you would raise in review.**
 <details><summary>Answer</summary>
 
-A race between requests, a missing error state, a wrong loading flag, or derived state kept in state. These are behavioural, and the flawed example passes both `tsc` and ESLint. **A strong answer adds:** which test would reveal each one.
+A race between requests, a missing error state, a wrong loading flag, or derived state kept in state. These are behavioral, and the flawed example passes both `tsc` and ESLint. **A strong answer adds:** which test would reveal each one.
 
 </details>
 
@@ -576,7 +576,7 @@ Name them without apology: CSS and layout depth, production React at scale, perf
 **Q22. What transfers from backend to front end?**
 <details><summary>Answer</summary>
 
-API and contract design, data modelling, failure thinking (timeouts, retries, idempotency), cache and consistency reasoning, security basics, testing and debugging discipline, observability. **A strong answer adds:** a one-line example for each you claim, and a note on what does not transfer: the UI is long-lived and event-driven.
+API and contract design, data modeling, failure thinking (timeouts, retries, idempotency), cache and consistency reasoning, security basics, testing and debugging discipline, observability. **A strong answer adds:** a one-line example for each you claim, and a note on what does not transfer: the UI is long-lived and event-driven.
 
 </details>
 
@@ -604,14 +604,14 @@ Pay, perks and vacation (ask the recruiter), anything on the careers page, and q
 **Q26. The interviewer says you can use an AI assistant. How do you handle it?**
 <details><summary>Answer</summary>
 
-Treat it as a tool you must be able to explain: state the prompt in a sentence, read the output before accepting it, narrate what you check (types, edge cases, accessibility), and write the tests yourself. Ask first what is allowed. **A strong answer adds:** you catch and fix one thing the assistant got wrong, which shows judgement. This reflects common practice, which varies; ask.
+Treat it as a tool you must be able to explain: state the prompt in a sentence, read the output before accepting it, narrate what you check (types, edge cases, accessibility), and write the tests yourself. Ask first what is allowed. **A strong answer adds:** you catch and fix one thing the assistant got wrong, which shows judgment. This reflects common practice, which varies; ask.
 
 </details>
 
 **Q27. You finish a coding exercise with ten minutes left. What do you do?**
 <details><summary>Answer</summary>
 
-Do not add features. Run through edge cases (empty, error, rapid input), keyboard use and a test, then summarise what you built and what you would do next. **A strong answer adds:** ask the interviewer which of those they want to see.
+Do not add features. Run through edge cases (empty, error, rapid input), keyboard use and a test, then summarize what you built and what you would do next. **A strong answer adds:** ask the interviewer which of those they want to see.
 
 </details>
 
@@ -773,20 +773,20 @@ export type SearchUsersNoSignal = (query: string) => Promise<User[]>;
 
 **Walkthrough.**
 1. **Race.** The fix runs the request in an effect with deps `[term, search]`. When `term` changes, React runs the previous cleanup (`controller.abort()`) before the new setup ([9.1](09-effects.md#91-effects-as-synchronization-with-external-systems)). The fake in the tests records each call's `signal`, so the test asserts the old one was aborted.
-2. **Belt and braces.** Aborting only helps if the fetcher honours the signal. A fake or a function that ignores it still resolves, so the `.then` ignores aborted results *and* the shown result is only used when `outcome.for === term`. In the out-of-order test the stale answer for `a` arrives after `ab` and is not displayed.
+2. **Belt and braces.** Aborting only helps if the fetcher honors the signal. A fake or a function that ignores it still resolves, so the `.then` ignores aborted results *and* the shown result is only used when `outcome.for === term`. In the out-of-order test the stale answer for `a` arrives after `ab` and is not displayed.
 3. **Derived values.** `current`, `loading` and the status text are computed during render. There is no `loading` state to forget to reset, and no `count` to drift. Clearing the input makes `term === ''`, so `current` is `null` and the old list disappears without any `setState`.
 4. **Why store the result in state at all.** `outcome` is the one thing that cannot be computed: it is the answer from an external system. Storing the query alongside it is what lets everything else be derived.
 5. **Errors.** The rejection handler stores the message; the alert is rendered when the error belongs to the current term. An aborted request does not report an error.
 6. **Accessibility.** A `<label>`, a list of `<button>`s keyed by `id`, `role="status"` and `role="alert"`.
-7. **Lint note.** `setOutcome` is called inside promise callbacks, not synchronously in the effect body, so it is not the pattern `react-hooks/set-state-in-effect` reports ([9.6](09-effects.md#96-you-might-not-need-an-effect)). Not run here; the coordinator's lint run verifies it.
+7. **Lint note.** `setOutcome` is called inside promise callbacks, not synchronously in the effect body, so it is not the pattern `react-hooks/set-state-in-effect` reports ([9.6](09-effects.md#96-you-might-not-need-an-effect)). `npm run lint` in `examples/web` confirms it (no report for this file).
 
 **Interviewer follow-ups.**
 - Add debounce. (Debounce the value, then key the effect on the debounced value; see [12.5](12-hooks-and-custom-hooks.md#125-usedebounce). Note that the label and status still reflect the typed text.)
 - What if the user retries after an error? (Add a retry control that bumps a counter in the effect's deps.)
 - How would React Query change this? (It would own the request, the abort, the cache and the loading and error flags; [17](17-data-fetching.md).)
-- What would you virtualise? ([15](15-performance.md))
+- What would you virtualize? ([15](15-performance.md))
 
-**Tests.** [`UserSearch.test.tsx`](examples/web/src/m27-interview/UserSearch.test.tsx): six tests assert the fixed version's behaviour, and four tests labelled `BUG:` pass by asserting the flawed component's behaviour (stale overwrite, loading flag cleared early, empty-string request, no label and no buttons). If someone fixes the flawed file, those four tests should fail, which is the point.
+**Tests.** [`UserSearch.test.tsx`](examples/web/src/m27-interview/UserSearch.test.tsx): six tests assert the fixed version's behavior, and four tests labeled `BUG:` pass by asserting the flawed component's behavior (stale overwrite, loading flag cleared early, empty-string request, no label and no buttons). If someone fixes the flawed file, those four tests should fail, which is the point.
 
 ---
 
@@ -818,7 +818,7 @@ A model script (the words in quotes are said aloud; the bracketed text is what i
 "Let me restate it. A list of products, a text filter, an in-stock-only checkbox, and a count of the visible ones. Questions: is the product list passed in or fetched? I will assume it is a prop, a static array, and I will say so in a comment. Should the filter be case-insensitive? I will assume yes. Do we need keyboard and screen-reader support? I will use a real input and checkbox with labels, so that comes for free. Out of scope: sorting, pagination. Is that fine?" [types the assumptions as comments at the top]
 
 **Minute 3–6, skeleton.**
-"I will begin with static JSX so something is on screen. `ProductList` takes `products`. A label with an input, a label with a checkbox, a paragraph for the count, a `ul` for the list." [renders the list, no behaviour]
+"I will begin with static JSX so something is on screen. `ProductList` takes `products`. A label with an input, a label with a checkbox, a paragraph for the count, a `ul` for the list." [renders the list, no behavior]
 
 **Minute 6–9, state shape.**
 "Two pieces of state change over time: the text and the in-stock flag. The products come from props. The visible products and the count are *derived*: I compute them during render from those three. If I stored the filtered list in state, I would have to update it in three places and keep it in sync with the props." [adds `useState` for text and flag]
@@ -964,7 +964,7 @@ About 4 hours: 1h structure, 2h board and reducer, 1h tests and README.
 
 </details>
 
-**Walkthrough.** The rewrite answers the reviewer's six questions in the first screen. Notice that it admits what is missing: honest gaps read as judgement.
+**Walkthrough.** The rewrite answers the reviewer's six questions in the first screen. Notice that it admits what is missing: honest gaps read as judgment.
 
 **Interviewer follow-ups.** "Why a reducer here?" · "How would the persistence module change with a real API?" · "How do you make drag accessible?"
 
@@ -974,7 +974,7 @@ About 4 hours: 1h structure, 2h board and reducer, 1h tests and README.
 
 ## Gotchas & trick questions
 
-1. **Silent coding for five minutes.** The interviewer scores on code alone and cannot help. Announce silences and summarise afterwards.
+1. **Silent coding for five minutes.** The interviewer scores on code alone and cannot help. Announce silences and summarize afterwards.
 2. **Narrating keystrokes.** "Now I type const…" carries no signal. Narrate decisions.
 3. **Starting to code before clarifying.** Restate and ask first; the questions are part of the score ([26.1](26-machine-coding.md#261-how-to-approach-a-45-minute-round)).
 4. **"This is easy" or "I always use X".** Easy things go wrong, and absolutes invite a counter-example.
@@ -984,16 +984,16 @@ About 4 hours: 1h structure, 2h board and reducer, 1h tests and README.
 8. **A library list without reasons.** Reads as résumé decoration; say why, and what you did *not* use.
 9. **A review that is only style nitpicks.** Missing the race condition while correcting variable names is the review equivalent of failing the round.
 10. **Rewriting the whole component in a review.** Fix the top issues, list the rest, ask where to go.
-11. **Calling the author's work bad.** Describe behaviour and risk, not people.
+11. **Calling the author's work bad.** Describe behavior and risk, not people.
 12. **STAR with no Result.** "And then we moved on" leaves the note "unclear impact".
 13. **"We" for everything.** The interviewer cannot tell what you did. Use "I" for your actions and "we" for team results.
 14. **Inventing a metric.** Unsupported numbers collapse under the first follow-up. Describe the method instead.
-15. **Over-apologising for backend background, or over-claiming front-end depth.** Both read as lack of judgement. Name strengths, gaps and evidence.
+15. **Over-apologising for backend background, or over-claiming front-end depth.** Both read as lack of judgment. Name strengths, gaps and evidence.
 16. **Claiming Angular and React are the same.** The re-render model, one-way flow and absence of DI are real differences; say what you know about them.
 17. **"No, I have no questions."** A missed signal. Ask two or three that would change your decision.
 18. **Asking about salary or vacation of the engineer in round one.** Ask the recruiter.
 19. **Pasting AI output you cannot explain.** You can be asked about every line. Read it and narrate what you check.
-20. **Memorised scripts.** Know the beats, not the sentences; scripts sound rehearsed.
+20. **Memorized scripts.** Know the beats, not the sentences; scripts sound rehearsed.
 
 ---
 
@@ -1002,13 +1002,13 @@ About 4 hours: 1h structure, 2h board and reducer, 1h tests and README.
 | Claim | Once true? | True now | Since |
 |---|---|---|---|
 | "Think out loud at all times." | Popular interview advice for years | Narrate decisions, predictions and surprises; short announced silences are fine | n/a (practice) |
-| "Memorise algorithm puzzles; front-end interviews are LeetCode." | Some companies did mostly algorithms | Many front-end and full-stack loops add machine coding, UI debugging, system design and code review; it varies, so ask the recruiter | n/a (practice) |
+| "Memorize algorithm puzzles; front-end interviews are LeetCode." | Some companies did mostly algorithms | Many front-end and full-stack loops add machine coding, UI debugging, system design and code review; it varies, so ask the recruiter | n/a (practice) |
 | "A take-home should show off every skill." | Folk advice to "stand out" | Reviewers favour a scoped, finished, explained solution with tests over breadth | n/a (practice) |
 | "A placeholder is a fine label." | Many designs did this | Placeholders are not a reliable accessible name; use a `<label>` | n/a (accessibility guidance, long-standing) |
 | "STAR for everything." | Taught in most guides | Use STAR for "tell me about a time" prompts; answer factual questions directly | n/a (practice) |
 | "Never admit a gap." | Old interview folklore | Naming a gap with a concrete plan reads as self-awareness | n/a (practice) |
 | "Using AI or search in an interview is cheating." | Interviews were closed-book | Some companies now allow assistants or search; others forbid them. Ask, and follow the stated rule | n/a (practice, changing) |
-| "Index keys are fine because nothing breaks." | Works for static lists | Breaks on reorder, insert or remove: wrong DOM and state reused ([13](13-reconciliation-and-fiber.md)) | n/a (React behaviour since 0.x) |
+| "Index keys are fine because nothing breaks." | Works for static lists | Breaks on reorder, insert or remove: wrong DOM and state reused ([13](13-reconciliation-and-fiber.md)) | n/a (React behavior since 0.x) |
 | "Store the count and loading flag in state, it is clearer." | Common in early hook code | Derive what you can; store only what an external system provided ([8.7](08-state.md#87-derived-state-compute-do-not-store)) | React 16.8 (hooks) onward |
 
 ---
@@ -1023,8 +1023,8 @@ About 4 hours: 1h structure, 2h board and reducer, 1h tests and README.
    <details><summary>Answer</summary>Whether it runs from a clean clone, the README (scope, decisions, gaps), and then tests and code quality. This is common practice, not a rule.</details>
 4. In what order do you review a component?
    <details><summary>Answer</summary>Correctness, React-specific, accessibility, performance, security, tests, naming; most user-impacting issue first.</details>
-5. Which flaws in `UserSearchFlawed` does `tsc` and ESLint not catch?
-   <details><summary>Answer</summary>The race, the wrong loading flag, no error handling, derived state, empty-query request, index keys and the accessibility gaps. All are behavioural.</details>
+5. Which flaws in `UserSearchFlawed` do `tsc` and ESLint not catch?
+   <details><summary>Answer</summary>The race, the wrong loading flag, no error handling, derived state, empty-query request, index keys and the accessibility gaps. All are behavioral.</details>
 6. What is the proportion of a STAR answer?
    <details><summary>Answer</summary>About 10% situation and task, 60% action, 20% result, and a closing lesson; end with the result.</details>
 7. What goes in the 60-second pitch?
@@ -1040,7 +1040,7 @@ About 4 hours: 1h structure, 2h board and reducer, 1h tests and README.
 
 ## Summary (re-read before the interview)
 
-Interview execution is a communication skill built on the same technical judgement as modules 01-26. In live coding, narrate decisions, predictions and surprises rather than keystrokes, state assumptions, say the time twice, and when stuck name it, narrow it, state hypotheses, ask a scoped question and then simplify. For a take-home, treat the repository as a pull request to the team: it must run from a clean clone, the README states requirements met, decisions, trade-offs, gaps and time spent, tests cover a few behaviours that matter, and scope stays within the box. In a code review, work in passes (correctness, React-specific, accessibility, performance, security, tests, naming), report the most user-impacting issue first and phrase findings as behaviour; the `UserSearch` exercise shows that a component can pass the compiler and linter and still have a race, a wrong loading flag, derived state, no error state and no accessible name. For behavioral rounds, keep a bank of real stories in STAR form with "I" actions and an explicit result, bridged to a UI or full-stack lesson. For the backend-to-full-stack move, lead with API design, reliability, data and security strengths, own the CSS and production-React gaps with evidence, translate your Angular experience honestly, and prepare a 60-second pitch. Finally, ask two or three questions per audience that would change your decision, and listen to the answers.
+Interview execution is a communication skill built on the same technical judgment as modules 01-26. In live coding, narrate decisions, predictions and surprises rather than keystrokes, state assumptions, say the time twice, and when stuck name it, narrow it, state hypotheses, ask a scoped question and then simplify. For a take-home, treat the repository as a pull request to the team: it must run from a clean clone, the README states requirements met, decisions, trade-offs, gaps and time spent, tests cover a few behaviors that matter, and scope stays within the box. In a code review, work in passes (correctness, React-specific, accessibility, performance, security, tests, naming), report the most user-impacting issue first and phrase findings as behavior; the `UserSearch` exercise shows that a component can pass the compiler and linter and still have a race, a wrong loading flag, derived state, no error state and no accessible name. For behavioral rounds, keep a bank of real stories in STAR form with "I" actions and an explicit result, bridged to a UI or full-stack lesson. For the backend-to-full-stack move, lead with API design, reliability, data and security strengths, own the CSS and production-React gaps with evidence, translate your Angular experience honestly, and prepare a 60-second pitch. Finally, ask two or three questions per audience that would change your decision, and listen to the answers.
 
 ---
 

@@ -1,12 +1,12 @@
 # 13 — Reconciliation, virtual DOM and Fiber
 
-> **How to use this module.** Sections 13.1–13.4 are the part every interview touches: what the virtual DOM is for, how React decides "same component or new one", and why state survives or vanishes. Sections 13.5 covers Fiber internals for deeper rounds. Sections 13.6–13.8 are for reading and converting class-component code, which is still everywhere. If you only have 20 minutes, read 13.2, 13.3, 13.4 and the Summary.
+> **How to use this module.** Sections 13.1–13.4 are the part every interview touches: what the virtual DOM is for, how React decides "same component or new one", and why state survives or vanishes. Section 13.5 covers Fiber internals for deeper rounds. Sections 13.6–13.8 are for reading and converting class-component code, which is still everywhere. If you only have 20 minutes, read 13.2, 13.3, 13.4 and the Summary.
 
 **Prerequisites:** [Elements vs components vs instances](06-jsx-and-rendering-model.md#63-elements-vs-components-vs-instances) · [Lists and keys](06-jsx-and-rendering-model.md#66-lists-and-keys) · [What triggers a render](06-jsx-and-rendering-model.md#69-what-triggers-a-render) · [Render phase vs commit phase](06-jsx-and-rendering-model.md#610-render-phase-vs-commit-phase) · [Resetting state with `key`](08-state.md#89-resetting-state-with-key) · [Class components](07-components-props-composition.md#710-class-components)
 
 **Code for this module:** [`examples/web/src/m13-reconciliation/`](examples/web/src/m13-reconciliation/). Every file below has a test next to it. Run them with `npx vitest run src/m13-reconciliation` from `examples/web`.
 
-**Source citations.** Claims about React internals in this module were checked by reading `examples/web/node_modules/react-dom/cjs/react-dom-client.development.js` from **react-dom 19.3.0** (function names are given so you can find them), the scheduler package **0.28.0**, and `packages/react-reconciler/src/ReactFiberLane.js` on React's `main` branch. Line numbers drift between builds, so search by function name. Simplifications are labelled as such.
+**Source citations.** Claims about React internals in this module were checked by reading `examples/web/node_modules/react-dom/cjs/react-dom-client.development.js` from **react-dom 19.3.0** (function names are given so you can find them), the scheduler package **0.28.0**, and `packages/react-reconciler/src/ReactFiberLane.js` on React's `main` branch. Line numbers drift between builds, so search by function name. Simplifications are labeled as such.
 
 ---
 
@@ -456,7 +456,7 @@ flowchart LR
 | `PureComponent` | `memo(Component)` | Shallow props compare |
 | `render` | the function body | |
 | `getSnapshotBeforeUpdate` | **No hook equivalent** | react.dev: *"At the moment, there is no equivalent to getSnapshotBeforeUpdate for function components"*. `useLayoutEffect` with a ref captured during render covers most uses |
-| `componentDidMount` | `useEffect(fn, [])` (or `useLayoutEffect` if it measures DOM) | Class version runs before paint; `useEffect` runs after paint |
+| `componentDidMount` | `useEffect(fn, [])` (or `useLayoutEffect` if it measures DOM) | Class version runs before paint; `useEffect` usually runs after paint |
 | `componentDidUpdate(prevProps)` | `useEffect(fn, [deps])` | The dependency array replaces the `prevProps.x !== this.props.x` checks |
 | `componentWillUnmount` | the cleanup returned from the same effect | Pair setup and cleanup in one place ([09](09-effects.md#93-cleanup-and-the-effect-lifecycle)) |
 | `componentDidCatch`, `static getDerivedStateFromError` | **No hook equivalent** | Keep a class boundary or use `react-error-boundary` ([16](16-error-handling.md#162-error-boundaries)) |
@@ -479,7 +479,7 @@ Sources: [react.dev Component reference](https://react.dev/reference/react/Compo
 - ✅ The hooks version groups setup and teardown of one concern together. In a class, a subscription is split across `componentDidMount`, `componentDidUpdate` and `componentWillUnmount`, and forgetting the middle one is the classic "it doesn't update when the prop changes" bug.
 - ✅ `componentDidUpdate` comparisons become dependency arrays, which the linter checks for you.
 - ❌ Two gaps remain: error boundaries and `getSnapshotBeforeUpdate`. That is why classes are not fully dead.
-- Timing differs: `componentDidMount` runs before paint, `useEffect` after. A class that measures DOM in `componentDidMount` should become `useLayoutEffect` ([09](09-effects.md#97-uselayouteffect)).
+- Timing differs: `componentDidMount` runs before paint, `useEffect` usually after. A class that measures DOM in `componentDidMount` should become `useLayoutEffect` ([09](09-effects.md#97-uselayouteffect)).
 
 ---
 
@@ -564,7 +564,7 @@ All entries are from the **19.0.0 CHANGELOG** ("Removed: …"), with the replace
 | Legacy context (`contextTypes`, `childContextTypes`, `getChildContext`) | Strict Mode warning since 16.6; outside it since 18.3 | `createContext` + `static contextType` / `useContext` / `use` ([11](11-context.md#112-createcontext-context-value-vs-provider)) |
 | String refs (`ref="input"`, `this.refs.input`) | 18.3 warning outside Strict Mode | callback refs or `useRef`/`createRef` ([10](10-refs-and-dom.md#103-callback-refs-and-ref-cleanup-functions)) |
 | Module pattern factories (a function component that returns an object with `render`) | 16.9 | a regular function or class |
-| `React.createFactory` | | JSX |
+| `React.createFactory` | 16.13 | JSX |
 | `react-dom/test-utils` (all but `act`) | 18.3 warning | `act` from `react`; React Testing Library ([20](20-testing.md#203-react-testing-library-and-query-priority)) |
 | `react-test-renderer/shallow` | | `react-shallow-renderer` package, or RTL |
 
@@ -830,7 +830,7 @@ Mount: parent constructor → gDSFP → render, then child constructor → gDSFP
 **Q26. Map `componentDidMount`, `componentDidUpdate` and `componentWillUnmount` to hooks.**
 <details><summary>Answer</summary>
 
-One `useEffect` per concern: the setup is the didMount/didUpdate code, the dependency array replaces the `prevProps` comparisons, and the returned cleanup is the willUnmount (and "before re-sync") code. **A strong answer adds:** timing differs: class `did*` methods run before paint, like `useLayoutEffect`; `useEffect` runs after paint.
+One `useEffect` per concern: the setup is the didMount/didUpdate code, the dependency array replaces the `prevProps` comparisons, and the returned cleanup is the willUnmount (and "before re-sync") code. **A strong answer adds:** timing differs: class `did*` methods run before paint, like `useLayoutEffect`; `useEffect` usually runs after paint (before it when a discrete event such as a click caused the update).
 
 </details>
 
@@ -896,7 +896,7 @@ Grab the node before the update and assert identity after it: `expect(screen.get
 
 ### Exercise 1: Predict the output (does the input keep its text?)
 
-**Statement.** Each component below renders a `Field` (a labelled input whose value is React state) and a **Toggle** button. For each one, you type `hello` into the field and click Toggle. Predict whether the field shows `hello` or is empty afterwards. For `ReversibleList`, you type into Ada's field and click **Reverse**: whose field holds `hello`, with name keys and with index keys?
+**Statement.** Each component below renders a `Field` (a labeled input whose value is React state) and a **Toggle** button. For each one, you type `hello` into the field and click Toggle. Predict whether the field shows `hello` or is empty afterwards. For `ReversibleList`, you type into Ada's field and click **Reverse**: whose field holds `hello`, with name keys and with index keys?
 
 ```tsx
 // file: examples/web/src/m13-reconciliation/Preservation.tsx
@@ -1735,7 +1735,7 @@ test('unmount: componentWillUnmount runs parent-first', () => {
 15. **`PureComponent` + in-place mutation = stale UI.** `items.push(x)` keeps the same reference, so the shallow compare says "unchanged" (`PureList.test.tsx`).
 16. **`propTypes` in React 19 do nothing and say nothing.** If a team relied on them for runtime validation, that validation silently disappeared in the upgrade.
 17. **Unprefixed `componentWillReceiveProps` still runs in React 19.3.** Its own warning text claims "In React 18.x, only the UNSAFE_ name will work", which never happened. Don't quote that warning as a version fact.
-18. **`componentDidMount` is not `useEffect(fn, [])`.** The class method runs before paint (layout phase); the effect runs after paint and re-runs in Strict Mode dev.
+18. **`componentDidMount` is not `useEffect(fn, [])`.** The class method runs before paint (layout phase); the effect usually runs after paint and re-runs in Strict Mode dev.
 
 ---
 
@@ -1744,7 +1744,7 @@ test('unmount: componentWillUnmount runs parent-first', () => {
 | Claim | Once true? | True now | Since |
 |---|---|---|---|
 | "The virtual DOM is faster than the real DOM" | Never literally; it was the 2013–2015 marketing shorthand vs `innerHTML` re-rendering | It is overhead that buys declarative code; React is fast enough because it does O(n) diffs and minimal mutations. The React Compiler now cuts re-render work further | Compiler 1.0, Oct 2025 |
-| "React diffs the whole tree on every update" | Partly: re-rendering propagates down from the updated component | React starts from the fibers with pending lanes and bails out on unchanged subtrees (`childLanes`, same props reference) | Lanes model since 17; bailouts since Fiber 16.0 |
+| "React diffs the whole tree on every update" | Partly: re-rendering propagates down from the updated component | React walks down from the root but bails out on every subtree with no pending lanes (`childLanes`) and skips components whose props reference is unchanged, so only the updated component and what it re-renders do real work | Lanes model since 17; bailouts since Fiber 16.0 |
 | "Reconciliation is recursive and can't be interrupted" | Yes: the stack reconciler | Fiber is a loop over linked fibers that can yield between units | React 16.0 (Sept 2017) |
 | "Fiber means React renders concurrently by default" | No: 16.0 *"not enabling any async features yet"* | Only with `createRoot`, and only transitions/retries/idle work time-slice | 18.0 (`createRoot`); legacy root removed in 19.0 |
 | "Use `key={index}` to silence the warning" | Common in tutorials | Use a stable id from the data; index keys equal no keys | Always; repeated in react.dev |

@@ -175,7 +175,7 @@ Serial order matters: every task below edits `modules/03-js-objects-prototypes-c
 - Findings: T-6, T-10(b)-(c), T-11; V-5, V-6, V-8, V-9 outcomes.
 - Files: `modules/03-js-objects-prototypes-classes.md`, `SOURCES.md` (Module 03 heading).
 - Do: add the edition markers named in T-6 at first mention (move or add the `toSorted` marker at 161); state the TypeScript lib for iterator helpers; add one availability sentence to sections 7 and 8; cite the Vue pages; add to SOURCES.md `typescript@6.0.3` files and diagnostics, the Vue and MDN compatibility URLs, and the V-1 observation if not already added.
-- Acceptance: `grep -n 'toSorted' modules/03-js-objects-prototypes-classes.md | head -1` shows a marker or a pointer to the marker on that first line; `grep -n 'ES2019\|ES2020\|ES2021' modules/03-js-objects-prototypes-classes.md` shows the new markers; every URL from `grep -o 'https://[^ )>`]*' modules/03-js-objects-prototypes-classes.md | sort -u` appears in SOURCES.md under Module 03; `node labs/tools/check-snippets.mjs . 03` exits 0; `node labs/tools/check-links.mjs --planned` exits 0.
+- Acceptance: `grep -n 'toSorted' modules/03-js-objects-prototypes-classes.md | head -1` shows a marker or a pointer to the marker on that first line; `grep -n 'ES2019\|ES2020\|ES2021' modules/03-js-objects-prototypes-classes.md` shows the new markers; every URL from ``grep -o 'https://[^ )>`]*' modules/03-js-objects-prototypes-classes.md | sort -u`` appears in SOURCES.md under Module 03; `node labs/tools/check-snippets.mjs . 03` exits 0; `node labs/tools/check-links.mjs --planned` exits 0.
 
 ### FIX-M03-10 · S · Exercise accounts name their tests; record the exercise-order deviation; typecheck in the header
 - Findings: T-8.

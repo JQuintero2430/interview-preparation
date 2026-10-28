@@ -163,7 +163,7 @@ listRef.current?.lastElementChild?.scrollIntoView();
 The same test file asserts that `flushSync` plus a second update produces **two** commits.
 
 ### How it works internally
-`setState` enqueues the update and schedules the root for rendering at a priority, called a **lane**, that depends on where the update came from: a click is a discrete, high-priority event, while a `setTimeout` gets the default priority ([13](13-reconciliation-and-fiber.md#135-fiber-units-of-work-double-buffering-lanes-and-priorities)). React does not render synchronously inside `setState`. It renders when the current task yields (for discrete events, in a microtask at the end of the event), so every update queued in the same tick ends up in the same render. `flushSync` processes the pending updates synchronously before returning.
+`setState` enqueues the update and schedules the root for rendering at a priority, called a **lane**, that depends on where the update came from: a click is a discrete, high-priority event, while a `setTimeout` gets the default priority ([13](13-reconciliation-and-fiber.md#135-fiber-units-of-work-double-buffering-lanes-and-priorities)). React does not render synchronously inside `setState`. Updates are queued, and React processes the root in a microtask after the current code finishes: sync-lane work (a click) renders right there, while non-urgent work (a `setTimeout` update, a transition) is handed to React's scheduler, which runs it in `MessageChannel` tasks ([01](01-javascript.md#116-the-event-loop-call-stack-microtasks-vs-macrotasks-rendering-steps)). Either way, every update queued in the same tick ends up in the same render. `flushSync` processes the pending updates synchronously before returning.
 
 ```mermaid
 flowchart TB
@@ -178,7 +178,7 @@ flowchart TB
   end
 ```
 
-> **Version notes.** **React ≤ 17:** only updates inside **React event handlers** were batched. Updates in `setTimeout`, promises, native `addEventListener` callbacks or any other event rendered once **per `setState` call**. Libraries such as React Redux forced batching with `ReactDOM.unstable_batchedUpdates(fn)`. **React 18.0** (Mar 2022) introduced **automatic batching**: "Starting in React 18 with `createRoot`, all updates will be automatically batched, no matter where they originate from" ([React 18 upgrade guide](https://react.dev/blog/2022/03/08/react-18-upgrade-guide)). It applies **only to roots created with `createRoot`**. An app upgraded to 18 but still calling `ReactDOM.render` keeps the old behavior (React 18 working group, [Automatic batching deep dive](https://github.com/reactwg/react-18/discussions/21)). `flushSync` is the documented opt-out. `unstable_batchedUpdates` was kept for compatibility. In `react-dom` 19.3.0 it still exists, and its body is simply `return fn(a);` (verified by reading `node_modules/react-dom/cjs/react-dom.development.js` in `examples/web`). **React 19.0** removed `ReactDOM.render` entirely (CHANGELOG 19.0.0: "Remove render, hydrate, findDOMNode, unmountComponentAtNode"), so every React 19 app gets automatic batching. 19.0 also batches updates of different priorities together (CHANGELOG 19.0.0: "Batch sync discrete, continuous, and default lanes").
+> **Version notes.** **React ≤ 17:** only updates inside **React event handlers** were batched. Updates in `setTimeout`, promises, native `addEventListener` callbacks or any other event rendered once **per `setState` call**. Libraries such as React Redux forced batching with `ReactDOM.unstable_batchedUpdates(fn)`. **React 18.0** (Mar 2022) introduced **automatic batching**: "Starting in React 18 with `createRoot`, all updates will be automatically batched, no matter where they originate from" ([React 18 upgrade guide](https://react.dev/blog/2022/03/08/react-18-upgrade-guide)). It applies **only to roots created with `createRoot`**. An app upgraded to 18 but still calling `ReactDOM.render` keeps the old behavior (React 18 working group, [Automatic batching deep dive](https://github.com/reactwg/react-18/discussions/21)). `flushSync` is the documented opt-out. `unstable_batchedUpdates` was kept for compatibility. In `react-dom` 19.3.0 it still exists, and its body is simply `return fn(a);` (verified by reading `node_modules/react-dom/cjs/react-dom.development.js` in `examples/web`). **React 19.0** removed `ReactDOM.render` entirely (CHANGELOG 19.0.0: "Removed: `ReactDOM.render`, `ReactDOM.hydrate`: These have been removed in favor of the concurrent equivalents", alongside `unmountComponentAtNode` and `findDOMNode`), so every React 19 app gets automatic batching. 19.0 also batches updates of different priorities together (CHANGELOG 19.0.0: "Batch sync discrete, continuous, and default lanes").
 
 **Migration path** (17 → 18+): switch `ReactDOM.render(<App />, el)` to `createRoot(el).render(<App />)`. Then search for code that relied on a synchronous render after `setState` outside React events: class components that read `this.state` right after `setState` inside a `setTimeout` or `.then` (in 17 the first update was already applied; in 18 it is not), and DOM measurements right after an update. Wrap those in `flushSync` or move them into an effect or a `setState` callback. Remove `unstable_batchedUpdates` wrappers at leisure; they are now no-ops.
 
@@ -448,7 +448,7 @@ React identifies a component instance by **its type and its position in the tree
 > **Where the analogy breaks:** you do not call a factory. You change a piece of data (`key`), and React decides to throw the old instance away. Everything below it is reset too, including DOM nodes, focus and scroll position.
 
 ### Minimal code
-From [09's no-effect catalogue](09-effects.md#96-you-might-not-need-an-effect) (`examples/web/src/m09-effects/NoEffectNeeded.tsx`):
+From [09's no-effect catalog](09-effects.md#96-you-might-not-need-an-effect) (`examples/web/src/m09-effects/NoEffectNeeded.tsx`):
 
 ```tsx
 export function ProfilePage({ userId }: { userId: string }) {
@@ -512,7 +512,7 @@ The action type is a **discriminated union** ([02](02-typescript.md#27-discrimin
 
 > **Version notes.** **React 16.8** introduced `useReducer`. **React 19.0** shipped "Better useReducer typings: Most useReducer usage should not require explicit type arguments" (CHANGELOG 19.0.0). In `@types/react` 19.3.0 the signature is `useReducer<S, A extends AnyActionArg>(reducer: (prevState: S, ...args: A) => S, initialState: S)` (read from `node_modules/@types/react/index.d.ts`), so the second type argument is a **tuple** of the action arguments, such as `[CartAction]`.
 >
-> `@types/react` 18 declared `useReducer<R extends Reducer<any, any>>(reducer: R, initialState: ReducerState<R>, initializer?: undefined)` (read from [DefinitelyTyped `types/react/v18/index.d.ts`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react/v18/index.d.ts)). Because the 19 signature's first type parameter is the state `S`, 18-era code written as `useReducer<Reducer<State, Action>>(…)` makes React treat the reducer type as the state type and fails to type-check on 19 types (derived from the two signatures, not compiled here). The migration is the same either way: delete the explicit type arguments and type the reducer function's parameters instead.
+> `@types/react` 18 declared `useReducer<R extends Reducer<any, any>>(reducer: R, initialState: ReducerState<R>, initializer?: undefined)` (read from [DefinitelyTyped `types/react/v18/index.d.ts`](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/react/v18/index.d.ts)). Because the 19 signature's first type parameter is the state `S`, 18-era code written as `useReducer<Reducer<State, Action>>(…)` makes React treat the reducer type as the state type and fails to type-check on 19 types (verified with a `tsc` 6.0.3 probe against `@types/react` 19.3.0: `useReducer<Reducer<State, Action>>(reducer, init)` is a type error; the inferred `useReducer(reducer, init)` compiles). The migration is the same either way: delete the explicit type arguments and type the reducer function's parameters instead.
 
 **Legacy: class components.** Before hooks, state lived on `this.state`, and `this.setState` worked differently from a hook setter in two ways interviewers ask about. `examples/web/src/m08-state/ClassCounter.tsx` and its test show both (Exercise 5):
 
@@ -1344,7 +1344,7 @@ function TextField({ label, error, ...input }: TextFieldProps) {
         aria-describedby={error ? errorId : undefined}
       />
       {error && (
-        <p id={errorId} role="alert" aria-live="polite">
+        <p id={errorId} role="alert">
           {error}
         </p>
       )}
@@ -1558,7 +1558,7 @@ test('flushSync opts out of batching: two commits for two updates', async () => 
 5. `updater then value`: `0 + 1` = 1, then "replace with `count + 5`", where `count` is the snapshot's `0`, so **5**. The updater's work is discarded.
 6. `log after set`: the log shows the snapshot, `count is 0`, while the screen shows `Count: 1`.
 7. `after await`: by the time the code after `await` runs, the click event is over. React 17 would have rendered twice here. React 18+ batches both updates into one commit.
-8. `flushSync`: the first update is committed before `flushSync` returns (commit 1). The second is batched normally and committed at the end of the event (commit 2).
+8. `flushSync`: the first update is committed before `flushSync` returns (commit 1). The second is batched normally and committed in the microtask after the handler returns (commit 2).
 
 **Interviewer follow-ups.**
 - "What would React 17 do in case 7?" Two commits, one per `setState`, because updates outside React event handlers were not batched. The same happens on React 18 if the app still uses `ReactDOM.render`.
@@ -1709,7 +1709,7 @@ test('this.state is stale right after setState; the callback sees the committed 
 | "State requires a class component" | Yes, before hooks | `useState`/`useReducer` in function components; classes are legacy | React 16.8 |
 | "`setState` is synchronous outside event handlers" | In React ≤ 17 | Always asynchronous (queued); `flushSync` forces it | React 18.0 |
 | "Use a hook setter callback like `setState(x, cb)`" | Never true for hooks (class-only API) | Not supported; React warns | React 16.8 |
-| "Copy props into state and sync with an effect / `componentWillReceiveProps`" | Common with classes; `componentWillReceiveProps` was renamed `UNSAFE_componentWillReceiveProps` in 16.3 | Derive during render, or reset with `key` | React 16.3 (deprecation); hooks docs since 16.8 |
+| "Copy props into state and sync with an effect / `componentWillReceiveProps`" | Common with classes; `componentWillReceiveProps` got the `UNSAFE_componentWillReceiveProps` alias in 16.3, and the old name warns since 16.9 | Derive during render, or reset with `key` | React 16.3 (deprecation); hooks docs since 16.8 |
 | "Write `useReducer<Reducer<S, A>>(…)` with explicit generics" | Common in React 18-era TypeScript | Let inference work; the 19 types take `<S, [Action]>` | React 19.0 typings |
 | "Always deep-clone state before changing it" | Never good advice | Copy only the changed path (structural sharing) so reference checks work | Always |
 | "You need Redux for any non-trivial state" | Common advice 2016–2019 | `useReducer` + context covers many apps; Redux Toolkit when you need a global store | Hooks 16.8, RTK 1.0 (2019) |

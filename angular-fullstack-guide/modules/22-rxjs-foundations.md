@@ -1,6 +1,6 @@
 # 22. RxJS foundations: observables, subjects and operators
 
-> **What this covers:** Observables as lazy push collections and how they differ from functions, iterators and promises; the anatomy of an observable, observer, subscription and teardown; cold and hot sources; the four subjects; pipeable operators and writing your own; the operator catalogue by purpose, combination and timing operators; and the subscriber chain underneath. Higher-order mapping, error strategies, schedulers, unsubscription strategies, marble testing and signal interop are module 23.
+> **What this covers:** Observables as push collections, cold-source laziness and how they differ from functions, iterators and promises; the anatomy of an observable, observer, subscription and teardown; cold and hot sources; the four subjects; pipeable operators and writing your own; the operator catalogue by purpose, combination and timing operators; and the subscriber chain underneath. Higher-order mapping, error strategies, schedulers, unsubscription strategies, marble testing and signal interop are module 23.
 > **Prerequisites:** [04. JavaScript async and the event loop](04-js-async-event-loop.md#3-promises-from-callbacks-to-a-state-machine) (promises and microtasks; cancellation in [§7](04-js-async-event-loop.md#7-cancellation-with-abortcontroller)) and [07. TypeScript advanced types and decorators](07-ts-advanced-types-and-decorators.md#1-generics-constraints-defaults-inference-and-const-type-parameters) (generics, for operator signatures)
 > **Leads to:** [23. RxJS in depth](23-rxjs-in-depth.md), [24. Routing](24-routing.md), [25. Forms](25-forms-reactive-and-template-driven.md), [27. HttpClient](27-http-client.md), [28. State management](28-state-management.md), [29. Testing Angular](29-testing-angular.md)
 > **Applies to:** Angular 22.2 (`@angular/core` 22.2.1), RxJS 7.8 (`rxjs` 7.8.2), TypeScript 6.0, Node 24
@@ -33,18 +33,18 @@
 
 A click, a socket message and a timer each produce many values; a Promise delivers one. A teammate asks why a second `subscribe` "starts everything again" ([Q22.02](#q22-02)), another expects Promise ordering ([Q22.03](#q22-03)).
 
-An **Observable** is a lazily executed collection of zero to many values. The **producer** creates them, the **consumer** receives them. **Push**: the producer decides when a value arrives; **pull**: the consumer asks. A **subscription** is the handle that stops one run ([section 2](#2-anatomy-observable-observer-subscription-and-teardown)).
+An **Observable** is a push collection of zero to many values. The **producer** creates them, the **consumer** receives them. **Push**: the producer decides when a value arrives; **pull**: the consumer asks. A **subscription** is the handle that stops one run ([section 2](#2-anatomy-observable-observer-subscription-and-teardown)).
 
 ### Mental model
 
-A library trip pulls: you ask, you get a book. A magazine pushes: nothing is printed until you subscribe, and issues come when the publisher decides. The RxJS guide (`observable.md`, `7.x`) fills the empty cell:
+A library trip pulls: you ask, you get a book. A magazine pushes: issues come when the publisher decides. The RxJS guide (`observable.md`, `7.x`) fills the empty cell:
 
 |  | Single | Multiple |
 |---|---|---|
 | **Pull** | function | iterator |
 | **Push** | Promise | Observable |
 
-Observables are **lazy**: creating one runs nothing, and each `subscribe` starts a new run. A **teardown** is the cleanup a producer may return ([section 2](#2-anatomy-observable-observer-subscription-and-teardown)).
+**Cold Observables** are lazy: each `subscribe` starts its own producer run. A hot Observable listens to a producer that can already be running ([section 3](#3-cold-and-hot-unicast-and-multicast)). A **teardown** is the cleanup a producer may return ([section 2](#2-anatomy-observable-observer-subscription-and-teardown)).
 
 ```mermaid
 sequenceDiagram
@@ -61,11 +61,11 @@ sequenceDiagram
   P-->>C: a second set of values
 ```
 
-What to notice: the producer starts at `subscribe`, not at creation, and each `subscribe` gets its own run.
+What to notice: this cold producer starts at `subscribe`, not at creation, and each `subscribe` gets its own run.
 
 ### How it actually works
 
-**Lazy, one run per subscribe.** `Section 1: subscribing runs the producer once per subscribe and not before`: creation logged nothing, each `subscribe` logged `producer`. Read from the `rxjs` 7.8.2 source (`Observable.js`): the constructor only stores `_subscribe` (internal); `Observable.subscribe` calls it.
+**Cold: one producer run per subscribe.** `Section 1: subscribing runs the producer once per subscribe and not before`: creation logged nothing, each `subscribe` logged `producer`. Read from the `rxjs` 7.8.2 source (`Observable.js`): the constructor only stores `_subscribe` (internal); `Observable.subscribe` calls it.
 
 **Synchronous when the producer is.** `Section 1: delivery from a synchronous producer finishes before subscribe returns`: `of(1, 2, 3)` reached the consumer before the next line. The guide calls "Observables are asynchronous" untrue.
 
@@ -126,15 +126,15 @@ function loggingSource(log: string[], name: string): Observable<string> {
 
 ### Best practices and anti-patterns
 
-- **Subscribe only where the value is needed**, because each `subscribe` runs the producer again.
+- **Subscribe only where the value is needed**, because each `subscribe` to a cold source runs the producer again.
 - **Pick `firstValueFrom` or `lastValueFrom` by the value you need**, because an empty source rejects with `EmptyError`.
 - **Do not `await` an Observable**, because it is not thenable.
 
 ### Misconceptions and traps
 
 - *"Observables are asynchronous."* Delivery is synchronous when the producer is; examples use timers.
-- *"An Observable is a Promise for many values."* A Promise runs once, at creation; an Observable at every `subscribe`. Both push.
-- *"Creating an Observable starts the work."* It starts at `subscribe`; the habit comes from the Promise executor.
+- *"An Observable is a Promise for many values."* A Promise runs once, at creation; a cold Observable starts its producer at every `subscribe`. Both push.
+- *"Creating an Observable starts the work."* A cold producer starts at `subscribe`; a hot source may wrap work already running. The habit comes from the Promise executor.
 - *"RxJS is part of Angular."* `@angular/core` 22.2.1 lists `rxjs ^6.5.3 || ^7.4.0` as a peer; its APIs return Observables.
 - *"The browser has Observables now, so RxJS is obsolete."* The platform API is a draft shipped in Chrome and Edge 135 only (note above); the Chrome 135 post says "The Observable API is now supported".
 
@@ -273,7 +273,7 @@ What to notice: where the producer is created decides cold or hot, the number of
 **Neighbours.** `shareReplay` is [module 23](23-rxjs-in-depth.md#5-multicasting-in-depth-share-configuration-sharereplay-and-connect). `Section 3: HttpClient sends no request until subscribe and one per subscribe` ([27](27-http-client.md#1-httpclient-versus-fetch-what-the-framework-adds-over-the-platform)); the `async` pipe subscribes once per use ([Q14.27](14-directives-and-pipes.md#q14-27)).
 
 > [!TIP]
-> **Coming from the backend.** Reactor 3.8.7's reference says "Nothing happens until you subscribe" and that a cold sequence "starts anew for each Subscriber", like an Observable. There `share()` and `replay(…)` make a cold publisher hot, and `Sinks.Many` feeds one by hand, as `share` and a Subject do here. `Mono` ("an Asynchronous 0-1 Result") has no RxJS twin: `Observable<T>` stands for zero, one or many values. **Where the analogy breaks:** Reactor implements the Reactive Streams `request(n)` protocol, so a subscriber can signal "at most n" and demand travels upstream, "a push-pull hybrid". RxJS 7.8.2 has no demand channel, so thinning is your choice of operator (`bufferCount` above, [section 8](#8-timing-operators-debouncetime-throttletime-audittime-and-sampletime) for the rest). Documented, not run (reference read 2026-10-09).
+> **Coming from the backend.** Reactor 3.8.7's reference says "Nothing happens until you subscribe" and that a cold sequence "starts anew for each Subscriber", like a cold Observable. There `share()` and `replay(…)` make a cold publisher hot, and `Sinks.Many` feeds one by hand, as `share` and a Subject do here. `Mono` ("an Asynchronous 0-1 Result") has no RxJS twin: `Observable<T>` stands for zero, one or many values. **Where the analogy breaks:** Reactor implements the Reactive Streams `request(n)` protocol, so a subscriber can signal "at most n" and demand travels upstream, "a push-pull hybrid". RxJS 7.8.2 has no demand channel, so thinning is your choice of operator (`bufferCount` above, [section 8](#8-timing-operators-debouncetime-throttletime-audittime-and-sampletime) for the rest). Documented, not run (reference read 2026-10-09).
 
 > [!NOTE]
 > **Framework vs platform.** `addEventListener` registers a listener per call; the WICG `when()` "adds a new event listener to the target when its `subscribe()` method is called" (explainer, documented).
@@ -923,7 +923,7 @@ Drilled in [Q22.33](#q22-33) and [Q22.34](#q22-34); modelled in [Exercise 22.1](
 
 ## Summary
 
-An Observable is a lazy collection of zero to many values that a producer pushes: nothing runs until `subscribe`, each `subscribe` starts its own run, and delivery is synchronous when the producer is, so it is neither a Promise (whose executor runs at creation) nor an iterator (which the consumer pulls) ([1](#1-push-collections-observables-promises-iterators-and-laziness)). An observer's callbacks keep one contract, any number of `next` and then at most one `error` or `complete`; the teardown the producer returns runs once, when the subscription closes after either, and a throw in a consumer's handler is reported later, not at `subscribe` ([2](#2-anatomy-observable-observer-subscription-and-teardown)). A source is cold when each subscription creates its own producer and hot when the producer lives outside; `share()` puts a Subject between one run and many consumers and resets when the last one leaves, a late subscriber misses earlier values, and RxJS has no backpressure channel, which is where the Project Reactor comparison breaks ([3](#3-cold-and-hot-unicast-and-multicast)).
+An Observable is a collection of zero to many values that a producer pushes: a cold source starts a separate producer at each `subscribe`, and delivery is synchronous when the producer is, so it is neither a Promise (whose executor runs at creation) nor an iterator (which the consumer pulls) ([1](#1-push-collections-observables-promises-iterators-and-laziness)). An observer's callbacks keep one contract, any number of `next` and then at most one `error` or `complete`; the teardown the producer returns runs once, when the subscription closes after either, and a throw in a consumer's handler is reported later, not at `subscribe` ([2](#2-anatomy-observable-observer-subscription-and-teardown)). A source is cold when each subscription creates its own producer and hot when the producer lives outside; `share()` puts a Subject between one run and many consumers and resets when the last one leaves, a late subscriber misses earlier values, and RxJS has no backpressure channel, which is where the Project Reactor comparison breaks ([3](#3-cold-and-hot-unicast-and-multicast)).
 
 A Subject is an observer and an Observable: a late subscriber gets nothing from `Subject`, the current value from `BehaviorSubject`, the buffer from `ReplaySubject` (unbounded by default) and only the last value after `complete` from `AsyncSubject`, so a service keeps its Subject private and hands out `asObservable()`, because one `complete()` mutes the bus for everyone ([4](#4-subjects-subject-behaviorsubject-replaysubject-and-asyncsubject)). A pipeable operator is a function from Observable to Observable and `pipe` composes them left to right without touching the source; a from-scratch operator must return the upstream subscription and keep its state per subscription, and operators are imported from `'rxjs'`, because seven names in `'rxjs/operators'` are different functions ([5](#5-pipeable-operators-and-writing-your-own)). The catalogue is chosen by purpose and by its empty-source behavior: `first()` errors where `take(1)` completes, `reduce` emits at `complete` where `scan` emits as it goes, and `distinctUntilChanged` compares with `===` ([6](#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)).
 
@@ -939,7 +939,7 @@ Each *Output* answer prints the lines of its `Q22.NN` test in [`q22-outputs.spec
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** An Observable is a lazy collection of zero to many values that a producer pushes to a consumer: nothing runs until `subscribe`, and each `subscribe` starts its own run. A function returns one value when called, an iterator is pulled, and a Promise pushes one value its executor started producing at creation.
+**Short answer (30 seconds).** An Observable is a collection of zero to many values that a producer pushes to a consumer. A cold source starts its own producer at each `subscribe`; a hot source shares a producer that exists outside the subscriptions ([section 3](#3-cold-and-hot-unicast-and-multicast)). A function returns one value when called, an iterator is pulled, and a Promise pushes one value its executor started producing at creation.
 
 **Full explanation.** [Section 1](#1-push-collections-observables-promises-iterators-and-laziness) places the four in a pull-or-push, one-or-many table. The constructor only stores the producer function; `subscribe` builds a subscriber and calls the stored function with it (read from the `rxjs` 7.8.2 source, `Observable.js`: constructor, `subscribe`, `_trySubscribe`, the last two internal). So it is not asynchronous by nature: `of(1, 2, 3)` reached the consumer before `subscribe` returned (`Section 1: delivery from a synchronous producer finishes before subscribe returns`), and it has no `then` and no `Symbol.iterator` (`Section 1: an observable is neither thenable nor iterable`).
 
@@ -947,7 +947,7 @@ Each *Output* answer prints the lines of its `Q22.NN` test in [`q22-outputs.spec
 - *Is `subscribe` like calling a function?* Yes, "analogous to calling a Function" (`observable.md`, `7.x`), except that one call may deliver many values, later.
 - *How do I get a Promise out of one?* `firstValueFrom` or `lastValueFrom`; an empty source rejects with `EmptyError` (`Section 1: firstValueFrom subscribes at once and rejects with EmptyError on an empty source`). The order against a Promise is [Q22.03](#q22-03).
 
-**Trap to avoid.** Calling an Observable "a Promise for many values": the Promise starts at creation and settles once, the Observable starts at every `subscribe`.
+**Trap to avoid.** Calling an Observable "a Promise for many values": the Promise starts at creation and settles once, the cold Observable starts its producer at every `subscribe`.
 
 </details>
 
@@ -1052,7 +1052,7 @@ p then 2
 
 **Short answer (30 seconds).** They share the idea (a lazy push source with `subscribe`) and differ in size and status. RxJS is a library with a large operator catalogue; the platform `Observable` is a Community Group draft with a short operator list, shipped in Chrome and Edge 135 only. Documented on 2026-10-09, not run.
 
-**Full explanation.** The explainer (WICG `Observable`) ties the API to events: `EventTarget.when(type)` returns an Observable, `subscribe(observer, { signal })` cancels through an `AbortSignal`, and `subscriber.addTeardown()` registers teardown. Its operators are `catch`, `takeUntil`, `finally`, `map`, `filter`, `take`, `drop`, `flatMap` and Promise-returning ones such as `reduce`, `every` and `find`, with no `debounceTime` or `combineLatest`; RxJS has those ([sections 6 to 8](#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)).
+**Full explanation.** The explainer (WICG `Observable`) ties the API to events: `EventTarget.when(type)` returns an Observable, `subscribe(observer, { signal })` cancels through an `AbortSignal`, and `subscriber.addTeardown()` registers teardown. Its operators are `catch`, `takeUntil`, `finally`, `map`, `filter`, `take`, `drop`, `flatMap`, `switchMap`, `inspect` and Promise-returning ones such as `reduce`, `every` and `find`, with no `debounceTime` or `combineLatest`; RxJS has those ([sections 6 to 8](#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)).
 
 Status on 2026-10-09, sourced in the [section 1](#1-push-collections-observables-promises-iterators-and-laziness) callout: a "Draft Community Group Report, 21 November 2025", off the W3C Standards Track; Chrome and Edge 135, baseline `limited`; Firefox and Safari not shipped; chromestatus disagrees ("In development"). `Section 1: jsdom and Node expose no global Observable`: nothing here ran in a browser, and the TC39 proposal was not read.
 
@@ -2538,7 +2538,7 @@ export class DashboardFeed {
 
 **Flashcards.**
 
-<details><summary>When does an Observable run its producer?</summary>
+<details><summary>When does a cold Observable run its producer?</summary>
 
 At each `subscribe`, once per subscription; creating it runs nothing.
 

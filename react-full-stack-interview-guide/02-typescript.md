@@ -35,7 +35,7 @@ user.id.toFixed(2);                   // runtime TypeError: user.id.toFixed is n
 ```
 
 ### How it works internally
-`tsc` parses to an AST, binds symbols, then the **checker** assigns a type to each expression and reports diagnostics. Emit is a separate step that strips types (and, depending on settings, lowers syntax). Modern pipelines split the two jobs: Vite, esbuild and SWC **strip types without checking** (fast, per file), and `tsc --noEmit` is the checker you run in CI. That is why a Vitest run goes green while `tsc` is red, and why this repo has both `npm test` and `npm run typecheck`. Because other tools strip types file by file, syntax that needs type information to emit (`const enum` across files, `namespace` merging, parameter properties in some setups) is discouraged; `verbatimModuleSyntax` (2.15) exists for this reason.
+`tsc` parses to an AST, binds symbols, then the **checker** assigns a type to each expression and reports diagnostics. Emit is a separate step that strips types (and, depending on settings, lowers syntax). Modern pipelines split the two jobs: Vite, esbuild and SWC **strip types without checking** (fast, per file), and `tsc --noEmit` is the checker you run in CI. That is why a Vitest run goes green while `tsc` is red, and why this repo has both `npm test` and `npm run typecheck`. Because other tools strip types file by file, syntax that needs type information to emit (`const enum` across files, `namespace` merging, parameter properties in some setups) is discouraged; `isolatedModules` (implied by `verbatimModuleSyntax`, 2.15) exists for this reason, and `erasableSyntaxOnly` (TS 5.8) goes further for Node's built-in type stripping, which also rejects `enum`, `namespace` and parameter properties.
 
 ### Trade-offs
 - ✅ Refactors become mechanical, editors get accurate autocomplete, and a class of null and typo bugs disappears.
@@ -113,7 +113,7 @@ TypeScript is **structurally typed**: type `A` is assignable to `B` if `A` has *
 
 > **Java/Spring analogy.** Java is **nominal**: `class Meters` and `class Feet` with identical fields are unrelated types. Go interfaces are structural, as is the way a Spring bean satisfies a `@FunctionalInterface` lambda.
 >
-> **Where the analogy breaks:** structural typing means an `OrderId` string and a `UserId` string are *interchangeable*. When you want nominal behavior you must build it: brands (`string & { __brand: 'UserId' }`, see `Brand` in [types.ts](examples/web/src/m02-typescript/types.ts)) or classes with `private` members (private/`#` members make a class compare nominally; predictions 9 in the predict test).
+> **Where the analogy breaks:** structural typing means an `OrderId` string and a `UserId` string are *interchangeable*. When you want nominal behavior you must build it: brands (`string & { __brand: 'UserId' }`, see `Brand` in [types.ts](examples/web/src/m02-typescript/types.ts)) or classes with `private` members (private/`#` members make a class compare nominally; prediction 9 in the predict test).
 
 ### Minimal code
 ```ts
@@ -207,7 +207,7 @@ export function assertIsDefined<T>(value: T, message = 'Expected a value'): asse
 ```
 
 ### How it works internally
-The checker builds a **control-flow graph** per function. Each reference has a *flow type* computed by walking back through the graph and applying the narrowing of every guard it passed. Two consequences matter in practice. First, narrowing is **invalidated by assignments and, for mutable captured variables, inside callbacks** (TS 5.4 improved this: if the variable is never reassigned after the closure is created, narrowing is preserved in closures). Second, narrowing does not survive **property access through a function call** (`if (obj.a) { fn(); obj.a.x }` is still narrowed, because TypeScript optimistically assumes calls do not mutate, a deliberate unsoundness).
+The checker builds a **control-flow graph** per function. Each reference has a *flow type* computed by walking back through the graph and applying the narrowing of every guard it passed. Two consequences matter in practice. First, narrowing is **invalidated by assignments and, for mutable captured variables, inside callbacks** (TS 5.4 improved this: if the variable is never reassigned after the closure is created, narrowing is preserved in closures). Second, narrowing of a property **survives an intervening function call** (`if (obj.a) { fn(); obj.a.x }` is still narrowed, because TypeScript optimistically assumes calls do not mutate, a deliberate unsoundness).
 
 **Inferred type predicates (TS 5.5):** if a function's body is a single check that narrows its parameter, and the "false" branch is exactly the complement, TS infers `x is T` for you. `[1, null, 2].filter((x) => x !== null)` is `number[]`. A truthiness check like `filter((x) => !!x)` is **not** inferred as a predicate, because it would also remove `0` and the complement would be wrong. [narrowing.test.ts](examples/web/src/m02-typescript/narrowing.test.ts) asserts both with `expectTypeOf`. Source: [TS 5.5 release notes](https://devblogs.microsoft.com/typescript/announcing-typescript-5-5/).
 
@@ -296,7 +296,7 @@ pick(user, 'nmae');                           // error: "nmae" is not a key of U
 Newer generic features, each with a source: **`const` type parameters** (TS 5.0): `function tuple<const T extends readonly unknown[]>(...xs: T): T` infers `readonly ['a', 1]` without the caller writing `as const` ([5.0 notes](https://devblogs.microsoft.com/typescript/announcing-typescript-5-0/)). **`NoInfer<T>`** (5.4, built into `lib.es5.d.ts`; confirmed in `node_modules/typescript/lib/lib.es5.d.ts`): blocks a position from contributing inference candidates, so `firstOr(items, fallback: NoInfer<T>)` rejects a fallback outside the item type ([5.4 notes](https://devblogs.microsoft.com/typescript/announcing-typescript-5-4/)). **Variance annotations** `in` / `out` (4.7): `interface Producer<out T>` makes the checker verify and use covariance.
 
 ### How it works internally
-At a call, the checker **instantiates** the signature: it infers a candidate set per type parameter, resolves each to one type (union of candidates for covariant positions, intersection for contravariant ones), then checks arguments against the instantiated parameters. Inside the generic body, `T` is an **opaque placeholder** that is only assignable to itself and its constraint; that is why `return {} as Pick<T, K>` or one cast at a boundary shows up in generic implementations (see `groupBy.ts`: `Object.fromEntries` can only promise `{ [k: string]: T[] }`). There is no runtime `T`: you cannot write `new T()` or `typeof T`.
+At a call, the checker **instantiates** the signature: it infers a candidate set per type parameter, resolves each to one type (the best common supertype of the candidates for covariant positions, which is a union only for literals of the same primitive, as in `firstOr` in 2.3; an intersection for contravariant ones), then checks arguments against the instantiated parameters. Inside the generic body, `T` is an **opaque placeholder** that is only assignable to itself and its constraint; that is why `return {} as Pick<T, K>` or one cast at a boundary shows up in generic implementations (see `groupBy.ts`: `Object.fromEntries` can only promise `{ [k: string]: T[] }`). There is no runtime `T`: you cannot write `new T()` or `typeof T`.
 
 ### Trade-offs
 - Default to *few* type parameters, each of which appears at least twice (a type parameter used once is usually just `unknown` or a bad design).
@@ -342,7 +342,7 @@ type Loaded = Awaited<ReturnType<Api['getUser']>>; // User
 Type-level assertions for these (and for `Awaited`, `Omit`, `Required`, `NonNullable`, `Record`) are in `types.test.ts` ("built-in utilities").
 
 ### How it works internally
-Most are one-liners in `lib.es5.d.ts`: `Partial<T> = { [P in keyof T]?: T[P] }`, `Pick<T, K extends keyof T> = { [P in K]: T[P] }`, `Exclude<T, U> = T extends U ? never : T`, `ReturnType<T> = T extends (...args: any) => infer R ? R : any` (these definitions are read from the installed `node_modules/typescript/lib/lib.es5.d.ts`; the `any`s are why the standard library is exempt from the lint rule). `Partial`/`Pick` are **homomorphic** mapped types: they preserve `readonly` and optional modifiers of the source, and on arrays and tuples they map element-wise.
+Most are one-liners in `lib.es5.d.ts`: `Partial<T> = { [P in keyof T]?: T[P] }`, `Pick<T, K extends keyof T> = { [P in K]: T[P] }`, `Exclude<T, U> = T extends U ? never : T`, `ReturnType<T> = T extends (...args: any) => infer R ? R : any` (these definitions are read from the installed `node_modules/typescript/lib/lib.es5.d.ts`; the `any`s are why the standard library is exempt from the lint rule). `Partial`/`Pick` are **homomorphic** mapped types: they preserve the `readonly` and optional modifiers of the source. A mapped type directly over `keyof T` (`Partial`, `Readonly`) also maps arrays and tuples element-wise; `Pick` does not.
 
 ### Trade-offs
 Derive types from a **single source** (the schema, the function, the constant), not from each other in long chains. If you write `Partial<Omit<Pick<…>>>` three levels deep, name the intermediate type. `Omit` on a union does not distribute (it collapses the union); use a distributive helper when you need that.
@@ -419,7 +419,7 @@ palette.green.toUpperCase();      // green is string
 export const routes = { home: '/', user: '/users/:id' } as const satisfies Record<string, `/${string}`>;
 type RouteName = keyof typeof routes; // 'home' | 'user'
 ```
-Predictions 8 and 3 in [compiles.predict.test.ts](examples/web/src/m02-typescript/compiles.predict.test.ts) assert that `palette.red.toUpperCase()` is rejected and `palette.green.toUpperCase()` is accepted.
+In [compiles.predict.test.ts](examples/web/src/m02-typescript/compiles.predict.test.ts), must-not-compile entry 8 and must-compile entry 3 assert that `palette.red.toUpperCase()` is rejected and `palette.green.toUpperCase()` is accepted.
 
 ### How it works internally
 A type annotation changes the declared type of the variable, so later reads see the *annotation*. `satisfies` is a **checking-only** operator: the expression is checked against the target type (also providing *contextual* typing, so `'#0f0'` can be a literal), and the variable keeps its own inferred type. `as` is the opposite: an *assertion* that overrides the checker, only blocked when the types do not sufficiently overlap. `never` falls out of narrowing: whatever remains when every union member was ruled out.
@@ -471,7 +471,7 @@ A pragmatic rule: **`type` by default** (it can do everything, and unions are th
 A component's props are its public API. In JavaScript a typo (`onclick`, `varient`) fails silently, and the type of an event handler's argument is a guess.
 
 ### Mental model
-A function component is just `(props: Props) => ReactNode`, so **typing a component is typing a function's first parameter**. React 19 and `@types/react` 19.x remove most legacy scaffolding: no `React.FC` needed, no implicit `children`, and **`ref` is an ordinary prop**. The library ships its own utility types (`ComponentProps`, `ComponentPropsWithRef`, `ComponentPropsWithoutRef`, `ElementType`, `ReactNode`, `ChangeEvent`, `FormEvent`, `MouseEvent`…).
+A function component is just `(props: Props) => ReactNode`, so **typing a component is typing a function's first parameter**. Modern `@types/react` removes most legacy scaffolding: no `React.FC` needed, no implicit `children` (gone since the 18.x types), and in React 19 **`ref` is an ordinary prop**. The library ships its own utility types (`ComponentProps`, `ComponentPropsWithRef`, `ComponentPropsWithoutRef`, `ElementType`, `ReactNode`, `ChangeEvent`, `FormEvent`, `MouseEvent`…).
 
 > **Java/Spring analogy.** Props are a request DTO or a method signature, and a typed component is like an `@RestController` method whose parameter types the framework checks.
 >
@@ -590,7 +590,7 @@ Put hand-written declarations in one place. Keep augmentations tiny and document
 `tsc` behaves very differently depending on `tsconfig.json`. A codebase with `strict: false` accepts code the next team's strict config rejects, and many type-safety claims in tutorials silently assume a flag.
 
 ### Mental model
-`strict: true` is a **bundle** of flags (`strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitThis`, `useUnknownInCatchVariables`, `alwaysStrict`, and future additions). A few important safety flags are **not** in the bundle.
+`strict: true` is a **bundle** of flags (`strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `strictBuiltinIteratorReturn` (5.6), `noImplicitThis`, `useUnknownInCatchVariables`, and future additions). `alwaysStrict` was in the bundle through 5.x; since 6.0 it is on regardless of `strict`, and setting it to `false` is deprecated (checked in the installed `typescript` 6.0.3 `lib/typescript.js`: "Previously a strict-mode flag, but no longer"). A few important safety flags are **not** in the bundle.
 
 | Flag | Effect | In `strict`? | This repo |
 |---|---|---|---|
@@ -601,7 +601,7 @@ Put hand-written declarations in one place. Keep augmentations tiny and document
 | `verbatimModuleSyntax` | imports/exports without `type` are kept; `type` ones are erased | no | **on** |
 | `noUnusedLocals` / `noUnusedParameters` | report unused symbols | no | on |
 | `noFallthroughCasesInSwitch` | reports non-empty case fall-through | no | on |
-| `isolatedModules` | each file must be transpilable alone | no (implied by `verbatimModuleSyntax` use cases) | n/a |
+| `isolatedModules` | each file must be transpilable alone | no | effectively on (implied by `verbatimModuleSyntax`) |
 | `skipLibCheck` | do not check `.d.ts` files | no | on |
 
 > **Java/Spring analogy.** Compiler flags like `-Xlint:all -Werror`, or enabling null-annotation checking (`@NonNullApi` + NullAway / Checker Framework).
@@ -704,14 +704,14 @@ A Zod schema is a **runtime object tree** of parsers. `safeParse` walks the inpu
 - Schema-first (Zod) vs types-first (OpenAPI codegen) vs shared source (a monorepo with the server's contract): pick one source of truth. Hand-maintained types plus `as` casts are the option that fails silently.
 - Zod is not the only choice (Valibot, ArkType, Effect Schema); the pattern is what matters.
 
-Zod 4 implements the [Standard Schema](https://standardschema.dev/) interface: zod 4.6.5 ships `v4/core/standard-schema.d.ts` with `StandardSchemaV1` and its `~standard` property, and `@hookform/resolvers` 5.9.1 ships a `standard-schema` resolver (both grepped in `examples/web/node_modules`). > **Unverified:** which other libraries in your stack accept a Standard Schema directly; check each library's docs.
+Zod 4 implements the [Standard Schema](https://standardschema.dev/) interface: zod 4.6.5 ships `v4/core/standard-schema.d.ts` with `StandardSchemaV1` and its `~standard` property, and `@hookform/resolvers` 5.9.1 ships a `standard-schema` resolver (both grepped in `examples/web/node_modules`). **Unverified:** which other libraries in your stack accept a Standard Schema directly; check each library's docs.
 
 ---
 
 ## 2.17 TypeScript 6/7: the native compiler and what changed
 
 ### The problem
-The date today is 2026-10-04, and codebases you interview into run anything from TS 4.x to 7.0. "Which version are you on, and what changed?" is a real question, and so is "why is your repo on 6.0 when 7.0 is out?".
+As of October 2026, codebases you interview into run anything from TS 4.x to 7.0. "Which version are you on, and what changed?" is a real question, and so is "why is your repo on 6.0 when 7.0 is out?".
 
 ### Mental model
 TypeScript **5.x** was feature evolution on the JavaScript-based compiler. **6.0** was the **last JavaScript-based release** and a **bridge**: it changed defaults and deprecated old options so that projects could be ready for **7.0**, which is a **native port of the compiler (written in Go)**. The *language* is the same; the *tool* is different, and the ecosystem tooling that talked to the old compiler's API has to catch up.
@@ -818,7 +818,7 @@ It checks that the expression conforms to a type without changing the expression
 **Q9. What does `strict` include, and what notable flag does it not?**
 <details><summary>Answer</summary>
 
-`strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitThis`, `useUnknownInCatchVariables`, `alwaysStrict`. It does **not** include `noUncheckedIndexedAccess` or `exactOptionalPropertyTypes`. **A strong answer adds:** `strict` is on by default in `tsc` 6.0+ (2.17), so older projects with `strict: false` set it explicitly.
+`strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `strictBuiltinIteratorReturn`, `noImplicitThis`, `useUnknownInCatchVariables` (and `alwaysStrict` through 5.x; since 6.0 it is always on). It does **not** include `noUncheckedIndexedAccess` or `exactOptionalPropertyTypes`. **A strong answer adds:** `strict` is on by default in `tsc` 6.0+ (2.17), so older projects with `strict: false` set it explicitly.
 
 </details>
 
@@ -1232,7 +1232,7 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
 **Walkthrough.** In `case 'qtySet'` the type of `action` is `{ type: 'qtySet'; sku: string; qty: number }`, so `action.qty` exists; in `case 'paid'` `action.sku` would not compile. After the last case, `action` is `never`, so `assertNever(action)` compiles. The test builds a `switch` that handles only `'added'`; there `action` still has five members in the `default` branch, and the `@ts-expect-error` on `assertNever(a)` proves the compiler rejects it. The forged `{ type: 'teleported' }` shows the runtime `throw`.
 
 **Interviewer follow-ups.**
-- "Why not omit `default`?" With an annotated return type and an exhaustive `switch` it compiles, and the error then appears as "Function lacks ending return statement" at the signature. The explicit `never` check puts the error at the switch and adds the runtime throw.
+- "Why not omit `default`?" With an annotated return type and an exhaustive `switch` it compiles; once a case is missing, the error appears as "Function lacks ending return statement" at the signature. The explicit `never` check puts the error at the switch and adds the runtime throw.
 - "Where do you put side effects?" Not in the reducer ([08](08-state.md#810-usereducer)).
 - "How is this different from Redux Toolkit?" RTK's `createSlice` derives action types for you ([18](18-state-management.md)), but the discriminated union is the underlying idea.
 
@@ -1489,7 +1489,7 @@ test('the table of predictions has the shape the guide describes', () => {
 15. **Conditional types distribute over naked unions.** `ToArray<string | number>` with `T extends unknown ? T[] : never` is `string[] | number[]`, not `(string | number)[]`; use `[T] extends [unknown]` to prevent it.
 16. **`never` hides bugs through intersections.** `{ kind: 'a' } & { kind: 'b' }` is `never`, and any property access on it type-checks.
 17. **Vitest passing does not mean types pass.** Vitest never type-checks; only `tsc` does. A `@ts-expect-error` is only verified by `tsc`.
-18. **`import type` and `verbatimModuleSyntax`.** With the flag on, importing a type without the `type` modifier is an error (the import would be kept at runtime); `import { type X }` leaves an empty `import {} from` side-effect import under some settings, `import type { X }` removes it entirely.
+18. **`import type` and `verbatimModuleSyntax`.** With the flag on, importing a type without the `type` modifier is an error (the import would be kept at runtime); `import { type X }` leaves an empty `import {} from` side-effect import under this flag, `import type { X }` removes it entirely.
 19. **`@types/react` and `react` versions must match** in major. A mismatched pair produces confusing errors on `ref`, `children` and event types.
 20. **`React.FC` historically added `children` (React 17 types)** and cannot be generic; do not copy old snippets.
 21. **A generic arrow in `.tsx`** needs `<T,>` or `<T extends unknown>`, or the parser reads `<T>` as a JSX element.

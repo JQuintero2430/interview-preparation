@@ -187,7 +187,7 @@ No retelling worth cutting. The likely repeats each add something: the route ord
 | 12 | Strict-mode first line and `aka` lines (375) | run (`Section 4:` test, 5 of 5) | match |
 | 13 | `TimeoutError`, `locator.click: Timeout 500ms exceeded.`, call-log lines (274) | run (`Section 3:` test) | match |
 | 14 | `_routes.unshift`, `_reportHandled(false)` (473, Q30.09) | package source (`coreBundle.js` 61728, 62512, 59728) | match |
-| 15 | `notFound` `"abort"|"fallback"`, default abort; fallback reaches the server, 404 (477) | package source (`types/types.d.ts` 4503); run (`Section 5: routeFromHAR …` 91-100) | match |
+| 15 | `notFound` `"abort"\|"fallback"`, default abort; fallback reaches the server, 404 (477) | package source (`types/types.d.ts` 4503); run (`Section 5: routeFromHAR …` 91-100) | match |
 | 16 | `threshold` 0.2, `maxDiffPixels`/`maxDiffPixelRatio` unset, `animations` `"disabled"`, pink `mask`, `stylePath` (554, Q30.11) | package source (`types/test.d.ts` 9879-9948) | match |
 | 17 | `snapshotSuffix = process.platform`; legacy path template (556) | package source (`lib/index.js` 352; `workerProcessEntry.js` 1256) | match |
 | 18 | Outcome rule (621) | package source (`lib/common/index.js` 2493-2519) | imprecise (F-1) |
@@ -211,7 +211,7 @@ Ceilings: the module is 14,055 prose words (module-stats); CLOSE limit 14,415; R
 ### FIX-M30-01 · S · Misconception causes, glosses, outcome rule, marking and wording (F-1, T-1..T-11, T-13)
 - Files: `modules/30-e2e-and-testing-strategy.md`; `_meta/LOG.md` (its own line only).
 - Do: apply each fix text above: F-1 (621); T-1 (525, 590, 664); T-2 (64, 58, 141, 701); T-3 (217, 865, drop backticks around the marker); T-4 (515); T-5 (104); T-6 (1636); T-7 (1103); T-8 (873); T-9 (1522); T-10 (Q30.18 bash header); T-13 (1258). Find each line by its quoted text (line numbers move). No lab file changes; no test title changes. The LOG line records T-11 ("EX-M30-03 ran in lab mode; its line named no mode").
-- Acceptance: from `labs/e2e`, `npm run typecheck` exit 0; from the guide root, `node labs/tools/check-links.mjs --planned` and `node labs/tools/check-snippets.mjs . 30` exit 0; every Misconceptions bullet of §5, §6 and §7 has a cause sentence (read); `grep -c '\`\[Removed in' modules/30-e2e-and-testing-strategy.md` is 0 and `grep -c '\[Removed in v19.0\]'` is 2; `grep -n "tenant" modules/30-e2e-and-testing-strategy.md | head -1` shows the gloss; prose at most +90 over the count measured just before, and the LOG line gives both counts (`module-stats.mjs` and the QUALITY-BAR one-liner).
+- Acceptance: from `labs/e2e`, `npm run typecheck` exit 0; from the guide root, `node labs/tools/check-links.mjs --planned` and `node labs/tools/check-snippets.mjs . 30` exit 0; every Misconceptions bullet of §5, §6 and §7 has a cause sentence (read); ``grep -c '`\[Removed in' modules/30-e2e-and-testing-strategy.md`` is 0 and `grep -c '\[Removed in v19.0\]'` is 2; `grep -n "tenant" modules/30-e2e-and-testing-strategy.md | head -1` shows the gloss; prose at most +90 over the count measured just before, and the LOG line gives both counts (`module-stats.mjs` and the QUALITY-BAR one-liner).
 - Model: **Sonnet** (every text prescribed; no new verification; the sources for T-2's `fullyParallel` and F-1 are cited here with lines).
 
 ### FIX-M30-02 · S · Anchors for the file-level links into 30 (T-12; +0 words)

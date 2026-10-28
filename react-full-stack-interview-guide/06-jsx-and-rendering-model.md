@@ -251,7 +251,7 @@ From `examples/web/src/m06-jsx/PrependList.tsx` (the `keyBy` prop exists only so
 ))}
 ```
 
-With `keyBy="index"`, typing in Alpha's input and then prepending a row leaves the text at position 0, now labelled "New 3". With `keyBy="id"`, the text stays with Alpha and React **moves the same DOM node** (the test asserts `toBe` identity).
+With `keyBy="index"`, typing in Alpha's input and then prepending a row leaves the text at position 0, now labeled "New 3". With `keyBy="id"`, the text stays with Alpha and React **moves the same DOM node** (the test asserts `toBe` identity).
 
 ### How it works internally
 When React reconciles an array of children, it first walks old and new lists in order while keys match. At the first mismatch, it puts the remaining old children in a map keyed by `key` (or index when there is none), and for each new child looks up its key: found means **move and update**, missing means **create**; leftovers are **deleted** ([13](13-reconciliation-and-fiber.md#132-diffing-heuristics-type-then-key)). That is why a stable key turns a prepend into one insertion instead of N updates.
@@ -521,7 +521,7 @@ Partial Strict Mode is allowed (`<StrictMode>` around one subtree). react.dev no
 - Do **not** "fix" double renders with a module-level flag or a `useRef` guard. Make the render pure.
 
 > **Version notes.**
-> **16.3**: `<StrictMode>` introduced (warnings only). **16.8**: components with hooks double-render in Strict Mode. **17.0**: components without hooks double-render too, and React **silenced `console`** during the second render. **18.0**: effects re-run on mount ("Make `<StrictMode>` re-run effects to check for restorable state"); console suppression **removed**, and React DevTools greys out the second log instead (with an option to hide it). **19.0**: `useMemo`/`useCallback` reuse the first result; ref callbacks are attached/detached/attached; double invoking of `useState`/`useReducer` initializers restored. **19.3**: effects are also double-invoked **during hydration** and **after Fast Refresh**, and are no longer invoked on children that merely moved. All from the React CHANGELOG (17.0.0, 18.0.0, 19.0.0, 19.3.0, read on 2026-10-03). **Next.js** App Router enables Strict Mode by default since 13.5.1; Pages Router apps opt in with `reactStrictMode: true` ([Next.js docs](https://nextjs.org/docs/app/api-reference/config/next-config-js/reactStrictMode)). **Migration (17 → 18+):** expect effects to run twice in dev; fix cleanups rather than suppressing them.
+> **16.3**: `<StrictMode>` introduced (warnings, plus double-invoking class constructors, `render` and `setState` updaters). **16.8**: components with hooks double-render in Strict Mode ("to match class behavior"). **17.0**: components without hooks double-render too, and React **silenced `console`** during the second render. **18.0**: effects re-run on mount ("Make `<StrictMode>` re-run effects to check for restorable state"); console suppression **removed**, and React DevTools greys out the second log instead (with an option to hide it). **19.0**: `useMemo`/`useCallback` reuse the first result; ref callbacks are attached/detached/attached; double invoking of `useState`/`useReducer` initializers restored. **19.3**: effects are also double-invoked **during hydration** and **after Fast Refresh**, and are no longer invoked on children that merely moved. All from the React CHANGELOG (17.0.0, 18.0.0, 19.0.0, 19.3.0, read on 2026-10-03). **Next.js** App Router enables Strict Mode by default since 13.5.1; Pages Router apps opt in with `reactStrictMode: true` ([Next.js docs](https://nextjs.org/docs/app/api-reference/config/next-config-js/reactStrictMode)). **Migration (17 → 18+):** expect effects to run twice in dev; fix cleanups rather than suppressing them.
 
 ---
 
@@ -593,7 +593,7 @@ The client `useId` format in 19.3 is `"_" + identifierPrefix + "r_" + counter.to
 - The error options replace "log in a top-level `try/catch`". Since 19.0, uncaught render errors go to `window.reportError` by default and are **not re-thrown** (CHANGELOG 19.0.0); use `onUncaughtError` to send them to your monitoring ([16](16-error-handling.md#165-react-19-root-options-oncaughterror-onuncaughterror-onrecoverableerror)).
 - Frameworks (Next.js, React Router framework mode) create the root for you. You only write this line in a Vite or custom setup, and in micro-frontends.
 
-> **Version notes.** **16.0** added `ReactDOM.hydrate`. **18.0** added `createRoot`/`hydrateRoot` and the `onRecoverableError` option, and deprecated `ReactDOM.render` ("Using it will warn and run your app in React 17 mode"). **18.2** passes a component stack to `onRecoverableError`. **18.3** added deprecation warnings for everything removed in 19 (upgrade to 18.3.1 first). **19.0** removed `ReactDOM.render`, `hydrate`, `unmountComponentAtNode`, `findDOMNode` and `react-dom/test-utils` (`act` moved to `react`), added `onCaughtError`/`onUncaughtError`, and removed UMD builds. All from the React CHANGELOG. **Migration path:** 17 → 18.3.1 (fix every warning, switch to `createRoot`, wrap in `<StrictMode>`) → 19.x. Codemods: `npx codemod@latest react/19/migration-recipe` (react.dev 19 upgrade guide).
+> **Version notes.** **16.0** added `ReactDOM.hydrate`. **18.0** added `createRoot`/`hydrateRoot` and the `onRecoverableError` option, and deprecated `ReactDOM.render` ("Using it will warn and run your app in React 17 mode"). **18.2** passes a component stack to `onRecoverableError`. **18.3** added deprecation warnings for everything removed in 19 (upgrade to 18.3.1 first). **19.0** removed `ReactDOM.render`, `hydrate`, `unmountComponentAtNode`, `findDOMNode` and everything in `react-dom/test-utils` except a deprecated `act` forwarder (`act` moved to `react`), added `onCaughtError`/`onUncaughtError`, and removed UMD builds. All from the React CHANGELOG. **Migration path:** 17 → 18.3.1 (fix every warning, switch to `createRoot`, wrap in `<StrictMode>`) → 19.x. Codemods: `npx codemod@latest react/19/migration-recipe` (react.dev 19 upgrade guide).
 >
 > The [React 19 upgrade guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) runs all React 19 codemods with `npx codemod@latest react/19/migration-recipe`; `react/19/replace-reactdom-render` is the one for `ReactDOM.render`/`hydrate`.
 
@@ -1148,7 +1148,7 @@ function Cup({ name, seat }: { name: string; seat: number }) {
 
 </details>
 
-**Walkthrough.** `Cup` now receives `seat`, so calling it twice returns the same `<li>` twice. `toSorted` leaves the parent's array alone; the test passes a frozen array, on which `sort()` would throw a `TypeError` in strict-mode code. `servedAt` is an input, so two renders with the same props produce identical HTML (the third test compares `innerHTML`). Where does the time come from, then? From the code that serves the tea: an event handler that stores `new Date()` in state, or a server value.
+**Walkthrough.** `Cup` now receives `seat`, so calling it twice returns the same `<li>` twice. `toSorted` leaves the parent's array alone; the test passes a frozen array, on which `sort()` would throw a `TypeError`. `servedAt` is an input, so two renders with the same props produce identical HTML (the third test compares `innerHTML`). Where does the time come from, then? From the code that serves the tea: an event handler that stores `new Date()` in state, or a server value.
 
 **Interviewer follow-ups.**
 - "I need a live clock." Keep the time in state and update it from an interval in an effect, or subscribe with `useSyncExternalStore`. Render only reads it.
@@ -1362,14 +1362,14 @@ test('6. a new key is a new component: state resets and the whole subtree mounts
 | "You must `import React from 'react'` in every file that uses JSX" | Yes, with the classic transform | Not needed with the automatic runtime, which React 19 requires | React 17 (and 16.14 / 15.7 / 0.14.10 back-ports); required in 19.0 |
 | "JSX compiles to `React.createElement`" | Yes, classic transform | It compiles to `jsx()`/`jsxs()` from `react/jsx-runtime`; `createElement` remains for hand-written calls | React 17 |
 | "Mount the app with `ReactDOM.render`" | Yes, React ≤ 17 | `createRoot` from `react-dom/client`; `ReactDOM.render` was deprecated in 18 and removed in 19 | 18.0 / 19.0 |
-| "Strict Mode only double-renders" | React 16.8–17 | It also re-runs effects (18), ref callbacks (19), and effects during hydration and after Fast Refresh (19.3) | 18.0 / 19.0 / 19.3 |
+| "Strict Mode only double-renders" | React 16.3–17 | It also re-runs effects (18), ref callbacks (19), and effects during hydration and after Fast Refresh (19.3) | 18.0 / 19.0 / 19.3 |
 | "Strict Mode's second render is silent" | React 17 suppressed `console` in it | Logs print twice; DevTools dims the second one | React 18.0 |
 | "A component can't return `undefined`" | It threw before 18 | Returning `undefined` renders nothing | React 18.0 |
 | "Components re-render when their props change" | Never quite true | They re-render when a parent renders (or their own state/context changes); props only matter to `memo` | Always |
 | "Re-rendering means the DOM is rebuilt" | Never true | Only nodes whose output differs are touched in the commit | Always |
 | "Use `key={index}` to silence the warning" | Common tutorial advice | Use a stable id from the data; index only for static, stateless lists | Always (docs updated with react.dev, 2023) |
 | "`javascript:` URLs in `href` just warn" | React 16.9–18 warned | React DOM replaces them with code that throws | React 19.0 |
-| "Use `ReactDOMTestUtils.act` / `react-test-renderer/shallow`" | React ≤ 18 | `act` is imported from `react`; `react-dom/test-utils` and shallow rendering were removed; use Testing Library | React 19.0 |
+| "Use `ReactDOMTestUtils.act` / `react-test-renderer/shallow`" | React ≤ 18 | `act` is imported from `react`; `react-dom/test-utils` (all but a deprecated `act`) and shallow rendering were removed; use Testing Library | React 19.0 |
 | "Elements are tagged with `Symbol.for('react.element')`" | React ≤ 18 | `react.transitional.element` | React 19.0 |
 
 ---

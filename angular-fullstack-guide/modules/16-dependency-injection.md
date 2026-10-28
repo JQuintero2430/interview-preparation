@@ -795,8 +795,8 @@ function providePlugins(...names: string[]): EnvironmentProviders {
 ### Misconceptions and traps
 
 - *"A multi provider in a child replaces the parent's list."* It does neither: each injector builds its own list. The myth exists because a plain provider in a child does override the parent's.
-- *"The two `provide…Initializer()` functions are the same."* Only the app's is awaited ([Q12.17](12-angular-how-it-works.md#q12-17)). The myth exists because both run at startup.
-- *"`EnvironmentProviders` is an alias for `Provider[]`."* It is a branded wrapper that components refuse. The myth exists because it is built from an array of providers. Once true: until 19.0.0 the multi tokens were the way to write initializers; now the `provide…Initializer()` functions are, and the tokens are deprecated since v19 (CHANGELOG 19.0.0 and the 22.2.1 typings).
+- *"The two `provide…Initializer()` functions are the same."* Only the app's is awaited ([Q12.17](12-angular-how-it-works.md#q12-17)). The myth exists because both run at startup. Once true: until 19.0.0 the multi tokens were the way to write initializers; now the `provide…Initializer()` functions are, and the tokens are deprecated since v19 (CHANGELOG 19.0.0 and the 22.2.1 typings).
+- *"`EnvironmentProviders` is an alias for `Provider[]`."* It is a branded wrapper that components refuse. The myth exists because it is built from an array of providers.
 
 Drilled in [Q16.23](#q16-23), [Q16.24](#q16-24), [Q16.25](#q16-25) and [Q16.26](#q16-26); practised in [Exercise 16.4](#ex16-4).
 

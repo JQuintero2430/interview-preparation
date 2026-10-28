@@ -219,7 +219,7 @@ Each link keeps its text; only the target gains the slug. Stay file-level: the `
 - §8 (1135-1137): "1. Spring.\n2. Timer, draft.\n3. Channel." → "1. Spring: local, provider and back-channel logout, plus `Clear-Site-Data`.\n2. An idle timer restarted on responses, and a draft saved before the POST.\n3. The channel that tells other tabs." (+21)
 
 **Nits**
-- **N-1 (C7, STYLE-GUIDE §7.2 Output):** Q42.14 snippet (1668): "  log(`${label}: ${result.valid ? 'accepted' : `rejected (${result.reason})`}`);" → "  console.log(`${label}: ${result.valid ? 'accepted' : `rejected (${result.reason})`}`);" (0)
+- **N-1 (C7, STYLE-GUIDE §7.2 Output):** Q42.14 snippet (1668): "``  log(`${label}: ${result.valid ? 'accepted' : `rejected (${result.reason})`}`);``" → "``  console.log(`${label}: ${result.valid ? 'accepted' : `rejected (${result.reason})`}`);``" (0)
 - **N-2 (quote):** §4 (491) and Q42.11 (1613): "\"In light of the impact of third-party cookie-blocking mechanisms" → "\"in light of the impact of third-party cookie-blocking mechanisms" (RFC 10017 §6.3.2.3 reads "However, in light of …"; 0).
 - **N-3:** §8 Java (1142): "SecurityFilterChain security(HttpSecurity http, ClientRegistrationRepository registrations) throws Exception {" → "SecurityFilterChain security(HttpSecurity http, ClientRegistrationRepository registrations) {" (7.1.1 `HttpSecurity` DSL methods and `AbstractSecurityBuilder.build()` declare no checked exception; §1, §3, §6 already omit it; 0 prose).
 - **N-4:** §1 problem (34): "After a move to \"stateless JWTs\", logout ends nothing ([Q24.19](../../modules/24-routing.md#q24-19))." → "After a move to \"stateless JWTs\", logout ends nothing." (Q24.19 is about a role guard reading `localStorage`; the reader lands on an unrelated question. −1)

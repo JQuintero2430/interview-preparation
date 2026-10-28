@@ -22,7 +22,8 @@ export function Accordion({ items, multiple = false }: Props) {
     });
   }
 
-  // Up/Down/Home/End move between the headers (the current APG accordion pattern no longer lists them as optional).
+  // Up/Down/Home/End move between the headers: an extra. Older APG versions listed them as optional;
+  // the current APG accordion pattern does not list them at all.
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const triggers = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[data-trigger]'));
     const current = triggers.findIndex((el) => el === document.activeElement);

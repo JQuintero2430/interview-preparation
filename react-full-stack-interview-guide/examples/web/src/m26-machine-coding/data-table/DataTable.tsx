@@ -55,11 +55,12 @@ export function DataTable({ rows }: { rows: Person[] }) {
           <tr>
             {COLUMNS.map(({ key, label }) => {
               const direction = sort?.key === key ? sort.direction : null;
+              // aria-sort goes on the sorted header only (ARIA: one header at a time); absent = no defined sort.
               return (
                 <th
                   key={key}
                   scope="col"
-                  aria-sort={direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : 'none'}
+                  aria-sort={direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : undefined}
                 >
                   <button type="button" onClick={() => cycle(key)}>
                     {label}

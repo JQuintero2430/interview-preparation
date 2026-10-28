@@ -6,7 +6,7 @@
 
 **Code for this module:** [`examples/web/src/m25-system-design/`](examples/web/src/m25-system-design/). Run its tests with `npx vitest run src/m25-system-design` from `examples/web`.
 
-> **Verification status.** The code in `m25-system-design` was written without running it (the coordinator runs type-check, lint and tests). Standards claims were checked against the sources linked in each section (W3C APG combobox and carousel patterns, the Figma multiplayer post, the Yjs awareness docs). Anything else version- or vendor-specific is marked `> **Unverified:**`.
+> **Verification status.** The code in `m25-system-design` passes type-check, lint and its tests (`npm run verify` in `examples/web`). Standards claims were checked against the sources linked in each section (W3C APG combobox and carousel patterns, the Figma multiplayer post, the Yjs awareness docs). Anything else version- or vendor-specific is marked `> **Unverified:**`.
 
 ---
 
@@ -119,7 +119,7 @@ GET /api/suggest?q=par&limit=10&lang=en      Accept-Language: en
 400 application/problem+json   (query too long)
 429 Retry-After: 1             (rate limited: back off, do not retry in a loop)
 ```
-Echo `query` in the response so the client can verify the answer matches the question (the code in 25.2 does this by remembering the query *with* the result). Set `Cache-Control: public, max-age=60` for non-personalized suggestions so the browser and CDN absorb repeats ([24.10](24-react-with-spring-boot.md#2410-pagination-contracts) covers contracts). No pagination: a typeahead is `limit`-bounded by design.
+Echo `query` in the response so the client can verify the answer matches the question (Exercise 1 does this by remembering the query *with* the result). Set `Cache-Control: public, max-age=60` for non-personalized suggestions so the browser and CDN absorb repeats ([24.10](24-react-with-spring-boot.md#2410-pagination-contracts) covers contracts). No pagination: a typeahead is `limit`-bounded by design.
 
 ### State placement
 | State | Home | Why |
@@ -142,7 +142,7 @@ This is the **W3C APG editable combobox with list autocomplete** (checked agains
 
 | Key | Behavior (APG) |
 |---|---|
-| Down Arrow | Open if closed; else move to next option (the code wraps) |
+| Down Arrow | Open if closed (the APG example also highlights the first option; the code only opens); else move to the next option, wrapping from the last to the first |
 | Up Arrow | Move to previous option (wraps to the last) |
 | Enter | Accept the active option, set the text, close |
 | Escape | Close the list; when already closed, clear the text |
@@ -415,7 +415,7 @@ POST /api/rooms/{roomId}/messages  { clientId, text }   HTTP fallback; the serve
 Virtualize long histories, anchoring to the bottom and preserving scroll offset when older messages are prepended ([15.8](15-performance.md#158-virtualization)). Batch incoming socket messages per animation frame so a burst renders once. Collapse typing events (throttle 2-3 s). Keep a bounded window per room in memory. Reconnect with **exponential backoff and jitter** so a server restart does not become a thundering herd.
 
 ### Accessibility
-The list is a log: `role="log"` has an implicit polite `aria-live` ([MDN log role](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/log_role)); announce *new* messages, never re-announce history on load. Do not steal focus from the composer. Provide a "jump to latest" button when scrolled up. Status ("sending", "failed, retry") must be text or `aria-label`, not only an icon colour. Respect `prefers-reduced-motion` for auto-scroll animation.
+The list is a log: `role="log"` has an implicit polite `aria-live` ([MDN log role](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/log_role)); announce *new* messages, never re-announce history on load. Do not steal focus from the composer. Provide a "jump to latest" button when scrolled up. Status ("sending", "failed, retry") must be text or `aria-label`, not only an icon color. Respect `prefers-reduced-motion` for auto-scroll animation.
 
 ### i18n
 Timestamps in the viewer's time zone and locale; `dir="auto"` per message; emoji and IME composition (Enter during composition must not send: check `isComposing`); translated system messages ("Ann joined") built with ICU plural/select formats.
@@ -496,7 +496,7 @@ One endpoint per widget (parallel, independent failure) beats one mega-endpoint 
 - Memory leaks on a 12 h wall display: abort and unsubscribe on unmount, cap retained data, and cap cache `gcTime`.
 
 ### Accessibility
-Charts are not accessible by default: give each a text summary (`aria-label` or a visually hidden description) and a **data-table alternative**; never rely on colour alone (patterns, labels, a colour-blind-safe palette); every widget is a landmark-like region with a heading. Do not auto-announce every refresh; announce only user-triggered changes. Provide a pause control for auto-refresh (WCAG 2.2.2 pause, stop, hide).
+Charts are not accessible by default: give each a text summary (`aria-label` or a visually hidden description) and a **data-table alternative**; never rely on color alone (patterns, labels, a color-blind-safe palette); every widget is a landmark-like region with a heading. Do not auto-announce every refresh; announce only user-triggered changes. Provide a pause control for auto-refresh (WCAG 2.2.2 pause, stop, hide).
 
 ### i18n
 `Intl.NumberFormat` (compact, currency, percent) and `Intl.DateTimeFormat` with the user's time zone, **and say which time zone the data is aggregated in** (a classic dashboard bug); translated axis labels; RTL chart axes.
@@ -567,7 +567,7 @@ Usually static content from a CMS: `GET /api/galleries/{id}` returns `{ slides: 
 - Autoplay timers pause when the tab is hidden.
 
 ### Accessibility
-Follow the **W3C APG carousel pattern** (checked against the pattern page): container `role="region"` (or `group`) with `aria-roledescription="carousel"` and an accessible name; each slide `role="group"` with `aria-roledescription="slide"` and a name such as "3 of 8"; prev/next buttons are required; set the slide container `aria-live="off"` while auto-rotating and `"polite"` otherwise. Auto-rotation **must stop** when keyboard focus enters the carousel and when the pointer hovers, must not restart unless the user asks, and needs a dedicated play/pause button. Inactive slides should not be reachable by Tab (`inert` or `aria-hidden` plus no focusable children). Honor `prefers-reduced-motion`.
+Follow the **W3C APG carousel pattern** (checked against the pattern page): container `role="region"` (or `group`) with `aria-roledescription="carousel"` and an accessible name; each slide `role="group"` with `aria-roledescription="slide"` and a name such as "3 of 8"; prev/next buttons are required; set the slide container `aria-live="off"` while auto-rotating and `"polite"` otherwise. Auto-rotation **must stop** when keyboard focus enters the carousel (and not restart unless the user activates the rotation control) and while the pointer hovers over it, and needs a dedicated play/pause button. Inactive slides should not be reachable by Tab (`inert` or `aria-hidden` plus no focusable children). Honor `prefers-reduced-motion`.
 
 ### i18n
 Translated control labels ("Next slide", "Slide 3 of 8" with ICU message formats), swapped prev/next direction and swipe direction in RTL (`dir="rtl"` flips scroll), captions localized from the CMS.
@@ -753,7 +753,7 @@ Errors: 403 expired URL (request a new one and retry), 413 too large, 415 type r
 Throttle progress updates (the `progress` event fires very often; update at most every ~100 ms or on integer percent change); render each row with `memo` so one file's progress re-renders one row. Hash large files in a Web Worker if you dedupe by content; read slices (`Blob.slice`) rather than the whole file into memory; cap concurrency (3 is a common starting point, tune by measuring). Generate previews with `URL.createObjectURL` and **revoke** them.
 
 ### Accessibility
-The drop zone must be backed by a real, labelled `<input type="file">` (drag and drop is not keyboard accessible). Per-file status in text; a polite live region for "3 of 5 uploaded"; progress as `<progress>` or `role="progressbar"` with `aria-valuenow`; errors tied to the file name; Cancel/Retry buttons labelled with the file name ("Cancel upload of cat.png").
+The drop zone must be backed by a real, labeled `<input type="file">` (drag and drop is not keyboard accessible). Per-file status in text; a polite live region for "3 of 5 uploaded"; progress as `<progress>` or `role="progressbar"` with `aria-valuenow`; errors tied to the file name; Cancel/Retry buttons labeled with the file name ("Cancel upload of cat.png").
 
 ### i18n
 Localized size units (`Intl.NumberFormat` with `style: 'unit'`), file names with non-Latin characters and normalization, translated error messages mapped from error codes, RTL layout for the queue.
@@ -830,7 +830,7 @@ POST /api/notifications/read   { "upToId": "n77" }   (a read *pointer*, cheaper 
 PUT  /api/notification-preferences  { "comment": { "inApp": true, "push": false } }
 POST /api/push/subscriptions  { endpoint, keys }     (Web Push registration)
 ```
-On reconnect, `EventSource` sends the last event id in the `Last-Event-ID` header (WHATWG HTML spec, server-sent events), so the server can replay missed events. > **Unverified:** that your Spring SSE emitter and any proxy preserve `id:` fields and the header end to end; test it. Use SSE for one-way delivery (see [24.12](24-react-with-spring-boot.md#2412-real-time-websocketstomp-sse)).
+On reconnect, `EventSource` sends the last event id in the `Last-Event-ID` header (WHATWG HTML spec, server-sent events), so the server can replay missed events. **Unverified:** that your Spring SSE emitter and any proxy preserve `id:` fields and the header end to end; test it. Use SSE for one-way delivery (see [24.12](24-react-with-spring-boot.md#2412-real-time-websocketstomp-sse)).
 
 ### State placement
 | State | Home |
@@ -943,7 +943,7 @@ Keep the server in the loop for **authorization, persistence, compaction and sna
 Send **deltas**, not whole documents; throttle cursor updates (about 50 to 100 ms); compact the history (CRDT metadata grows with every edit, so snapshot and garbage-collect); render remote cursors in a separate layer; avoid re-rendering React per keystroke (the editor owns the DOM); lazy-load the editor bundle.
 
 ### Accessibility
-Rich-text editing is the hardest a11y surface: use a library with proven support (`contenteditable` is fragile), keep the toolbar a proper `role="toolbar"` with roving focus, announce remote joins politely and *rarely* (not every cursor move), expose keyboard shortcuts, do not rely on cursor colour alone to identify collaborators.
+Rich-text editing is the hardest a11y surface: use a library with proven support (`contenteditable` is fragile), keep the toolbar a proper `role="toolbar"` with roving focus, announce remote joins politely and *rarely* (not every cursor move), expose keyboard shortcuts, do not rely on cursor color alone to identify collaborators.
 
 ### i18n
 IME composition must be handled by the editor (a classic source of CRDT/OT bugs), bidirectional text, grapheme clusters (an emoji is several code units, so cursor offsets must be grapheme- or model-aware), localized UI and a spell-check language per document.
@@ -1074,7 +1074,7 @@ Polling with `refetchInterval` (staggered across widgets, paused when the tab is
 **Q14. Are charts accessible? How do you make them so?**
 <details><summary>Answer</summary>
 
-Not by default. Give a text summary, provide a **data-table alternative**, do not rely on colour alone, and label every widget with a heading. Do not live-announce every refresh. **A strong answer adds:** canvas charts need the table because the canvas has no semantics.
+Not by default. Give a text summary, provide a **data-table alternative**, do not rely on color alone, and label every widget with a heading. Do not live-announce every refresh. **A strong answer adds:** canvas charts need the table because the canvas has no semantics.
 
 </details>
 
@@ -1370,7 +1370,7 @@ export function Typeahead({ label, search, onSelect, delayMs }: Props) {
 </details>
 
 **Walkthrough.**
-1. The user types "par": `text` changes, the effect cleanup of the previous run (if any) fires, a new 300 ms timer starts. Typing "ab" cancels the timer before it fires, so a burst produces **one** request.
+1. The user types "par": `text` changes, the effect cleanup of the previous run (if any) fires, a new 300 ms timer starts. Each keystroke within 300 ms of the previous one cancels the pending timer before it fires, so a burst produces **one** request.
 2. When the timer fires, `search` is called with an `AbortSignal`. While waiting, the hook returns `LOADING` because `outcome` is `null` or belongs to another query.
 3. The user types another character: the cleanup sets `ignore = true`, clears the timer and aborts. Even if the old promise resolves, `if (!ignore)` drops it. The test resolves the **newer** request first and the **older** one last, and asserts the list still shows the newer results.
 4. When `outcome.query === trimmed`, status becomes `ready` and the list renders. `expanded` additionally needs `open`, so Escape can hide the list without discarding the results.
@@ -1986,7 +1986,7 @@ test('subscribers are notified on change and can unsubscribe', () => {
 
 1. **Aborting is not enough.** `AbortController` cancels the request, but a response already in flight, a mock, or a service worker can still resolve. Always also compare the answer to the *current* query (the `ignore` flag or the tag-with-query pattern).
 2. **`useEffect` + `setState` for "loading".** Setting `loading = true` synchronously in the effect body triggers `react-hooks/set-state-in-effect` (an error in `eslint-plugin-react-hooks` 7.1.1 recommended) and an extra render. Derive `loading` from "result does not match query".
-3. **An inline `search` function in the deps** restarts the effect on every render and the debounce never fires. Require a stable function (module scope or `useCallback`).
+3. **An inline `search` function in the deps** restarts the effect on every render of its owner: the debounce timer resets and the in-flight request is aborted, and if the result itself triggers that render you get an endless request loop. Require a stable function (module scope or `useCallback`).
 4. **Blur closes the list before click.** Clicking an option blurs the input first; if `onBlur` closes the list, `click` never lands. Use `onMouseDown` + `preventDefault` on options.
 5. **Moving DOM focus into the options** breaks typing. The APG combobox keeps focus on the input and uses `aria-activedescendant`.
 6. **Offset pagination in a live feed** duplicates or skips rows as items are inserted. Use a cursor on `(createdAt, id)`.

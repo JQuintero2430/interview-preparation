@@ -1,7 +1,14 @@
 // Run with: node --test 'labs/tools/*.test.mjs'   (Node 24 does not accept a directory here)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { anchorsOf, githubSlug, isPlannedProblem, linksOf, plannedFiles } from './check-links.mjs';
+import { fileURLToPath } from 'node:url';
+import { anchorsOf, githubSlug, isPlannedProblem, linksOf, listMarkdown, plannedFiles } from './check-links.mjs';
+
+test('listMarkdown includes lab documentation and skips dependencies and build output', () => {
+  const files = listMarkdown(fileURLToPath(new URL('../..', import.meta.url)));
+  assert.ok(files.some((file) => file.endsWith('/labs/angular/README.md')));
+  assert.equal(files.some((file) => /\/(node_modules|dist|\.angular|test-results)\//.test(file)), false);
+});
 
 test('githubSlug follows GitHub rules, including duplicate suffixes', () => {
   const seen = new Map();
@@ -18,6 +25,11 @@ test('anchorsOf collects headings and explicit ids but ignores fenced code', () 
 test('linksOf skips links inside inline code and code fences', () => {
   const md = '[a](a.md) `[b](b.md)`\n```\n[c](c.md)\n```\n[d](d.md#x "title")';
   assert.deepEqual(linksOf(md), ['a.md', 'd.md#x']);
+});
+
+test('linksOf skips links inside double-backtick code spans that hold backticks', () => {
+  const md = '`` see `x` [b](b.md) `` and [a](a.md)';
+  assert.deepEqual(linksOf(md), ['a.md']);
 });
 
 test('plannedFiles reads module slugs from SYLLABUS section 1 only; isPlannedProblem uses them', () => {

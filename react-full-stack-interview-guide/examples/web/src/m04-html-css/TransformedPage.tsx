@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { CenteredModal } from './CenteredModal';
 
 // The "animated page wrapper" that breaks position: fixed and z-index for its descendants.
-// Any of transform, filter, perspective, opacity < 1, will-change: transform, contain: paint
-// on an ancestor does the same thing.
+// Any of transform, filter, perspective, will-change: transform, contain: paint on an ancestor
+// does the same thing (opacity < 1 traps z-index only, not position: fixed).
 export function TransformedPage({ portal }: { portal: boolean }) {
   const [open, setOpen] = useState(false);
   return (

@@ -101,7 +101,7 @@ Each exercise uses these sections in order: **Statement** → **Approach** (ment
 20+ interview questions (core React modules 06–17: aim for 30+) · 3+ coding exercises, one of them predict-the-output in modules 06–21 (01 JS and 26 machine coding: many more) · 10+ gotchas · at least one Mermaid diagram wherever a process, lifecycle or data flow is involved.
 
 ## Links and anchors
-- **Heading text = the README outline title with any "( … )" aside removed.** So the outline entry "9.6 You might not need an effect (a catalogue)" becomes `## 9.6 You might not need an effect`. Because the rule is deterministic, other modules can link to a section before it is written.
+- **Heading text = the README outline title with any "( … )" aside removed.** So the outline entry "9.6 You might not need an effect (a catalog)" becomes `## 9.6 You might not need an effect`. Because the rule is deterministic, other modules can link to a section before it is written.
 - Section headings are numbered: `## 8.3 Batching`. GitHub's anchor for that heading is `#83-batching` (lowercase, punctuation dropped, spaces become `-`).
 - When a claim was verified by running something (a test, ESLint, a grep of a package's dist), say so and name the file or package version. When it comes from docs, link the docs. Claims that are neither are marked `> **Unverified:**`.
 - Use relative links only: `[batching](08-state.md#83-batching)`.

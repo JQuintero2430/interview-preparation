@@ -14,7 +14,7 @@ Once the server is running, open your browser and navigate to `http://localhost:
 
 ## Code scaffolding
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Angular CLI includes code scaffolding tools. To generate a new component, run:
 
 ```bash
 ng generate component component-name
@@ -46,13 +46,7 @@ ng test
 
 ## Running end-to-end tests
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+This workspace has no `e2e` target, so `ng e2e` only offers to add a framework. The Playwright suite lives in `../e2e`. From there, run `npm run install-browser` once, then `npm test`; the run builds the production bundles itself.
 
 ## Additional Resources
 

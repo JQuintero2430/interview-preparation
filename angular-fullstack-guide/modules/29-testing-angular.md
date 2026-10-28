@@ -467,7 +467,7 @@ Teardown is registered at the end of that file: `beforeEach` and `afterEach` hoo
 | `teardown` | `destroyAfterEach: true` | destroy the module after each test |
 | `errorOnUnknownElements`, `errorOnUnknownProperties` | `false` | throw instead of logging |
 | `rethrowApplicationErrors` [Changed in v19.0: errors during change detection are rethrown] | `true` | rethrow errors seen during change detection |
-| `deferBlockBehavior` | `manual` | `@defer` in tests ([Q18.19](18-control-flow-and-defer.md#q18-19)) |
+| `deferBlockBehavior` | `Playthrough` (the typings comment still says `manual`) | `@defer` in tests ([Q18.19](18-control-flow-and-defer.md#q18-19)) |
 | `inferTagName`, `animationsEnabled` | off, `false` | host tag from the selector; animations on |
 
 The unit-test builder passes `errorOnUnknownElements: true` and `errorOnUnknownProperties: true` to `initTestEnvironment` (`@angular/build` 22.2.1, `build-options.js`, `createTestBedInitVirtualFile`, internal); this section claims no runtime throw for an unknown element (§2 covers the `NG8001` build failure). `TestBed` also provides a fake `PlatformLocation`, the service routing reads the URL through ([module 24](24-routing.md)) [Changed in v21.0: supports the Navigation API]; the 21.0.0 changelog names `MockPlatformLocation` from `@angular/common/testing` as the way back.
@@ -1617,7 +1617,7 @@ Each answer is five parts; Output answers state the run asserted in `outputs/q29
 ### Q29.05 · Output · An Angular spec calls `vi.mock('./api')`: what happens, and what should the test do instead?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.05 …')`); imports Injectable from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.05 …')`); imports Injectable from @angular/core and TestBed from @angular/core/testing
 @Injectable({ providedIn: 'root' })
 class LabM29Api {
   load(): string {
@@ -1711,7 +1711,7 @@ expect(TestBed.inject(LabM29Api).load()).toBe('double');
 ### Q29.09 · Output · A test calls `TestBed.inject` and then `configureTestingModule`: what is thrown, and why?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.09 …')`); imports Injectable from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.09 …')`); imports Injectable from @angular/core and TestBed from @angular/core/testing
 @Injectable({ providedIn: 'root' })
 class LabM29Api {
   load(): string {
@@ -1761,7 +1761,7 @@ TestBed.configureTestingModule({ providers: [] }); // throws
 ### Q29.11 · Output · A zoneless fixture: what does the DOM show right after `createComponent` and `setInput`, and after `await fixture.whenStable()`?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.11 …')`); imports Component and input from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.11 …')`); imports Component and input from @angular/core and TestBed from @angular/core/testing
 @Component({
   selector: 'lab-m29-greeting',
   template: '<p>{{ name() }}</p><b>x</b>',
@@ -1821,7 +1821,7 @@ console.log(fixture.nativeElement.textContent); // (2)
 ### Q29.13 · Output · A test writes a plain field of an OnPush component, then a signal: what do `detectChanges`, `whenStable` and `markForCheck` show?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.13 …')`); imports ChangeDetectorRef, Component and signal from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.13 …')`); imports ChangeDetectorRef, Component and signal from @angular/core and TestBed from @angular/core/testing
 // The default change detection strategy is OnPush.
 @Component({
   selector: 'lab-m29-pair',
@@ -1920,7 +1920,7 @@ const fixture = TestBed.createComponent(LabM29Greet, {
 ### Q29.16 · Output · `triggerEventHandler('click')` versus a native `click()` on a button inside a clickable card: which handlers run?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.16 …')`); imports Component from @angular/core, TestBed from @angular/core/testing and By from @angular/platform-browser
+// Partial: runs in a spec (`it('Q29.16 …')`); imports Component from @angular/core, TestBed from @angular/core/testing and By from @angular/platform-browser
 @Component({
   selector: 'lab-m29-card',
   template:
@@ -2052,7 +2052,7 @@ Read from the `@vitest/spy` 5.0.3 typings: `fn` returns a `Mock` (a `MockInstanc
 ### Q29.19 · Output · A provider override with `{ load: vi.fn().mockResolvedValue([...]) }`: what does the component render, and what do `mock.calls` hold?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.19 …')`); imports Component, Injectable, inject and signal from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.19 …')`); imports Component, Injectable, inject and signal from @angular/core and TestBed from @angular/core/testing
 interface LabM29Item {
   readonly id: number;
   readonly name: string;
@@ -2149,7 +2149,7 @@ console.log(load.mock.calls); // (2)
 ### Q29.22 · Output · `TestBed.createDirective` on an attribute directive: what happens without `tagName`, and what does the host render with one?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.22 …')`); imports Directive, input and inputBinding from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.22 …')`); imports Directive, input and inputBinding from @angular/core and TestBed from @angular/core/testing
 @Directive({
   selector: '[labM29Hi]',
   host: { '[attr.data-hi]': 'labM29Hi()' },
@@ -2191,7 +2191,7 @@ console.log(fixture.nativeElement.tagName, fixture.nativeElement.getAttribute('d
 ### Q29.23 · Output · A functional guard run through `TestBed.runInInjectionContext`: what does it return before and after the signal it reads flips?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.23 …')`); imports signal and inject from @angular/core, TestBed from @angular/core/testing, CanActivateFn, Router and provideRouter from @angular/router
+// Partial: runs in a spec (`it('Q29.23 …')`); imports signal and inject from @angular/core, TestBed from @angular/core/testing, CanActivateFn, Router and provideRouter from @angular/router
 const isAdmin = signal(false);
 const adminGuard: CanActivateFn = () => isAdmin() || inject(Router).parseUrl('/login');
 TestBed.configureTestingModule({ providers: [provideRouter([])] });
@@ -2270,7 +2270,7 @@ Without the child's `provideHttpClientTesting()` the child would use the fetch b
 ### Q29.26 · Output · An effect and a `resource` in a test: what do they show after `set`, after `TestBed.tick()`, and after `await ApplicationRef.whenStable()`?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.26 …')`); imports ApplicationRef, effect, resource and signal from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.26 …')`); imports ApplicationRef, effect, resource and signal from @angular/core and TestBed from @angular/core/testing
 const count = signal(0);
 const seen: number[] = [];
 TestBed.runInInjectionContext(() => effect(() => seen.push(count())));
@@ -2325,7 +2325,7 @@ console.log(snapshot()); // (3) after whenStable
 ### Q29.28 · Output · `vi.useFakeTimers()` and a zoneless fixture: why does `await fixture.whenStable()` hang, and what makes it resolve?
 
 ```ts
-// Complete: runs in a spec (`it('Q29.28 …')`); imports Component and signal from @angular/core and TestBed from @angular/core/testing
+// Partial: runs in a spec (`it('Q29.28 …')`); imports Component and signal from @angular/core and TestBed from @angular/core/testing
 @Component({
   selector: 'lab-m29-slow-message',
   template: '{{ message() }}',
@@ -2394,7 +2394,7 @@ vi.useRealTimers();
 ### Q29.30 · Output · `fakeAsync` and `waitForAsync` in a zoneless Vitest spec, and again with `zone.js` imported in the spec: what is thrown or rejected?
 
 ```ts
-// Complete: runs in two specs (`it('Q29.30 …')`); imports fakeAsync and waitForAsync from @angular/core/testing; the second spec starts with `import 'zone.js'; import 'zone.js/testing';`
+// Partial: runs in two specs (`it('Q29.30 …')`); imports fakeAsync and waitForAsync from @angular/core/testing; the second spec starts with `import 'zone.js'; import 'zone.js/testing';`
 try {
   fakeAsync(() => {})();
 } catch (error) {
@@ -2416,7 +2416,7 @@ console.log(reason instanceof Error ? reason.message : reason); // (2)
 
 **Follow-ups an interviewer will ask.**
 - *Why does `fakeAsync` still fail after the import?* It captured `Zone` when `@angular/core/testing` loaded, before the spec's imports ran.
-- *What would make both work?* Not run here: the docs name the `zone.js/plugins/vitest-patch` polyfill, which in 22.2.1 goes into the build target's `polyfills` (not run here).
+- *What would make both work?* The docs name the `zone.js/plugins/vitest-patch` polyfill, which in 22.2.1 goes into the build target's `polyfills` (not run here).
 
 **Trap to avoid.** Adding `import 'zone.js/testing'` to one migrated spec because the message names it.
 
@@ -2996,5 +2996,5 @@ No, every call is async and stabilizes the fixture first.
 
 - **Builds on:** [16 §9](16-dependency-injection.md#9-di-patterns-testing-and-the-spring-container) (providers as the test seam), [19 §1](19-component-communication-and-projection.md#1-inputs-outputs-and-two-way-binding-the-parent-and-child-contract) (the input and output contract a component test drives), [21 §5](21-change-detection.md#5-zoneless-change-detection-the-scheduler-its-triggers-and-pendingtasks) (the scheduler behind `whenStable`), [23 §10](23-rxjs-in-depth.md#10-testing-with-testscheduler-marble-syntax-and-virtual-time-under-the-hood) (virtual time for streams), [24 §5](24-routing.md#5-functional-guards-canmatch-canactivate-candeactivate-and-redirectcommand) (what guards return) and [27 §11](27-http-client.md#11-testing-and-the-backend-seam-providehttpclienttesting-httptestingcontroller-and-what-they-replace) (the HTTP testing backend).
 - **Read next:** [30. End-to-end tests and testing strategy](30-e2e-and-testing-strategy.md) (the browser level above these tests) and [38. Architecture and production structure](38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder) (where tests live in a workspace).
-- **Uses these ideas later:** [30](30-e2e-and-testing-strategy.md) (what stays at the end-to-end level), [31](31-performance.md) (measuring beside tests), [36](36-material-and-cdk.md#10-component-harnesses-for-material-the-cdk-and-your-own-components) (Material's component harnesses), [38](38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder) (test layout) and [41](41-fullstack-api-contracts.md) (contract tests), all file-level and not yet written.
+- **Uses these ideas later:** [30](30-e2e-and-testing-strategy.md) (what stays at the end-to-end level), [31](31-performance.md) (measuring beside tests), [36](36-material-and-cdk.md#10-component-harnesses-for-material-the-cdk-and-your-own-components) (Material's component harnesses), [38](38-architecture-and-production-structure.md#12-a-complete-production-folder-tree-folder-by-folder) (test layout) and [41](41-fullstack-api-contracts.md) (contract tests).
 - **Comparisons:** [Q11.19](11-accessibility.md#q11-19) places accessibility checks beside the role queries of [section 11](#11-component-harnesses-and-angular-testing-library), and [Q23.34](23-rxjs-in-depth.md#q23-34) sets RxJS virtual time beside the fake timers of [section 10](#10-async-tests-vitest-fake-timers-versus-fakeasync-and-waitforasync).

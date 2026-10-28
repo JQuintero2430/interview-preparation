@@ -37,7 +37,7 @@ For most of its history Angular did not know what changed. It used [zone.js](../
 
 Dirty checking works, but it has three costs that grow with the application:
 
-1. **Work proportional to the tree, not to the change.** One click in a footer re-checks every binding on the page. The `OnPush` strategy (a component setting that tells Angular to check the component only when its inputs change by reference, an event fires inside it, or it is explicitly marked) lets Angular skip subtrees, but only when you follow its rules (new object references, `markForCheck()`), and breaking them silently produces a stale screen.
+1. **Work proportional to the tree, not to the change.** One click in a footer re-checks every binding on the page. The `OnPush` strategy (a component setting that tells Angular to check the component only when an input changes (compared by reference), an event fires inside it, a signal its template reads changes, or it is explicitly marked with `markForCheck()`) lets Angular skip subtrees, but only when you follow its rules (new object references, `markForCheck()`), and breaking them silently produces a stale screen.
 2. **Coarse notifications.** zone.js says "an event happened", not "the cart total changed". Code that runs outside the zone (a third-party widget, a WebSocket library) does not refresh the view at all, which forces workarounds such as `NgZone.run`.
 3. **Hidden machinery.** Patching every async API adds weight to the bundle, makes stack traces harder to read, and couples the framework to how the browser schedules work.
 
@@ -1576,7 +1576,7 @@ export class Invoice {
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** It reads a required input in the constructor, before Angular has set any inputs. Angular 22's compiler reports `NG8118`, with the text: "`id` is a required `input` and does not have a value in this context." Derive it instead: `readonly cacheKey = computed(() => \`invoice-${this.id()}\`)`.
+**Short answer (30 seconds).** It reads a required input in the constructor, before Angular has set any inputs. Angular 22's compiler reports `NG8118`, with the text: "`id` is a required `input` and does not have a value in this context." Derive it instead: `` readonly cacheKey = computed(() => `invoice-${this.id()}`) ``.
 
 **Full explanation.** Inputs are set after construction, when the parent's bindings are first applied. A required input has no initial value, so reading it early would throw at runtime. The v22 compiler detects this statically and fails the build (verified by compiling a throwaway component in the labs workspace on 2026-10-03; the snippet is not kept in labs because it does not compile). The deeper fix is the mindset: anything computed from inputs is a `computed`, which is lazy, so it is read only when a value exists, and it stays correct when the input changes. The constructor version would have been wrong even if it ran, because it never updates when `id` changes.
 
@@ -2336,7 +2336,7 @@ refresh() {
 
 The file marks its one deliberate simplification: every consumer is live, so computeds subscribe to their producers. Angular links only *live* consumers, so unread computeds can be garbage-collected ([Q17.36](#q17-36)). Adding that would mean tracking liveness and unlinking a computed when its last live consumer goes away.
 
-**How each criterion is met.** Each criterion has a test of the same name in `mini-signals.test.ts`. Equality: `signal.set` returns early when `equal` holds. Laziness and memoization: `refresh()` runs only on read, and only when dirty and a producer changed. Glitch-freedom: computation happens in the pull phase, after all dirty flags are set. Cutoff: an equal result leaves `version` unchanged. Dynamic dependencies: `runTracked` clears and rebuilds the producer map on every run. Batching and skip: `markDirty` queues one microtask, and `run` polls versions first. Cleanup: stored per run, and called before the next run and on dispose.
+**How each criterion is met.** Each criterion has a matching test in `mini-signals.test.ts`. Equality: `signal.set` returns early when `equal` holds. Laziness and memoization: `refresh()` runs only on read, and only when dirty and a producer changed. Glitch-freedom: computation happens in the pull phase, after all dirty flags are set. Cutoff: an equal result leaves `version` unchanged. Dynamic dependencies: `runTracked` clears and rebuilds the producer map on every run. Batching and skip: `markDirty` queues one microtask, and `run` polls versions first. Cleanup: stored per run, and called before the next run and on dispose.
 
 **Alternative approach:** a pure push model, where each write synchronously recomputes every dependent in topological order. It is simpler to explain, but it is eager (it computes values nobody reads), and it needs a topological sort per write to avoid glitches. **Trade-offs:** this is how some early reactive libraries worked, and why the push-pull hybrid won.
 

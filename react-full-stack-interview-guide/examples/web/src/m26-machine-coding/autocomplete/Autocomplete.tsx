@@ -50,8 +50,11 @@ export function Autocomplete({ options, onSelect }: Props) {
         break;
       }
       case 'Escape':
-        if (open) setOpen(false); // first Escape closes the list
-        else setQuery(''); // second one clears the text
+        if (expanded) setOpen(false); // first Escape closes the visible list
+        else {
+          setOpen(false);
+          setQuery(''); // nothing displayed (closed, or no matches): clear the text
+        }
         break;
     }
   }

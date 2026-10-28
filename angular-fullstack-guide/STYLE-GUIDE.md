@@ -167,7 +167,7 @@ Use GitHub alert syntax so callouts render in GitHub and stay readable as plain 
 
 ### 7.2 Snippets vs labs
 
-There are exactly four kinds of snippet:
+There are exactly five kinds of snippet:
 
 - **Complete**: identical to a file in `labs/` that compiles and is tested. Put a source link right under it: `<sub>Source: [labs/…/file.ts](../labs/…)</sub>`.
 - **Excerpt**: a verbatim subset of a lab file. The first line is `// Excerpt of labs/…/file.ts`. Only whole members or statements may be omitted, never edited, and the file itself must compile and be tested. `labs/tools/check-snippets.mjs` checks mechanically that every Complete snippet equals its file and every Excerpt's lines appear in its file in order (run: `node labs/tools/check-snippets.mjs . NN` from the guide root).

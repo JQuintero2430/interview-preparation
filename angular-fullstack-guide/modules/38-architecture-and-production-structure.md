@@ -444,7 +444,11 @@ export function formatCount(count: number): string {
 
 ```json
 // Excerpt of labs/angular/projects/ui-lib/testing/ng-package.json
-{ "lib": { "entryFile": "src/public-api.ts" } }
+{
+  "lib": {
+    "entryFile": "src/public-api.ts"
+  }
+}
 ```
 
 ```ts
@@ -1169,7 +1173,8 @@ class Container {
 **Code.** The fix is to write immutably:
 
 ```ts
-orders.update((list) => [...list, { id: 3, customer: 'Linus' }]);
+// Partial: step 2 written immutably, inside the container
+this.orders.update((list) => [...list, { id: 3, customer: 'Linus' }]);
 ```
 
 **Follow-ups an interviewer will ask.**
@@ -1389,7 +1394,7 @@ providers: [...provideOrdersDataAccess(), { provide: ORDERS_API, useValue: fake 
 
 **Short answer (30 seconds).** The public API surface is everything a consumer may import and rely on. `public-api.ts` decides the names, the bundled `.d.ts` shows the compiler only those names, and the `exports` map lets Node and bundlers resolve only listed subpaths. Peer dependencies hide nothing: they state which Angular versions the surface was built for.
 
-**Full explanation.** [§6](#6-public-api-surfaces-public-apits-exports-secondary-entry-points-and-versioning) shows each layer. `Section 6: an internal helper's name is absent from the root types file` found `UiBadge` and no `formatCount` in the root typings, and `formatCount` still inside the bundle. `Section 6: exports lists the package, the root and the testing subpath only` read `.`, `./package.json` and `./testing`. the internal `generatePackageExports` writes that map (read, not run, `ng-packagr` 22.2.1), and Node rejects unlisted subpaths with `ERR_PACKAGE_PATH_NOT_EXPORTED` ([Node packages docs](https://nodejs.org/api/packages.html), read 2026-10-17). The Angular docs add that `@angular/*` packages belong in peers.
+**Full explanation.** [§6](#6-public-api-surfaces-public-apits-exports-secondary-entry-points-and-versioning) shows each layer. `Section 6: an internal helper's name is absent from the root types file` found `UiBadge` and no `formatCount` in the root typings, and `formatCount` still inside the bundle. `Section 6: exports lists the package, the root and the testing subpath only` read `.`, `./package.json` and `./testing`. The internal `generatePackageExports` writes that map (read, not run, `ng-packagr` 22.2.1), and Node rejects unlisted subpaths with `ERR_PACKAGE_PATH_NOT_EXPORTED` ([Node packages docs](https://nodejs.org/api/packages.html), read 2026-10-17). The Angular docs add that `@angular/*` packages belong in peers.
 
 **Follow-ups an interviewer will ask.**
 - *Does `export *` change this?* Yes: every name the barrel re-exports becomes public.
@@ -2038,5 +2043,5 @@ No; they split deployment, and the user loads the shell plus each remote.
 
 - **Builds on:** [15 §5](15-standalone-and-ngmodules.md#5-legacy-ngmodule-patterns-declarations-exports-forrootforchild-sharedmodule-and-coremodule) (the folders that replace `SharedModule`), [28 §2](28-state-management.md#2-the-service-with-signals-store-state-shape-derived-selectors-methods-and-async-loads) (the store behind a facade), [29 §1](29-testing-angular.md#1-what-to-test-where-unit-integration-component-and-end-to-end-tests-the-pyramid-and-the-trophy) (what the layers test), [12 §2](12-angular-how-it-works.md#2-the-cli-and-the-workspace-angularjson-projects-schematics-and-ng-update) (projects in the workspace), [16 §9](16-dependency-injection.md#9-di-patterns-testing-and-the-spring-container) (the facade in DI), [21 §2](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty) (OnPush), [24 §4](24-routing.md#4-lazy-loading-in-depth-loaders-canmatch-and-route-injectors) (a feature as a lazy route) and [05 §3](05-js-modules-memory-modern-features.md#3-import-maps-importmeta-and-import-attributes) (import maps).
 - **Read next:** [39. Version history and migrations](39-version-history-and-migrations.md#7-updating-in-practice-ng-update-migration-schematics-and-the-update-guide) (keeping the workspace current across majors) and [44. Full-stack delivery and operations](44-fullstack-delivery-and-operations.md#7-cicd-for-both-layers-one-image-promoted-through-stages-a-monorepo-or-separate-repositories-and-versioning-the-contract) (deploying what [§11](#11-a-ci-pipeline-for-a-front-end-lint-test-build-end-to-end-and-deploy-previews)'s pipeline builds).
-- **Uses these ideas later:** [39](39-version-history-and-migrations.md#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist) (migrating libraries), [44](44-fullstack-delivery-and-operations.md) (deploy previews), [45](45-frontend-system-design-method.md) (boundaries in a design answer) and [46](46-system-design-case-studies.md) (structure in case studies), all file-level.
+- **Uses these ideas later:** [39](39-version-history-and-migrations.md#12-under-the-hood-how-ng-update-selects-migrations-and-how-the-update-guide-builds-its-checklist) (migrating libraries), [44](44-fullstack-delivery-and-operations.md) (deploy previews), [45](45-frontend-system-design-method.md) (boundaries in a design answer) and [46](46-system-design-case-studies.md) (structure in case studies).
 - **Comparisons:** [Q15.19](15-standalone-and-ngmodules.md#q15-19) (how a library ships its API), [Q28.32](28-state-management.md#q28-32) (when a store library is justified), [Q36.24](36-material-and-cdk.md#q36-24) (a design-system library) and [Q37.07](37-elements-pwa-errors-ecosystem.md#q37-07) (Elements versus a micro-frontend).

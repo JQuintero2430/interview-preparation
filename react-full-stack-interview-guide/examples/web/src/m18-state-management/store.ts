@@ -17,7 +17,7 @@ export function makeStore(preloadedState?: Partial<RootState>) {
   return configureStore({
     reducer: rootReducer,
     // RTK 2: `middleware` must be a callback. The defaults are thunk plus, in development,
-    // the immutability and serializability checks.
+    // the immutability, serializability and action-creator checks.
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(productsApi.middleware),
     preloadedState,
   });

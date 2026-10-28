@@ -182,7 +182,7 @@ All edit `modules/09-web-networking-storage-security.md`, so run in order: FIX-M
 - Findings: F-1, F-2, F-3, F-4, F-5, V-1, V-2.
 - Files: `modules/09-web-networking-storage-security.md` (lines 55, 127, 401, 436, 636, Q09.01 at 650, Q09.17 at 1037), `SOURCES.md` (Module 09: the §9.2.3 line, the "Chrome 86" line, keepalive wording), `_meta/GLOSSARY-TERMS.md` (`keepalive` entry).
 - Do: apply the corrections above; for V-1/V-2 read a dated source before keeping any Chrome version, else drop the version; the Summary sentence follows F-3.
-- Acceptance: `grep -n "Chrome 86" modules/09-web-networking-storage-security.md` shows only wording that says "behind a flag" (or nothing); `grep -n "GET\` and \`HEAD\`" modules/09-web-networking-storage-security.md` near Q09.01 mentions `POST` caching; `grep -n "IndexedDB or memory" modules/09-web-networking-storage-security.md` returns nothing; `grep -n "5.1" modules/09-web-networking-storage-security.md` finds the header-name citation; `node labs/tools/check-links.mjs --planned` passes; every new URL is in SOURCES.md.
+- Acceptance: `grep -n "Chrome 86" modules/09-web-networking-storage-security.md` shows only wording that says "behind a flag" (or nothing); ``grep -n "GET` and `HEAD`" modules/09-web-networking-storage-security.md`` near Q09.01 mentions `POST` caching; `grep -n "IndexedDB or memory" modules/09-web-networking-storage-security.md` returns nothing; `grep -n "5.1" modules/09-web-networking-storage-security.md` finds the header-name citation; `node labs/tools/check-links.mjs --planned` passes; every new URL is in SOURCES.md.
 
 ### FIX-M09-02 · S · Make the exercise and lab claims asserted
 - Findings: T-5, T-7.
@@ -200,7 +200,7 @@ All edit `modules/09-web-networking-storage-security.md`, so run in order: FIX-M
 - Findings: T-3.
 - Files: `modules/09-web-networking-storage-security.md` (section 1 mechanism near 52-55; section 4 line 259; optionally 201 and 335), `SOURCES.md`, `_meta/GLOSSARY-TERMS.md`.
 - Do: add `Last-Modified`/`If-Modified-Since` as a validator with its weakness against `ETag`, the status classes and the common headers, and optionally `Access-Control-Expose-Headers` and QUIC 0-RTT/migration, each from RFC text read in the task; cite RFC sections (no new prose over 300 words).
-- Acceptance: `grep -n "If-Modified-Since" modules/09-web-networking-storage-security.md` finds the validator sentence; `grep -nE "\`(201|204|409|422)\`" modules/09-web-networking-storage-security.md` finds the status classes; `grep -n "Content-Type\`.*Accept\|Authorization" modules/09-web-networking-storage-security.md` finds the header sentence in section 1; the prose one-liner prints at most 10,000; new URLs are in SOURCES.md; links gate passes.
+- Acceptance: `grep -n "If-Modified-Since" modules/09-web-networking-storage-security.md` finds the validator sentence; ``grep -nE "`(201|204|409|422)`" modules/09-web-networking-storage-security.md`` finds the status classes; ``grep -n "Content-Type`.*Accept\|Authorization" modules/09-web-networking-storage-security.md`` finds the header sentence in section 1; the prose one-liner prints at most 10,000; new URLs are in SOURCES.md; links gate passes.
 
 ### FIX-M09-05 · M · Trap causes, first-use definitions and editions
 - Findings: T-1 (B7), T-2 (B9), T-4 (C4).

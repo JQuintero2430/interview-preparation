@@ -245,7 +245,7 @@ export const useAppSelector = useSelector.withTypes<RootState>();
 - `combineSlices` (RTK 2) builds the root reducer from slices using each slice's `reducerPath`, and supports lazy injection with `.inject()`.
 - A **slice's `selectors` option** (RTK 2) declares selectors against the slice state. `cartSlice.selectors.selectLineCount({ cart: state })` takes the root-shaped state.
 
-> **Version notes.** **RTK 1.x** (the 1.0.4 release is dated 2019-11-13 on npm): `configureStore`, `createSlice`, `createAction`, `createReducer`. **RTK 1.6 (2021-06-07):** RTK Query added. **RTK 2.0 / Redux 5.0 / React-Redux 9.0 / Reselect 5.0 / Redux Thunk 3.0 (all published 2023-12-04):** the **object syntax** of `createReducer` and `createSlice.extraReducers` was **removed** (builder callback only); `configureStore({ middleware })` and `enhancers` **must be callbacks** (no more `middleware: [mw]`); non-default middleware/enhancer arrays use `Tuple`; the standalone `getDefaultMiddleware` export and `getType` were removed; `action.type` must be a string; `AnyAction` deprecated in favor of `UnknownAction`; `Middleware`'s `action` and `next` are typed `unknown`; `PreloadedState` type removed; `createSlice.reducers` accepts a callback (`create.asyncThunk`, `create.reducer`, `create.preparedReducer`); `combineSlices`, `selectors` in `createSlice`, `createDynamicMiddleware` and the `autoBatchEnhancer` were added; ESM became the primary artifact. Source: the "Migrating to RTK 2.0 and Redux 5.0" page, fetched 2026-10-04 at `redux.js.org/toolkit/usage/migrating-rtk-2`. It also provides a codemod: `npx @reduxjs/rtk-codemods createReducerBuilder ./src`.
+> **Version notes.** **RTK 1.x** (the 1.0.4 release is dated 2019-11-13 on npm): `configureStore`, `createSlice`, `createAction`, `createReducer`. **RTK 1.6 (2021-06-07):** RTK Query added. **RTK 2.0 / Redux 5.0 / React-Redux 9.0 / Reselect 5.0 / Redux Thunk 3.0 (all published 2023-12-04):** the **object syntax** of `createReducer` and `createSlice.extraReducers` was **removed** (builder callback only); `configureStore({ middleware })` and `enhancers` **must be callbacks** (no more `middleware: [mw]`); non-default middleware/enhancer arrays use `Tuple`; the standalone `getDefaultMiddleware` export and `getType` were removed; `action.type` must be a string; `AnyAction` deprecated in favor of `UnknownAction`; `Middleware`'s `action` and `next` are typed `unknown`; `PreloadedState` type removed; `createSlice.reducers` accepts a callback (`create.asyncThunk`, `create.reducer`, `create.preparedReducer`); `combineSlices`, `selectors` in `createSlice` and `createDynamicMiddleware` were added, and `configureStore` now includes the `autoBatchEnhancer` (added in RTK 1.9) by default; ESM became the primary artifact. Source: the "Migrating to RTK 2.0 and Redux 5.0" page, fetched 2026-10-04 at `redux.js.org/toolkit/usage/migrating-rtk-2`. It also provides a codemod: `npx @reduxjs/rtk-codemods createReducerBuilder ./src`.
 >
 > **Migration, old to new:**
 > ```ts
@@ -362,7 +362,7 @@ Three ways to stop a derived-object selector from re-rendering (compared live in
 - **Reselect 5 default memoizer is `weakMapMemoize`**: an effectively unbounded cache keyed by the arguments' references, so selectors with arguments (`selectLinesAtLeast(state, 1000)` vs `(state, 0)`) no longer evict each other. It was `defaultMemoize` with a cache size of 1 in Reselect ≤ 4 (renamed `lruMemoize`). `cartSelectors.test.ts` asserts that alternating two different carts does not recompute, which would not hold with a cache size of 1. Source: RTK 2 migration guide, "Reselect Changes".
 - **Dev-mode checks** (Reselect 5, `reselect@5.3.0`'s `reselect.mjs`): `inputStabilityCheck` calls the input selectors twice on the first call and warns if they return different references, and `identityFunctionCheck` warns if the result function returns its input. Both default to `'once'`.
 - **react-redux 9 has its own dev checks** inside `useSelector` (`stabilityCheck` and `identityFunctionCheck`, both default `"once"`, verified in `react-redux.mjs`): "Selector … returned a different result when called with the same parameters. This can lead to unnecessary rerenders." and "returned the root state when called". `RenderPuzzle.test.tsx` asserts that the first warning fires exactly once for the unmemoized object selector.
-- `useSelector` is built on `useSyncExternalStoreWithSelector`: React's own check, that `getSnapshot` returns a cached value, is why returning a fresh object each time is wasteful rather than infinite in react-redux, whereas in Zustand 5 it is an infinite loop (18.8).
+- `useSelector` is built on `useSyncExternalStoreWithSelector` (from the `use-sync-external-store/with-selector` package, a react-redux dependency): its snapshot is the store state itself, a stable reference, and the selected value is memoized per state, so a selector returning a fresh object is wasteful (a re-render after every dispatch) rather than infinite. Zustand 5 passes `() => selector(getState())` to React's `useSyncExternalStore` as the snapshot getter, so a fresh object fails React's "`getSnapshot` must return a cached value" check and loops forever (18.8).
 
 > **Version notes.** React-Redux 9.0 changed `useSelector`'s dev-mode check options (`devModeChecks`). `createSelector`'s `ParametricSelector` types were removed in Reselect 5. **The React Compiler** ([15.5](15-performance.md#155-the-react-compiler-and-how-it-changes-the-advice)) memoizes **inside components**; it does not memoize what a selector returns, so it doesn't replace Reselect.
 
@@ -999,7 +999,7 @@ export function makeStore(preloadedState?: Partial<RootState>) {
   return configureStore({
     reducer: rootReducer,
     // RTK 2: `middleware` must be a callback. The defaults are thunk plus, in development,
-    // the immutability and serializability checks.
+    // the immutability, serializability and action-creator checks.
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(productsApi.middleware),
     preloadedState,
   });
@@ -2045,7 +2045,7 @@ import { makePuzzleStore, ReduxPuzzle } from './ReduxRenderPuzzle';
 import { log } from './renderLog';
 import { resetPuzzleStore, ZustandPuzzle } from './ZustandRenderPuzzle';
 
-// PREDICTIONS written before running. The coordinator runs this file and corrects any line that differs.
+// PREDICT-THE-OUTPUT. Every expected value below was confirmed by running the test.
 
 let warn: MockInstance<typeof console.warn>;
 

@@ -1394,7 +1394,14 @@ Three items, ids 1 to 3. The first item moves to the end, item 2 is removed, the
 ```html
 <!-- Excerpt of labs/angular/projects/animations-lab/src/app/m35/outputs/q35-13.ts -->
       @for (item of items(); track item.id) {
-        <li animate.enter="m35-q13-in" animate.leave="m35-q13-out">{{ item.label }}</li>
+        <li
+          class="m35-q13-row"
+          animate.enter="m35-q13-in"
+          animate.leave="m35-q13-out"
+          [attr.data-testid]="'q13-row-' + item.id"
+        >
+          {{ item.label }}
+        </li>
       }
 ```
 
@@ -1709,8 +1716,12 @@ The approach: the store holds data, the template binds both animations, and the 
 
 ```html
 <!-- Excerpt of labs/angular/projects/animations-lab/src/app/m35/exercise-1-toasts/a/toasts-a.ts -->
-<li class="m35-toast" animate.enter="m35-toast-in" animate.leave="m35-toast-out"
-    [attr.data-toast]="toast.id">
+        <li
+          class="m35-toast"
+          animate.enter="m35-toast-in"
+          animate.leave="m35-toast-out"
+          [attr.data-toast]="toast.id"
+        >
 ```
 
 **How each criterion is met.** Each criterion titles one test, run for both variants by a loop over `a` and `b`, with `reducedMotion` set explicitly. Tests wait for `getAnimations()` to list the animation (the class appears first), then call `finishAll`.
@@ -1775,8 +1786,15 @@ The approach: the panel is a grid with one row. The row's size changes between t
 
 ```css
 /* Excerpt of labs/angular/projects/animations-lab/src/app/m35/exercise-2-disclosure/a/disclosure-a.ts */
-.m35-disc { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 800ms; }
-.m35-disc-open { grid-template-rows: 1fr; }
+    .m35-disc {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 800ms;
+    }
+
+    .m35-disc-open {
+      grid-template-rows: 1fr;
+    }
 ```
 
 **How each criterion is met.** Each criterion titles one test, run for both variants by a loop over `a` and `b`, with `reducedMotion` set explicitly. Tests read `getAnimations()` and use `finishAll`, `pauseAll` and `seek`.
@@ -1845,8 +1863,13 @@ The approach: the template gives each item its index, CSS turns it into a delay,
 
 ```html
 <!-- Excerpt of labs/angular/projects/animations-lab/src/app/m35/exercise-3-stagger/a/stagger-a.ts -->
-<li class="m35-ex3-item" [animate.enter]="fresh().has(item.id) ? 'm35-ex3-in' : ''"
-    animate.leave="m35-ex3-out" [style.--i]="$index" [attr.data-item]="item.id">
+        <li
+          class="m35-ex3-item"
+          [animate.enter]="fresh().has(item.id) ? 'm35-ex3-in' : ''"
+          animate.leave="m35-ex3-out"
+          [style.--i]="$index"
+          [attr.data-item]="item.id"
+        >
 ```
 
 **How each criterion is met.** Each criterion titles one test, run for both variants by a loop over `a` and `b`, with `reducedMotion` set explicitly; the fourth has no screen.
@@ -1988,5 +2011,5 @@ It runs no view-transition animation and rejects `ready` with `AbortError`.
 
 - **Builds on:** [08 §2](08-browser-rendering-dom-events.md#2-layout-paint-and-composite-what-each-change-costs) (the cost of each change), [13 §9](13-components-and-templates.md#9-view-encapsulation-emulated-shadowdom-and-none-and-what-the-compiler-does-to-your-css) (renamed keyframes), [18 §2](18-control-flow-and-defer.md#2-for-track-context-variables-empty-and-what-angular-can-iterate) (`@for` identity), [20 §4](20-lifecycle-and-render-hooks.md#4-render-hooks-afternextrender-aftereveryrender-and-their-phases) (render hooks) and [24 §9](24-routing.md#9-view-transitions-scroll-restoration-and-titles) (view transitions in the router).
 - **Read next:** [36. Material and CDK](36-material-and-cdk.md#2-material-components-in-a-v22-app-standalone-imports-form-fields-dialogs-direction-and-motion) (components that animate on these rules) and [39. Version history and migrations](39-version-history-and-migrations.md#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default) (the deprecation of `@angular/animations` in context).
-- **Uses these ideas later:** [36](36-material-and-cdk.md#2-material-components-in-a-v22-app-standalone-imports-form-fields-dialogs-direction-and-motion) (component motion), [39](39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints) (the migration) and [40](40-framework-comparisons.md#6-routing-forms-data-fetching-tooling-and-testing-first-party-or-ecosystem) (other frameworks' motion), all file-level and not yet written.
+- **Uses these ideas later:** [36](36-material-and-cdk.md#2-material-components-in-a-v22-app-standalone-imports-form-fields-dialogs-direction-and-motion) (component motion), [39](39-version-history-and-migrations.md#10-a-migration-program-for-an-old-angular-codebase-order-dependencies-and-checkpoints) (the migration) and [40](40-framework-comparisons.md#6-routing-forms-data-fetching-tooling-and-testing-first-party-or-ecosystem) (other frameworks' motion).
 - **Comparisons:** [Q24.32](24-routing.md#q24-32) (the router side of view transitions), [Q08.03](08-browser-rendering-dom-events.md#q08-03) (pipeline stages) and [Q18.25](18-control-flow-and-defer.md#q18-25) (which rows move).

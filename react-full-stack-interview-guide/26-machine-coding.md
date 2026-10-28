@@ -16,7 +16,7 @@ A machine-coding round gives you a vague product sentence ("build a star rating"
 ### Mental model
 Treat the round like a short **sprint with a demo at the end**. The interviewer is not grading how fast you type. They are grading whether you can turn an ambiguous request into a small, correct, reviewable piece of software and talk about it like a colleague.
 
-> **Java/Spring analogy.** It is a design-review plus pairing session on one endpoint: you agree on the contract (props and behaviour), sketch the data model (state shape), implement the happy path, then harden it (validation and edge cases) and add a test, exactly as you would before opening a pull request.
+> **Java/Spring analogy.** It is a design-review plus pairing session on one endpoint: you agree on the contract (props and behavior), sketch the data model (state shape), implement the happy path, then harden it (validation and edge cases) and add a test, exactly as you would before opening a pull request.
 >
 > **Where the analogy breaks:** on the backend the framework hides the UI-specific part. Here, *accessibility and keyboard support are part of correctness*, and the "request" lives for minutes, so state transitions matter more than any single call.
 
@@ -57,7 +57,7 @@ flowchart LR
 They usually use a rubric close to this one (the weights differ by company, so treat it as typical, not official):
 - **Requirements and communication**: did you clarify, state assumptions, and keep the interviewer informed?
 - **Component design**: small components, props that make sense, state at the right level ([8.8](08-state.md#88-colocation-and-lifting-state-up)), no copy-pasted blocks.
-- **State modelling**: minimal source of truth, derived values computed in render, immutable updates ([8.5](08-state.md#85-immutable-updates-of-nested-objects-and-arrays)).
+- **State modeling**: minimal source of truth, derived values computed in render, immutable updates ([8.5](08-state.md#85-immutable-updates-of-nested-objects-and-arrays)).
 - **Correctness under edge cases**: empty, boundary, rapid input, async races ([9.4](09-effects.md#94-race-conditions-and-abortcontroller)).
 - **Accessibility**: semantic elements, labels, roles per the WAI-ARIA Authoring Practices pattern, keyboard operation, focus.
 - **Code quality**: names, no dead code, TypeScript types that say something, no effect where a derived value works ([9.6](09-effects.md#96-you-might-not-need-an-effect)).
@@ -247,7 +247,7 @@ export function Todo() {
 1. State: `value` (committed) and `hover` (`number | null`).
 2. Render `max` buttons with `role="radio"`, `aria-checked`, and a label such as "3 stars".
 3. Roving tabindex: only the checked star (or the first) is a tab stop.
-4. Arrow keys move the selection and focus, clamped to `1…max`.
+4. Arrow keys move the selection and focus, clamped to `1…max`. The APG radio group (and its [rating example](https://www.w3.org/WAI/ARIA/apg/patterns/radio/examples/radio-rating/)) wraps around at the ends instead; clamping is a deliberate choice for a rating, so say which one you picked.
 
 <details><summary>Hints</summary>
 
@@ -344,7 +344,7 @@ export function StarRating({ max = 5, defaultValue = 0, onChange }: Props) {
 
 **Approach.**
 
-**Mental model.** State is a **set of open ids**, nothing else. "Single" versus "multiple" is only a different update rule, not a different structure. This is the WAI-ARIA *accordion* pattern: a heading containing a button with `aria-expanded` and `aria-controls`, and a `region` labelled by that button.
+**Mental model.** State is a **set of open ids**, nothing else. "Single" versus "multiple" is only a different update rule, not a different structure. This is the WAI-ARIA *accordion* pattern: a heading containing a button with `aria-expanded` and `aria-controls`, and a `region` labeled by that button.
 
 1. `open: Set<string>`; `toggle(id)` builds a new set (never mutate the old one).
 2. Single mode starts from an empty set, multiple from a copy of the previous one.
@@ -389,7 +389,8 @@ export function Accordion({ items, multiple = false }: Props) {
     });
   }
 
-  // Up/Down/Home/End move between the headers (the current APG accordion pattern no longer lists them as optional).
+  // Up/Down/Home/End move between the headers: an extra. Older APG versions listed them as optional;
+  // the current APG accordion pattern does not list them at all.
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const triggers = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('[data-trigger]'));
     const current = triggers.findIndex((el) => el === document.activeElement);
@@ -450,7 +451,7 @@ export function Accordion({ items, multiple = false }: Props) {
 - Should closed content be mounted? Trade-off between state retention and render cost.
 - Deep links: open the panel whose id is in `location.hash`.
 
-**Tests.** [`examples/web/src/m26-machine-coding/accordion/Accordion.test.tsx`](examples/web/src/m26-machine-coding/accordion/Accordion.test.tsx). Collapsed start, toggling with `aria-expanded`, single versus multiple, the labelled region, and Enter/Space plus arrow/Home/End focus. Closed panels are `display: none`, so the tests use `getByText(...).not.toBeVisible()` rather than `getByRole`.
+**Tests.** [`examples/web/src/m26-machine-coding/accordion/Accordion.test.tsx`](examples/web/src/m26-machine-coding/accordion/Accordion.test.tsx). Collapsed start, toggling with `aria-expanded`, single versus multiple, the labeled region, and Enter/Space plus arrow/Home/End focus. Closed panels are `display: none`, so the tests use `getByText(...).not.toBeVisible()` rather than `getByRole`.
 
 ---
 
@@ -471,9 +472,9 @@ export function Accordion({ items, multiple = false }: Props) {
 1. `selectedId` state, default `tabs[0]`.
 2. Render the tablist, then the selected panel only.
 3. `onKeyDown` on the tablist computes the target index with wrap-around, then selects and focuses.
-4. IDs from `useId` link tab and panel.
+4. IDs from `useId` link tab and panel. Because inactive panels are unmounted, only the selected tab gets `aria-controls`: on the others it would point at an id that is not in the DOM.
 
-> **Module 07 comparison.** [7.6](07-components-props-composition.md#76-compound-components) builds a compound, controllable `Tabs` with context and keeps every panel mounted but `hidden`. This version is the data-driven, 45-minute one and unmounts inactive panels. Say which you picked and what each costs.
+> **Module 07 comparison.** [7.6](07-components-props-composition.md#76-compound-components) builds a compound, controllable `Tabs` with context and keeps every panel mounted but `hidden`, so every tab can keep its `aria-controls` as the APG describes. This version is the data-driven, 45-minute one and unmounts inactive panels, so it sets `aria-controls` on the selected tab only. Say which you picked and what each costs.
 
 <details><summary>Hints</summary>
 
@@ -529,7 +530,8 @@ export function SimpleTabs({ tabs, label }: { tabs: TabItem[]; label: string }) 
             id={`${baseId}-tab-${tab.id}`}
             data-tab={tab.id}
             aria-selected={tab.id === selectedId}
-            aria-controls={`${baseId}-panel-${tab.id}`}
+            // Only the selected panel is mounted, so only its tab may point at it.
+            aria-controls={tab.id === selectedId ? `${baseId}-panel-${tab.id}` : undefined}
             tabIndex={tab.id === selectedId ? 0 : -1} // roving tabindex
             onClick={() => setSelectedId(tab.id)}
           >
@@ -563,7 +565,7 @@ export function SimpleTabs({ tabs, label }: { tabs: TabItem[]; label: string }) 
 - Sync the selected tab with the URL (query param or route) ([19](19-routing.md)).
 - Handle tabs being added or removed: what if `selectedId` no longer exists? (derive a fallback to the first tab.)
 
-**Tests.** [`examples/web/src/m26-machine-coding/tabs/SimpleTabs.test.tsx`](examples/web/src/m26-machine-coding/tabs/SimpleTabs.test.tsx). Roles and wiring, click switching, wrapping arrows with Home/End and focus, and the roving tab stop.
+**Tests.** [`examples/web/src/m26-machine-coding/tabs/SimpleTabs.test.tsx`](examples/web/src/m26-machine-coding/tabs/SimpleTabs.test.tsx). Roles and wiring (including `aria-controls` only on the selected tab), click switching, wrapping arrows with Home/End and focus, and the roving tab stop.
 
 ---
 
@@ -590,7 +592,7 @@ export function SimpleTabs({ tabs, label }: { tabs: TabItem[]; label: string }) 
 
 <details><summary>Hints</summary>
 
-- The focusable selector: `a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])`.
+- The focusable selector: `a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])`.
 - Only call `preventDefault` when you actually redirect focus; otherwise leave Tab alone.
 - `aria-labelledby` pointing at the heading beats a bare `aria-label`.
 - The trap needs the *focused element being inside* the dialog; focusing the dialog itself (`tabIndex=-1`) covers the no-focusables case.
@@ -693,7 +695,7 @@ export function Modal({ title, onClose, children }: Props) {
 - Animate in and out: when do you unmount? (after `transitionend`, with a `closing` state.)
 - Return focus when the opener was removed from the DOM: fall back to a known element.
 
-**Tests.** [`examples/web/src/m26-machine-coding/modal/Modal.test.tsx`](examples/web/src/m26-machine-coding/modal/Modal.test.tsx). Labelled modal with initial focus, wrapping Tab and Shift+Tab, Escape and Close restoring focus to the opener, and backdrop versus inner clicks.
+**Tests.** [`examples/web/src/m26-machine-coding/modal/Modal.test.tsx`](examples/web/src/m26-machine-coding/modal/Modal.test.tsx). Labeled modal with initial focus, wrapping Tab and Shift+Tab, Escape and Close restoring focus to the opener, and backdrop versus inner clicks.
 
 ---
 
@@ -1202,7 +1204,7 @@ export function Comments({ initial }: { initial: CommentData[] }) {
 
 1. `flatten` recurses only into expanded folders.
 2. State: `expanded: Set<string>`, `selectedId`, `activeId` (the single tab stop).
-3. Keys: Down/Up/Home/End move; Right expands a closed folder, or moves to the first child; Left collapses an open folder, or moves to the parent; Enter/Space select and toggle (keys per the [APG tree view pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/)).
+3. Keys: Down/Up/Home/End move; Right expands a closed folder, or moves to the first child; Left collapses an open folder, or moves to the parent; Enter selects and toggles (keys per the [APG tree view pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/); Space doing the same is an extra here).
 4. Return without `preventDefault` for any other key, so Tab keeps working.
 
 <details><summary>Hints</summary>
@@ -1559,7 +1561,7 @@ export function Countdown({ seconds }: { seconds: number }) {
 - Sync with the server's clock (clock skew, `Date.now()` from the server).
 - A pomodoro mode with multiple phases: this is the traffic light's state machine ([26.18](#2618-traffic-light)).
 
-**Tests.** [`examples/web/src/m26-machine-coding/countdown/Countdown.test.tsx`](examples/web/src/m26-machine-coding/countdown/Countdown.test.tsx). Fake timers with `fireEvent` and `act`. Format, no ticking before Start, boundary behaviour, a clock jump that proves it is not counting ticks, finish, pause/resume, reset and unmount cleanup.
+**Tests.** [`examples/web/src/m26-machine-coding/countdown/Countdown.test.tsx`](examples/web/src/m26-machine-coding/countdown/Countdown.test.tsx). Fake timers with `fireEvent` and `act`. Format, no ticking before Start, boundary behavior, a clock jump that proves it is not counting ticks, finish, pause/resume, reset and unmount cleanup.
 
 ---
 
@@ -1569,7 +1571,7 @@ export function Countdown({ seconds }: { seconds: number }) {
 
 **Clarifying questions to ask first.**
 - Reordering inside a column, or only moving between columns? (both.)
-- Touch support? (the native API does not fire on touch; follow-up.)
+- Touch support? (native DnD on touch varies by mobile browser and version; test on devices or use a pointer-based library; follow-up.)
 - Persist? Add/delete cards? (out of scope.)
 - Keyboard users? (they need an alternative.)
 
@@ -1726,7 +1728,7 @@ export function Kanban({ initial }: { initial: Board }) {
 2. `errors = attempted ? validate(step, values) : {}`.
 3. A real `<form noValidate onSubmit>`: Enter and the Next button share one path.
 4. Changing step resets `attempted`.
-5. Fields: label, `aria-invalid`, `aria-describedby` to an `role="alert"` message.
+5. Fields: label, `aria-invalid`, `aria-describedby` to a `role="alert"` message.
 
 <details><summary>Hints</summary>
 
@@ -1743,7 +1745,7 @@ export function Kanban({ initial }: { initial: Board }) {
 
 ```tsx
 // file: examples/web/src/m26-machine-coding/wizard/Wizard.tsx
-import { useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 
 export type Values = { email: string; name: string };
 type Errors = Partial<Record<keyof Values, string>>;
@@ -1763,7 +1765,7 @@ function Field(props: {
   error: string | undefined;
   onChange: (value: string) => void;
 }) {
-  const errorId = `${props.label}-error`;
+  const errorId = useId(); // unique even if two wizards (or two fields with one label) share a page
   return (
     <div>
       <label>
@@ -1878,7 +1880,7 @@ export function Wizard({ onSubmit }: { onSubmit: (values: Values) => void }) {
 1. State: `squares: ('X' | 'O' | null)[9]`.
 2. `calculateWinner` loops over the eight winning lines and returns `{ winner, line }`.
 3. `play(i)` ignores occupied cells and finished games, otherwise returns a new array.
-4. Cells are `<button>`s labelled "Cell 3, X", so state is in the accessible name.
+4. Cells are `<button>`s labeled "Cell 3, X", so state is in the accessible name.
 
 <details><summary>Hints</summary>
 
@@ -1983,7 +1985,7 @@ export function TicTacToe() {
 
 1. Input: `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-autocomplete="list"`, `aria-activedescendant`.
 2. `onChange`: set query, open, reset `active` to `-1`.
-3. Keys: Down/Up move with wrap-around (and open the list); Enter selects the active option only when one is highlighted and the list is open; first Escape closes, second clears (the [APG combobox](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/) makes the clear optional: "if the popup is hidden before Escape is pressed, clears the combobox").
+3. Keys: Down/Up move with wrap-around (and open the list; the current APG listbox popup instead returns focus to the input or does nothing at the ends, so wrapping is a choice); Enter selects the active option only when one is highlighted and the list is open; Escape closes the listbox if it is displayed, otherwise clears the text (the [APG combobox](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/) makes the clear optional: "if the popup is hidden before Escape is pressed, clears the combobox"). "Displayed" means `expanded` (open **and** at least one match), not `open`: with no matches there is no listbox, so the first Escape already clears.
 4. Options use `onMouseDown={preventDefault}` so the input does not blur before the click lands; then `onClick` selects.
 5. A `role="status"` line announces the number of results.
 
@@ -2054,8 +2056,11 @@ export function Autocomplete({ options, onSelect }: Props) {
         break;
       }
       case 'Escape':
-        if (open) setOpen(false); // first Escape closes the list
-        else setQuery(''); // second one clears the text
+        if (expanded) setOpen(false); // first Escape closes the visible list
+        else {
+          setOpen(false);
+          setQuery(''); // nothing displayed (closed, or no matches): clear the text
+        }
         break;
     }
   }
@@ -2109,7 +2114,7 @@ export function Autocomplete({ options, onSelect }: Props) {
 - Virtualize a 10,000-option list: `aria-activedescendant` still works because options are addressed by id.
 - Native alternative: `<input list>` with `<datalist>`; what it cannot do (styling, async, custom rendering).
 
-**Tests.** [`examples/web/src/m26-machine-coding/autocomplete/Autocomplete.test.tsx`](examples/web/src/m26-machine-coding/autocomplete/Autocomplete.test.tsx). Filtering, `aria-activedescendant` with arrow wrapping, Enter selection, Enter with nothing highlighted, click selection keeping focus, the two-step Escape, the no-matches state and closing on blur.
+**Tests.** [`examples/web/src/m26-machine-coding/autocomplete/Autocomplete.test.tsx`](examples/web/src/m26-machine-coding/autocomplete/Autocomplete.test.tsx). Filtering, `aria-activedescendant` with arrow wrapping, Enter selection, Enter with nothing highlighted, click selection keeping focus, the two-step Escape, Escape clearing at once when no listbox is shown, the no-matches state and closing on blur.
 
 ---
 
@@ -2233,7 +2238,7 @@ export function TrafficLight({ cycle = DEFAULT_CYCLE }: { cycle?: typeof DEFAULT
 
 <details><summary>Hints</summary>
 
-- `aria-sort` is a value on the `th`: `ascending`, `descending` or `none`.
+- `aria-sort` goes on the sorted `th` only (`ascending` or `descending`); ARIA says to apply it to one header at a time, so leave it off the others.
 - A header click target must be a button, not a clickable `th`.
 - The empty state is a derived `visible.length === 0`.
 
@@ -2302,11 +2307,12 @@ export function DataTable({ rows }: { rows: Person[] }) {
           <tr>
             {COLUMNS.map(({ key, label }) => {
               const direction = sort?.key === key ? sort.direction : null;
+              // aria-sort goes on the sorted header only (ARIA: one header at a time); absent = no defined sort.
               return (
                 <th
                   key={key}
                   scope="col"
-                  aria-sort={direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : 'none'}
+                  aria-sort={direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : undefined}
                 >
                   <button type="button" onClick={() => cycle(key)}>
                     {label}
@@ -2423,7 +2429,7 @@ Without it, Tab leaves the dialog into content that is visually and semantically
 **Q11. Native `<dialog>` or a custom modal?**
 <details><summary>Answer</summary>
 
-Prefer native `<dialog>` with `showModal()` in a real browser: top layer, Escape, inert background and backdrop are built in. Use a custom one when you must support something it cannot do, or when the test environment lacks it (jsdom 30.1.1 has no `showModal`, see 26.1). **A strong answer adds:** say what you would verify in a real browser, since jsdom cannot show focus behaviour faithfully.
+Prefer native `<dialog>` with `showModal()` in a real browser: top layer, Escape, inert background and backdrop are built in. Use a custom one when you must support something it cannot do, or when the test environment lacks it (jsdom 30.1.1 has no `showModal`, see 26.1). **A strong answer adds:** say what you would verify in a real browser, since jsdom cannot show focus behavior faithfully.
 
 </details>
 
@@ -2441,7 +2447,7 @@ Moving focus suits widgets whose items are real controls (tabs, tree items, radi
 
 </details>
 
-**Q14. How would you make the Kanban board accessible when native drag and drop is mouse only?**
+**Q14. How would you make the Kanban board accessible when native drag and drop is pointer-only?**
 <details><summary>Answer</summary>
 
 Provide an equivalent non-drag control for every drag action: a per-card "move to" select or buttons that call the same `moveCard` function, and announce results in a live region. **A strong answer adds:** WCAG 2.2 requires a single-pointer alternative to dragging movements (SC 2.5.7, Level AA: functionality that uses dragging "can be achieved by a single pointer without dragging"; [Understanding 2.5.7](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html)), so this is a requirement, not polish.
@@ -2486,7 +2492,7 @@ Install a fake with `vi.stubGlobal`, keep its callback, and call it with `{ isIn
 **Q20. How do you test a component in which a hidden panel contains text?**
 <details><summary>Answer</summary>
 
-`display: none` elements have no accessible name and `getByRole` skips them, so assert with `getByText(...)` and `toBeVisible()` / `not.toBeVisible()` (26.4). **A strong answer adds:** `queryByRole` returning null for a hidden node is correct behaviour, not a bug in your component.
+`display: none` elements are excluded from the accessibility tree and `getByRole` skips them by default (unless you pass `{ hidden: true }`), so assert with `getByText(...)` and `toBeVisible()` / `not.toBeVisible()` (26.4). **A strong answer adds:** `queryByRole` returning null for a hidden node is correct behavior, not a bug in your component.
 
 </details>
 
@@ -2525,7 +2531,7 @@ When the problem is a known-hard area: drag and drop on touch (dnd-kit), virtual
 
 </details>
 
-**Q26. What does the traffic light teach about modelling UI?**
+**Q26. What does the traffic light teach about modeling UI?**
 <details><summary>Answer</summary>
 
 That many widgets are state machines: a fixed set of states, a table of transitions, and time or events as triggers. Encode the table as data and the component stays tiny (26.18); the same idea fits wizards, async status and game turns ([8.11](08-state.md#811-state-machines-in-a-reducer)). **A strong answer adds:** make illegal states unrepresentable with a union type instead of several booleans.
@@ -2550,7 +2556,7 @@ That many widgets are state machines: a fixed set of states, a table of transiti
 12. **A double trigger loads a page twice.** Guard with a ref that flips synchronously; state updates are batched and stale in the same tick.
 13. **No `preventDefault` in `dragover`.** `drop` never fires. And `dragenter`/`dragleave` flicker when the pointer enters a child element.
 14. **Forgetting the keyboard.** Click-only tabs, accordions and modals fail the round on accessibility. Name the APG pattern and implement its keys.
-15. **`getByRole` for hidden content in tests.** `display: none` elements have an empty accessible name; use `getByText` and `toBeVisible`.
+15. **`getByRole` for hidden content in tests.** `display: none` elements are excluded from the accessibility tree, so `getByRole` skips them by default; use `getByText` and `toBeVisible`.
 16. **`vi.useFakeTimers()` plus `userEvent` with `advanceTimers` hangs** in this repo. Use `fireEvent` and `act(() => { vi.advanceTimersByTime(ms); })`, or `shouldAdvanceTime: true`.
 17. **Focus trap that traps nothing.** Without a focusable element, Tab escapes; give the dialog `tabIndex={-1}` and keep focus on it, and restore focus to the opener on close.
 18. **Not a button.** `div onClick` headers and cells have no role, no focus and no keys. Use `<button>` and let the platform do the work.
@@ -2567,11 +2573,11 @@ That many widgets are state machines: a fixed set of states, a table of transiti
 | "Clear a form/step by calling `setState` in an effect when props change" | Common in 2018 code | Reset with `key`, or derive the value ([8.9](08-state.md#89-resetting-state-with-key)) | React docs "You might not need an effect" (2023) |
 | "Set `isMounted` or ignore flags to avoid unmounted `setState` warnings" | React ≤ 17 warned | The warning is gone; use abort or a staleness check for correctness, not for the warning | React 18.0 |
 | "Use `forwardRef` and `useImperativeHandle` to focus the dialog" | Required before 19 | `ref` is a prop; ref callbacks can return a cleanup that restores focus | React 19.0 |
-| "Use a library for a modal focus trap" | Only option before `inert` and `<dialog>` matured | Native `<dialog>.showModal()` and the `inert` attribute do most of it; a hand-written trap is what you show in an interview or need in jsdom | `<dialog>` Baseline widely available since March 2022, `inert` since April 2023 ([MDN dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog), [MDN inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert)) |
+| "Use a library for a modal focus trap" | Only option before `inert` and `<dialog>` matured | Native `<dialog>.showModal()` and the `inert` attribute do most of it; a hand-written trap is what you show in an interview or need in jsdom | `<dialog>` available across browsers since March 2022, `inert` since April 2023, both now Baseline widely available ([MDN dialog](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog), [MDN inert](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/inert)) |
 | "Test timers with `jest.useFakeTimers()` and `userEvent` freely" | Worked in Jest setups | In this repo's Vitest toolchain plain fake timers plus `userEvent` `advanceTimers` hangs; use `fireEvent` + `act`, or `shouldAdvanceTime: true` | Vitest in `examples/web` (VERSIONS.md) |
-| "Native drag and drop is enough for every board" | Fine for desktop-only tools | The HTML DnD API does not fire on touch and has no keyboard story; ship an alternative control or a pointer-based library | Ongoing; WCAG 2.2 (2023) [SC 2.5.7 Dragging Movements](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html) |
+| "Native drag and drop is enough for every board" | Fine for desktop-only tools | The HTML DnD API has no keyboard story and its touch support varies by mobile browser and version; ship an alternative control or a pointer-based library | Ongoing; WCAG 2.2 (2023) [SC 2.5.7 Dragging Movements](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html) |
 | "Debounce with a hand-rolled `setTimeout` in the handler" | Common before hooks | A `useDebounce`-style value plus an effect with abort keeps the timer, the request and the cleanup in one lifecycle | Hooks 16.8 |
-| "Infinite scroll = a `scroll` listener comparing `scrollTop`" | The only option before 2019 | `IntersectionObserver` is supported everywhere and does not run on every scroll event | Baseline widely available since March 2019 ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)) |
+| "Infinite scroll = a `scroll` listener comparing `scrollTop`" | The only option before 2019 | `IntersectionObserver` is supported everywhere and does not run on every scroll event | Available across browsers since March 2019, now Baseline widely available ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API)) |
 
 ---
 

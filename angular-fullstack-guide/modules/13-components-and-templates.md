@@ -52,7 +52,7 @@ What to notice: the host element is both "the component as the parent wrote it" 
 
 ### How it actually works
 
-**Metadata.** In the `@angular/core` 22.2.1 typings `Component` extends `Directive` and adds `template`, `templateUrl`, `styles`, `styleUrl`, `encapsulation`, `changeDetection`, `imports` and `schemas`; `selector` (optional) and `host` come from `Directive`. Components are standalone by default [Changed in v19.0: `standalone` defaults to `true`] ([15](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array)), and without `changeDetection` they are OnPush (re-checked only when an input signal, an event or a signal it reads changes) [Changed in v22.0: OnPush is the default] ([21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)).
+**Metadata.** In the `@angular/core` 22.2.1 typings `Component` extends `Directive` and adds `template`, `templateUrl`, `styles`, `styleUrl`, `encapsulation`, `changeDetection`, `imports` and `schemas`; `selector` (optional) and `host` come from `Directive`. Components are standalone by default [Changed in v19.0: `standalone` defaults to `true`] ([15](15-standalone-and-ngmodules.md#2-standalone-components-and-the-imports-array)), and without `changeDetection` they are OnPush (re-checked when an input changes, an event fires in its subtree, a signal its template reads changes or `markForCheck()` is called) [Changed in v22.0: OnPush is the default] ([21](21-change-detection.md#2-onpush-and-eager-strategies-and-what-marks-a-view-dirty)).
 
 **Selectors.** The forms are an element name, an attribute (`[x]`, `[type="reset"]`) and a class, plus `:not()` and comma lists. Combinators, namespaces and other pseudo-classes are unsupported ([angular.dev, Selectors](https://angular.dev/guide/components/selectors)), yet `ngc` accepted `lab a > b` and `lab-x::before` with exit 0 (2026-10-07). Element names need a hyphen and a **prefix** (a short project-wide start such as the CLI default `app-`); never `ng`, which is Angular's. An attribute selector on a native element (`button[lab-primary]`) keeps its native behavior and ARIA (roles and states for assistive technology) attributes ([Q11.03](11-accessibility.md#q11-03)).
 
@@ -873,7 +873,7 @@ styles          .inline-title[_ngcontent-a-cN] { color: teal; }
 
 **Custom properties** are declared on `:root` or `:host`, read with `var()`. A `host` binding writes one (`Section 8: a host binding sets a custom property on the host`); jsdom resolves no `var()`.
 
-**Namespacing** (documented, not run). `provideCssVarNamespacing(namespace?)` from `@angular/platform-browser` [Added in v22.1] (CHANGELOG 22.1.0; the typings give no version) prefixes the custom properties Angular compiles with the **`APP_ID`** (the application's id token, `ng` unless set) plus `_`: `--primary-color` becomes `--my-app_primary-color`. Static `style=""`, `[style]` objects and strings, `Renderer2.setStyle` and global stylesheets are not rewritten; `--global--x` opts out.
+**Namespacing** (documented, not run). `provideCssVarNamespacing(namespace?)` from `@angular/platform-browser` [Added in v22.1] (CHANGELOG 22.1.0; the typings give no version) prefixes the custom properties Angular compiles with `namespace`, by default the **`APP_ID`** (the application's id token, `ng` unless set), plus `_`: `--primary-color` becomes `--my-app_primary-color`. Static `style=""`, `[style]` objects and strings, `Renderer2.setStyle` and global stylesheets are not rewritten; `--global--x` opts out.
 
 **Tailwind** (documented, not run) is a build-time utility-class framework: `ng add tailwindcss`, or install it with **PostCSS** (a CSS transform tool) and put `@import 'tailwindcss';` in `src/styles.css` ([Tailwind page](https://angular.dev/guide/tailwind)); `ng new --style tailwind` is [Added in v21.0] (CLI CHANGELOG). Utilities are class names answered by global rules. For `@apply` elsewhere tailwindcss.com documents `@reference` ([directives](https://tailwindcss.com/docs/functions-and-directives)); a component stylesheet is that case by analogy, and angular.dev is silent.
 
@@ -1293,7 +1293,7 @@ $any(user).nickname                          -> ɵɵtextInterpolate(ctx.user.nic
 Neither leaves a run-time trace ([section 3](#3-safe-navigation-the-non-null-assertion-and-any)). Narrowing with `@if (maybe(); as u)` needs none of the three.
 
 **Follow-ups an interviewer will ask.**
-- *When does `?.` itself get a warning?* On a receiver that cannot be nullish: `NG8107`, "the '?.' operator can be replaced with the '.' operator"; extended diagnostics are [Q12.22](12-angular-how-it-works.md#q12-22)'s.
+- *When does `?.` itself get a warning?* On a receiver that cannot be nullish: `NG8107`, "the '?.' operator can be replaced with the '.' operator"; extended diagnostics are [Q12.21](12-angular-how-it-works.md#q12-21)'s.
 - *Is `$any` a pipe or a function I can call in the class?* It is a template-only cast; in a `.ts` file write a type assertion, and prefer fixing the type.
 
 **Trap to avoid.** Treating `!` as a guard or `$any` as a pipe: both only quiet the compiler.
@@ -1626,10 +1626,14 @@ protected readonly gross = computed(() => this.net() * 1.2);
 ```ts
 // Partial: one host in both forms
 @Component({ selector: 'lab-a', template: ``, host: { role: 'switch', '[class.on]': 'on()', '(click)': 'toggle()' } })
-class A {}
+class A {
+  readonly on = signal(false);
+  toggle(): void {}
+}
 
 @Component({ selector: 'lab-b', template: `` })
 class B {
+  readonly on = signal(false);
   @HostBinding('class.on') get isOn() { return this.on(); }
   @HostListener('click') toggle() {}
 }
@@ -1701,7 +1705,11 @@ console.log(
   template: `<ng-content />`,
   host: { role: 'switch', '[tabindex]': '0', '(click)': 'toggle()', '(keydown.space)': 'press($event)' },
 })
-class Toggle {}
+class Toggle {
+  readonly on = signal(false);
+  toggle(): void {}
+  press(event: KeyboardEvent): void {}
+}
 
 // Partial: B, an attribute selector extends the native button
 @Component({
@@ -1709,7 +1717,10 @@ class Toggle {}
   template: `<ng-content />`,
   host: { '[attr.aria-pressed]': 'on()', '(click)': 'toggle()' },
 })
-class ToggleButton {}
+class ToggleButton {
+  readonly on = signal(false);
+  toggle(): void {}
+}
 ```
 
 <details>

@@ -201,7 +201,7 @@ Stay file-level: headers, Leads to, Read next and Uses these ideas later (05:168
 | 10 | `[1, 2]`, cutoff 640, `100vw` filter (581) | pkg 729-730, 938-950 | match |
 | 11 | `processConfig` sorts breakpoints (887) | pkg 1166-1172 | match |
 | 12 | No loader → no srcset | pkg 978-983 | match |
-| 13 | `fill` sets `sizes ||= '100vw'`; absolute, 100%, inset 0 | pkg 831, 1083-1086 | match |
+| 13 | `fill` sets `sizes \|\|= '100vw'`; absolute, 100%, inset 0 | pkg 831, 1083-1086 | match |
 | 14 | NG02952 text | pkg 1355 | match |
 | 15 | NG02954 required attributes | pkg 1341 | match |
 | 16 | NG02955 text; observer only with `PerformanceObserver` | pkg 571, 454 | match |

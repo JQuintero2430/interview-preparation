@@ -192,7 +192,7 @@ const { register, handleSubmit, setError, formState: { errors, isSubmitting } } 
 > - Error customization is unified under `error`. `message` is deprecated; `invalid_type_error`, `required_error` and `errorMap` were dropped.
 > - `err.flatten()` and `err.format()` are deprecated in favour of `z.flattenError(err)` and `z.treeifyError(err)`. `err.errors` was dropped (use `err.issues`).
 > - `.merge()` is deprecated (use `.extend(other.shape)`), and `.passthrough()` is deprecated (use `z.looseObject()` or `.loose()`).
-> - `.default()` now short-circuits on `undefined` and must match the **output** type. `.prefault()` restores the old "parse the default" behaviour.
+> - `.default()` now short-circuits on `undefined` and must match the **output** type. `.prefault()` restores the old "parse the default" behavior.
 > - Refinements do not run after a **non-continuable** issue (such as a wrong type). The new `when` option controls that; ordinary check failures such as `.min()` do not block an object-level `.refine`.
 > - Zod 4 adds `z.file()` (with `.mime()` and size checks) for `File` values.
 >
@@ -271,7 +271,7 @@ Every field needs four things a screen reader can announce ([04](04-html-css-acc
 | An **invalid state** | `aria-invalid="true"` only while the error is shown |
 | **Announcement** of new errors | A live region (`role="alert"` / `aria-live`), or move focus to the first invalid field on submit |
 
-Plus: a real `<button type="submit">`, errors in text (never colour alone), `autoComplete` tokens (`email`, `new-password`, `street-address`) so password managers and autofill work, and groups of radios or checkboxes in `<fieldset>` with a `<legend>`.
+Plus: a real `<button type="submit">`, errors in text (never color alone), `autoComplete` tokens (`email`, `new-password`, `street-address`) so password managers and autofill work, and groups of radios or checkboxes in `<fieldset>` with a `<legend>`.
 
 ### Minimal code
 `examples/web/src/m14-forms/FormField.tsx` is the shared field used by the RHF examples:
@@ -285,7 +285,7 @@ Plus: a real `<button type="submit">`, errors in text (never colour alone), `aut
   {...registration}
 />
 {hint && <p id={hintId}>{hint}</p>}
-{error && <p id={errorId} role="alert" aria-live="polite">{error}</p>}
+{error && <p id={errorId} role="alert">{error}</p>}
 ```
 
 The tests check accessibility through the same tree a screen reader uses: `getByLabelText('Email')` finds the field by its name, and `toHaveAccessibleDescription('Enter a valid email')` checks what the screen reader would read after the name.
@@ -384,7 +384,7 @@ An Action usually produces a result the UI must show: "Subscribed!", a field err
 
 > **Java analogy.** A single-threaded executor (`Executors.newSingleThreadExecutor()`) feeding a fold: tasks run in submission order, and each sees the state the previous one produced.
 >
-> **Where the analogy breaks:** the UI may not show intermediate states. While several Actions are in flight, React batches their updates together (react.dev caveat), so the screen can jump from the first state to the last.
+> **Where the analogy breaks:** the UI may not show intermediate states. While several Actions of one hook are in flight, its `isPending` stays `true` until all of them complete and their updates land together (react.dev caveat), so the screen can jump from the first state to the last. React 19.3 renders *unrelated* Transitions independently ([21.2](21-concurrent-ssr-server-components.md#212-usetransition-and-starttransition)).
 
 ### Minimal code
 `examples/web/src/m14-forms/NewsletterForm.tsx` (excerpt):
@@ -647,7 +647,7 @@ An object-level `.refine((v) => v.password === v.confirm, { error: 'Passwords do
 **Q14. Name three API changes from Zod 3 to Zod 4.**
 <details><summary>Answer</summary>
 
-`z.email()` and other formats moved to the top level (`z.string().email()` is deprecated); `message` is replaced by `error` and `required_error`/`invalid_type_error`/`errorMap` were dropped; `err.flatten()`/`format()` are deprecated in favour of `z.flattenError`/`z.treeifyError`. Also `.merge()` → `.extend()`, `.default()` short-circuits and must match the output type (`.prefault()` for the old behaviour). **A strong answer adds:** `import * as z from 'zod'` gives v4 in Zod 4.x; `zod/v3` still exists for gradual migration.
+`z.email()` and other formats moved to the top level (`z.string().email()` is deprecated); `message` is replaced by `error` and `required_error`/`invalid_type_error`/`errorMap` were dropped; `err.flatten()`/`format()` are deprecated in favour of `z.flattenError`/`z.treeifyError`. Also `.merge()` → `.extend()`, `.default()` short-circuits and must match the output type (`.prefault()` for the old behavior). **A strong answer adds:** `import * as z from 'zod'` gives v4 in Zod 4.x; `zod/v3` still exists for gradual migration.
 
 </details>
 
@@ -668,7 +668,7 @@ Formik keeps values in React state inside `<Formik>`, so typing re-renders the f
 **Q17. Does `accept="image/*"` validate the file?**
 <details><summary>Answer</summary>
 
-No. It filters the OS picker; drag and drop, "All files", or a script can still deliver anything. Validate `file.type` and `file.size` in JavaScript and again on the server (and check the content, not just the extension). **A strong answer adds:** user-event honours `accept` by default (`applyAccept: true`), so a test that uploads a `.txt` sees no change event; use `applyAccept: false` to test your own validation.
+No. It filters the OS picker; drag and drop, "All files", or a script can still deliver anything. Validate `file.type` and `file.size` in JavaScript and again on the server (and check the content, not just the extension). **A strong answer adds:** user-event honors `accept` by default (`applyAccept: true`), so a test that uploads a `.txt` sees no change event; use `applyAccept: false` to test your own validation.
 
 </details>
 
@@ -682,7 +682,7 @@ Browsers do not let script set a file input's value (it would let a page choose 
 **Q19. Make this form accessible: what do you check?**
 <details><summary>Answer</summary>
 
-Each input has a `<label htmlFor>` (not just a placeholder); hints and errors are linked with `aria-describedby`; `aria-invalid` is set while invalid; new errors are announced (live region or focus on the first invalid field); errors are text, not colour; `autoComplete` tokens; radios in a `<fieldset>`/`<legend>`; a real `<button type="submit">`; full keyboard operation. **A strong answer adds:** test it the way users meet it, via `getByLabelText` and `toHaveAccessibleDescription`.
+Each input has a `<label htmlFor>` (not just a placeholder); hints and errors are linked with `aria-describedby`; `aria-invalid` is set while invalid; new errors are announced (live region or focus on the first invalid field); errors are text, not color; `autoComplete` tokens; radios in a `<fieldset>`/`<legend>`; a real `<button type="submit">`; full keyboard operation. **A strong answer adds:** test it the way users meet it, via `getByLabelText` and `toHaveAccessibleDescription`.
 
 </details>
 
@@ -990,7 +990,7 @@ export function FormField({ label, registration, type = 'text', autoComplete, hi
       />
       {hint && <p id={hintId}>{hint}</p>}
       {error && (
-        <p id={errorId} role="alert" aria-live="polite">
+        <p id={errorId} role="alert">
           {error}
         </p>
       )}
@@ -1147,7 +1147,7 @@ export function LikeButton({ postId, initial }: Props) {
       </button>
       <span>{shown.likes} likes</span>
       {error && (
-        <p role="alert" aria-live="polite">
+        <p role="alert">
           {error}
         </p>
       )}
@@ -1246,7 +1246,7 @@ export function NewsletterForm() {
         aria-describedby={error ? errorId : undefined}
       />
       {error && (
-        <p id={errorId} role="alert" aria-live="polite">
+        <p id={errorId} role="alert">
           {error.message}
         </p>
       )}
@@ -1315,7 +1315,7 @@ export function LegacyNewsletterForm() {
         aria-describedby={error ? `${id}-error` : undefined}
       />
       {error && (
-        <p id={`${id}-error`} role="alert" aria-live="polite">
+        <p id={`${id}-error`} role="alert">
           {error}
         </p>
       )}
@@ -1334,7 +1334,7 @@ export function LegacyNewsletterForm() {
 
 **Interviewer follow-ups.**
 - "Make it work without JavaScript." Use a Server Function as the action, with `permalink` for `useActionState` ([21](21-concurrent-ssr-server-components.md#218-use-client-and-use-server-server-functions-and-their-security)).
-- "Add an 'Unsubscribe' button to the same form." `<button formAction={unsubscribeAction}>`; don't give it a `name`, React needs that attribute.
+- "Add an 'Unsubscribe' button to the same form." `<button formAction={unsubscribeAction}>`; don't give that button a `name`: for a function `formAction` React needs the attribute itself, so it overrides yours and warns (*"Cannot specify a "name" prop for a button that specifies a function as a formAction"*, react-dom 19.3 source).
 - "Show the email being submitted." `useFormStatus().data?.get('email')` in a child.
 - "Why does the legacy version still matter?" RHF, Formik and much existing code are built on `onSubmit`; you will maintain it.
 
@@ -1412,7 +1412,7 @@ export function AvatarPicker({ onChange }: Props) {
         aria-describedby={error ? errorId : undefined}
       />
       {error && (
-        <p id={errorId} role="alert" aria-live="polite">
+        <p id={errorId} role="alert">
           {error}
         </p>
       )}
@@ -1521,7 +1521,7 @@ Write down the exact `log` after each step, **without running it**:
 1. The Action runs synchronously up to its first `await`, during the click.
 2. `useActionState` runs calls **one at a time**; the second waits and receives the first one's result.
 3. The pending UI commits right after the click; the form's `FormData` is captured at submit time.
-4. While Actions are in flight, React batches their updates; the form reset is part of the Action's transition and lands when it commits.
+4. While one `useActionState` queue still has Actions in flight, React holds their updates and commits them together; the form reset is part of the Action's transition and lands when it commits.
 
 <details><summary>Hints</summary>
 
@@ -1608,7 +1608,7 @@ test('typing while an Action is pending is wiped by the automatic reset', async 
 
 </details>
 
-**Walkthrough.** Scenario A: the first click captures `quantity=5`, starts the transition and runs the Action until `await addToCart`, so `action start: previous=0 quantity=5` is logged during the click. React then commits the urgent pending state: `pending=true`, with the input still showing `5` (the reset waits for the Action). The second click also captures `5`, but `useActionState` queues it, so `fakeServer.pending()` lists one request. When the first response arrives, the first Action returns 5, and the queue immediately starts the second call with `previous=5`. The screen does not show `count=5`: React holds the transition's updates while Actions are still in flight. The second response returns 10, and one commit shows `count=10`, `pending=false`, and the input reset to its `defaultValue` `1`. Scenario B: the reset was requested when the Action started, so it overwrites whatever the user typed meanwhile. The `7` is lost, which is why long-running Actions should disable inputs or keep values in state.
+**Walkthrough.** Scenario A: the first click captures `quantity=5`, starts the transition and runs the Action until `await addToCart`, so `action start: previous=0 quantity=5` is logged during the click. React then commits the urgent pending state: `pending=true`, with the input still showing `5` (the reset waits for the Action). The second click also captures `5`, but `useActionState` queues it, so `fakeServer.pending()` lists one request. When the first response arrives, the first Action returns 5, and the queue immediately starts the second call with `previous=5`. The screen does not show `count=5`: React holds the transition's updates while this `useActionState` queue still has Actions in flight (19.3 renders unrelated Transitions independently, but not one queue's). The second response returns 10, and one commit shows `count=10`, `pending=false`, and the input reset to its `defaultValue` `1`. Scenario B: the reset was requested when the Action started, so it overwrites whatever the user typed meanwhile. The `7` is lost, which is why long-running Actions should disable inputs or keep values in state.
 
 **Interviewer follow-ups.**
 - "How do you stop the second submit?" Disable the button with `useFormStatus().pending` or `isPending`.
@@ -1783,7 +1783,7 @@ export function CheckoutWizard({ onComplete }: Props) {
 | "`<form action>` only takes a URL" | Yes, React ≤ 18 | It also takes a function (client Action or Server Function), and `formAction` on buttons | React 19.0 |
 | "You need `e.preventDefault()` and an `isSubmitting` state in every form" | Yes, React ≤ 18 | Actions handle `preventDefault`, pending state and reset | React 19.0 |
 | "`useFormState` from `react-dom`" | In React Canary (2023–2024) | `useActionState` from `react`, with `isPending` | React 19.0 |
-| "Formik + Yup is the standard form stack" | Roughly 2018–2021 | RHF + Zod is the common choice; Formik still works in older apps | RHF v7 (2021), Zod 4 (2025) |
+| "Formik + Yup is the standard form stack" | Roughly 2018–2022 | RHF + Zod is the common choice; Formik still works in older apps | RHF v7 (2021), Zod 4 (2025) |
 | "`z.string().email()` and `{ message }`" | Zod 3 | `z.email()` and `{ error }` (old forms deprecated) | Zod 4.0 |
 | "`err.flatten()` to show field errors" | Zod 3 | `z.flattenError(err)` / `z.treeifyError(err)` | Zod 4.0 |
 | "Optimistic UI needs manual rollback code" | Yes, before React 19 (or without a data library) | `useOptimistic` reverts automatically when the Action ends | React 19.0 |

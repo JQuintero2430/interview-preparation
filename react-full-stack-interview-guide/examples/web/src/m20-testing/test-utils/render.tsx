@@ -1,7 +1,8 @@
 import type { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, type RenderOptions } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router';
+import { createMemoryRouter, type RouteObject } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 /** A fresh client per test: no shared cache, and no retries (the default 3 retries with backoff would time out error tests). */
 export function createTestQueryClient() {

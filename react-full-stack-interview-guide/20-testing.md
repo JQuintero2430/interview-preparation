@@ -4,7 +4,7 @@
 
 **Prerequisites:** [Effects and cleanup](09-effects.md#93-cleanup-and-the-effect-lifecycle) · [Race conditions](09-effects.md#94-race-conditions-and-abortcontroller) · [Testing custom hooks](12-hooks-and-custom-hooks.md#1213-testing-custom-hooks) · [Accessible forms](14-forms-and-actions.md#145-accessible-forms) · [TanStack Query](17-data-fetching.md#174-tanstack-query-query-keys-staletime-vs-gctime)
 
-**Code for this module:** [`examples/web/src/m20-testing/`](examples/web/src/m20-testing/). Every component and hook there has a test. Run them with `npx vitest run src/m20-testing` from `examples/web`. The toolchain is Vitest 5.0, `@testing-library/react` 16.3, `@testing-library/user-event` 14.6, `@testing-library/jest-dom` 7.0 and MSW 3.0 ([VERSIONS.md](VERSIONS.md)). Jest, Playwright, Cypress and axe are **not installed** in this repo, so their snippets are labelled *illustrative, not run*.
+**Code for this module:** [`examples/web/src/m20-testing/`](examples/web/src/m20-testing/). Every component and hook there has a test. Run them with `npx vitest run src/m20-testing` from `examples/web`. The toolchain is Vitest 5.0, `@testing-library/react` 16.3, `@testing-library/user-event` 14.6, `@testing-library/jest-dom` 7.0 and MSW 3.0 ([VERSIONS.md](VERSIONS.md)). Jest, Playwright, Cypress and axe are **not installed** in this repo, so their snippets are labeled *illustrative, not run*.
 
 ---
 
@@ -73,7 +73,7 @@ test: { environment: 'jsdom', globals: true, setupFiles: ['./src/test/setup.ts']
 
 | Topic | Jest | Vitest | Source |
 |---|---|---|---|
-| Globals | On by default | **Off** by default (`globals: true` to enable; this repo enables it). Without globals, RTL does not auto-register `cleanup` | [Vitest: Migrating from Jest](https://vitest.dev/guide/migration#jest) |
+| Globals | On by default | **Off** by default (`globals: true` to enable; this repo enables it). Without globals, RTL does not auto-register `cleanup` | [Vitest: Migrating from Jest](https://vitest.dev/guide/migration/jest) |
 | `mockReset()` | Implementation becomes an empty function returning `undefined` | Implementation goes back to the **original** passed to `vi.fn(impl)` | same; asserted in `vitestVsJest.test.ts` |
 | `fn.mock` | Recreated on `mockClear` | One persistent object | same; asserted |
 | Module factory | `jest.mock(path, () => 'hello')` = default export | Factory must return an **object of exports** (`{ default: 'hello' }`) | same |
@@ -456,7 +456,7 @@ const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
 The cost of `shouldAdvanceTime`: real time leaks into the fake clock, so **exact-boundary assertions** ("still 3 at 999 ms") are unreliable in those tests. `useCountdown.test.tsx` splits the suite: exact boundaries in the pure-fake-timer `renderHook` tests, and only coarse jumps in the user-event test.
 
-> **Version notes.** Jest 26 made "modern" (sinon-based) fake timers available and Jest 27 made them the default ("This modern fake timers implementation will now be the default", [Jest 27 post](https://jestjs.io/blog/2021/05/25/jest-27); `jest.useFakeTimers('legacy')` restored the old one). `legacyFakeTimers` is Jest-only and Vitest never supported it ([Vitest migration guide](https://vitest.dev/guide/migration#jest)). **Vitest 5**: `vi.mock`/`vi.hoisted` outside the module top level **throws**, `clearMocks` defaults to `true`, and fake timers also mock `Temporal`. **MSW 3** stopped bypassing fake timers, so `await delay(300)` in a handler needs the clock advanced (or `shouldAdvanceTime`).
+> **Version notes.** Jest 26 made "modern" (sinon-based) fake timers available and Jest 27 made them the default ("This modern fake timers implementation will now be the default", [Jest 27 post](https://jestjs.io/blog/2021/05/25/jest-27); `jest.useFakeTimers('legacy')` restored the old one). `legacyFakeTimers` is Jest-only and Vitest never supported it ([Vitest migration guide](https://vitest.dev/guide/migration/jest)). **Vitest 5**: `vi.mock`/`vi.hoisted` outside the module top level **throws**, `clearMocks` defaults to `true`, and fake timers also mock `Temporal`. **MSW 3** stopped bypassing fake timers, so `await delay(300)` in a handler needs the clock advanced (or `shouldAdvanceTime`).
 
 ### Trade-offs
 - Mock at the **edge** you own (`./analytics`, the clock, the network via MSW), never React itself or a library's internals.
@@ -511,7 +511,7 @@ E2E tests drive a **real browser** against the **running app** (ideally with a r
 
 | | Playwright [Tooling: Playwright] | Cypress [Tooling: Cypress] |
 |---|---|---|
-| Architecture | Test runs in Node; drives browsers over CDP/WebDriver-BiDi-style protocols | Test runs **inside** the browser next to the app |
+| Architecture | Test runs in Node; drives Chromium over CDP and its own patched Firefox and WebKit builds over their own protocols (Firefox: Juggler); stock-Firefox WebDriver BiDi exists only behind experimental `moz-*` channels ([Browsers](https://playwright.dev/docs/browsers); `firefox.ts` in the Playwright repo) | Test runs **inside** the browser next to the app |
 | Browsers | Chromium, Firefox, WebKit (Safari engine) | Chromium family, Firefox; WebKit experimental |
 | Multi-tab / multi-origin | First-class | Constrained (`cy.origin`) |
 | Waiting | Auto-waiting locators + auto-retrying `expect` | Retry-ability built into commands/assertions |
@@ -968,7 +968,7 @@ function Field({ id, label, name, type, autoComplete, error }: FieldProps) {
         aria-describedby={error ? errorId : undefined}
       />
       {error && (
-        <p id={errorId} role="alert" aria-live="polite">
+        <p id={errorId} role="alert">
           {error}
         </p>
       )}
@@ -1187,7 +1187,8 @@ export function UserPage() {
 import type { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, type RenderOptions } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router';
+import { createMemoryRouter, type RouteObject } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 /** A fresh client per test: no shared cache, and no retries (the default 3 retries with backoff would time out error tests). */
 export function createTestQueryClient() {
@@ -1884,7 +1885,7 @@ test('PREDICT 3: the overridden export vs the function that reads it internally'
 7. **MSW 3 `delay()` respects fake timers.** A delayed handler never answers until you advance the clock (MSW ≤ 2 bypassed fake timers).
 8. **TanStack Query retries 3× with backoff**: error tests time out unless the test client sets `retry: false`.
 9. **A module-level `QueryClient` leaks cache between tests.** Create one per test.
-10. **`vi.mock` inside `describe` throws in Vitest 5.** It was hoisted (and silently global) all along.
+10. **`vi.mock` inside `describe` throws in Vitest 5.** It was always hoisted to the top of the file (so it applied file-wide), and v4 only warned.
 11. **A `vi.mock` factory can't use ordinary top-level variables.** It runs before they're initialized. Use `vi.hoisted`.
 12. **Partial mocks don't affect calls inside the original module** (live bindings, Exercise 6).
 13. **Vitest factories return an exports object.** `() => 'x'` is not a default export as in Jest; return `{ default: 'x' }`.
@@ -1948,7 +1949,7 @@ test('PREDICT 3: the overridden export vs the function that reads it internally'
 
 ## Summary (re-read before the interview)
 
-Test behavior, not implementation: most tests should be **integration tests** that render a component with its real hooks into jsdom, find elements the way users do (`getByRole` with a name, then `getByLabelText`, with `data-testid` last), interact with **user-event** (async since v14, `setup()` first), and stub only the network edge with **MSW** (`http`/`HttpResponse` since v2; `onUnhandledFrame` since v3). `getBy` must exist now, `queryBy` may be absent (both throw on multiple matches), and `findBy` waits, built on `waitFor`, which retries only when its callback throws (50 ms or on mutation, 1000 ms timeout). RTL wraps its APIs in `act` (import it from `react`; `react-dom/test-utils` is gone in 19), so you only call `act` around your own timer advances and hook calls. Wrap providers once in a **custom render** with a fresh `QueryClient` (`retry: false`) and a `createMemoryRouter` per test, and test hooks with `renderHook` (in RTL since 13.1). Vitest looks like Jest but differs: no globals by default, `mockReset` restores the original, factories return export objects, `vi.mock`/`vi.hoisted` are hoisted (and must be top-level in v5), `clearMocks` is on in v5, and **there is no `jest` global**, so fake timers with user-event need `shouldAdvanceTime: true`. Partial mocks don't change calls inside the original module. Keep snapshots small, E2E (Playwright for new work, Cypress where it already lives) to critical journeys, and add axe plus manual checks for accessibility. Legacy you'll meet: Enzyme (stops at React 16), `react-test-renderer` (deprecated in 19), `@testing-library/react-hooks`, user-event 13, MSW 1 `rest`, and Jest on CRA.
+Test behavior, not implementation: most tests should be **integration tests** that render a component with its real hooks into jsdom, find elements the way users do (`getByRole` with a name, then `getByLabelText`, with `data-testid` last), interact with **user-event** (async since v14, `setup()` first), and stub only the network edge with **MSW** (`http`/`HttpResponse` since v2; `onUnhandledFrame` since v3). `getBy` must exist now, `queryBy` may be absent (both throw on multiple matches), and `findBy` waits, built on `waitFor`, which retries only when its callback throws (50 ms or on mutation, 1000 ms timeout). RTL wraps its APIs in `act` (import it from `react`; in 19, `react-dom/test-utils` keeps only a deprecated `act`), so you only call `act` around your own timer advances and hook calls. Wrap providers once in a **custom render** with a fresh `QueryClient` (`retry: false`) and a `createMemoryRouter` per test, and test hooks with `renderHook` (in RTL since 13.1). Vitest looks like Jest but differs: no globals by default, `mockReset` restores the original, factories return export objects, `vi.mock`/`vi.hoisted` are hoisted (and must be top-level in v5), `clearMocks` is on in v5, and **there is no `jest` global**, so fake timers with user-event need `shouldAdvanceTime: true`. Partial mocks don't change calls inside the original module. Keep snapshots small, E2E (Playwright for new work, Cypress where it already lives) to critical journeys, and add axe plus manual checks for accessibility. Legacy you'll meet: Enzyme (stops at React 16), `react-test-renderer` (deprecated in 19), `@testing-library/react-hooks`, user-event 13, MSW 1 `rest`, and Jest on CRA.
 
 ---
 

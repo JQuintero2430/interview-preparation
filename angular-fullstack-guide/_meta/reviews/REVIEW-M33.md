@@ -198,8 +198,8 @@ Stay file-level (headers, Read next, Uses these ideas later, Connections lists):
 ## Factual findings
 
 **F-1 · Major (C2) · Q33.19 quotes the state script without its escapes (1533, 1535).** The spec (`labs/e2e/tests/33-security/outputs/q33-outputs.spec.ts` 99) asserts `"lab-display-name":"</script><script>window.__m33Hits=1</script>"`; `TransferState.toJson` (`_pending_tasks-chunk.mjs` 2897-2907) does `.replace(/</g, '\\u003C').replace(/\//g, '\\u002F')`. The text lost the `\u` sequences, so it contradicts itself.
-- 1533: "The state script holds `"lab-display-name":"</script><script>window.__m33Hits=1</script>"`" → "The state script holds `"lab-display-name":"</script><script>window.__m33Hits=1</script>"`" (+0).
-- 1535: "which replaces `<` with `<` and `/` with `/`" → "which replaces `<` with `<` and `/` with `/`" (+0).
+- 1533: "The state script holds `"lab-display-name":"</script><script>window.__m33Hits=1</script>"`" → "The state script holds `"lab-display-name":"\u003C\u002Fscript>\u003Cscript>window.__m33Hits=1\u003C\u002Fscript>"`" (+0).
+- 1535: "which replaces `<` with `<` and `/` with `/`" → "which replaces `<` with `\u003C` and `/` with `\u002F`" (+0).
 
 **F-2 · Major (C1, a security control overstated) · §7 `resolveUrl` (603).** `resolveUrl` defaults to `allowProtocolRelative = false` and throws 5702 (`_server-chunk.mjs` 149-193), but that default is used only by `ServerPlatformLocation` (322, 367). `relativeUrlsTransformerInterceptorFn` (258-283), the path every server `HttpClient` request takes, passes a URL with a scheme to `next(request)` and calls `resolveUrl(…, { allowProtocolRelative: true })` for the rest. So "throws on a protocol-relative URL" reads as a request guard it is not.
 - Fix: "throws on a **protocol-relative URL** (`//host/path`, another host)." → "throws on a **protocol-relative URL** (`//host/path`, another host) when it sets the server's location; the server's `HttpClient` interceptor calls it with `allowProtocolRelative: true`, so your requests get no such check." (+22)
@@ -321,7 +321,7 @@ Table rows (for the Module 33 table in TASKS.md):
 ### FIX-M33-01 · S · Q33.19 escapes, `resolveUrl` scope, markers, SRI attributes, terms, internal names, Output reasons, lockfile example, nits (F-1, F-2, F-3, F-4, T-1, T-2, T-3, T-4, N-1, N-2, N-3, N-4)
 - Files: `modules/33-security.md`; `_meta/LOG.md` (its own line only).
 - Do: apply each fix text above; find each line by its quoted text. In F-1, write the backslashes literally (`<`, `/`) inside the backticks. No lab file, test title or anchor change.
-- Acceptance: `node labs/tools/check-snippets.mjs . 33` and `node labs/tools/check-links.mjs --planned` exit 0; `grep -c 'u003C.u002Fscript>.u003Cscript>window.__m33Hits=1' modules/33-security.md` ≥ 1; `grep -c 'with `<` and `/` with `/`' modules/33-security.md` = 0; `grep -c 'allowProtocolRelative: true' modules/33-security.md` ≥ 2; `grep -c 'the lab.s own has' modules/33-security.md` = 0; prose at most +200 over the count just before and at most 19,994, both counts in the LOG line.
+- Acceptance: `node labs/tools/check-snippets.mjs . 33` and `node labs/tools/check-links.mjs --planned` exit 0; `grep -c 'u003C.u002Fscript>.u003Cscript>window.__m33Hits=1' modules/33-security.md` ≥ 1; ``grep -c 'with `<` and `/` with `/`' modules/33-security.md`` = 0; `grep -c 'allowProtocolRelative: true' modules/33-security.md` ≥ 2; `grep -c 'the lab.s own has' modules/33-security.md` = 0; prose at most +200 over the count just before and at most 19,994, both counts in the LOG line.
 - Model: **Sonnet** (every text is prescribed).
 
 ### FIX-M33-02 · S · Anchors for the file-level links into 33 (+0 words)

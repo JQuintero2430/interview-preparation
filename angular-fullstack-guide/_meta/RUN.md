@@ -33,7 +33,7 @@ Before starting each task:
 
 Finish a study guide for full-stack technical interviews centered on Angular 22, for a reader who may be a beginner or preparing for an architect-level interview. The guide must teach, not only list answers. Each concept goes problem → mental model → mechanism → code → best practices → traps. Each module ends with a question bank whose answers are collapsible, hands-on exercises with tests, self-check prompts, and connections to other modules. Content is never labeled by seniority; it progresses from the basic idea to the internals.
 
-Quality is the constraint that never bends. The target is to match or exceed the React guide in this repo (`interview-preparation/React Full-Stack Interview Guide/`) and the approved Angular pilot (`../modules/17-signals.md`). `_meta/QUALITY-BAR.md` turns that target into a checklist. Every writing task meets it on the first pass: there are no drafts to polish later and no trim passes. If a task cannot be done at that quality within the usage left, do not start it.
+Quality is the constraint that never bends. The target is to match or exceed the React guide in this repo (`interview-preparation/react-full-stack-interview-guide/`) and the approved Angular pilot (`../modules/17-signals.md`). `_meta/QUALITY-BAR.md` turns that target into a checklist. Every writing task meets it on the first pass: there are no drafts to polish later and no trim passes. If a task cannot be done at that quality within the usage left, do not start it.
 
 ## 2. Where everything lives
 
@@ -147,7 +147,7 @@ Known state as of 2026-10-04, which the bootstrap must confirm against the files
 Bootstrap tasks, in order (each one ends with the job state updated, like any task):
 1. **B1 (S): baseline.** Run the full lab checks and record the results and the list of existing guide files as the first LOG entry. This is the reference point later sessions compare against.
 2. **B2 (M): job state.**
-   - Create the `` files from section 2.
+   - Create the `_meta/` files from section 2.
    - Write `ROADMAP.md` from SYLLABUS §6 (batches dissolve into one module at a time, in the same order: 05–11, 12–16, 18–21, 22–30, 31–40, 41–47, then the finish line).
    - Add the closeout tasks for 01–04 to `TASKS.md`: per module, one VERIFY-outputs task (M), one HOUSE harvest task for sources and glossary terms (S), and one REVIEW task (L).
    - Fill the Small-task pool.
@@ -182,7 +182,7 @@ Targets: Part D (Angular) matches the pilot's depth. Parts A, B, C and E are 8,0
   - design patterns instead of long classes;
   - modern Angular by default (standalone, `inject()`, signals, the new control flow), and legacy style only when the example is about legacy.
 - Spring Boot snippets are illustrative and not compiled (SYLLABUS §7), but they must be accurate for Spring Boot 4 / Spring Security 7.
-- Do not change the default Node or install anything globally. Playwright installs Chromium only, and only for module 30.
+- Do not change the default Node or install anything globally. Playwright installs Chromium only, inside `labs/e2e` (`PLAYWRIGHT_BROWSERS_PATH=0`), for the end-to-end specs of modules 30 to 37.
 - Do not modify `../modules/17-signals.md` except through a FIX task.
 
 ## 11. Calibration
@@ -205,12 +205,12 @@ When every module in ROADMAP is closed and reviewed, PLAN the finish tasks:
 - the single link added to the repo-root `README.md`.
 
 The job is done only when all of the following hold, with evidence (command, exit code, one-line result) recorded in the final LOG entry:
-- [ ] All 47 modules are `done` in PROGRESS.md, each CLOSEd, REVIEWed, and with its FIX tasks done.
-- [ ] A script confirms every module meets its STYLE-GUIDE floors and its prose cap.
-- [ ] `_meta/UNVERIFIED.md` has zero open items.
-- [ ] `../labs/ts-js`: `npm test` exits 0. `labs/angular`: `ng build` and `ng test --watch=false` exit 0.
-- [ ] `check-links.mjs` reports 0 broken links and anchors.
-- [ ] The root files exist, and the repo README links to the guide.
-- [ ] `git diff --cached --name-only` is empty (nothing staged, nothing committed by you), and no build output, caches or temporary files are left outside `../.gitignore`.
+- [x] All 47 modules are `done` in PROGRESS.md, each CLOSEd, REVIEWed, and with its FIX tasks done.
+- [x] A script confirms every module meets its STYLE-GUIDE floors and its prose cap.
+- [x] `_meta/UNVERIFIED.md` has zero open items.
+- [x] `../labs/ts-js`: `npm test` exits 0. `labs/angular`: `ng build` and `ng test --watch=false` exit 0.
+- [x] `check-links.mjs` reports 0 broken links and anchors.
+- [x] The root files exist, and the repo README links to the guide.
+- [x] `git diff --cached --name-only` is empty (nothing staged, nothing committed by you), and no build output, caches or temporary files are left outside `../.gitignore`.
 
 IMPORTANT: never mark the job done while any item above is unchecked.

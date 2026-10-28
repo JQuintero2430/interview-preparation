@@ -7,7 +7,7 @@ A fresh session should:
 1. Read this file.
 2. Read [STYLE.md](STYLE.md) and [VERSIONS.md](VERSIONS.md).
 3. Every unit is ✅. Remaining optional work: 41 `Unverified` markers that U32 kept on purpose. Each says what to check, and some need only an ESLint, compiler or test probe (e.g. 06:361, 10:58, 11:258, 12:164, 05:1123, 05:1252, 11:433). The U32 per-item reports were in a job tmp dir and are gone; the decisions log has the summary.
-4. To run commands, use Node 24: `cd examples && nvm use`. This machine has no version manager. The default `node` is 26, which Vitest 5 doesn't support, so prefix commands with `export PATH="/opt/homebrew/opt/node@24/bin:$PATH"` (Homebrew's keg-only node@24, 24.21.0). The first session's scratch Node binary is gone.
+4. To run commands, use Node 24: `cd examples && nvm use`. This machine has no version manager. The default `node` is Homebrew's 26 (inside Vitest 5's range, but not the `.nvmrc` pin), so prefix commands with `export PATH="/opt/homebrew/opt/node@24/bin:$PATH"` (Homebrew's keg-only node@24, 24.21.0). The first session's scratch Node binary is gone.
 
 It does not need to re-read the finished modules. The anchors are fixed by the outline in [README.md](README.md).
 
@@ -89,14 +89,14 @@ The "batch" letters in the Mode column of the unit table are superseded by this 
 | 17 | 36 | 4 (1 predict-output) | 17 | 12 | 8 | 3 | 21 | ~14.8k |
 | 18 | 40 | 5 (1 predict-output) | 27 | 18 | 10 | 2 | 47 | ~18.9k |
 | 19 | 36 | 6 (1 predict-output) | 21 | 16 | 9 | 2 | 32 | ~13.0k |
+| 20 | 35 | 6 (2 predict-output) | 23 | 15 | 9 | 3 | 47 | ~16.3k |
 | 21 | 45 | 7 (2 predict-output) | 34 | 22 | 10 | 3 | 16 + next build | ~23.5k |
 | 22 | 28 | 5 | 22 | 9 | 10 | 1 | 42 | ~17.4k |
 | 23 | 25 | 6 | 17 | 12 | 10 | 1 | 5 | ~10.3k |
 | 24 | 35 | 4 (1 predict-output) | 25 | 13 | 8 | 4 | 24 web + 53 Java | ~14.6k |
 | 25 | 28 | 3 | 20 | 9 | 10 | 17 | 20 | ~18.3k |
-| 27 | 27 | 4 | 20 | 9 | 10 | 1 | 10 | ~12.4k |
 | 26 | 26 | 18 | 20 | 9 | 10 | 2 | 104 | ~17.0k |
-| 20 | 35 | 6 (2 predict-output) | 23 | 15 | 9 | 3 | 47 | ~16.3k |
+| 27 | 27 | 4 | 20 | 9 | 10 | 1 | 10 | ~12.4k |
 
 ## Decisions log
 - 2026-10-04: Settle "Unverified" claims via repo tooling (Node 24, ESLint 10 + react-hooks 7.1.1, Next 16 / React 19.3, Vitest 5, npm 11): 6 confirmed/corrected by running tooling, 1 cross-reference updated. Results: (1) 06.8 `react-hooks/globals` on `guest = guest + 1`: confirmed error "Cannot reassign variables declared outside of the component/hook" (exit 1), 06 Ex3 follow-up synced; (2) 10.1 `react-hooks/refs` accepts lazy initialization `if (ref.current === null) ref.current = ...` without error (exit 0; confirmed); (3) 12.3 `useState` inside `try`: refuted/corrected, not reported by `rules-of-hooks` or `unsupported-syntax` (exit 0), while `use` in `try` errors and JSX in `try` errors on `error-boundaries`; (4) 05 Ex3 React 19 TypeError on null dispatcher: confirmed verbatim `TypeError: Cannot read properties of null (reading 'useState')` preceded by "Invalid hook call" dev log; (5) 05 Ex3 follow-up `npm ls --json`: corrected, npm 7+ / Arborist hoists without `deduped: true`, while invalid deps have `"invalid": "<expected> from <requirer>"` and `problems` array; (6) 11.8 RSC Context serializability: confirmed via `next build` on Next 16 / React 19.3, non-serializable value fails build with function serialization error (exit 1), serializable passes (exit 0); (7) 03.6 `AbortSignal.timeout` under Vitest 5 fake timers: confirmed does not follow fake timers (advancing fake timers leaves signal unaborted, exit 0). Compiler memoization claims (11.4, 15 Ex1) remain unverifiable without external compiler playground.

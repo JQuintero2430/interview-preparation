@@ -315,6 +315,7 @@ BoardPage          container, lazy route
       Card         presentational
 ```
 
+> [!TIP]
 > **Coming from the backend.** Normalizing is a relational schema: rows and references by id. **Where the analogy breaks:** there is no join at query time; selectors join in memory and must be memoized.
 
 ### Best practices and anti-patterns
@@ -772,7 +773,6 @@ Revisit:  when boards pass a thousand cards
 **Trap to avoid.** "It should be fast": with no number on a named profile, no decision can cite it.
 
 </details>
-
 
 <a id="q45-07"></a>
 ### Q45.07 · Output · Our estimator on the board's first screen: payload, round trips and transfer time on the mobile and desktop profiles. What does it print?

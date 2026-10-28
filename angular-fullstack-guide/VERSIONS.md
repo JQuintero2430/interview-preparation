@@ -15,7 +15,7 @@ Everything in the guide assumes the versions below unless a section says otherwi
 | `rxjs` | 7.8.2 | Angular's peer range is `^6.5.3 \|\| ^7.4.0`. The next major exists only as a `9.0.0-beta` on the `next` tag, so the guide teaches RxJS 7. |
 | `zone.js` | 0.16.3 | Optional. New v22 projects do not install it. |
 | `vitest` | 5.0.3 | The default runner in new CLI projects (`@angular/build:unit-test`, with `jsdom`). |
-| Node.js (required by Angular 22) | `^22.22.3 \|\| ^24.15.0 \|\| ^26.0.0` | Odd-numbered Node releases are not supported. |
+| Node.js (required by Angular 22) | `^22.22.3 \|\| ^24.15.0 \|\| ^26.0.0` | Odd-numbered Node releases are not supported. The range is the one on the compatibility page; the installed 22.2.1 packages declare `engines.node` as `^22.22.3 \|\| ^24.15.0 \|\| >=26.0.0` ([39 §6](modules/39-version-history-and-migrations.md#6-the-version-matrix-part-3-v16-to-v22-from-signals-to-onpush-by-default)). |
 | ECMAScript | ES2026 (ECMA-262, 17th edition, approved 2026-06-30) | The JavaScript modules check which edition introduced each feature. |
 
 ## Ecosystem
@@ -70,9 +70,9 @@ This was observed by actually generating a project, not read from documentation:
 | Default change-detection strategy | **OnPush by default** | `ChangeDetectionStrategy.Eager` was added as an alias of `Default` in 21.2. Since 22.0 a component with no `changeDetection` is OnPush; use `Eager` to opt out. A migration adds `Eager` where needed. |
 | `*ngIf`, `*ngFor`, `*ngSwitch` | Deprecated since v20 | Replaced by `@if`, `@for` and `@switch` (the built-in control flow is stable since v18). |
 | `@angular/animations` | Deprecated since 20.2 | Replaced by native CSS plus `animate.enter` / `animate.leave`. v22 changed the leave-animation semantics. |
-| Incremental hydration | Stable since v20 | |
-| Event replay | Stable since v19 (`withEventReplay()`) | *(Unverified: whether new SSR projects enable it by default. To be checked against a generated SSR app in Module 32.)* |
-| `HttpClient` transport | **Fetch is the default in v22** | `withFetch()` is deprecated (it can simply be removed). Use `provideHttpClient(withXhr())` to keep upload progress. `reportProgress` is deprecated in favor of `reportUploadProgress` and `reportDownloadProgress`. |
+| Incremental hydration | Stable since v20, **on by default** since 22.0 | `provideClientHydration()` enables it; opt out with `withNoIncrementalHydration()` (v19 to v21 needed `withIncrementalHydration()`). See [32 §6](modules/32-ssr-ssg-hydration.md#6-incremental-hydration-defer-blocks-with-hydrate-triggers). |
+| Event replay | Stable since v19 (`withEventReplay()`), **on by default** since 22.0 | Introduced in Core 18.0.0. The incremental-hydration providers that `provideClientHydration()` now adds start with `withEventReplay()`; after `withNoIncrementalHydration()`, add `withEventReplay()` yourself. No changelog line names v19 as the stable release ([32 §5](modules/32-ssr-ssg-hydration.md#5-event-replay-keeping-the-clicks-made-before-the-code-arrives)). |
+| `HttpClient` transport | **Fetch is the default in v22** | `withFetch()` is deprecated (remove it). Use `provideHttpClient(withXhr())` to keep upload progress. `reportProgress` is deprecated in favor of `reportUploadProgress` and `reportDownloadProgress`. |
 | `HttpClientModule` | Deprecated since v18 | Use `provideHttpClient()`. |
 | Router `paramsInheritanceStrategy` | Defaults to `'always'` since v22 | It was `'emptyOnly'` before. |
 | `provideRoutes()` | Removed in v22 | |

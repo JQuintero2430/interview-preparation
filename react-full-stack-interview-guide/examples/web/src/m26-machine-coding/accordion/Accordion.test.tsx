@@ -8,8 +8,8 @@ const items = [
   { id: 'c', title: 'Warranty', content: 'One year' },
 ];
 
-// Closed panels are `hidden` (display: none), so they have no accessible name and getByRole
-// cannot find them: assert on the text with toBeVisible() instead.
+// Closed panels are `hidden` (display: none), so they are excluded from the accessibility tree and
+// getByRole skips them by default: assert on the text with toBeVisible() instead.
 test('starts collapsed and toggles a panel with aria-expanded', async () => {
   const user = userEvent.setup();
   render(<Accordion items={items} />);

@@ -15,7 +15,7 @@ export class UploadError extends Error {
  * Presigned upload in three steps. None of them sends the file through the Spring API.
  * 1. ask the API for a short-lived signed URL  2. PUT the bytes straight to S3  3. tell the API it is done.
  * The routes `/api/uploads` and `/api/uploads/confirm` are NOT in examples/spring-api; they are the contract
- * module 24.11 proposes.
+ * section 24.11 proposes.
  */
 export async function uploadFile(client: ApiClient, file: File): Promise<{ key: string }> {
   const presigned = await client.request<PresignedUpload>('/api/uploads', {

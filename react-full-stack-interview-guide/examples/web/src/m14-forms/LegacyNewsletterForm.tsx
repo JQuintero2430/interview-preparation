@@ -42,7 +42,7 @@ export function LegacyNewsletterForm() {
         aria-describedby={error ? `${id}-error` : undefined}
       />
       {error && (
-        <p id={`${id}-error`} role="alert" aria-live="polite">
+        <p id={`${id}-error`} role="alert">
           {error}
         </p>
       )}

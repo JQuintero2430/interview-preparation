@@ -1168,7 +1168,7 @@ class Q06OwnerFix {
 <details>
 <summary>Answer</summary>
 
-**Short answer (30 seconds).** zone.js patches browser APIs, so each timer, listener, XHR and promise callback runs as a task in a zone that sees it start and end. `NgZone` is the zone Angular forks from it: it emits `onUnstable` on entry, `onMicrotaskEmpty` when no task or microtask is left, then `onStable`, and `onMicrotaskEmpty` triggers a tick.
+**Short answer (30 seconds).** zone.js patches browser APIs, so each timer, listener, XHR and promise callback runs as a task in a zone that sees it start and end. `NgZone` is the zone Angular forks from it: it emits `onUnstable` on entry, `onMicrotaskEmpty` when the last task leaves with no microtask pending, then `onStable`, and `onMicrotaskEmpty` triggers a tick.
 
 **Full explanation.** zone.js keeps each original API under a `__zone_symbol__` name and installs a wrapper (`Section 3: zone.js patches setTimeout`; the patch list is read in [section 3](#3-zonejs-and-ngzone-how-changes-used-to-be-detected-and-why-zone-left-the-default)), and `NgZoneChangeDetectionScheduler` subscribes to `onMicrotaskEmpty` and ticks (read). A click reaching one listener emitted the three events once each, in that order (`Section 3: onMicrotaskEmpty and onStable fire once per turn`). The stability logic is [Q21.35](#q21-35).
 

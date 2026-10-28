@@ -241,9 +241,9 @@ Use this as the last pass before an interview. Each module lists the facts and t
 
 ### 22 · RxJS foundations
 
-- An Observable is lazy: nothing runs until `subscribe`, and each `subscribe` starts its own run. [Laziness](modules/22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness)
+- A cold Observable starts its producer at `subscribe`, and each subscription starts its own run; a hot source shares a producer created outside the subscription. [Cold and hot](modules/22-rxjs-foundations.md#3-cold-and-hot-unicast-and-multicast)
 - Callbacks are any number of `next`, then at most one `error` or `complete`; teardown runs once, on close. [Anatomy](modules/22-rxjs-foundations.md#2-anatomy-observable-observer-subscription-and-teardown)
-- `share()` puts a Subject between one run and many consumers resetting when the last leaves; RxJS has no backpressure channel. [Cold and hot](modules/22-rxjs-foundations.md#3-cold-and-hot-unicast-and-multicast)
+- `share()` puts a Subject between one run and many consumers and resets when the last one leaves; RxJS has no backpressure channel. [Cold and hot](modules/22-rxjs-foundations.md#3-cold-and-hot-unicast-and-multicast)
 - A late subscriber gets nothing from `Subject`, the current value from `BehaviorSubject`, and the buffer (unbounded by default) from `ReplaySubject`. [Subjects](modules/22-rxjs-foundations.md#4-subjects-subject-behaviorsubject-replaysubject-and-asyncsubject)
 - Import operators from `'rxjs'` [Added in v7.2], because seven `'rxjs/operators'` names are different functions. [Pipeable operators](modules/22-rxjs-foundations.md#5-pipeable-operators-and-writing-your-own)
 - `first()` errors on an empty source where `take(1)` completes, and `distinctUntilChanged` compares with `===`. [Catalogue](modules/22-rxjs-foundations.md#6-the-operator-catalogue-creation-transformation-filtering-utility-conditional-and-aggregation)

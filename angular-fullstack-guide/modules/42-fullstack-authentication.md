@@ -65,7 +65,7 @@ What to notice: one deleted row ends a session; a JWT has only `exp`.
 ```java
 // Spring Boot 4.1 — illustrative, not compiled in labs
 @Bean
-SecurityFilterChain api(HttpSecurity http) {
+SecurityFilterChain api(HttpSecurity http) throws Exception {
     http.sessionManagement((session) -> session
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
     return http.build();
@@ -334,7 +334,7 @@ What to notice: only the BFF keeps tokens out of Angular.
 ```java
 // Spring Boot 4.1 — illustrative, not compiled in labs
 @Bean
-SecurityFilterChain bff(HttpSecurity http) {
+SecurityFilterChain bff(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests((authorize) -> authorize
             .requestMatchers("/api/**").authenticated()
@@ -802,7 +802,7 @@ Read, not run (Security 7.1.1):
 ```java
 // Spring Boot 4.1 — illustrative, not compiled in labs
 @Bean
-SecurityFilterChain app(HttpSecurity http) {
+SecurityFilterChain app(HttpSecurity http) throws Exception {
     http
         .authorizeHttpRequests((authorize) -> authorize
             .requestMatchers("/api/csrf").permitAll() // needed before signing in (csrf.adoc)
@@ -1139,7 +1139,7 @@ Read, not run (7.1.1, Boot 4.1.1, 2026-10-20). **Why does app logout leave the p
 ```java
 // Spring Boot 4.1 — illustrative, not compiled in labs
 @Bean
-SecurityFilterChain security(HttpSecurity http, ClientRegistrationRepository registrations) {
+SecurityFilterChain security(HttpSecurity http, ClientRegistrationRepository registrations) throws Exception {
     OidcClientInitiatedLogoutSuccessHandler oidcLogout = new OidcClientInitiatedLogoutSuccessHandler(registrations);
     oidcLogout.setPostLogoutRedirectUri("{baseUrl}");
     // ClearSiteDataHeaderWriter writes the header only when the request is secure.
