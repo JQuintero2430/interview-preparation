@@ -4,7 +4,7 @@ Decisions only Jorge can make. Each is a checkbox only Jorge ticks; sessions nev
 
 ## G1: Syllabus and pilot approved
 
-- [ ] **G1 ticked**
+- [x] **G1 ticked**
 
 Blocks: every `PLAN-Mxx` except `PLAN-M17` (RUN.md §4). EXTRACT, VERIFY, FIX and HOUSE tasks continue while G1 is open. Slugs become permanent at G1.
 
@@ -22,7 +22,7 @@ Blocks: every `DELETE-<src>` task (and, by order, Phase D). Tick it only while n
 
 ## T1: Docker available (toolchain gate)
 
-- [ ] **T1 ticked** (tick after `docker info` works)
+- [x] **T1 ticked** (tick after `docker info` works)
 
 T1 is informational, not a blocking gate in the RUN.md §4 sense: `needs: docker` tasks are decided by each session's own Docker probe. If the probe exits 0 while T1 is unticked, the session runs those tasks and its end message tells Jorge T1 can be ticked.
 

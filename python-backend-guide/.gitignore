@@ -1,0 +1,25 @@
+# Environments & Virtualenvs
+.venv/
+venv/
+ENV/
+env/
+
+# Python byte code & caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node tooling
+node_modules/
+
+# Build & packaging
+dist/
+build/
+*.egg-info/
+
+# Operating system
+.DS_Store
+Thumbs.db

@@ -87,7 +87,7 @@ Planning record for steps P1–P8 (`_meta/PLANNING-PROMPT.md` §7). Each step wr
   - Docker probe: `perl -e 'alarm 20; exec @ARGV' docker info`.
 - Results (2026-10-25, this session): full `verify` exit 0 (java-language 1 test passed; persistence and spring-transactions smoke tests skipped: no Docker); `verify -DexcludedGroups=docker` exit 0; `spotless:apply` then `verify` exit 0; Node tests 8 pass, 0 fail; check-links exit 0 ("1 link to planned files not written yet. All links resolve."); module-stats exit 0 ("0 module(s) of 55 planned").
 - Toolchain finding: **Docker is not available now**, contrary to P1. `/usr/local/bin/docker` is a dangling symlink to a removed `/Applications/Docker.app`; Colima is installed (`/opt/homebrew/bin/colima`) but stopped. Nothing was installed or started. The two Docker smoke tests are therefore `needs: docker` until Jorge restores Docker (P6 records a toolchain gate).
-- IDE note: Eclipse/m2e in the IDE runs spotless on its own JDK 27, where palantir-java-format 2.102.0 fails (`NoSuchFieldError ... JCCompilationUnit.endPositions`). The CLI build on JDK 25 is unaffected; point the IDE's Maven runtime at JDK 25.
+- IDE note: an IDE Maven runner on JDK 27 runs spotless where palantir-java-format 2.102.0 fails (`NoSuchFieldError ... JCCompilationUnit.endPositions`). The CLI build on JDK 25 is unaffected; point the IDE's Maven runtime at JDK 25.
 - Open questions for Jorge: restore Docker (start Colima with a Docker CLI, or reinstall Docker Desktop) so the Docker smoke tests and the pilot lab can run.
 
 ## P6

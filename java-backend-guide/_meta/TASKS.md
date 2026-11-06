@@ -17,6 +17,8 @@ Run from the repository root `/Users/jorge.quintero/IdeaProjects/interview-prepa
 | 7 | Node tool tests (only when `labs/tools/` changed) | `node --test 'java-backend-guide/labs/tools/*.test.mjs'` | support |
 | 8 | Full build (CLOSE, finish line, bootstrap B1) | `JAVA_HOME=$(/usr/libexec/java_home -v 25) mvn -q -f java-backend-guide/labs/pom.xml verify` (append `-DexcludedGroups=docker` without Docker) | RUN.md §8 B1, §13 |
 
+**Colima env (Docker runs in Colima on this machine).** Testcontainers looks at `/var/run/docker.sock`, which points at the removed Docker Desktop socket, so without help it reports "Could not find a valid Docker environment" and silently skips every `@Tag("docker")` test while the build still exits 0. Prefix rows 2, 3, 4 and 8 with `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock` whenever row 1 exits 0, and confirm in `target/surefire-reports` that the docker tests show `skipped="0"` (HOUSE-01, 2026-10-29).
+
 **No-Docker variant rule.** Run row 1 once per session. If it exits non-zero, use row 3 instead of row 2 and row 8 with the extra flag everywhere. Tests tagged `@Tag("docker")` are then skipped, not passed: the LOG says "docker tests skipped", and any claim that only a Testcontainers test could verify goes to [UNVERIFIED](UNVERIFIED.md) with `needs: docker` plus a `VERIFY` task. The finish line requires one full run with Docker available (RUN.md §13).
 
 **Extraction acceptance (E1 to E6), shared by every `EXTRACT-*` task.**
@@ -67,19 +69,19 @@ Each resolves one row of [UNVERIFIED](UNVERIFIED.md) and one "Open items" entry 
 - Done by: S20261025-0744-claudecode (research: Sonnet subagent, read-only; edits and spot-check: claude-opus-5-5)
 
 ### VERIFY-06 · S
-- Status: `todo` · Deps: none · needs: docker (T1 is informational: if the Docker probe exits 0 this session, run it) · UNVERIFIED row U06
+- Status: `done` · Deps: none · needs: docker (T1 is informational: if the Docker probe exits 0 this session, run it) · UNVERIFIED row U06
 - Claim: Docker installed version (never captured: Docker is not installed or running now).
 - Inputs: [VERSIONS](../VERSIONS.md) (version table, "Open items"); When the Docker probe exits 0: `docker version --format '{{.Server.Version}}'` and `docker info`; record the version and the date in the VERSIONS.md "Installed on this machine" section and drop the open item.
 - Acceptance: V1 to V3 (above); `node java-backend-guide/labs/tools/check-links.mjs --planned java-backend-guide` exits 0.
-- Done by: none yet
+- Done by: S20261029-0747-claudecode (claude-opus-5-5)
 
 ## HOUSE task gated on the Docker toolchain
 
 ### HOUSE-01 · S · re-run the Docker smoke tests
-- Status: `todo` · Deps: none · needs: docker (T1 is informational: if the Docker probe exits 0 this session, run it) · Files touched: `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`, and `_meta/modules/M17.md` only to drop `needs: docker` notes once PLAN-M17 exists
+- Status: `done` · Deps: none · needs: docker (T1 is informational: if the Docker probe exits 0 this session, run it) · Files touched: `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`, and `_meta/modules/M17.md` only to drop `needs: docker` notes once PLAN-M17 exists
 - Inputs: gate T1 in [GATES](GATES.md); the two smoke tests `labs/persistence/.../PostgresVersionSmokeTest` and `labs/spring-transactions/.../DataSourceSmokeTest` (class-level `@Tag("docker")`, image `postgres:18.6`).
 - Acceptance: row 1 of Standard checks exits 0; `JAVA_HOME=$(/usr/libexec/java_home -v 25) mvn -q -f java-backend-guide/labs/pom.xml -pl persistence,spring-transactions -am verify` exits 0 and the surefire reports show both smoke tests run (not skipped); the LOG records the result, and STATE "Standing notes" drops the "Docker absent" line. If a test fails, record the failure and add a FIX task instead of editing labs in this task.
-- Done by: none yet
+- Done by: S20261029-0747-claudecode (claude-opus-5-5)
 
 ## Phase A: pilot (module 17 `spring-transactions`)
 
@@ -117,11 +119,11 @@ Each resolves one row of [UNVERIFIED](UNVERIFIED.md) and one "Open items" entry 
 Appended by PLAN-M17 (S20261025-0744-claudecode). Plan: [M17](modules/M17.md). Shared rules for every task below: write only inside the task's own `<!-- TASK: <ID> -->` region(s) of `modules/17-spring-transactions.md`, in one edit at the end; lab paths are under `labs/spring-transactions/src/{main,test}/java/dev/interview/springtransactions/` (main and test mirror each other); `SOURCES.md` under a "17 spring-transactions" heading for every new URL; `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md` for bookkeeping. A `needs: docker` task is not started without Docker (its acceptance needs R2 tests to run, not skip).
 
 ### SEC-M17-01 · M · §1 Local transactions on a JDBC connection
-- Status: `todo` · Deps: none · needs: docker
+- Status: `done` · Deps: none · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-01`), lab `m17/support/PostgresTestBase.java` (test), `src/test/resources/m17/schema.sql`, `m17/s01/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §1; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261029-0747-claudecode (claude-opus-5-5; writing and lab by the main session; Java review: java-reviewer subagent, PASS in round 3)
 
 ### SEC-M17-02 · M · §2 Spring's transaction abstraction
 - Status: `done` · Deps: none · needs: none
@@ -152,39 +154,53 @@ Appended by PLAN-M17 (S20261025-0744-claudecode). Plan: [M17](modules/M17.md). S
 - Done by: S20261025-0757-claudecode, claude-opus-5-5
 
 ### SEC-M17-06 · L · §6 Propagation
-- Status: `todo` · Deps: SEC-M17-01, SEC-M17-02 · needs: docker
+- Status: `done` · Deps: SEC-M17-01, SEC-M17-02 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-06`), lab `m17/s06/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §6; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-0828-claudecode (claude-opus-5-5; writing and lab by the main session, subagent writes blocked by the harness; plan: java-orchestrator; Java review: java-reviewer subagent, PASS in round 2)
 
 ### SEC-M17-07 · L · §7 Isolation levels and anomalies
-- Status: `todo` · Deps: SEC-M17-01 · needs: docker
+- Status: `done` · Deps: SEC-M17-01 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-07`), lab `m17/s07/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §7; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-0847-claudecode (claude-opus-5-5; writing and lab by the main session, subagent writes blocked by the harness; plan: java-orchestrator (sonnet); Java review: java-reviewer subagent (sonnet), PASS round 1, two minor findings fixed)
+
+### HOUSE-07 · S · s06 pool-deadlock test asserts permitted outcomes
+- Status: `done` · Deps: none · needs: docker
+- Found by SEC-M17-08 (S20261031-0858-claudecode): `PropagationPostgresTest.poolOfNWithNConcurrentRequiresNewCallersTimesOut` failed once (one caller succeeded at 0.52 s, the other got the pool timeout): after the first caller times out, its outer transaction rolls back and returns its connection, so a caller still waiting may take it. The test asserted one interleaving ("both fail"), against STYLE-GUIDE §7.5.
+- Files touched: `labs/spring-transactions/src/test/java/dev/interview/springtransactions/m17/s06/PropagationPostgresTest.java`, `modules/17-spring-transactions.md` (region SEC-M17-06, the "Pool deadlock" bullet), `_meta/modules/M17.md` (§6 test name)
+- Acceptance: at least one caller fails with the pool timeout, every failure is that timeout, every caller's elapsed time is within the bounds, audit rows equal successes; §6 prose matches and stays within its 1,100-word budget; Standard checks rows 2 (with Docker), 4, 5, 6 for `spring-transactions`.
+- Done by: S20261031-0858-claudecode (claude-opus-5-5, main session)
+
+### HOUSE-08 · S · R2 Spring test contexts never outlive their container
+- Status: `done` · Deps: none · needs: docker
+- Found by SEC-M17-08 (S20261031-0858-claudecode): the new `@SpringBootTest` class `s08/ReadOnlyJpaTest` received the context cached by `s06/JpaNestedPropagationTest`, whose per-class PostgreSQL container had stopped (`Connection to localhost:32806 refused`, 30 s Hikari timeout per test). Same cache key (same `@ServiceConnection` field in `PostgresTestBase`), new container per class.
+- Files touched: `labs/spring-transactions/src/test/java/dev/interview/springtransactions/m17/support/PostgresTestBase.java` (`@DirtiesContext`, inherited)
+- Acceptance: `ReadOnlyJpaTest` and `JpaNestedPropagationTest` pass in one run in either order; Standard checks rows 2 (with Docker), 4 for `spring-transactions`.
+- Done by: S20261031-0858-claudecode (claude-opus-5-5, main session)
 
 ### SEC-M17-08 · M · §8 Read-only, timeouts and programmatic transactions
-- Status: `todo` · Deps: SEC-M17-01, SEC-M17-02 · needs: docker
+- Status: `done` · Deps: SEC-M17-01, SEC-M17-02 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-08`), lab `m17/s08/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §8; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-0858-claudecode (claude-opus-5-5; writing and lab by the main session, subagent writes blocked by the harness; plan: java-orchestrator (sonnet); Java review: java-reviewer subagent (sonnet), PASS round 1, three minor findings fixed)
 
 ### SEC-M17-09 · M · §9 Transactions and the JPA persistence context
-- Status: `todo` · Deps: SEC-M17-01 · needs: docker
+- Status: `done` · Deps: SEC-M17-01 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-09`), lab `m17/s09/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §9; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-1620-claudecode (claude-opus-5-5 main session; java-orchestrator and java-reviewer on sonnet, reviewer PASS round 2)
 
 ### SEC-M17-10 · L · §10 Optimistic and pessimistic locking, retries and deadlocks
-- Status: `todo` · Deps: SEC-M17-01 · needs: docker
+- Status: `done` · Deps: SEC-M17-01 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-10`), lab `m17/s10/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §10; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-1620-claudecode (claude-opus-5-5 main session; java-orchestrator and java-reviewer on sonnet, reviewer PASS round 1)
 
 ### SEC-M17-11 · M · §11 Side effects after commit: transaction-bound events
 - Status: `done` · Deps: SEC-M17-02 · needs: none
@@ -201,89 +217,131 @@ Appended by PLAN-M17 (S20261025-0744-claudecode). Plan: [M17](modules/M17.md). S
 - Done by: S20261025-0757-claudecode, claude-opus-5-5
 
 ### SEC-M17-13 · M · §13 Long transactions in production
-- Status: `todo` · Deps: SEC-M17-01 · needs: docker
+- Status: `done` · Deps: SEC-M17-01 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-13`), lab `m17/s13/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §13; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-1835-claudecode, claude-opus-5-5
 
 ### SEC-M17-14 · M · §14 Testing transactional code
-- Status: `todo` · Deps: SEC-M17-01, SEC-M17-11 · needs: docker
+- Status: `done` · Deps: SEC-M17-01, SEC-M17-11 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `SEC-M17-14`), lab `m17/s14/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §1 (lab design) and §4 entry §14; STYLE-GUIDE §2.2, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md).
 - Acceptance: the seven §2.2 subsections in order (gaps accepted only with a reason in the LOG line); every key claim in the plan entry verified by the named test or source, with basis tags; required callouts present; within the word budget of M17 §4; every test of the plan entry exists and passes; links to the questions that drill the section; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-1835-claudecode, claude-opus-5-5
 
 ### QB-M17-01 · M · Q17.01 to Q17.08
-- Status: `todo` · Deps: SEC-M17-01 to SEC-M17-05 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
+- Status: `done` · Deps: SEC-M17-01 to SEC-M17-05 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
 - Files touched: `modules/17-spring-transactions.md` (region `QB-M17-01`), lab `m17/outputs/**` (one class `Q17_mm` per Output or Bug hunt question and `Q17OutputsTest` methods for this chunk only), `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §5 rows Q17.01 to Q17.08 (types, ledger rows, verify route) and §3; STYLE-GUIDE §5, §7.3 to §7.5; QUALITY-BAR D; the sections each question drills.
 - Acceptance: answer anatomy per STYLE-GUIDE §5.3 (QUALITY-BAR D1); each Output short answer asserted by a test whose `@DisplayName` starts with its ID (C2); Production scenario answers follow D9; `<!-- ledger: … -->` lines list the plan's rows; ≈250 prose words per question on average; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261031-2045-claudecode (claude-opus-5-5; java-orchestrator haiku, java-reviewer sonnet PASS round 2)
 
 ### QB-M17-02 · M · Q17.09 to Q17.16
-- Status: `todo` · Deps: SEC-M17-03 to SEC-M17-06, SEC-M17-08 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
+- Status: `done` · Deps: SEC-M17-03 to SEC-M17-06, SEC-M17-08 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
 - Files touched: `modules/17-spring-transactions.md` (region `QB-M17-02`), lab `m17/outputs/**` (one class `Q17_mm` per Output or Bug hunt question and `Q17OutputsTest` methods for this chunk only), `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §5 rows Q17.09 to Q17.16 (types, ledger rows, verify route) and §3; STYLE-GUIDE §5, §7.3 to §7.5; QUALITY-BAR D; the sections each question drills.
 - Acceptance: answer anatomy per STYLE-GUIDE §5.3 (QUALITY-BAR D1); each Output short answer asserted by a test whose `@DisplayName` starts with its ID (C2); Production scenario answers follow D9; `<!-- ledger: … -->` lines list the plan's rows; ≈250 prose words per question on average; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261101-0430-claudecode (claude-opus-5-5; main session wrote tests then code via shell (harness write guard); java-reviewer sonnet PASS round 1)
 
 ### QB-M17-03 · M · Q17.17 to Q17.24
-- Status: `todo` · Deps: SEC-M17-07 to SEC-M17-09 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
+- Status: `done` · Deps: SEC-M17-07 to SEC-M17-09 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
 - Files touched: `modules/17-spring-transactions.md` (region `QB-M17-03`), lab `m17/outputs/**` (one class `Q17_mm` per Output or Bug hunt question and `Q17OutputsTest` methods for this chunk only), `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §5 rows Q17.17 to Q17.24 (types, ledger rows, verify route) and §3; STYLE-GUIDE §5, §7.3 to §7.5; QUALITY-BAR D; the sections each question drills.
 - Acceptance: answer anatomy per STYLE-GUIDE §5.3 (QUALITY-BAR D1); each Output short answer asserted by a test whose `@DisplayName` starts with its ID (C2); Production scenario answers follow D9; `<!-- ledger: … -->` lines list the plan's rows; ≈250 prose words per question on average; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261101-0430-claudecode (claude-opus-5-5; java-orchestrator haiku; main session wrote tests then code via shell (harness write guard); java-reviewer sonnet PASS round 1)
 
 ### QB-M17-04 · M · Q17.25 to Q17.32
-- Status: `todo` · Deps: SEC-M17-10 to SEC-M17-14 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
+- Status: `done` · Deps: SEC-M17-10 to SEC-M17-14 · needs: docker (at least one Output question is asserted by a PostgreSQL test)
 - Files touched: `modules/17-spring-transactions.md` (region `QB-M17-04`), lab `m17/outputs/**` (one class `Q17_mm` per Output or Bug hunt question and `Q17OutputsTest` methods for this chunk only), `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §5 rows Q17.25 to Q17.32 (types, ledger rows, verify route) and §3; STYLE-GUIDE §5, §7.3 to §7.5; QUALITY-BAR D; the sections each question drills.
 - Acceptance: answer anatomy per STYLE-GUIDE §5.3 (QUALITY-BAR D1); each Output short answer asserted by a test whose `@DisplayName` starts with its ID (C2); Production scenario answers follow D9; `<!-- ledger: … -->` lines list the plan's rows; ≈250 prose words per question on average; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261101-0956-claudecode (claude-opus-5-5; java-orchestrator haiku, java-reviewer sonnet PASS)
 
 ### EX-M17-01 · M · Exercise 17.1 Repair a silently non-transactional service
-- Status: `todo` · Deps: SEC-M17-04, SEC-M17-08 · needs: none
+- Status: `done` · Deps: SEC-M17-04, SEC-M17-08 · needs: none
 - Files touched: `modules/17-spring-transactions.md` (region `EX-M17-01`), lab `m17/ex1/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §6 row Ex17.1 (criteria); STYLE-GUIDE §8.1, §7.1; QUALITY-BAR E.
 - Acceptance: STYLE-GUIDE §8.1 anatomy; every criterion of the plan row has a test `Ex17.1 · …` and every such test maps to a criterion (E2); solution follows §7.1 (≤ 4 injected dependencies, constructor injection, low complexity); ≈350 prose words; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261101-1019-claudecode (claude-opus-5-5; java-workflow: orchestrator haiku, review java-reviewer sonnet PASS)
 
 ### EX-M17-02 · M · Exercise 17.2 An audit trail that survives rollback without deadlocking the pool
-- Status: `todo` · Deps: SEC-M17-06, SEC-M17-13 · needs: docker
+- Status: `done` · Deps: SEC-M17-06, SEC-M17-13 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `EX-M17-02`), lab `m17/ex2/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §6 row Ex17.2 (criteria); STYLE-GUIDE §8.1, §7.1; QUALITY-BAR E.
 - Acceptance: STYLE-GUIDE §8.1 anatomy; every criterion of the plan row has a test `Ex17.2 · …` and every such test maps to a criterion (E2); solution follows §7.1 (≤ 4 injected dependencies, constructor injection, low complexity); ≈350 prose words; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261101-1103-claudecode (claude-opus-5-5; java-workflow: orchestrator haiku, review java-reviewer sonnet PASS)
 
 ### EX-M17-03 · M · Exercise 17.3 Reserve stock under concurrency
-- Status: `todo` · Deps: SEC-M17-07, SEC-M17-10 · needs: docker
+- Status: `done` · Deps: SEC-M17-07, SEC-M17-10 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `EX-M17-03`), lab `m17/ex3/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §6 row Ex17.3 (criteria); STYLE-GUIDE §8.1, §7.1; QUALITY-BAR E.
 - Acceptance: STYLE-GUIDE §8.1 anatomy; every criterion of the plan row has a test `Ex17.3 · …` and every such test maps to a criterion (E2); solution follows §7.1 (≤ 4 injected dependencies, constructor injection, low complexity); ≈350 prose words; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261101-1141-claudecode (claude-opus-5-5; java-workflow: orchestrator haiku, review java-reviewer sonnet PASS)
 
 ### EX-M17-04 · M · Exercise 17.4 Place an order idempotently and notify after commit
-- Status: `todo` · Deps: SEC-M17-11, SEC-M17-13, EX-M17-03 · needs: docker
+- Status: `done` · Deps: SEC-M17-11, SEC-M17-13, EX-M17-03 · needs: docker
 - Files touched: `modules/17-spring-transactions.md` (region `EX-M17-04`), lab `m17/ex4/**`, `SOURCES.md`
 - Inputs: [M17](modules/M17.md) §6 row Ex17.4 (criteria); STYLE-GUIDE §8.1, §7.1; QUALITY-BAR E.
 - Acceptance: STYLE-GUIDE §8.1 anatomy; every criterion of the plan row has a test `Ex17.4 · …` and every such test maps to a criterion (E2); solution follows §7.1 (≤ 4 injected dependencies, constructor injection, low complexity); ≈350 prose words; Standard checks rows 2 (with Docker) or 3, 4, 5, 6 for `spring-transactions`.
-- Done by: none yet
+- Done by: S20261101-1300-claudecode (claude-opus-5-5; java-workflow: java-orchestrator haiku, java-reviewer sonnet CHANGES_REQUIRED → PASS)
 
 ### CLOSE-M17 · M
-- Status: `todo` · Deps: every SEC-M17, QB-M17 and EX-M17 task · needs: docker (full lab run with Docker, QUALITY-BAR H1, H5)
+- Status: `done` · Deps: every SEC-M17, QB-M17 and EX-M17 task · needs: docker (full lab run with Docker, QUALITY-BAR H1, H5)
 - Files touched: `modules/17-spring-transactions.md` (the three `CLOSE-M17` regions: Summary, Check your understanding, Connections), `_meta/sources/{architect-md,security-jpa-md,spring-data-jpa-pdf}.md` (status `written` for the rows homed in M17 §3), `PROGRESS.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: the whole module; [M17](modules/M17.md); [QUALITY-BAR](QUALITY-BAR.md) (all items, the Measuring block); STYLE-GUIDE §2.3, §9.
 - Acceptance: `grep -c 'TASK:' modules/17-spring-transactions.md` prints 0; every QUALITY-BAR item checked and recorded in the LOG line; Standard checks row 8 with Docker exits 0; rows 4, 5, 6 pass; ledger rows marked `written`; PROGRESS row 17 updated. Connections links `../angular-fullstack-guide/modules/30-e2e-and-testing-strategy.md` (rolling-back tests seen from the frontend).
-- Done by: none yet
+- Done by: S20261101-1328-claudecode (claude-opus-5-5, written in the main session)
 
 ### REVIEW-M17 · L
-- Status: `todo` · Deps: `CLOSE-M17` (and every SEC, QB, EX task of module 17) · needs: none · independent per RUN.md §4 (a different session from every `Done by` of module 17, or a fresh read-only subagent that receives only the module path, QUALITY-BAR, STYLE-GUIDE and the module plan; prefer a different model)
+- Status: `done` · Deps: `CLOSE-M17` (and every SEC, QB, EX task of module 17) · needs: none · independent per RUN.md §4 (a different session from every `Done by` of module 17, or a fresh read-only subagent that receives only the module path, QUALITY-BAR, STYLE-GUIDE and the module plan; prefer a different model)
 - Files touched: `_meta/reviews/REVIEW-M17.md`, `_meta/TASKS.md` (append `FIX-M17-nn`), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: `modules/17-spring-transactions.md`, `_meta/modules/M17.md`, [QUALITY-BAR](QUALITY-BAR.md), STYLE-GUIDE, `labs/spring-transactions/`
 - Acceptance: every QUALITY-BAR item checked with evidence; findings listed with severity and turned into FIX tasks; `Done by` records which review route was used.
 - **Gate G1:** when REVIEW-M17 (and its FIX tasks) are done, G1 ("Syllabus and pilot approved") blocks every `PLAN-Mxx` other than M17 until Jorge ticks it. EXTRACT, VERIFY, FIX and HOUSE tasks continue meanwhile.
-- Done by: none yet
+- Done by: S20261101-1328-claudecode (route: fresh read-only subagent, general-purpose on sonnet, given only the module, M17, QUALITY-BAR, STYLE-GUIDE and the lab; review in `_meta/reviews/REVIEW-M17.md`, verdict CHANGES_REQUIRED, 5 MAJOR)
+
+### FIX-M17-01 · S · Snippet kinds (REVIEW-M17 findings 1, 2)
+- Status: `done` · Deps: REVIEW-M17 · needs: none
+- Files touched: `modules/17-spring-transactions.md` (Ex17.1–17.4 starting-code blocks; Q17.07, Q17.29, Q17.32 blocks), `_meta/{TASKS,STATE,LOG}.md`
+- Inputs: [REVIEW-M17](reviews/REVIEW-M17.md) findings 1–2; STYLE-GUIDE snippet kinds; the lab files named there.
+- Acceptance: each of the 4 exercise starting-code blocks is an Excerpt (`// Excerpt of labs/…` first line, no `<sub>Source:`) whose lines are found in order in its file (or a Complete block equal to its file); Q17.07 and Q17.32 blocks carry `// Excerpt of …`; Q17.29's joined block is split or its editorial comment removed; every changed block re-checked by script; prose budget ≈ 0 words; Standard checks rows 5, 6.
+- Done by: S20261101-1346-claudecode (claude-opus-5-5, main session)
+
+### FIX-M17-02 · S · Practices and traps (REVIEW-M17 findings 3, 4, 5)
+- Status: `done` · Deps: REVIEW-M17 · needs: none
+- Files touched: `modules/17-spring-transactions.md` (:397 trap, :1084 practice, the 10 traps listed in finding 5), `SOURCES.md` if a new URL, `_meta/{TASKS,STATE,LOG}.md`
+- Inputs: REVIEW-M17 findings 3–5; STYLE-GUIDE §4.2 markers; spring-tx 7.0.10 / reference docs for the 6.0 change.
+- Acceptance: :397 states the cut-over with a §4.2 marker (`[Changed in Spring Framework 6.0: …]`) and a Src/Doc tag; :1084 has a "because" clause; each of the 10 traps gives why the myth exists in one clause; prose budget ≤ 110 words; rows 5, 6.
+- Done by: S20261101-1346-claudecode (claude-opus-5-5, main session)
+
+### FIX-M17-03 · S · Status markers (REVIEW-M17 finding 6)
+- Status: `done` · Deps: REVIEW-M17 · needs: none
+- Files touched: `modules/17-spring-transactions.md` (first mentions at :1208, :1210), `SOURCES.md` if a new URL, `_meta/{TASKS,STATE,LOG}.md`
+- Inputs: REVIEW-M17 finding 6; spring-tx/spring-core 7.0.10 sources (`@Deprecated(since = …)` on `DeadlockLoserDataAccessException`, `CannotSerializeTransactionException`; `@since` of `org.springframework.core.retry.RetryTemplate` and `@Retryable`).
+- Acceptance: the deprecation and "Added in" markers at first mention use the §4.2 forms with the versions read in the tagged sources (not from the review text), each with a Src tag; prose budget ≈ 10 words; rows 5, 6.
+- Done by: S20261101-1346-claudecode (claude-opus-5-5, main session)
+
+### FIX-M17-04 · S · Output short answers (REVIEW-M17 finding 7)
+- Status: `done` · Deps: REVIEW-M17 · needs: none
+- Files touched: `modules/17-spring-transactions.md` (Short answers of Q17.09, Q17.10, Q17.14, Q17.19, Q17.27), `_meta/{TASKS,STATE,LOG}.md`
+- Inputs: REVIEW-M17 finding 7; each question's Full explanation and its existing test.
+- Acceptance: each of the 5 Short answers adds one reasoning sentence consistent with its Full explanation and test (no new claim); prose budget ≤ 90 words; rows 5, 6.
+- Done by: S20261101-1346-claudecode (claude-opus-5-5, main session)
+
+### FIX-M17-05 · S · HikariCP version row and basis tags (REVIEW-M17 findings 8, 9)
+- Status: `done` · Deps: REVIEW-M17 · needs: none
+- Files touched: `VERSIONS.md` (HikariCP row, the version managed by Spring Boot 4.1.2), `modules/17-spring-transactions.md` (header :6 if needed, :1482, :1519, Q17.31 evidence), `SOURCES.md`, `_meta/{TASKS,STATE,LOG}.md`
+- Inputs: REVIEW-M17 findings 8–9; the Spring Boot 4.1.2 BOM (HikariCP version); PostgreSQL 18 docs (vacuum and long transactions; behaviour of open transactions when a connection closes).
+- Acceptance: VERSIONS.md has a HikariCP row verified against the Boot BOM; :1482 and :1519 carry Doc tags or are rephrased to what a tag supports; Q17.31's evidence names a concrete duplicate-finding query; prose budget ≤ 35 words; rows 5, 6.
+- Done by: S20261101-1346-claudecode (claude-opus-5-5, main session)
+
+### FIX-M17-06 · S · Ledger follow-up and nits (REVIEW-M17 findings 10, 11, NITs)
+- Status: `done` · Deps: REVIEW-M17 · needs: none
+- Files touched: `modules/17-spring-transactions.md` (Q17.31 follow-ups; `ledger:` lines at Q17.03, Q17.14; first-use definitions of SQLSTATE, Objenesis, dirty checking), `_meta/modules/M17.md` (line 5 cap → 23,000), `_meta/{TASKS,STATE,LOG}.md`
+- Inputs: REVIEW-M17 findings 10–11 and the NITs; ledger row architect-md-01-12.
+- Acceptance: Q17.31 has an answered follow-up "Why not disable retries?"; Q17.03 has a `ledger:` line with architect-md-01-07 (Q17.14 one only if a row is homed there); the three terms defined inline at first use; M17.md cap says 23,000; prose budget ≤ 33 words (all FIX tasks together must keep module 17 ≤ 23,000; 278 words remained after CLOSE); rows 5, 6.
+- Done by: S20261101-1346-claudecode (claude-opus-5-5, main session)
 
 ## Phase B: remaining extraction, then SYLLABUS-REVISE
 
@@ -604,6 +662,165 @@ These may run while G1 is waiting. `needs: vision` chunks are skipped (left `tod
 - Acceptance: new topics and modules added append-only (no slug renamed or renumbered); every ledger row mapped to a final target; the §8 size projection re-run; MOVE and DELETE tasks queued per source; ROADMAP Phase C and PROGRESS rows updated for any new module; `node java-backend-guide/labs/tools/check-links.mjs --planned java-backend-guide` and `node java-backend-guide/labs/tools/module-stats.mjs` exit 0.
 - Done by: S20261028-0812-antigravity (Gemini 3.8 Flash)
 
+## Phase C: remaining modules (ROADMAP Phase C order)
+
+### PLAN-M01 · M
+- Status: `done` · Deps: G1 (ticked) · needs: none
+- Files touched: `_meta/modules/M01.md`, `modules/01-java-oop-fundamentals.md` (skeleton with `<!-- TASK: <ID> -->` regions, STYLE-GUIDE §2.4), `labs/java-language/**` (package `dev.interview.javalanguage.m01`: one smoke test; the P5 `HelloOutput` smoke stays), `_meta/TASKS.md` (append SEC, QB, EX, CLOSE tasks), `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: RUN.md §9; SYLLABUS §1 row 01, §4 module 01 checklist, §5, §9; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md); ledger rows targeting 01 (mainly `core-java-240.md`, `core-java-pdf.md`, `honeywell-optum-md.md`, `system-design-pdf.md`); `labs/java-language/`; the `### Q` headings of module 17; [M17](modules/M17.md) as a shape reference.
+- Acceptance: the RUN.md §9 outputs 1 to 4; breadth gate (every SYLLABUS 01 checkbox and every ledger row targeting 01 has a section, a question or a recorded reason); the skeleton has every heading and anchor; Standard checks rows 3 (no Docker needed), 4, 5, 6 pass for `java-language`; SEC, QB, EX, CLOSE tasks appended with inputs, files, `needs:` and acceptance.
+- Done by: S20261101-2100-claudecode (claude-opus-5-5, main session; smoke test reviewed by java-reviewer subagent, PASS in round 2)
+
+
+Appended by PLAN-M01 (S20261101-2100-claudecode). Plan: [M01](modules/M01.md). Shared rules for every task below: write only inside the task's own `<!-- TASK: <ID> -->` region(s) of `modules/01-java-oop-fundamentals.md`, in one edit at the end; lab paths are under `labs/java-language/src/{main,test}/java/dev/interview/javalanguage/m01/` (main and test mirror each other); `SOURCES.md` under a "01 java-oop-fundamentals" heading for every new URL; `VERSIONS.md` only to add a Java feature-status row the task verified (JEP 512, 513, 395…); `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md` for bookkeeping. No task needs Docker or vision. Java 25 final features only (no `--enable-preview`).
+
+### SEC-M01-01 · M · §1 How Java runs
+- Status: `done` · Deps: none · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-01`), lab `m01/s01/**` (main and test). Creates `m01/support/InMemoryCompiler.java` (test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §1; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §1 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261101-2100-claudecode (claude-opus-5-5; writing and lab by the main session through the shell, java-workflow plan by java-orchestrator; Java review: java-reviewer subagent, PASS in round 2)
+
+### SEC-M01-02 · M · §2 Primitive types, conversions and overflow
+- Status: `done` · Deps: SEC-M01-01 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-02`), lab `m01/s02/**` (main and test). Creates `m01/support/OutputCapture.java` (test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §2; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §2 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261101-2136-claudecode (claude-opus-5-5; writing and lab by the main session through the shell, java-workflow plan by java-orchestrator (haiku); Java review: java-reviewer subagent (sonnet), PASS with 4 MINOR, 2 fixed)
+
+### SEC-M01-03 · M · §3 Lexical structure, operators and control flow
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-03`), lab `m01/s03/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §3; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §3 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261102-1136-claudecode (claude-opus-5-5; writing and lab by the main session; java-orchestrator haiku, java-reviewer sonnet: CHANGES_REQUIRED then PASS in round 2)
+
+### SEC-M01-04 · M · §4 Classes, objects, references and pass-by-value
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-04`), lab `m01/s04/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §4; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §4 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261102-1212-claudecode (claude-opus-5-5; writing and lab by the main session; java-orchestrator haiku, java-reviewer sonnet: CHANGES_REQUIRED then PASS in round 2)
+
+### SEC-M01-05 · M · §5 Constructors and initialization order
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-05`), lab `m01/s05/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §5; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §5 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261102-1331-claudecode (claude-opus-5-5; writing and lab by the main session; java-orchestrator haiku, java-reviewer sonnet: PASS in round 1, 3 MINOR, none to fix)
+
+### SEC-M01-06 · M · §6 Packages, access control and encapsulation
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-06`), lab `m01/s06/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §6; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §6 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261102-1341-claudecode (claude-opus-5-5; writing and lab by the main session through the shell; plan: java-orchestrator (haiku); Java review: java-reviewer (sonnet), PASS in round 1)
+
+### SEC-M01-07 · M · §7 Inheritance, composition and `Object`
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-07`), lab `m01/s07/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §7; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §7 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261102-1918-claudecode (claude-opus-5-5; orchestrator haiku, reviewer sonnet PASS)
+
+### SEC-M01-08 · L · §8 Polymorphism: overloading, overriding and dispatch
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-08`), lab `m01/s08/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §8; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §8 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261102-2105-claudecode (claude-opus-5-5); java-workflow: java-orchestrator (haiku), java-reviewer (sonnet) PASS round 2
+
+### SEC-M01-09 · M · §9 Abstract classes and interfaces
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-09`), lab `m01/s09/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §9; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §9 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261105-1850-claudecode (claude-opus-5-5); java-workflow: java-orchestrator, java-tester, java-implementer, java-reviewer PASS round 3
+
+### SEC-M01-10 · M · §10 `static`, `final` and constants
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-10`), lab `m01/s10/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §10; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §10 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261105-2130-claudecode (claude-opus-5-5); java-workflow: java-orchestrator, java-tester, java-implementer, java-reviewer (sonnet) PASS round 1
+
+### SEC-M01-11 · M · §11 Nested types
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-11`), lab `m01/s11/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §11; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §11 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261105-2146-claudecode (claude-opus-5-5); java-workflow: java-orchestrator, java-tester, java-implementer, java-reviewer (all sonnet) PASS round 1
+
+### SEC-M01-12 · M · §12 Enums
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-12`), lab `m01/s12/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §12; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §12 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261105-2154-claudecode (claude-opus-5-5; subagents on sonnet)
+
+### SEC-M01-13 · M · §13 Wrappers, autoboxing and the `Integer` cache
+- Status: `done` · Deps: SEC-M01-01, SEC-M01-02 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `SEC-M01-13`), lab `m01/s13/**` (main and test). `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M01](modules/M01.md) §1 (lab design) and §4 entry §13; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §13 (M01 §3) and their Notes (source errors become traps).
+- Acceptance: the §2.2 subsections in order (the skeleton already omits Failure modes where M01 §4 skips it; any other gap only with a reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present; within the word budget of M01 §4; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3 (no Docker in this module), 4, 5, 6 for `java-language`.
+- Done by: S20261105-2202-claudecode (claude-opus-5-5; subagents on sonnet)
+
+### QB-M01-01 · M · Q01.01–Q01.08
+- Status: `done` · Deps: SEC-M01-01, -02, -03 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `QB-M01-01`), lab `m01/outputs/**` (main `Q01_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M01](modules/M01.md) §5 rows Q01.01–Q01.08 and §3 (ledger rows of each question, with Notes); STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question has the anchor and heading of the skeleton unchanged, a `<!-- ledger: … -->` line listing its M01 §5 rows plus their duplicates (M01 §3), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`); Production scenario answers follow D9; follow-ups answered; ~215 words per question on average (M01 budget); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261105-2210-claudecode, claude-opus-5-5 (java-workflow subagents on sonnet)
+
+### QB-M01-02 · M · Q01.09–Q01.16
+- Status: `todo` · Deps: SEC-M01-03 to -07 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `QB-M01-02`), lab `m01/outputs/**` (main `Q01_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M01](modules/M01.md) §5 rows Q01.09–Q01.16 and §3 (ledger rows of each question, with Notes); STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question has the anchor and heading of the skeleton unchanged, a `<!-- ledger: … -->` line listing its M01 §5 rows plus their duplicates (M01 §3), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`); Production scenario answers follow D9; follow-ups answered; ~215 words per question on average (M01 budget); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M01-03 · M · Q01.17–Q01.24
+- Status: `todo` · Deps: SEC-M01-07 to -09 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `QB-M01-03`), lab `m01/outputs/**` (main `Q01_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M01](modules/M01.md) §5 rows Q01.17–Q01.24 and §3 (ledger rows of each question, with Notes); STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question has the anchor and heading of the skeleton unchanged, a `<!-- ledger: … -->` line listing its M01 §5 rows plus their duplicates (M01 §3), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`); Production scenario answers follow D9; follow-ups answered; ~215 words per question on average (M01 budget); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M01-04 · M · Q01.25–Q01.28
+- Status: `todo` · Deps: SEC-M01-10 to -13 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `QB-M01-04`), lab `m01/outputs/**` (main `Q01_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M01](modules/M01.md) §5 rows Q01.25–Q01.28 and §3 (ledger rows of each question, with Notes); STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question has the anchor and heading of the skeleton unchanged, a `<!-- ledger: … -->` line listing its M01 §5 rows plus their duplicates (M01 §3), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`); Production scenario answers follow D9; follow-ups answered; ~215 words per question on average (M01 budget); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M01-01 · M · Ex01.1 · An order total that cannot overflow or lose a cent
+- Status: `todo` · Deps: SEC-M01-02, SEC-M01-13 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `EX-M01-01`), lab `m01/ex1/**` (main: starting code under `ex1/broken/` if the exercise starts from broken code, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M01](modules/M01.md) §6 row Ex01.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M01 §6 criterion has a test `@DisplayName("Ex01.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M01-02 · M · Ex01.2 · Shipping rules as an enum with behaviour
+- Status: `todo` · Deps: SEC-M01-08, -09, -12 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `EX-M01-02`), lab `m01/ex2/**` (main: starting code under `ex2/broken/` if the exercise starts from broken code, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M01](modules/M01.md) §6 row Ex01.2; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M01 §6 criterion has a test `@DisplayName("Ex01.2 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M01-03 · M · Ex01.3 · Repair a leaky, fragile listener registry
+- Status: `todo` · Deps: SEC-M01-05, -07, -11 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (region `EX-M01-03`), lab `m01/ex3/**` (main: starting code under `ex3/broken/` if the exercise starts from broken code, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M01](modules/M01.md) §6 row Ex01.3; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M01 §6 criterion has a test `@DisplayName("Ex01.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### CLOSE-M01 · M
+- Status: `todo` · Deps: every SEC, QB and EX task of M01 · needs: none
+- Files touched: `modules/01-java-oop-fundamentals.md` (the three `CLOSE-M01` regions: Summary, Check your understanding, Connections), the ledgers in `_meta/sources/` (status `mapped` → `written` for the rows homed in 01, per M01 §3), `PROGRESS.md` (row 01), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: the whole module; [M01](modules/M01.md) §2, §3; STYLE-GUIDE §2.3, §9; [QUALITY-BAR](QUALITY-BAR.md) (all items).
+- Acceptance: QUALITY-BAR F1–F4 and every other item checked with its command, one line per item in the LOG; `grep -c 'TASK:' modules/01-java-oop-fundamentals.md` prints 0; Standard checks row 8 (full build, `-DexcludedGroups=docker` if Docker is absent) plus rows 4, 5, 6; module-stats row 01 has no flag and prose ≤ 18,000; ledger rows of M01 §3 set to `written` (secondary mentions untouched).
+- Done by:
+
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
 
 Depends on gate G2 (Jorge ticks it only while no other guide session is running) and on every ledger row of the source being `written` in a CLOSEd module, `duplicate-of`, or "no interview content". 0 MOVE tasks needed because 0 chunks were unreadable. Steps per RUN.md §10.2: (1) write entries in `SOURCE-MAP.md`, (2) search repository for references, (3) rewrite references to new module anchors, (4) remove source file (`rm` if tracked).
@@ -684,6 +901,6 @@ Take an S task from here only when nothing in RUN.md §4 steps 1 to 3 fits. HOUS
 | HOUSE-03 | S | done (S20261025-0744-claudecode, claude-opus-5-5) | Link re-check: run `node java-backend-guide/labs/tools/check-links.mjs java-backend-guide` (without `--planned`) and list every broken link whose target is not a planned file; fix those in guide files. Files: any guide Markdown outside `modules/`. Acceptance: remaining broken links are only planned files. |
 | HOUSE-04 | S | done (S20261025-0744-claudecode, claude-opus-5-5) | Ledger hygiene (after at least 3 EXTRACTs are done): search all ledgers for duplicate dedup keys that lack `duplicate-of`, and for rows missing a column. Files: `_meta/sources/*.md`. Acceptance: no duplicate key without `duplicate-of`; every row has all columns. |
 | HOUSE-05 | S | done (S20261025-0744-claudecode, claude-opus-5-5) | Refresh the PROGRESS.md sources row and the STATE counts from the ledgers (chunks extracted out of 47, sources consolidated out of 11). Files: `PROGRESS.md`, `_meta/STATE.md`. Acceptance: counts equal a recount from `_meta/sources/`. |
-| HOUSE-06 | S | todo | Replace UNVERIFIED support-policy cells in [VERSIONS](../VERSIONS.md) for one technology group per run (for example Hibernate and Spring Data; Kafka; Micrometer and Resilience4j; JUnit, Mockito, Testcontainers) with a value read from the project's own policy or release page, or keep UNVERIFIED and say why. Files: `VERSIONS.md`, `SOURCES.md`. Acceptance: each changed cell cites a URL and the date checked. |
+| HOUSE-06 | S | done (runs: Kafka, Hibernate, Micrometer and Resilience4j S20261029-0726-claudecode, claude-opus-5-5; JUnit, Mockito and Testcontainers; Flyway and Liquibase S20261029-0736-claudecode, claude-opus-5-5; final run gRPC, Spring gRPC, pgjdbc, Lettuce, MongoDB/Cassandra drivers and server, MapStruct, Gradle S20261029-0740-claudecode, claude-opus-5-5) | Replace UNVERIFIED support-policy cells in [VERSIONS](../VERSIONS.md) for one technology group per run (for example Hibernate and Spring Data; Kafka; Micrometer and Resilience4j; JUnit, Mockito, Testcontainers) with a value read from the project's own policy or release page, or keep UNVERIFIED and say why. Files: `VERSIONS.md`, `SOURCES.md`. Acceptance: each changed cell cites a URL and the date checked. |
 | HOUSE-08 | S | done (S20261025-0744-claudecode, claude-opus-5-5) | Fix the Docker probe in Standard checks row 1: `perl -e 'alarm 20; exec @ARGV' docker info` exits 0 when `docker` is not on PATH (a failed `exec` falls through to exit 0). Use `perl -e 'alarm 20; exec @ARGV or exit 127' docker info`. Files: `_meta/TASKS.md`. Acceptance: with no `docker` on PATH the new probe exits non-zero. |
-| HOUSE-07 | S | todo | Keep STATE.md under 60 lines (RUN.md §2): fold resolved standing notes into LOG references. Files: `_meta/STATE.md`. Acceptance: `wc -l` under 60 and no open note lost. |
+| HOUSE-07 | S | done (S20261029-0726-claudecode, claude-opus-5-5) | Keep STATE.md under 60 lines (RUN.md §2): fold resolved standing notes into LOG references. Files: `_meta/STATE.md`. Acceptance: `wc -l` under 60 and no open note lost. |

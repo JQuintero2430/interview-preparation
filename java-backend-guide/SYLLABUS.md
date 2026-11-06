@@ -33,7 +33,7 @@ This file is the plan. It lists every module with its permanent slug, its kind, 
 | 14 | `concurrency-virtual-threads` | C | core | 24 | 3 | 18000 | concurrency | 13 |
 | 15 | `spring-ioc-and-bean-lifecycle` | D · Spring Framework | core | 32 | 4 | 18000 | spring-core | 01, 03 |
 | 16 | `spring-aop-and-proxies` | D | core | 24 | 3 | 18000 | spring-core | 15 |
-| 17 | `spring-transactions` | D | core (pilot) | 40 | 6 | 22000 | spring-transactions | 16, 22 |
+| 17 | `spring-transactions` | D | core (pilot) | 40 | 6 | 23000 | spring-transactions | 16, 22 |
 | 18 | `spring-mvc-and-rest-controllers` | D | core | 28 | 4 | 18000 | spring-web | 15 |
 | 19 | `spring-reactive-webflux` | D | core | 28 | 4 | 18000 | spring-reactive | 13, 18 |
 | 20 | `spring-boot-autoconfiguration-and-config` | E · Spring Boot | core | 28 | 4 | 18000 | spring-boot | 15 |
@@ -986,8 +986,15 @@ The difference between the rows is mostly who does the work: the conservative ro
 9. **Spring Modulith** lives in 52 (with 41 for the monolith-vs-microservices decision and 43 for the event publication registry).
 10. **Desktop GUI content** (AWT layouts, Applets) in the Core Java PDFs is out of scope; EXTRACT records those rows as "no interview content (out of scope: desktop GUI)" so the chunk still counts as complete.
 11. **Storage and backup domain** questions (data-storage-md §3) go to 53 as a case study; AI-assisted development questions go to 55.
+12. **Prose-cap exception: module 17 at 23,000 words** (approved by Jorge, 2026-11-01, session S20261101-1328-claudecode). After EX-M17-04 the pilot stood at 21,971 prose words of its 22,000 cap (decision 3), leaving too few for CLOSE-M17 (Summary, Check your understanding, Connections ≈ 900 words). The §1 cap for 17 is raised to 23,000 so `module-stats.mjs --strict` checks the approved number. Decision 3's caps for other modules are unchanged.
+13. **G1 answers: module count stays 55, no merges** (Jorge, 2026-11-01, answer to §10 question 1). The four merge options (a)–(d) are rejected; every slug in §1 is kept as listed and becomes permanent once G1 is ticked.
+14. **G1 answers: the pilot is 17 `spring-transactions`** (Jorge, 2026-11-01, §10 question 2), confirming decision 5.
+15. **G1 answers: the core cap stays 18,000 words** (Jorge, 2026-11-01, §10 question 3; not lowered to 15,000). Jorge accepts going above it when a module needs the depth. Each such module still gets its own numbered exception here, with its number and reason, so `module-stats.mjs --strict` checks the approved figure (decision 3, RUN.md §9). A review finding of redundancy is still fixed, not covered by an exception.
+16. **G1 answers: the Honeywell/Optum full text does not exist** (Jorge, 2026-11-01, §10 question 4). Its topics are written fresh as guide content in the modules its TOC row maps to (§7, `honeywell-optum-md-01`), placed where they fit each module's problem → mechanism → trade-off flow rather than as a separate company-specific section. Its pure-DSA "Coding problems" stay out of scope.
 
 ## 10. Open questions for G1
+
+Answered by Jorge on 2026-11-01: see §9 decisions 13–16.
 
 1. **Module count.** 55 is at the limit. Options to merge if the projection is too costly: (a) 34 `grpc` + 35 `graphql` + 36 `realtime-websockets-sse` into one supporting "API styles" module (−2); (b) 28 `mongodb` + 29 `cassandra` into one "NoSQL stores" module (−1); (c) 32 `messaging-rabbitmq-sqs-sns` folded into 31 (−1); (d) 46 + 47 testing into one core module (−1). Slugs become permanent at G1, so merges must be decided now.
 2. **Pilot.** 17 `spring-transactions` (recommended, Resolved decision 5) or a lighter pilot such as 13 `concurrency-executors-and-completablefuture` (no Docker needed)?

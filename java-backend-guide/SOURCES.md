@@ -26,6 +26,7 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 
 ## Persistence and databases
 
+- Hibernate ORM support policy (checked 2026-10-29): https://hibernate.org/orm/releases/ (series status), https://hibernate.org/support/maintenance-policy/ (maintenance levels)
 - PostgreSQL versioning and support policy: https://www.postgresql.org/support/versioning/
 - Hibernate ORM, PostgreSQL JDBC, Flyway, Liquibase release metadata: https://repo1.maven.org/maven2/org/hibernate/orm/hibernate-core/maven-metadata.xml , https://repo1.maven.org/maven2/org/postgresql/postgresql/maven-metadata.xml , https://repo1.maven.org/maven2/org/flywaydb/flyway-core/maven-metadata.xml , https://repo1.maven.org/maven2/org/liquibase/liquibase-core/maven-metadata.xml
 - Redis: https://github.com/redis/redis/releases , licence at 8.10.2 https://raw.githubusercontent.com/redis/redis/8.10.2/LICENSE.txt , AGPLv3 announcement https://redis.io/blog/agplv3/ , cross-check https://endoflife.date/api/redis.json , Lettuce https://repo1.maven.org/maven2/io/lettuce/lettuce-core/maven-metadata.xml
@@ -34,6 +35,7 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 
 ## Messaging
 
+- Apache Kafka support policy (checked 2026-10-29): https://kafka.apache.org/community/downloads/ (supported releases), https://cwiki.apache.org/confluence/display/KAFKA/Time+Based+Release+Plan (EOL policy)
 - Apache Kafka release metadata: https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/maven-metadata.xml , https://repo1.maven.org/maven2/org/apache/kafka/kafka-streams/maven-metadata.xml
 - RabbitMQ: https://github.com/rabbitmq/rabbitmq-server/releases , cross-check https://endoflife.date/api/rabbitmq.json
 
@@ -43,7 +45,14 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 
 ## Resilience and observability
 
-- Resilience4j: https://repo1.maven.org/maven2/io/github/resilience4j/resilience4j-core/maven-metadata.xml
+- Resilience4j (no support policy published; repository checked 2026-10-29): https://github.com/resilience4j/resilience4j , https://repo1.maven.org/maven2/io/github/resilience4j/resilience4j-core/maven-metadata.xml
+- JUnit support policy (checked 2026-10-29): https://github.com/junit-team/junit-framework/blob/main/SECURITY.md
+- Mockito support policy (checked 2026-10-29): https://github.com/mockito/mockito/blob/main/README.md ("Current version is 5.x")
+- Testcontainers (no support policy published; repository checked 2026-10-29): https://github.com/testcontainers/testcontainers-java
+- Flyway (no engine-version support policy published; repository checked 2026-10-29): https://github.com/flyway/flyway
+- Liquibase licence and policy (checked 2026-10-29): https://github.com/liquibase/liquibase/blob/v4.33.0/LICENSE.txt , https://github.com/liquibase/liquibase/blob/v5.0.4/LICENSE.txt , https://github.com/liquibase/liquibase/blob/main/SECURITY.md
+- Support policies (checked 2026-10-29): grpc-java https://grpc.io/docs/what-is-grpc/faq/ ; Spring gRPC https://api.spring.io/projects/spring-grpc/generations ; pgjdbc https://github.com/pgjdbc/pgjdbc/blob/master/SECURITY.md ; Lettuce (Redis client policy) https://redis.io/docs/latest/develop/clients/version-support/ ; MongoDB lifecycles https://www.mongodb.com/legal/support-policy/lifecycles ; Apache Cassandra https://cassandra.apache.org/_/download.html ; Cassandra Java driver (no policy) https://github.com/apache/cassandra-java-driver/blob/trunk/SECURITY.md ; MapStruct https://github.com/mapstruct/mapstruct/blob/main/SECURITY.md ; Gradle https://docs.gradle.org/current/userguide/feature_lifecycle.html
+- Micrometer and Micrometer Tracing support dates (checked 2026-10-29): https://micrometer.io/support/
 - Micrometer: https://repo1.maven.org/maven2/io/micrometer/micrometer-core/maven-metadata.xml , Micrometer Tracing https://repo1.maven.org/maven2/io/micrometer/micrometer-tracing/maven-metadata.xml
 - OpenTelemetry versioning and stability: https://opentelemetry.io/docs/specs/otel/versioning-and-stability/ ; specification status: https://opentelemetry.io/docs/specs/status/
 - OpenTelemetry releases: https://github.com/open-telemetry/opentelemetry-java/releases , https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases , https://github.com/open-telemetry/opentelemetry-collector/releases , https://github.com/open-telemetry/opentelemetry-collector-contrib/releases , https://github.com/open-telemetry/opentelemetry-specification/releases
@@ -66,6 +75,149 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - Docker Engine: https://github.com/moby/moby/releases , cross-check https://endoflife.date/api/docker-engine.json
 - Jenkins: LTS policy https://www.jenkins.io/download/lts/ , latest core https://updates.jenkins.io/stable/latestCore.txt , plugins https://plugins.jenkins.io/ , https://plugins.jenkins.io/workflow-aggregator/ , https://plugins.jenkins.io/kubernetes/ , https://plugins.jenkins.io/credentials-binding/ , https://plugins.jenkins.io/configuration-as-code/
 
+## 01 java-oop-fundamentals
+
+- https://bugs.openjdk.org/browse/JDK-8277604
+- https://docs.oracle.com/en/java/javase/11/migrate/index.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/ObjectOutputStream.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html#isAssignableFrom(java.lang.Class)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Cloneable.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Enum.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Math.html#abs(int)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/System.html#loadLibrary(java.lang.String)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/UnsupportedClassVersionError.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/reflect/InaccessibleObjectException.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/RoundingMode.html#HALF_EVEN
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/AbstractCollection.html#addAll(java.util.Collection)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/RandomAccess.html
+- https://docs.oracle.com/javase/1.5.0/docs/guide/language/autoboxing.html
+- https://docs.oracle.com/javase/7/docs/technotes/guides/language/strings-switch.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.1.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.1.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.7
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.4.9
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.5.7
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.15
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.16
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.11.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.2.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.2.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.14.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.15
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.15.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.17.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.17.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.18
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.18.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.19
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.21.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.21.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.22.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.23
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.25
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.25.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.26
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.26.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.29
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.7.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.7.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.5.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-16.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.8
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.9
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.3.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.3.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.7
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.8
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.6
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.6.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.6.2.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-7.html#jls-7.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-7.html#jls-7.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-7.html#jls-7.5.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-7.html#jls-7.6
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.1.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.1.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.3.1.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.3.1.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.3.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.3.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.7
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.9
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.9
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.9.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.9.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.9.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.1.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.4.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.7
+- https://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.1.3
+- https://docs.oracle.com/javase/specs/jls/se8/html/jls-12.html#jls-12.1.4
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-1.html#jvms-1.2
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html#jvms-2.5.3
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.1
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4.6
+- https://docs.oracle.com/javase/tutorial/java/IandI/defaultmethods.html
+- https://docs.oracle.com/javase/tutorial/java/nutsandbolts/operators.html
+- https://en.cppreference.com/w/cpp/thread/thread.html
+- https://github.com/openjdk/jdk/blob/jdk-25%2B36/src/java.base/share/classes/java/util/Arrays.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/oops/klassVtable.hpp
+- https://openjdk.org/jeps/181
+- https://openjdk.org/jeps/213
+- https://openjdk.org/jeps/247
+- https://openjdk.org/jeps/282
+- https://openjdk.org/jeps/330
+- https://openjdk.org/jeps/358
+- https://openjdk.org/jeps/361
+- https://openjdk.org/jeps/395
+- https://openjdk.org/jeps/396
+- https://openjdk.org/jeps/403
+- https://openjdk.org/jeps/421
+- https://openjdk.org/jeps/447
+- https://openjdk.org/jeps/456
+- https://openjdk.org/jeps/458
+- https://openjdk.org/jeps/482
+- https://openjdk.org/jeps/492
+- https://openjdk.org/jeps/512
+- https://openjdk.org/jeps/513
+- https://www.oracle.com/java/technologies/javase/15-relnote-issues.html
+- https://www.oracle.com/java/technologies/javase/codeconventions-namingconventions.html
+
 ## 17 spring-transactions
 
 - https://github.com/spring-projects/spring-boot/blob/v4.1.2/module/spring-boot-jdbc/src/main/java/org/springframework/boot/jdbc/autoconfigure/DataSourceTransactionManagerAutoConfiguration.java
@@ -73,15 +225,18 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-jdbc/src/main/java/org/springframework/jdbc/datasource/DataSourceTransactionManager.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-jdbc/src/main/java/org/springframework/jdbc/datasource/DataSourceUtils.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-jdbc/src/main/java/org/springframework/jdbc/datasource/TransactionAwareDataSourceProxy.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-jdbc/src/main/resources/org/springframework/jdbc/support/sql-error-codes.xml
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-orm/src/main/java/org/springframework/orm/jpa/JpaTransactionManager.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/PlatformTransactionManager.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/TransactionDefinition.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/annotation/Isolation.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/annotation/Transactional.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/interceptor/TransactionAspectSupport.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/support/AbstractPlatformTransactionManager.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/support/TransactionSynchronizationManager.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/support/TransactionTemplate.java
 - https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html
+- https://docs.spring.io/spring-framework/reference/core/aop/proxying.html
 - https://github.com/spring-projects/spring-boot/blob/v4.1.2/module/spring-boot-transaction/src/main/java/org/springframework/boot/transaction/autoconfigure/TransactionAutoConfiguration.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/annotation/AbstractTransactionManagementConfiguration.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/transaction/annotation/AnnotationTransactionAttributeSource.java
@@ -101,3 +256,43 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ThreadLocal.html
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-context/src/main/java/org/springframework/scheduling/annotation/AsyncAnnotationBeanPostProcessor.java
 - https://www.postgresql.org/docs/18/transaction-iso.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.sql/java/sql/Connection.html
+- https://www.postgresql.org/docs/18/tutorial-transactions.html
+- https://www.postgresql.org/docs/18/errcodes-appendix.html
+- https://www.postgresql.org/docs/18/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW
+- https://www.postgresql.org/docs/18/monitoring-stats.html
+- https://github.com/pgjdbc/pgjdbc/blob/REL42.7.14/pgjdbc/src/main/java/org/postgresql/PGProperty.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-orm/src/main/java/org/springframework/orm/jpa/vendor/HibernateJpaDialect.java
+- https://github.com/hibernate/hibernate-orm/blob/7.4.13/hibernate-core/src/main/java/org/hibernate/Session.java
+- https://www.postgresql.org/docs/18/sql-savepoint.html
+- https://www.postgresql.org/docs/18/runtime-config-connection.html
+- https://docs.spring.io/spring-boot/reference/data/sql.html
+- https://github.com/brettwooldridge/HikariCP/blob/HikariCP-7.0.2/src/main/java/com/zaxxer/hikari/HikariConfig.java
+- https://github.com/brettwooldridge/HikariCP/blob/HikariCP-7.0.2/src/main/java/com/zaxxer/hikari/pool/ProxyLeakTask.java
+- https://github.com/brettwooldridge/HikariCP/blob/HikariCP-7.0.2/src/main/java/com/zaxxer/hikari/pool/HikariPool.java
+- https://github.com/brettwooldridge/HikariCP/blob/HikariCP-7.0.2/src/main/java/com/zaxxer/hikari/metrics/micrometer/MicrometerMetricsTracker.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-orm/src/main/java/org/springframework/orm/jpa/SharedEntityManagerCreator.java
+- https://github.com/jakartaee/persistence/blob/3.2-3.2.0-RELEASE/api/src/main/java/jakarta/persistence/EntityTransaction.java
+- https://github.com/jakartaee/persistence/blob/3.2-3.2.0-RELEASE/api/src/main/java/jakarta/persistence/FlushModeType.java
+- https://docs.hibernate.org/orm/7.4/introduction/html_single/#flush
+- https://docs.hibernate.org/orm/7.4/introduction/html_single/#version-attributes
+- https://docs.hibernate.org/orm/7.4/introduction/html_single/#optimistic-and-pessimistic-locking
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-orm/src/main/java/org/springframework/orm/jpa/hibernate/HibernateExceptionTranslator.java
+- https://www.postgresql.org/docs/18/explicit-locking.html
+- https://www.postgresql.org/docs/18/runtime-config-client.html
+- https://www.postgresql.org/docs/18/protocol-flow.html#PROTOCOL-FLOW-TERMINATION
+- https://www.postgresql.org/docs/18/runtime-config-locks.html
+- https://www.postgresql.org/docs/18/index-unique-checks.html
+- https://www.postgresql.org/docs/18/runtime-config-logging.html
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/dao/CannotAcquireLockException.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/dao/ConcurrencyFailureException.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/dao/DeadlockLoserDataAccessException.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-context/src/main/java/org/springframework/resilience/annotation/Retryable.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/retry/RetryTemplate.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/retry/RetryPolicy.java
+- https://www.postgresql.org/docs/18/sql-insert.html
+- https://docs.spring.io/spring-framework/reference/7.0/testing/testcontext-framework/tx.html
+- https://docs.spring.io/spring-framework/reference/core/beans/annotation-config/autowired.html
+- https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing
+- https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html
+- https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html
