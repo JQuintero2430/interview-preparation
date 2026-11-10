@@ -197,7 +197,7 @@ After the bootstrap, continue with section 4.
 3. **The module's lab.** Create its Maven module (the folder named in SYLLABUS §1), add it to `<modules>` in `labs/pom.xml`, with only the dependencies and Testcontainers images this module needs, plus one smoke test. Build it (serialized), run `mvn spotless:apply`, and confirm the smoke test passes. If it needs Docker and this harness has none, the smoke test is recorded as `needs: docker` in TASKS.md and the plan still completes.
 4. **Tasks.** SEC, QB, EX and CLOSE tasks appended to `TASKS.md`, each with its inputs, its files, its `needs:` and its acceptance checks.
 
-Targets: the question and exercise numbers in SYLLABUS §1 are ceilings. The floors in STYLE-GUIDE are minimums. The prose cap per module is in SYLLABUS §1 (supporting modules 8,000–10,000 words; core modules up to the depth of the pilot). A module may exceed its cap only with an exception recorded in SYLLABUS "Resolved decisions" that Jorge has approved; a review finding of redundancy is fixed by a FIX task. No filler.
+Targets: the question and exercise numbers in SYLLABUS §1 are ceilings. The floors in STYLE-GUIDE are minimums. The prose cap per module in SYLLABUS §1 is an advisory size target, not a limit (SYLLABUS §9 decision 19); a review finding of redundancy is fixed by a FIX task. No filler.
 
 ## 10. Content and code rules
 
@@ -253,7 +253,7 @@ When every module in ROADMAP is closed and reviewed, PLAN the finish tasks:
 
 The job is done only when all of the following hold, with evidence (command, exit code, one-line result) recorded in the final LOG entry:
 - [ ] Every module in SYLLABUS §1 is `done` in PROGRESS.md, each CLOSEd, REVIEWed, and with its FIX tasks done.
-- [ ] `node labs/tools/module-stats.mjs --strict` exits 0: every module meets its STYLE-GUIDE floors and its prose cap, or has an approved cap exception in SYLLABUS "Resolved decisions".
+- [ ] `node labs/tools/module-stats.mjs --strict` exits 0: every module meets its STYLE-GUIDE floors and SYLLABUS §1 ceilings (prose is not flagged, decision 19).
 - [ ] `_meta/UNVERIFIED.md` has zero open items.
 - [ ] Every ledger row in `_meta/sources/` is `written`, `duplicate-of` or "no interview content", and every one of the 11 sources is deleted or in `attachments/`.
 - [ ] The full Maven build of `labs/` exits 0 (one serialized run, with Docker available), and `mvn spotless:check` exits 0.

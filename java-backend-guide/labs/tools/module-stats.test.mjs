@@ -27,14 +27,13 @@ test('proseWords ignores fenced code; moduleStats counts questions, exercises, P
   assert.equal(s.production, 1);
 });
 
-test('flagsFor applies core and supporting floors, ceilings and the row prose cap', () => {
+test('flagsFor applies core and supporting floors, ceilings, and never the advisory prose cap', () => {
   const core = { kind: 'core', qMax: 2, exMax: 3, proseCap: 100 };
   assert.deepEqual(flagsFor({ questions: 3, exercises: 1, production: 0, prose: 101, mix: {} }, core), [
     'questions 3 < floor 20',
     'exercises 1 < floor 3',
     'Production scenario 0 < floor 3',
     'questions 3 > ceiling 2',
-    'prose 101 > cap 100',
   ]);
   const supporting = { kind: 'supporting', qMax: 14, exMax: 3, proseCap: 9000 };
   assert.deepEqual(flagsFor({ questions: 12, exercises: 2, production: 1, prose: 9000, mix: {} }, supporting), []);

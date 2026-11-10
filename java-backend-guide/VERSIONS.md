@@ -126,6 +126,16 @@ Latest = newest GA found on 2026-10-25. "Managed by Boot 4.1.2" = value in `spri
 
 Sources: https://openjdk.org/jeps/444 , https://openjdk.org/jeps/491 , https://openjdk.org/jeps/506 , https://openjdk.org/jeps/533 , https://openjdk.org/projects/jdk/25/ , https://openjdk.org/projects/jdk/26/ , https://openjdk.org/projects/jdk/27/ . JEP 533 (JDK 27) changes: `Joiner` gains an exception type parameter, `open(UnaryOperator)` added, `awaitAll()` removed, `onTimeout()` replaced by `timeout()`. Cells marked "not re-read" for JDK 21 were not fetched from the JEP page this session.
 
+### Value-based classes and value objects (from openjdk.org JEP and release pages, checked 2026-11-08)
+
+| Feature | JEP / issue | JDK 21 | JDK 25 (latest LTS) | JDK 27 (latest release) | JDK 28 (in development) |
+|---|---|---|---|---|---|
+| javac `synchronization` lint and HotSpot `-XX:DiagnoseSyncOnValueBasedClasses` | 390 (Closed/Delivered, release 16) | final | final (key `compiler.warn.attempt.to.synchronize.on.instance.of.value.based.class`, probed with javac 25.0.4.1) | final | final |
+| Wrapper constructors (`new Integer(int)` and the other seven) | JEP 390 made them `forRemoval = true` in 16; JDK-8354338 (fix version 25) reverted that | `@Deprecated(since="9", forRemoval = true)` (JDK 21.0.7 `src.zip`) | `@Deprecated(since="9")` (JDK 25.0.4.1 `src.zip`) | not re-read | not re-read |
+| Value objects (Project Valhalla) | 401 Value Objects (Preview), Status Integrated, Release 28 | n/a | n/a | n/a | preview (targeted; GA 2027-03-09 per the JDK 28 schedule) |
+
+Sources: https://openjdk.org/jeps/390 , https://openjdk.org/jeps/401 , https://openjdk.org/projects/jdk/28/ , https://bugs.openjdk.org/browse/JDK-8354338 , https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/doc-files/ValueBased.html .
+
 ### OpenTelemetry
 - Signals per spec status page (https://opentelemetry.io/docs/specs/status/): Tracing API/SDK/Protocol Stable; Metrics API Stable, SDK Mixed, Protocol Stable; Baggage API/SDK Stable; Logging Bridge API Stable, SDK Stable, Protocol Stable.
 - Semantic conventions v1.44.0 (docs/*/README.md and *-spans.md in the repo, https://github.com/open-telemetry/semantic-conventions/tree/v1.44.0/docs):

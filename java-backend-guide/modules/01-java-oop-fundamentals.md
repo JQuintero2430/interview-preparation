@@ -5,7 +5,7 @@
 > **Leads to:** [02. Equality, immutability and records](02-java-equality-immutability-records.md), [03. Generics](03-java-generics.md), [06. Exceptions, strings and I/O](06-java-exceptions-strings-io.md), [08. JVM memory and class loading](08-jvm-memory-and-class-loading.md), [11. Threads and the JMM](11-concurrency-threads-and-jmm.md), [15. Spring IoC and bean lifecycle](15-spring-ioc-and-bean-lifecycle.md), [46. Testing with JUnit and Mockito](46-testing-junit-and-mockito.md), [48. Build with Maven and Gradle](48-build-maven-and-gradle.md)
 > **Applies to:** Java 25
 > **Study time:** ~7 hours reading + ~3 hours exercises
-> **Short on time:** [5. Constructors and initialization order](#5-constructors-and-initialization-order), [8. Polymorphism: overloading, overriding and dispatch](#8-polymorphism-overloading-overriding-and-dispatch), [13. Wrappers, autoboxing and the `Integer` cache](#13-wrappers-autoboxing-and-the-integer-cache); questions [Q01.12](#q01-12), [Q01.18](#q01-18), [Q01.19](#q01-19), [Q01.25](#q01-25), [Q01.28](#q01-28); then [Summary](#summary).
+> **Short on time:** [5. Constructors and initialization order](#5-constructors-and-initialization-order), [8. Polymorphism: overloading, overriding and dispatch](#8-polymorphism-overloading-overriding-and-dispatch), [13. Wrappers, autoboxing and the `Integer` cache](#13-wrappers-autoboxing-and-the-integer-cache); questions [Q01.10](#q01-10), [Q01.12](#q01-12), [Q01.18](#q01-18), [Q01.19](#q01-19), [Q01.28](#q01-28); then [Summary](#summary).
 > **Labs:** [`labs/java-language/`](../labs/java-language/), package `dev.interview.javalanguage.m01`. Run: `JAVA_HOME=$(/usr/libexec/java_home -v 25) mvn -q -f java-backend-guide/labs/pom.xml -pl java-language -am verify`. Needs Docker: no.
 
 ## Contents
@@ -142,16 +142,15 @@ javap -v out/Hello.class | grep major  # major version: 65
 
 ### Misconceptions and traps
 
-- *"Java is interpreted."* Hot methods are JIT-compiled ([10](10-jvm-performance-and-troubleshooting.md)); the myth survives because interpretation comes first, visible as warm-up.
+- *"Java is interpreted."* Hot methods are JIT-compiled (just-in-time: turned into machine code while the program runs) ([10](10-jvm-performance-and-troubleshooting.md)); the myth survives because interpretation comes first, visible as warm-up.
 - *"The JVM is platform independent."* The bytecode is; the JVM is built per OS and CPU. The slogan is about class files.
 - *"`main` must be `public static void main(String[] args)`."* Once true: until Java 24. Now: any non-private `void main`, static or instance, with `String[]` or no parameter [Changed in Java 25: instance main methods, JEP 512](https://openjdk.org/jeps/512). The classic form still wins.
-- *"`-target 8` is safe for Java 8."* Newer API calls still compile; `--release 8` rejects them [Doc: JEP 247](https://openjdk.org/jeps/247).
+- *"`-target 8` is safe for Java 8."* Newer API calls still compile; `--release 8` rejects them [Doc: JEP 247](https://openjdk.org/jeps/247). The myth exists because `-target` names a version, so it sounds complete.
 
 Questions that drill this section: [Q01.01](#q01-01), [Q01.02](#q01-02), [Q01.03](#q01-03).
 
 
 ## 2. Primitive types, conversions and overflow
-<!-- TASK: SEC-M01-02 -->
 ### The problem it solves
 
 An upload service checks `used + requested <= limit` with `int` values. A client asks for `Integer.MAX_VALUE` bytes, the sum wraps negative, and the check passes; nothing throws or logs. Cent drift in `double` invoices is the same lesson: primitives are fixed-width bit patterns.
@@ -162,13 +161,16 @@ A primitive is a fixed-width odometer: roll past the last value and it reads the
 
 ```mermaid
 flowchart LR
-    byte --> short --> int --> long --> float --> double
+    byte --> short --> int --> long
     char --> int
+    int --> double
+    float --> double
     int -.->|"may lose precision"| float
+    long -.->|"may lose precision"| float
     long -.->|"may lose precision"| double
 ```
 
-What to notice: arrows are implicit widenings, the dotted ones can drop low-order digits, and going back needs a cast.
+What to notice: every arrow is an implicit widening; solid ones keep the exact value, dotted ones can drop low-order digits, and going back needs a cast.
 
 ### How it actually works
 
@@ -247,15 +249,13 @@ void bigDecimal_isExactFromString_andCarriesTheDoubleErrorFromDouble() {
 ### Misconceptions and traps
 
 - *"`long` + `float` gives `double`."* It gives `float`: promotion stops at the widest operand type [Doc: JLS 25 §5.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.6). The myth treats `double` as "the mixed-arithmetic type".
-- *"Widening is always safe."* `int` → `float` and `long` → `float`/`double` drop low-order digits [Doc: JLS 25 §5.1.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.2); the range widens, not the precision.
+- *"Widening is always safe."* `int` → `float` and `long` → `float`/`double` drop low-order digits [Doc: JLS 25 §5.1.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.2); the range widens, not the precision. The word "widening" suggests nothing is lost.
 - *"Dividing by zero always throws."* Only integer `/` and `%` throw; `1.0 / 0` is `Infinity` [Lab: NumericBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s02/NumericBehaviourTest.java). The myth generalizes from integers.
-- *"`b += 1` and `b = b + 1` are the same."* The compound form casts back to `byte`; the plain one does not compile [Doc: JLS 25 §15.26.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.26.2).
+- *"`b += 1` and `b = b + 1` are the same."* The compound form casts back to `byte`; the plain one does not compile [Doc: JLS 25 §15.26.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.26.2). The myth exists because the compound form is taught as shorthand.
 
 Questions that drill this section: [Q01.04](#q01-04), [Q01.05](#q01-05), [Q01.06](#q01-06); exercise [Exercise 01.1](#ex01-1).
-<!-- /TASK: SEC-M01-02 -->
 
 ## 3. Lexical structure, operators and control flow
-<!-- TASK: SEC-M01-03 -->
 ### The problem it solves
 
 `if (order != null & order.isPaid())` throws `NullPointerException` for a null order: single `&` evaluates both sides. A binary search's `(low + high) / 2` turns negative once both indexes pass `Integer.MAX_VALUE / 2`. Both compile and pass small tests; the bug is in the operator rules.
@@ -275,7 +275,7 @@ What to notice: `&` has no skipping edge, so both sides always run.
 
 ### How it actually works
 
-**Lexical rules.** An identifier is a "Java letter" followed by letters or digits, where a Java letter is any character `Character.isJavaIdentifierStart` accepts, so `café` is legal; `$` and `_` count as letters [Doc: JLS 25 §3.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.8). Reserved keywords, including the unused `const` and `goto` and `_`, are never identifiers; nor are the literals `true`, `false` and `null`. **Contextual keywords** (`var`, `record`, `yield`, `sealed`, `permits`…) are keywords only where the grammar expects them: a variable may be named `record`, but no class may be named `var` [Doc: JLS 25 §3.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.9). In the lab, `var`, `record`, `yield`, `café` and `sizeof` (not a Java word) compile as local names, `goto`, `const`, `null` and `true` fail with `compiler.err.expected`, and `class var {}` fails with `compiler.err.restricted.type.not.allowed` [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java). Since Java 22, `_` declares an **unnamed variable** (never read): in the lab, `int _ = 1;` compiles and `return _;` fails with `compiler.err.use.of.underscore.not.allowed.non.variable`, unnamed patterns in [07](07-java-modern-language-features.md).
+**Lexical rules.** An identifier is a "Java letter" followed by letters or digits, where a Java letter is any character `Character.isJavaIdentifierStart` accepts, so `café` is legal; `$` and `_` count as letters [Doc: JLS 25 §3.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.8). Reserved keywords, including the unused `const` and `goto` and `_`, are never identifiers; nor are the literals `true`, `false` and `null`. **Contextual keywords** (`var`, `record`, `yield`, `sealed`, `permits`…) are keywords only where the grammar expects them: a variable may be named `record`, but no class may be named `var` [Doc: JLS 25 §3.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.9). In the lab, `var`, `record`, `yield`, `café` and `sizeof` (not a Java word) compile as local names, `goto`, `const`, `null` and `true` fail with `compiler.err.expected`, and `class var {}` fails with `compiler.err.restricted.type.not.allowed` [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java). Since Java 22, `_` declares an **unnamed variable** (never read): in the lab, `int _ = 1;` compiles and `return _;` fails with `compiler.err.use.of.underscore.not.allowed.non.variable` [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java); unnamed patterns in [07](07-java-modern-language-features.md).
 
 Naming conventions are custom, not grammar [Doc: Oracle Code Conventions, naming](https://www.oracle.com/java/technologies/javase/codeconventions-namingconventions.html):
 
@@ -289,11 +289,11 @@ Naming conventions are custom, not grammar [Doc: Oracle Code Conventions, naming
 
 **Precedence and evaluation order.** Precedence decides grouping: postfix, unary, multiplicative, additive, shift, relational, equality, `&`, `^`, `|`, `&&`, `||`, `?:`, then assignment [Doc: Java Tutorials, Operators](https://docs.oracle.com/javase/tutorial/java/nutsandbolts/operators.html). Assignment groups right to left, so `a = b = 3` assigns `b` first [Doc: JLS 25 §15.26](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.26). Grouping is not order: the left operand is fully evaluated first [Doc: JLS 25 §15.7.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.7.1), so in the lab, with `i = 1`, `i + (i = 5)` is 6 [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java).
 
-**Boolean and conditional operators.** `&&` evaluates its right operand only if the left is `true`, `||` only if `false` [Doc: JLS 25 §15.23](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.23); `&` and `|` always evaluate both, as the lab's call counter shows [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java). Prefix `++i` yields the new value, postfix `i++` the old ([Q01.07](#q01-07)). The conditional `c ? x : y` has one type for both branches: with `int` and `double` operands, numeric promotion makes it `double`, so `true ? 1 : 2.0` is `1.0` [Doc: JLS 25 §15.25.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.25.2). Unboxing a `null` there throws ([§13](#13-wrappers-autoboxing-and-the-integer-cache)).
+**Boolean and conditional operators.** `&&` evaluates its right operand only if the left is `true`, `||` only if `false` [Doc: JLS 25 §15.23](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.23), [§15.24](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.24); `&` and `|` always evaluate both, as the lab's call counter shows [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java). Prefix `++i` yields the new value, postfix `i++` the old ([Q01.07](#q01-07)). The conditional `c ? x : y` has one type for both branches: with `int` and `double` operands, numeric promotion makes it `double`, so `true ? 1 : 2.0` is `1.0` [Doc: JLS 25 §15.25.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.25.2). Unboxing a `null` there throws ([§13](#13-wrappers-autoboxing-and-the-integer-cache)).
 
-**Bitwise and shift operators.** `&`, `|`, `^`, `~` work bit by bit on integers [Doc: JLS 25 §15.22.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.22.1). `>>` shifts right copying the sign bit, `>>>` filling zeros. Only the low five bits of the distance count for an `int`, six for a `long` [Doc: JLS 25 §15.19](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.19). In the lab, `-8 >> 1` is -4, `-8 >>> 1` is 2,147,483,644, `1 << 32` is 1 and `1L << 32` is 4,294,967,296 [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java).
+**Bitwise and shift operators.** `&`, `|`, `^`, `~` work bit by bit on integers [Doc: JLS 25 §15.22.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.22.1), [§15.15.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.15.5). `>>` shifts right copying the sign bit, `>>>` filling zeros. Only the low five bits of the distance count for an `int`, six for a `long` [Doc: JLS 25 §15.19](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.19). In the lab, `-8 >> 1` is -4, `-8 >>> 1` is 2,147,483,644, `1 << 32` is 1 and `1L << 32` is 4,294,967,296 [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java).
 
-**Control flow.** `break` and `continue` act on the innermost loop (`break` also on `switch`), or with a label on an enclosing statement [Doc: JLS 25 §14.15](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.15), [§14.16](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.16). Every `case` constant must be a constant expression or an enum constant name [Doc: JLS 25 §14.11.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1); selectors may be `String` or enum. Without `break`, a colon-form `switch` falls through [Doc: JLS 25 §14.11.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.3); the lab asserts both. Arrow-form `switch` and switch expressions belong to [07](07-java-modern-language-features.md).
+**Control flow.** `break` and `continue` act on the innermost loop (`break` also on `switch`), or with a label on an enclosing statement [Doc: JLS 25 §14.15](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.15), [§14.16](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.16). Every `case` constant must be a constant expression or an enum constant name [Doc: JLS 25 §14.11.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1); selectors may be `String` or enum. Without `break`, a colon-form `switch` falls through [Doc: JLS 25 §14.11.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.3); the lab asserts the fall-through [Lab: OperatorBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s03/OperatorBehaviourTest.java) and rejects a non-constant label [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java). Arrow-form `switch` and switch expressions belong to [07](07-java-modern-language-features.md).
 
 ### Code
 
@@ -349,17 +349,15 @@ In the lab, `naive(MAX - 1, MAX)` is negative and `of(MAX - 1, MAX)` is `MAX - 1
 - *"Higher precedence runs first."* Precedence groups; operands run left to right, so `a()` runs first in `a() + b() * c()` [Doc: JLS 25 §15.7.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.7.3). The myth comes from side-effect-free school arithmetic.
 
 Questions that drill this section: [Q01.07](#q01-07), [Q01.08](#q01-08), [Q01.09](#q01-09).
-<!-- /TASK: SEC-M01-03 -->
 
 ## 4. Classes, objects, references and pass-by-value
-<!-- TASK: SEC-M01-04 -->
 ### The problem it solves
 
 A pricing service starts each order with `Basket order = defaults; order.add(item);`. From the second request on, every order carries the previous customers' items: the assignment copied a reference, not the basket. The same misunderstanding produces "my method reassigned the parameter but the caller saw nothing".
 
 ### Mental model
 
-A class is a blueprint plus behaviour; an object is one house built from it on the heap ([08](08-jvm-memory-and-class-loading.md)). A reference variable holds a card with the house's address. Passing an argument photocopies the card: the method can repaint the house, but rewriting its own card changes nothing in the caller's hand.
+A class is a blueprint plus behavior; an object is one house built from it on the heap ([08](08-jvm-memory-and-class-loading.md)). A reference variable holds a card with the house's address. Passing an argument photocopies the card: the method can repaint the house, but rewriting its own card changes nothing in the caller's hand.
 
 ```mermaid
 flowchart LR
@@ -450,17 +448,15 @@ In the lab, filling `new Basket(defaults)` leaves `defaults` unchanged, while fi
 
 - *"Java passes objects by reference."* It passes references by value, so `swap` cannot work [Lab: PassByValueTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s04/PassByValueTest.java). The myth exists because mutation through a parameter is visible.
 - *"`b = a` copies the object."* Both names reach one object [Lab: BasketTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s04/BasketTest.java); the myth comes from primitives, where assignment copies the value.
-- *"Locals default like fields."* Only fields and array components get defaults [Doc: JLS 25 §4.12.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.5).
+- *"Locals default like fields."* Only fields and array components get defaults [Doc: JLS 25 §4.12.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.5). The myth generalizes from fields, which every new object gets.
 - *"A method cannot take its class's name."* With a return type it is a method; in the lab javac does not warn even under `-Xlint:all` [Lab: ReferenceBehaviourTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s04/ReferenceBehaviourTest.java). The myth comes from IDE inspections.
 
 Questions that drill this section: [Q01.10](#q01-10), [Q01.11](#q01-11).
-<!-- /TASK: SEC-M01-04 -->
 
 ## 5. Constructors and initialization order
-<!-- TASK: SEC-M01-05 -->
 ### The problem it solves
 
-A catalogue service labels every product `widget@0`. The superclass constructor builds the label by calling `describe()`, the subclass overrides it to show the price, and the price field is assigned only after the superclass constructor returns. It compiled; the object was read before being built. Knowing what `new` runs, and in what order, prevents this.
+A catalogue service labels every product `widget@0`. The superclass constructor builds the label by calling `describe()`, the subclass overrides it ([§8](#8-polymorphism-overloading-overriding-and-dispatch)) to show the price, and the price field is assigned only after the superclass constructor returns. It compiled; the object was read before being built. Knowing what `new` runs, and in what order, prevents this.
 
 ### Mental model
 
@@ -580,15 +576,13 @@ In the lab `new LateWidget(250).label()` is `widget@0`, `new EarlyWidget(250).la
 ### Misconceptions and traps
 
 - *"Every class has a no-argument constructor."* Only one that declares none [Doc: JLS 25 §8.8.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.9); adding a constructor with parameters breaks `new P()` and every subclass relying on the implicit `super()` [Lab: ConstructorRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s05/ConstructorRulesTest.java). The myth comes from small classes that never declared one.
-- *"Constructors are inherited."* They are not members [Doc: JLS 25 §8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.2); a subclass declares its own and chains.
+- *"Constructors are inherited."* They are not members [Doc: JLS 25 §8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.2); a subclass declares its own and chains. The myth exists because `super(…)` calls look like inherited calls.
 - *"Field initializers run before the superclass constructor."* They run after it returns [Lab: InitOrderTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s05/InitOrderTest.java); only the Java 25 prologue runs earlier. The myth comes from reading the class top to bottom.
-- *"Static blocks run on every `new`."* Once, on first use [Lab: InitOrderTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s05/InitOrderTest.java).
+- *"Static blocks run on every `new`."* Once, on first use [Lab: InitOrderTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s05/InitOrderTest.java). The myth confuses them with instance initializer blocks, which look alike and do run on every `new`.
 
 Questions that drill this section: [Q01.12](#q01-12), [Q01.13](#q01-13), [Q01.14](#q01-14).
-<!-- /TASK: SEC-M01-05 -->
 
 ## 6. Packages, access control and encapsulation
-<!-- TASK: SEC-M01-06 -->
 ### The problem it solves
 
 A team adds `Wallet.setBalance(long)` "for tests". A month later a refund job sets a negative balance and the ledger stops reconciling: with a setter on every field, no class owned the rule "never below zero". Access control lets one class own a rule.
@@ -676,16 +670,14 @@ In the lab an overdraft throws `IllegalStateException` and leaves the balance un
 
 ### Misconceptions and traps
 
-- *"`protected` means subclasses only."* It also grants package access [Doc: JLS 25 §6.6.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.6.1), so it is wider than no modifier [Lab: AccessRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s06/AccessRulesTest.java).
-- *"A subclass can use a `protected` member on any parent instance."* Only through its own type, outside the package [Lab: AccessRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s06/AccessRulesTest.java).
-- *"`import java.util.*` also imports `java.util.function`."* Subpackages are separate packages [Doc: JLS 25 §7.5.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-7.html#jls-7.5.2).
-- *"Encapsulation means a getter and setter per field."* That exposes the field with extra steps.
+- *"`protected` means subclasses only."* It also grants package access [Doc: JLS 25 §6.6.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.6.1), so it is wider than no modifier [Lab: AccessRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s06/AccessRulesTest.java). The myth reads the keyword as "for subclasses".
+- *"A subclass can use a `protected` member on any parent instance."* Only through its own type, outside the package [Lab: AccessRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s06/AccessRulesTest.java). The myth stops at the first rule, "subclasses can see it".
+- *"`import java.util.*` also imports `java.util.function`."* Subpackages are separate packages [Doc: JLS 25 §7.5.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-7.html#jls-7.5.2). Dotted names look nested, but the hierarchy has no meaning in the language [Doc: JLS 25 §7.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-7.html#jls-7.1).
+- *"Encapsulation means a getter and setter per field."* That exposes the field with extra steps. The myth comes from JavaBeans tools, which find properties through accessors.
 
 Questions that drill this section: [Q01.15](#q01-15), [Q01.16](#q01-16).
-<!-- /TASK: SEC-M01-06 -->
 
 ## 7. Inheritance, composition and `Object`
-<!-- TASK: SEC-M01-07 -->
 ### The problem it solves
 
 A team counts how many elements reach a cache, so it extends `HashSet` and increments a counter in both `add` and `addAll`. After `addAll` of three names the counter says 6 [Lab: CountingSetsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s07/CountingSetsTest.java). The subclass broke on a detail of how its parent implements an inherited method.
@@ -714,13 +706,16 @@ classDiagram
         +add(e) count++
         +addAll(c) count += size
     }
-    AbstractCollection <|-- HashSet
+    class AbstractSet
+    AbstractCollection <|-- AbstractSet
+    AbstractSet <|-- HashSet
     HashSet <|-- CountingHashSet
+    AbstractSet <|-- CountingSet
     Set <|.. CountingSet
     CountingSet o-- Set : forwards to
 ```
 
-What to notice: the inherited `addAll` calls `add` back on the subclass, so each element counts twice; the wrapper's delegate calls its own `add`, never the wrapper's.
+What to notice: the inherited `addAll` calls `add` back on the subclass, so each element counts twice; the wrapper's delegate calls its own `add`, never the wrapper's. The wrapper extends `AbstractSet` too, but safely: that class exists as a skeleton for implementers [Doc: AbstractSet](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/AbstractSet.html), and the wrapper overrides `addAll` to forward, so no inherited method calls back into it.
 
 ### How it actually works
 
@@ -822,14 +817,12 @@ In the lab the wrapper reports 3 after `addAll` of three elements, where the `Ha
 
 - *"A subclass overrides the parent's fields."* They are hidden and chosen by the static type; only instance methods override. The shared `obj.name` syntax suggests otherwise.
 - *"A class is a subclass of itself."* Not in the JLS; the myth comes from `isAssignableFrom`.
-- *"Implementing `Cloneable` gives a class a public `clone()`."* It declares nothing; it only lets `Object.clone` copy instead of throw, and the class must still override `clone` as public.
-- *"Interfaces extend `Object`."* They have no superclass; they implicitly declare its public methods.
+- *"Implementing `Cloneable` gives a class a public `clone()`."* It declares nothing; it only lets `Object.clone` copy instead of throw, and the class must still override `clone` as public. The name reads like "can be cloned".
+- *"Interfaces extend `Object`."* They have no superclass; they implicitly declare its public methods. The myth exists because `equals` and `toString` work on any interface reference.
 
 Questions that drill this section: [Q01.17](#q01-17), [Q01.18](#q01-18).
-<!-- /TASK: SEC-M01-07 -->
 
 ## 8. Polymorphism: overloading, overriding and dispatch
-<!-- TASK: SEC-M01-08 -->
 ### The problem it solves
 
 A billing job charges a 2% card fee through two overloads, `FeeTable.feeCents(Payment)` and `FeeTable.feeCents(CardPayment)`. It loops over a `List<Payment>`, and every card pays 0. The same card passed through a `CardPayment` variable pays 200 cents [Lab: FeeDispatchTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/FeeDispatchTest.java). Overloads never look at the object.
@@ -865,9 +858,9 @@ Among several applicable methods the most specific wins, chosen at compile time 
 
 A `private` method is not inherited ([§7](#7-inheritance-composition-and-object)), so a subclass method of the same name is a new method. Matching after erasure belongs to [03](03-java-generics.md).
 
-**Dispatch in the JVM.** javac emits one of four instructions: `invokestatic` for static methods, `invokespecial` for constructors and `super.m()`, `invokevirtual` for class methods, `invokeinterface` for interface methods [Lab: BytecodeDispatchTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/BytecodeDispatchTest.java). For the last two, the JVM selects a method from the receiver's runtime class: a private resolved method is used as is; otherwise it searches the class, then its superclasses, then the maximally specific superinterface methods [Doc: JVMS 25 §5.4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4.6). [Changed in Java 11: calls to private methods use `invokevirtual`] for nest-based access [Doc: JEP 181](https://openjdk.org/jeps/181), yet they are still never dispatched.
+**Dispatch in the JVM.** javac emits one of four instructions: `invokestatic` for static methods, `invokespecial` for constructors and `super.m()`, `invokevirtual` for class methods, `invokeinterface` for interface methods [Lab: BytecodeDispatchTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/BytecodeDispatchTest.java). For the last two, the JVM selects a method from the receiver's runtime class: a private resolved method is used as is; otherwise it searches the class, then its superclasses, then the maximally specific superinterface methods [Doc: JVMS 25 §5.4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4.6). Since Java 11, javac compiles calls to private instance methods of a class with `invokevirtual` [Doc: JEP 181](https://openjdk.org/jeps/181), yet they are still never dispatched (Version notes below).
 
-The specification fixes the selection rule, not a data structure. HotSpot implements it with a virtual method table (vtable) per class and interface tables (itables) [Src: HotSpot `klassVtable.hpp`, jdk-25-ga](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/oops/klassVtable.hpp). How the JIT removes the lookup (inlining, devirtualization) is module [10](10-jvm-performance-and-troubleshooting.md)'s topic.
+The specification fixes the selection rule, not a data structure. HotSpot (the OpenJDK virtual machine) implements it with a virtual method table (vtable) per class and interface tables (itables) [Src: HotSpot `klassVtable.hpp`, jdk-25-ga](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/oops/klassVtable.hpp). How the JIT removes the lookup (inlining, devirtualization) is module [10](10-jvm-performance-and-troubleshooting.md)'s topic.
 
 **Casts change the static type only.** A cast to an interface compiles unless the class is `final` and does not implement it (`compiler.err.prob.found.req`); otherwise the JVM checks it and throws `ClassCastException` [Doc: JLS 25 §5.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.5) [Lab: CastRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/CastRulesTest.java). Test with `instanceof` first; the pattern form belongs to [07](07-java-modern-language-features.md).
 
@@ -922,6 +915,15 @@ public final class CardPayment extends Payment {
 
 In the lab, the same `List<Payment>` now yields fees of 0 and 200 cents [Lab: FeeDispatchTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/FeeDispatchTest.java).
 
+### Failure modes and operations
+
+- **A new overload does not reach compiled callers.** The signature each call uses was fixed when the caller was compiled, so a library that adds a more specific overload changes nothing for existing binaries; no overload resolution happens at run time [Doc: JLS 25 §13.4.23](https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.4.23). The caller's next build may pick the new method, or fail as ambiguous. Evidence: `javap -c` on the caller names the old method descriptor. Prevention: rebuild dependents when a library's overloads change, and treat an added overload as an API change.
+- **A wrong downcast fails late.** It compiles and throws `ClassCastException` at run time [Lab: CastRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/CastRulesTest.java). The stack trace points at the cast, but the bug is wherever the wrong subtype entered the collection or the API, so trace the value back to its source.
+- **Load.** Dispatch takes no lock, queues nothing and allocates nothing, so it has no failure that grows with traffic; its cost per call, and how the JIT removes it, is module [10](10-jvm-performance-and-troubleshooting.md)'s topic.
+
+> [!NOTE]
+> **Version notes.** Java 8 to 10: private instance methods were called with `invokespecial` [Doc: JVMS 8 §6.5 invokespecial](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.invokespecial), and a nested class reached its outer class's private members through compiler-generated bridge methods [Doc: JEP 181](https://openjdk.org/jeps/181) · Java 11: [Changed in Java 11: nestmates access each other's private members directly; private instance methods are called with `invokevirtual` in a class and `invokeinterface` in an interface] [Doc: JEP 181](https://openjdk.org/jeps/181). Selection still uses the private method itself [Doc: JVMS 25 §5.4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4.6).
+
 ### Best practices and anti-patterns
 
 - Put `@Override` on every override, because a wrong parameter type otherwise compiles silently as an overload.
@@ -933,14 +935,12 @@ In the lab, the same `List<Payment>` now yields fees of 0 and 200 cents [Lab: Fe
 - *"An override must return exactly the same type."* It may return a subtype. The myth borrows the overloading rule, where the return type plays no part.
 - *"Static methods can be overridden."* They are hidden; the reference type decides, so `Parent p = new Child(); p.kind()` runs the parent's. Calling through an instance hides this.
 - *"Overriding can happen inside one class."* It needs a subclass or an implemented interface; overloading is the one that can live in one class.
-- *"A private call is dispatched, because it compiles to `invokevirtual`."* The JVM selects the private method itself.
-- *"A cast converts the object."* It changes only the static type; a wrong cast throws `ClassCastException`.
+- *"A private call is dispatched, because it compiles to `invokevirtual`."* The JVM selects the private method itself. The myth reads the opcode name, not the selection rule.
+- *"A cast converts the object."* It changes only the static type; a wrong cast throws `ClassCastException`. Primitive casts do convert, and the myth carries that over to references.
 
 Questions that drill this section: [Q01.13](#q01-13), [Q01.18](#q01-18), [Q01.19](#q01-19), [Q01.20](#q01-20), [Q01.21](#q01-21).
-<!-- /TASK: SEC-M01-08 -->
 
 ## 9. Abstract classes and interfaces
-<!-- TASK: SEC-M01-09 -->
 ### The problem it solves
 
 Two report exporters copy the same loop: write the title, write each row, count the export. A fix lands in one copy, and the reports drift apart. An interface cannot hold the counter, because its fields are constants, and a base class cannot serve unrelated classes that already have a parent. Java splits the job: an abstract class shares state and a fixed algorithm; an interface adds a type to unrelated classes.
@@ -1113,10 +1113,8 @@ Adding a default to a published interface does not break old binaries at link ti
 - *"A marker interface tells the compiler what to do."* In the JDK cases above, library code checks it at run time; `implements` only looks like a compile-time instruction.
 
 Questions that drill this section: [Q01.22](#q01-22), [Q01.23](#q01-23), [Q01.24](#q01-24).
-<!-- /TASK: SEC-M01-09 -->
 
 ## 10. `static`, `final` and constants
-<!-- TASK: SEC-M01-10 -->
 ### The problem it solves
 
 A test passes alone and fails after another test, because both touched one `static` counter. A library raises a constant, and a service that was not rebuilt keeps the old value. Both bugs come from misjudging what `static` shares and what `final` freezes.
@@ -1132,6 +1130,8 @@ flowchart TD
     B -- no --> D["caller reads the field at run time"]
 ```
 
+What to notice: only the "yes" branch freezes the value into the caller, so changing it later reaches no caller until that caller is recompiled.
+
 ### How it actually works
 
 **Class vs instance.** A `static` field has exactly one incarnation, however many instances exist [Doc: JLS 25 §8.3.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.3.1.1). It lives while its class stays loaded, and a class unloads only when its defining loader can be reclaimed [Doc: JLS 25 §12.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.7) (→ [08](08-jvm-memory-and-class-loading.md)). A `static` method has no current object, so `this`, `super` and unqualified instance fields are prohibited [Doc: JLS 25 §8.4.3.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.3.2); javac reports `compiler.err.non-static.cant.be.ref` [Lab: StaticFinalRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/StaticFinalRulesTest.java). Use the class name: through a reference, only the compile-time type picks the field, and `null` throws nothing [Doc: JLS 25 §15.11.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.11.1).
@@ -1142,12 +1142,16 @@ flowchart TD
 
 ### Code
 
-`Tax` applies that pattern.
+Approach: keep a value that never changes in a constant, then show in the lab that javac copies it into the caller.
+
+1. Declare `RATE_PERCENT` `public static final int` with a literal initializer, so it is a constant variable.
+2. Make `Tax` `final` with a private constructor, as `Math` does, because a holder of constants and static functions has nothing to instantiate or extend.
+3. In the test, compile a class `A` with a constant and a caller `B`, recompile only `A` with a new value, and read the value through `B`.
 
 ```java
 package dev.interview.javalanguage.m01.s10;
 
-// Module 01 §10: RATE_PERCENT is a literal-initialised constant, so javac inlines it into callers; the private
+// Module 01 §10: RATE_PERCENT is a literal-initialized constant, so javac inlines it into callers; the private
 // constructor and final class stop anyone instantiating or subclassing a pure utility, as with java.lang.Math.
 public final class Tax {
 
@@ -1165,7 +1169,28 @@ public final class Tax {
 ```
 <sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m01/s10/Tax.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m01/s10/Tax.java)</sub>
 
-Tests: [Lab: TaxTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/TaxTest.java).
+Tests: [Lab: TaxTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/TaxTest.java). Step 3 is the section's central mechanism. The helper `overlayRecompiledA` compiles `A` and `B` together, compiles a second `A` alone, and puts the new `A.class` next to the old `B.class`, as a deployment that upgrades only the library would:
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/ConstantInliningTest.java
+private static final String B_SOURCE = "public class B { public static int read() { return A.VALUE; } }";
+private static final String A_LITERAL_V1 = "public class A { public static final int VALUE = 1; }";
+private static final String A_LITERAL_V2 = "public class A { public static final int VALUE = 2; }";
+
+@Test
+@DisplayName("M01 §10 · constant inlined: changing it without recompiling the caller keeps the old value")
+void read_returnsOldValue_whenTheConstantChangedAndTheCallerWasNotRecompiled() throws Exception {
+    var stale = overlayRecompiledA(A_LITERAL_V1, A_LITERAL_V2);
+
+    Object fromCaller = stale.load(B_NAME).getMethod(READ).invoke(null);
+    Object fromDefiningClass = stale.load(A_NAME).getField(FIELD).get(null);
+
+    assertThat(fromCaller).isEqualTo(OLD_VALUE);
+    assertThat(fromDefiningClass).isEqualTo(NEW_VALUE);
+}
+```
+
+`B` returns 1 while `A.VALUE` is 2 [Lab: ConstantInliningTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/ConstantInliningTest.java): `B.read()` holds the literal itself, with no reference to the field `A.VALUE` [Doc: JLS 25 §13.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.1). `javap -c B` makes that visible: the body of `read` is `bipush` with the value, then `ireturn`, where a non-constant field would give `getstatic A.VALUE`.
 
 ### Failure modes and operations
 
@@ -1173,7 +1198,7 @@ Changing a `static` constant does not stop old binaries running, but they see no
 
 > [!IMPORTANT]
 > **Production scenario: a constant changed in a shared library but one service still behaves the old way.** *As the interviewer frames it:* "We shipped the new library; one service still uses the old limit."
-> **Reasoning.** The service's class file holds the old value, so the new JAR is never consulted [Doc: JLS 25 §13.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.1). Rebuild it against the new library.
+> **Reasoning.** The service's class file holds the old value, so the new JAR is never consulted [Doc: JLS 25 §13.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.1). Evidence: `javap -c` on the service's class shows the old literal where a field read (`getstatic`) would be, and the service was not rebuilt after the library release. Fix: rebuild it against the new library. Prevention: rebuild every dependent when a shared library changes, and expose values that may change through a method instead of a `public static final` constant [Doc: JLS 25 §13.4.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.4.9).
 
 ### Best practices and anti-patterns
 
@@ -1184,15 +1209,13 @@ Changing a `static` constant does not stop old binaries running, but they see no
 ### Misconceptions and traps
 
 - *"`final` makes the object immutable."* It fixes the reference; the object can still change [Lab: StaticFinalRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/StaticFinalRulesTest.java). The name suggests more.
-- *"Every `static final` is a constant."* A `List`, or a value from a method call, is read at run time.
-- *"Static variables live as long as the application."* They live while the class stays loaded.
-- *"`final` defeats OOP."* It closes one extension point; interfaces and composition stay open.
+- *"Every `static final` is a constant."* A `List`, or a value from a method call, is read at run time. The myth exists because `static final` reads like C's `const`.
+- *"Static variables live as long as the application."* They live while the class stays loaded. With one class loader the two lifetimes coincide, which feeds the myth.
+- *"`final` defeats OOP."* It closes one extension point; interfaces and composition stay open. The myth treats inheritance as the only way to extend code.
 
 Questions that drill this section: [Q01.25](#q01-25).
-<!-- /TASK: SEC-M01-10 -->
 
 ## 11. Nested types
-<!-- TASK: SEC-M01-11 -->
 ### The problem it solves
 
 A report screen registers a listener on an application-wide event bus, then closes. The listener reads the screen's title, so it was written as an inner class, and every closed screen stays in memory because the bus still reaches it. Nesting keeps a helper beside the class it serves; the kind you choose decides whether it drags its creator along.
@@ -1209,11 +1232,13 @@ flowchart LR
     Nested --> Data["title and log only"]
 ```
 
+What to notice: only the inner listener has an arrow to the screen, so the bus keeps the closed screen alive through it.
+
 ### How it actually works
 
 **Kinds.** A *nested class* is declared inside another class. An *inner class* is a nested class that is not `static`: a non-static member class, a local class, or an anonymous class [Doc: JLS 25 §8.1.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.3). Member classes may be `public`, `protected`, `private` or `static` [Doc: JLS 25 §8.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.1). Local classes may not carry those modifiers, and local records, enums and interfaces are implicitly `static` [Doc: JLS 25 §14.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.3).
 
-**Creation.** `new Outer.Nested()` needs no outer object; `outer.new Inner()` makes `outer` the enclosing instance [Doc: JLS 25 §15.9.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.2). [Lab: NestedTypesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s11/NestedTypesTest.java).
+**Creation.** `new Outer.Nested()` needs no outer object; `outer.new Inner()` makes `outer` the enclosing instance [Doc: JLS 25 §15.9.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.2) [Lab: NestedTypesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s11/NestedTypesTest.java).
 
 **Capture.** A local used inside an inner class must be final or effectively final (never reassigned) [Doc: JLS 25 §8.1.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.3). Reassign it, and local and anonymous classes both fail with `compiler.err.cant.ref.non.effectively.final.var` [Lab: NestedTypeCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s11/NestedTypeCompileRulesTest.java).
 
@@ -1316,11 +1341,9 @@ An object stays alive while a strong path reaches it ([08](08-jvm-memory-and-cla
 - *"Inner classes cannot have static members."* Once true: until Java 15, only constants. Now: any member.
 - *"A local class lives only while its method runs."* That is the name's scope; instances can outlive the call.
 
-Questions that drill this section: [Q01.26](#q01-26), [Exercise 01.3](#exercise-013--repair-a-leaky-fragile-listener-registry).
-<!-- /TASK: SEC-M01-11 -->
+Questions that drill this section: [Q01.26](#q01-26), [Exercise 01.3](#ex01-3).
 
 ## 12. Enums
-<!-- TASK: SEC-M01-12 -->
 ### The problem it solves
 
 Order code stores a discount as the `int` 2 or the `String` `"TEN"`. Nothing stops 7 or `"TNE"`, and every caller repeats the same `if` chain. An enum closes the set of values and gives each value its own behavior.
@@ -1335,7 +1358,7 @@ flowchart TD
     Discount --> Bodies["one anonymous final class per constant body"]
 ```
 
-Notice: only constants with bodies get subclasses.
+What to notice: only constants with bodies get subclasses.
 
 ### How it actually works
 
@@ -1412,7 +1435,7 @@ Tests: [Lab: EnumsTest](../labs/java-language/src/test/java/dev/interview/javala
 
 ### Failure modes and operations
 
-`ordinal()` follows declaration order [Lab: EnumsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s12/EnumsTest.java), so inserting or reordering constants remaps stored numbers: old rows can decode wrongly with no exception, so only data checks reveal it. JPA: [23](23-jpa-hibernate-fundamentals.md).
+`ordinal()` follows declaration order [Lab: EnumsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s12/EnumsTest.java), so inserting or reordering constants remaps stored numbers: old rows can decode wrongly with no exception, so only data checks reveal it. JPA (Jakarta Persistence, the Java object-relational mapping standard): [23](23-jpa-hibernate-fundamentals.md).
 
 ### Best practices and anti-patterns
 
@@ -1427,11 +1450,9 @@ Tests: [Lab: EnumsTest](../labs/java-language/src/test/java/dev/interview/javala
 - *"A constant body means anyone can subclass."* It is sealed to those bodies; "not final" misleads.
 - *"Enum singletons are exotic."* A one-constant enum inherits these guarantees ([51](51-design-principles-and-patterns.md)); classic singletons get taught first.
 
-Questions that drill this section: [Q01.27](#q01-27), [Exercise 01.2](#exercise-012--shipping-rules-as-an-enum-with-behaviour).
-<!-- /TASK: SEC-M01-12 -->
+Questions that drill this section: [Q01.27](#q01-27), [Exercise 01.2](#ex01-2).
 
 ## 13. Wrappers, autoboxing and the `Integer` cache
-<!-- TASK: SEC-M01-13 -->
 ### The problem it solves
 
 A primitive is not an object, yet `List<int>` does not compile: type arguments must be reference types [Doc: JLS 25 §4.5.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1). Interview answers to why Java is "not 100% object-oriented" usually start here, then add static members. Wrappers carry primitives into generics and collections, and they bring two things `int` never had: identity and `null`.
@@ -1447,7 +1468,7 @@ flowchart LR
     N["null"] -- "unboxing" --> X["NullPointerException"]
 ```
 
-Notice: the only arrow that can fail at run time starts at `null`.
+What to notice: the only arrow that can fail at run time starts at `null`.
 
 ### How it actually works
 
@@ -1518,32 +1539,33 @@ A `Long` accumulator unboxes and reboxes on every `+=`, and above 127 `valueOf` 
 
 > [!IMPORTANT]
 > **Production scenario: order lookup works in tests and fails for real customers.** *As the interviewer frames it:* "All tests pass. In production, lookups return nothing for almost every customer, with no exception."
-> **Reasoning.** Test fixtures use ids like 1 and 2, inside the `Long` cache, so `==` on two `Long` objects sees one shared instance. Real ids exceed 127, so each boxing makes a new object [Lab: WrappersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrappersTest.java). Replace `==` with `equals`, and use fixture ids above 127.
+> **Reasoning.** Test fixtures use ids like 1 and 2, inside the `Long` cache, so `==` on two `Long` objects sees one shared instance. Real ids exceed 127, so each boxing makes a new object [Lab: WrappersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrappersTest.java). Evidence: the failing lookups are exactly the ids above 127, and the same lookup with id 100 succeeds; the comparison is `==` on two `Long` values. Fix: replace `==` with `equals`. Prevention: use fixture ids above 127.
 
 ### Best practices and anti-patterns
 
 - Use primitives for fields and locals that are never absent, because they cannot be `null` and carry no identity.
 - Compare wrappers with `equals`, because `==` works only by accident of the cache.
 - Keep the type on both sides of `equals`, because `Long.valueOf(1).equals(1)` is `false`: the argument boxes to `Integer` [Lab: WrappersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrappersTest.java).
-- Call `valueOf` or rely on boxing, because the wrapper constructors are deprecated since Java 9 [Src: JDK 25, java.lang.Integer].
+- Call `valueOf` or rely on boxing, because the wrapper constructors are deprecated [Deprecated since Java 9 — use valueOf] [Src: JDK 25, java.lang.Integer].
 
 ### Misconceptions and traps
 
 - *"A `Byte` cannot be cast to `double`."* It can, by unboxing and then widening; only `(Double)` fails. Unboxing arrived in Java 5 [Doc: Autoboxing guide](https://docs.oracle.com/javase/1.5.0/docs/guide/language/autoboxing.html); some question banks still say no.
-- *"`Integer` 128 `==` 128 is always false."* The JLS allows sharing, and the flag above changes it; the fixed fact is that you may not rely on either result.
+- *"`Integer` 128 `==` 128 is always false."* The JLS allows sharing, and the flag above changes it; the fixed fact is that you may not rely on either result. HotSpot's default cache stops at 127, so demos always print `false`.
 - *"Assigning a ternary to `Integer` keeps it boxed."* The operands decide the type, not the target; the assignment looks safe, hence the myth.
 - *"`String` is a wrapper."* No primitive sits behind it; literals make it feel built in.
 
 Questions that drill this section: [Q01.28](#q01-28), [Exercise 01.1](#ex01-1).
-<!-- /TASK: SEC-M01-13 -->
 
 ## Summary
-<!-- TASK: CLOSE-M01 -->
-<!-- /TASK: CLOSE-M01 -->
+`javac` turns source into bytecode that any JVM of a recent enough release runs; the JVM itself is built per platform, and a class file newer than the JVM fails with `UnsupportedClassVersionError` (major version 69 is Java 25) ([§1](#1-how-java-runs)). Integer arithmetic wraps silently on overflow unless `Math.addExact` checks it, only integer `/` and `%` by zero throw, and money needs `BigDecimal` built from a `String`, not `double` ([§2](#2-primitive-types-conversions-and-overflow)). Precedence groups operators but operands evaluate left to right, `&&` skips its right side, compound assignment hides a narrowing cast, and `1 << 32` is 1 because the shift distance is masked ([§3](#3-lexical-structure-operators-and-control-flow)). Java passes every argument by value, references included, so `swap` cannot work but mutation through a parameter shows ([§4](#4-classes-objects-references-and-pass-by-value)).
+
+Class initialization runs once, on first use; then each `new` runs the superclass constructor before the subclass's field initializers, so an overridable call from a constructor sees default values ([§5](#5-constructors-and-initialization-order)). `protected` adds package access but, from another package, works only through the subclass's own type; encapsulation protects invariants, not fields one getter at a time ([§6](#6-packages-access-control-and-encapsulation)). Fields are hidden, not overridden, and a `HashSet` subclass that counts in both `add` and `addAll` double-counts; forwarding stops depending on the superclass's self-calls ([§7](#7-inheritance-composition-and-object)). Overloads are chosen at compile time from static types in three phases, overrides at run time from the object's class; static and private methods are never dispatched ([§8](#8-polymorphism-overloading-overriding-and-dispatch)).
+
+Interfaces carry type and behavior but no instance state; a class method beats a default, and two unrelated defaults force an override ([§9](#9-abstract-classes-and-interfaces)). `final` fixes a reference, not an object, and a compile-time constant is copied into its callers, so changing it means recompiling them ([§10](#10-static-final-and-constants)). An inner or anonymous class that uses its creator holds a hidden reference to it, which keeps the creator alive while a long-lived registry holds the listener ([§11](#11-nested-types)). An enum is a class whose constants can carry behavior; persist `name()`, not `ordinal()` ([§12](#12-enums)). `==` on wrappers compares references, so it matches cached values from -128 to 127 and is unreliable outside them, and unboxing `null`, even inside a ternary, throws `NullPointerException` ([§13](#13-wrappers-autoboxing-and-the-integer-cache)).
 
 ## Question bank
 
-<!-- TASK: QB-M01-01 -->
 <a id="q01-01"></a>
 ### Q01.01 · Concept · JDK, JRE and JVM: what each is, and what actually makes Java platform independent?
 <!-- ledger: honeywell-optum-md-01-05, core-java-240-01-08, core-java-240-01-12, core-java-240-01-10, core-java-pdf-01-04 -->
@@ -1576,7 +1598,7 @@ A reviewer rejects `void main() { … }` in a Java 25 class: "`main` must be `pu
 
 **Short answer (30 seconds).** No: on Java 25 any non-private `void main` with a `String[]` parameter or none can start a program, static or instance. Until Java 24 it had to be `public static void main(String[])`, and that form still wins when both exist.
 
-**Full explanation.** The old rule [Doc: JLS 8 §12.1.4](https://docs.oracle.com/javase/specs/jls/se8/html/jls-12.html#jls-12.1.4) (`String...` also qualified) fit a contract: `public` so outside code can call it, `static` so it runs before any object exists, `void` because the exit status comes from `System.exit(int)`. Java 25 keeps `void` and relaxes the rest [Doc: JLS 25 §12.1.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.1.4); an instance `main` needs a non-private no-argument constructor [Final since Java 25, JEP 512](https://openjdk.org/jeps/512). The lab runs both forms [Lab: LaunchProtocolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s01/LaunchProtocolTest.java).
+**Full explanation.** The old rule [Doc: JLS 8 §12.1.4](https://docs.oracle.com/javase/specs/jls/se8/html/jls-12.html#jls-12.1.4) (`String...` also qualified) has a rationale usually given for it: `public` so outside code can call it, `static` so it runs before any object exists, `void` because the exit status comes from `System.exit(int)`. Java 25 keeps `void` and relaxes the rest [Doc: JLS 25 §12.1.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.1.4); an instance `main` needs a non-private no-argument constructor [Final since Java 25, JEP 512](https://openjdk.org/jeps/512). The lab runs both forms [Lab: LaunchProtocolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s01/LaunchProtocolTest.java).
 
 **Follow-ups an interviewer will ask.**
 - *Must the file name match the class?* Only for a `public` top-level class. In the lab `public class Bar` in `Foo.java` fails with `compiler.err.class.public.should.be.in.file`; a non-public `Bar` compiles [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
@@ -1752,8 +1774,6 @@ Finance flags multi-line orders one cent above the provider's charge, though the
 
 The second row matches, confirming (1). For (3), the same test class shows `Math.round(1.005 * 100)` is 100, while `new BigDecimal("1.005")` rounds `HALF_UP` to 1.01.
 
-*Prevention:* golden-order tests with the provider's figures, and an alert on daily reconciliation mismatches.
-
 *Fix:* take the rule from the provider contract. The fix:
 
 **Code.**
@@ -1787,6 +1807,8 @@ public final class Q01_06 {
 }
 ```
 <sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_06.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_06.java)</sub>
+
+*Prevention and monitoring:* golden-order tests with the provider's figures, and an alert on daily reconciliation mismatches.
 
 **Follow-ups an interviewer will ask.**
 - *When is `HALF_EVEN` right?* It minimizes cumulative error over many calculations [Doc: Java 25 API](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/RoundingMode.html#HALF_EVEN), but the contract decides.
@@ -1891,105 +1913,1150 @@ System.out.println(small);
 **Full explanation.** The distance is masked with `0x1f` for an `int` and six bits for a `long` [Doc: JLS 25 §15.19](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.19), so 32 becomes 0, 33 becomes 1, and -1 becomes 31, which reaches the sign bit. `small >>> 4` shifts the `int` -1, 32 ones, and yields 268435455. `small >>>= 4` casts back to `byte`; the low 8 bits are still all ones, so it stays -1. The lab asserts every line [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
 
 **Follow-ups an interviewer will ask.**
-- *How do you shift a `byte` as unsigned?* Mask first: in the lab `(small & 0xFF) >>> 4` is 15.
-- *Is `x >> 1` the same as `x / 2`?* Not for negative odd values: in the lab `-7 >> 1` is -4 and `-7 / 2` is -3.
+- *How do you shift a `byte` as unsigned?* Mask first: in the lab `(small & 0xFF) >>> 4` is 15 [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
+- *Is `x >> 1` the same as `x / 2`?* Not for negative odd values: in the lab `-7 >> 1` is -4 and `-7 / 2` is -3 [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
 
 **Trap to avoid.** "`1 << 32` is 0 because the bit falls off." The distance is masked first, so nothing shifts.
 
 </details>
 
-<!-- /TASK: QB-M01-01 -->
 
-<!-- TASK: QB-M01-02 -->
 <a id="q01-09"></a>
 ### Q01.09 · Concept · Labels, `break`/`continue` and the rules for `switch` case labels
+<!-- ledger: core-java-pdf-02-18, core-java-pdf-02-50, core-java-pdf-02-57, core-java-pdf-03-72, core-java-pdf-02-61, core-java-pdf-01-51, core-java-pdf-02-23, core-java-240-06-22 -->
+
+A nested loop must skip the rest of a row past the diagonal and stop on the last row. Which statements do that, and what may a `case` label contain?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `continue outer` starts the next iteration of the labeled loop; `break outer` leaves it. A `case` constant is a unique compile-time constant or enum name; a `null` selector throws `NullPointerException`.
+
+**Full explanation.** A label's scope is the statement it labels [Doc: JLS 25 §14.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.7). `break label` works on any labeled statement, but the target of `continue label` must be a `while`, `do` or `for` [Doc: JLS 25 §14.16](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.16); in the lab, `continue` on a labeled block fails with `compiler.err.not.loop.label`. For case constants [Doc: JLS 25 §14.11.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1), a variable gives `compiler.err.const.expr.req` and a repeat `compiler.err.duplicate.case.label`. With no matching label, a `null` selector throws [Doc: JLS 25 §14.11.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.3). The lab asserts every line below [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_09.java
+public static void main(String[] args) {
+    outer:
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0; col < 3; col++) {
+            if (col > row) {
+                continue outer;
+            }
+            if (row == 2) {
+                break outer;
+            }
+            System.out.println(row + "," + col);
+        }
+    }
+    String plan = "pro";
+    switch (plan) {
+        case "pro":
+            System.out.println("pro");
+        case "basic":
+            System.out.println("basic");
+            break;
+        default:
+            System.out.println("free");
+    }
+    String missing = null;
+    try {
+        switch (missing) {
+            case "pro":
+                System.out.println("pro");
+                break;
+            default:
+                System.out.println("free");
+        }
+    } catch (NullPointerException e) {
+        System.out.println("NullPointerException");
+    }
+}
+```
+
+```text
+0,0
+1,0
+1,1
+pro
+basic
+NullPointerException
+```
+
+**Follow-ups an interviewer will ask.**
+- *`if` or `switch`?* `if` takes any `boolean` condition; a classic `switch` compares one `char`, `byte`, `short`, `int`, their wrappers, `String` or enum value against constants ([§3](#3-lexical-structure-operators-and-control-flow)). A `long` selector is a compile-time error [Doc: JLS 25 §14.11](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11); pattern `switch` is in [07](07-java-modern-language-features.md).
+- *`while` or `do`, and can `for` run forever?* A `do` body runs at least once [Doc: JLS 25 §14.13](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.13). `for (;;)` ends only through `break`, `return` or an exception; the lab compiles `for (int i = 0, j = 10; i < j; i++, j--)` [Doc: JLS 25 §14.14.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.14.1) [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
+
+**Trap to avoid.** "`switch` takes only `int`." `String` has worked since Java 7 [Doc: Strings in switch](https://docs.oracle.com/javase/7/docs/technotes/guides/language/strings-switch.html).
+
+</details>
 
 <a id="q01-10"></a>
 ### Q01.10 · Output · Is Java pass-by-reference? What do `swap` and `rename` leave in the caller?
+<!-- ledger: core-java-240-05-25, core-java-240-05-32, core-java-240-05-35, core-java-240-02-01, core-java-pdf-01-54 -->
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_10.java
+static void swap(StringBuilder first, StringBuilder second) {
+    StringBuilder temp = first;
+    first = second;
+    second = temp;
+}
+
+static void rename(StringBuilder name) {
+    name.append("-v2");
+    name = new StringBuilder("other");
+    name.append("-v3");
+}
+
+static void bump(int count) {
+    count++;
+}
+
+public static void main(String[] args) {
+    StringBuilder a = new StringBuilder("a");
+    StringBuilder b = new StringBuilder("b");
+    swap(a, b);
+    System.out.println(a + " " + b);
+    rename(a);
+    System.out.println(a);
+    int count = 1;
+    bump(count);
+    System.out.println(count);
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+a b
+a-v2
+1
+```
+
+Java passes every argument by value, and for an object the value is a reference. The callee can change the object through its copy (`-v2`) but not the caller's variables (`swap`, the `"other"` builder, `count`).
+
+**Full explanation.** Each call creates new parameter variables initialized with the argument values [Doc: JLS 25 §8.4.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.1). `swap` exchanges its own two copies and returns. `rename` appends through its copy, which points to the caller's builder, then points the copy at a new builder that nobody else sees. `bump` increments a copy of 1. The lab asserts the three lines [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Object vs reference?* The object lives on the heap; a reference variable holds one object's address, or `null`, and can be rebound unless `final` ([§4](#4-classes-objects-references-and-pass-by-value)). A `final` reference still lets you mutate the object.
+- *What is a `String` variable's default value?* `null` for a field; a local has none and must be assigned before use ([Q01.11](#q01-11)).
+
+**Trap to avoid.** "Objects are passed by reference, primitives by value." In C++ a reference parameter can rebind the caller's variable; no Java method can.
+
+</details>
 
 <a id="q01-11"></a>
 ### Q01.11 · Difference · Fields vs local variables: defaults, definite assignment, scope and lifetime
+<!-- ledger: core-java-pdf-03-15, core-java-pdf-03-55, core-java-pdf-03-58 -->
+
+"A `boolean` defaults to `false`, so `boolean done; if (done) …` is fine." Where is this right and where does it not compile?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Right for a field, wrong for a local: a local must be definitely assigned before it is read. A local lives until the end of its block, a field as long as its object.
+
+**Full explanation.** Defaults are in [§4](#4-classes-objects-references-and-pass-by-value). Definite assignment is a compile-time flow analysis [Doc: JLS 25 chapter 16](https://docs.oracle.com/javase/specs/jls/se25/html/jls-16.html): in the lab, a local assigned only inside an `if` fails with `compiler.err.var.might.not.have.been.initialized`, while a `final` local assigned in both branches compiles. A block is a scope: a local declared in it is gone after `}` [Doc: JLS 25 §6.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.3). A local may shadow a field, but not another local still in scope [Doc: JLS 25 §6.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.4): the lab gets `compiler.err.already.defined` for the second, and the local value 2 over the field's 1 for the first [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Where do they live?* Locals in the method's frame, fields inside the object; the JVM's runtime data areas are in [08](08-jvm-memory-and-class-loading.md).
+- *Why no defaults for locals?* Only the method's own code can assign a local, so the compiler can check every path to each read [Doc: JLS 25 chapter 16](https://docs.oracle.com/javase/specs/jls/se25/html/jls-16.html); a field can be assigned from any method.
+
+**Trap to avoid.** Reading a bare `v` as the field while a local `v` is in scope.
+
+</details>
 
 <a id="q01-12"></a>
 ### Q01.12 · Output · Initialization order across a class hierarchy: static blocks, instance initializers, field initializers, constructors
+<!-- ledger: core-java-240-01-02 -->
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_12.java
+static String log(String step) {
+    System.out.println(step);
+    return step;
+}
+
+static class Parent {
+    static {
+        log("Parent static block");
+    }
+
+    String parentField = log("Parent field");
+
+    Parent() {
+        log("Parent constructor");
+    }
+}
+
+static class Child extends Parent {
+    {
+        log("Child instance block");
+    }
+
+    static String tag = log("Child static field");
+
+    String childField = log("Child field");
+
+    Child() {
+        log("Child constructor");
+    }
+}
+
+public static void main(String[] args) {
+    new Child();
+    log("--");
+    new Child();
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+Parent static block
+Child static field
+Parent field
+Parent constructor
+Child instance block
+Child field
+Child constructor
+--
+Parent field
+Parent constructor
+Child instance block
+Child field
+Child constructor
+```
+
+Static initializers run once, superclass first. Each `new` then completes the parent's initializers and constructor before the child's initializers, which run in text order, and finally the child's constructor body.
+
+**Full explanation.** Class initialization runs static initializers in text order on first active use, superclass first [Doc: JLS 25 §12.4.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2). Instance creation calls `super()` before this class's instance initializers and field initializers, which run in the order they are written [Doc: JLS 25 §12.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.5): `Child instance block` comes before `Child field` only because it is written first. The second `new` skips the static part. The lab asserts all thirteen lines [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Does loading a class run its static block?* No: initialization, not loading, runs it; what triggers it is in [08](08-jvm-memory-and-class-loading.md).
+- *What if the static block throws?* `ExceptionInInitializerError` once, then `NoClassDefFoundError` on every later use [Doc: JLS 25 §12.4.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2) ([§5](#5-constructors-and-initialization-order)).
+
+**Trap to avoid.** "Field initializers run before the constructor, so before `super()`." They run after the superclass constructor returns.
+
+</details>
 
 <a id="q01-13"></a>
 ### Q01.13 · Bug hunt · A subclass field is `null` inside a method the superclass constructor calls
 
+`new AuditHandler()` throws `NullPointerException: Cannot invoke "java.util.List.add(Object)" because "this.topics" is null`, although `topics` is `final` and initialized on its declaration. Find the bug.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_13.java
+abstract static class Handler {
+    Handler() {
+        register();
+    }
+
+    abstract void register();
+}
+
+static final class AuditHandler extends Handler {
+    private final List<String> topics = new ArrayList<>();
+
+    @Override
+    void register() {
+        topics.add("audit");
+    }
+
+    List<String> topics() {
+        return topics;
+    }
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `Handler`'s constructor calls the overridable `register()` before `AuditHandler`'s field initializer has run, so `topics` is still `null`. Do not call overridable methods from a constructor; on Java 25 you can also assign the field in the prologue, before `super()`.
+
+**Full explanation.** `new AuditHandler()` runs the implicit `super()` first; `Handler()` dispatches `register()` to the override, which reads `topics` before the initializer that assigns it [Doc: JLS 25 §12.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.5). `final` does not help: the field still holds its default until assigned. The lab asserts the exception and its message [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java). The fix: declare the field without an initializer and assign it before `super()`, which the prologue allows [Final since Java 25, JEP 513](https://openjdk.org/jeps/513). In the lab `FixedAuditHandler` registers `[audit]`, and `--release 24` rejects it with `compiler.err.feature.not.supported.in.source` [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java).
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_13.java
+// Java 25 flexible constructor bodies allow assigning a field before super().
+static final class FixedAuditHandler extends Handler {
+    private final List<String> topics;
+
+    FixedAuditHandler() {
+        topics = new ArrayList<>();
+        super();
+    }
+
+    @Override
+    void register() {
+        topics.add("audit");
+    }
+
+    List<String> topics() {
+        return topics;
+    }
+}
+```
+
+**Follow-ups an interviewer will ask.**
+- *Before Java 25?* Remove the hook from the constructor: pass the value to `super(...)`, or build through a static factory that calls `register()` after construction.
+- *Why `null` here but `0` in §5?* Same order, different default: `List` defaults to `null`, `long` to 0 ([§5](#5-constructors-and-initialization-order)).
+
+**Trap to avoid.** Making `topics` `static` to "fix" it: every handler then shares one list.
+
+</details>
+
 <a id="q01-14"></a>
 ### Q01.14 · Concept · Constructor chaining with `this(...)` and `super(...)`: the rules, the default constructor, and what Java 25's flexible constructor bodies change
+<!-- ledger: core-java-240-01-03, core-java-240-01-13, core-java-240-01-20, core-java-240-02-15, core-java-pdf-02-49, core-java-240-05-26, core-java-240-05-28, core-java-pdf-03-01, core-java-pdf-03-17 -->
+
+Explain how constructors chain, when the compiler writes one for you, and what changed in Java 25.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `this(...)` calls a sibling constructor, `super(...)` the superclass's; a body has at most one, else the compiler inserts `super()`. A class with no constructor gets a no-argument one. Java 25 lets statements that do not use `this` run first.
+
+**Full explanation.** A constructor body contains at most one explicit constructor invocation [Doc: JLS 25 §8.8.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.7); in the lab, `this(1); super();` fails with `compiler.err.redundant.superclass.init`. A constructor may not reach itself through `this(...)` calls [Doc: JLS 25 §8.8.7.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.7.1); a direct and an indirect cycle both fail with `compiler.err.recursive.ctor.invocation` [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java). The default constructor exists only while none is declared, and it calls `super()` [Doc: JLS 25 §8.8.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.9). Java 25's prologue may validate arguments and assign fields that have no initializer [Final since Java 25, JEP 513](https://openjdk.org/jeps/513) ([§5](#5-constructors-and-initialization-order)).
+
+**Follow-ups an interviewer will ask.**
+- *Can constructors be inherited or overridden?* Neither: they are not members [Doc: JLS 25 §8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.2). They are overloaded, and each subclass declares its own.
+- *Why give an abstract class a constructor?* Subclass constructors run it [Doc: JLS 25 §8.1.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.1.1), so it validates the shared state once.
+
+**Trap to avoid.** "`this()` and `super()` must be the first statement." True up to Java 24; on Java 25 a constructor has at most one explicit constructor invocation, and only the prologue may precede it.
+
+</details>
 
 <a id="q01-15"></a>
 ### Q01.15 · Difference · The four access levels, and why `protected` is both wider and narrower than people think
+<!-- ledger: core-java-240-02-08, core-java-240-02-09, core-java-240-02-11, core-java-240-02-12, core-java-240-02-03, core-java-240-02-10, core-java-pdf-02-32, core-java-pdf-02-46, core-java-pdf-03-04, core-java-pdf-03-54, core-java-pdf-03-60 -->
+
+Rank `private`, package access, `protected` and `public`. Which ones can a top-level class use, and where can a `protected` method be called?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Narrowest first: `private` (top-level class body), package access (no modifier), `protected` (package plus subclasses), `public`. A top-level class is `public` or package access. Outside the package, `protected` works only through the subclass's own type.
+
+**Full explanation.** `private` covers the whole top-level class body [Doc: JLS 25 §6.6.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.6.1), so in the lab a nested class reads its outer class's `private` field. `private` and `protected` apply only to member classes [Doc: JLS 25 §8.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.1): `private class A` fails with `compiler.err.mod.not.allowed.here` [Lab: Q01OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01OutputsTest.java). The `protected` subclass rule [Doc: JLS 25 §6.6.2.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.6.2.1) stops a subclass reaching into a sibling through a `Base` reference; the lab rejects it with `compiler.err.report.access` [Lab: AccessRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s06/AccessRulesTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *"Access specifier" or "access modifier"?* Java has only modifiers; "specifier" is C++ vocabulary.
+- *Which modifiers can a top-level class combine?* `public` with `abstract` or `final`, never both [Doc: JLS 25 §8.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.1); `sealed` and `non-sealed` are in [07](07-java-modern-language-features.md).
+
+**Trap to avoid.** "A class without a modifier is visible everywhere in the project." Only in its package: other packages get `compiler.err.not.def.public.cant.access` ([§6](#6-packages-access-control-and-encapsulation)).
+
+</details>
 
 <a id="q01-16"></a>
 ### Q01.16 · Concept · What encapsulation actually protects, and why a getter and setter per field is not it
+<!-- ledger: core-java-240-01-17, core-java-240-06-28, core-java-240-05-24, core-java-240-06-29 -->
 
-<!-- /TASK: QB-M01-02 -->
+A pull request makes every field of `Wallet` private and adds a getter and a setter for each, "for encapsulation". Review it.
 
-<!-- TASK: QB-M01-03 -->
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Reject it. Encapsulation protects an invariant, here "the balance never goes below zero", by letting only the owning class change state, through operations that check the rule. A public setter hands that rule to every caller.
+
+**Full explanation.** `Wallet` keeps `cents` private and offers `deposit`, `withdraw` and `balance`; in the lab an overdraft throws and leaves the balance unchanged [Lab: WalletTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s06/WalletTest.java). `setBalance(-500)` would compile and break the ledger. A getter that returns mutable internals leaks too, so `Basket.items()` returns a snapshot [Lab: BasketTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s04/BasketTest.java). Access modifiers are the compiler's tool; at run time only modules stop reflection [Doc: JEP 403](https://openjdk.org/jeps/403) ([§6](#6-packages-access-control-and-encapsulation)).
+
+**Follow-ups an interviewer will ask.**
+- *Name the core ideas of OOP.* Give four: abstraction (a type exposes what, not how, [§9](#9-abstract-classes-and-interfaces)), encapsulation (state guarded by its operations), inheritance ([§7](#7-inheritance-composition-and-object)) and polymorphism ([§8](#8-polymorphism-overloading-overriding-and-dispatch)).
+- *Is a getter ever fine?* Yes, for a value that is part of the contract and immutable or copied; a record does exactly that ([02](02-java-equality-immutability-records.md)).
+
+**Trap to avoid.** Answering "data hiding with getters and setters". The answer interviewers want is "an invariant one class enforces".
+
+</details>
+
+
 <a id="q01-17"></a>
 ### Q01.17 · Output · Trade-off · A `HashSet` subclass counts added elements: what does it report after `addAll` of three, and inheritance or composition?
+<!-- ledger: core-java-240-07-01, core-java-240-01-33, core-java-240-01-34, core-java-240-01-35 -->
+
+`CountingHashSet` extends `HashSet` and counts in both `add` and `addAll`; `CountingSet` wraps any `Set` and forwards (both in [§7](#7-inheritance-composition-and-object)). Each line prints the count, then the size.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_17.java
+List<String> letters = List.of("a", "b", "c");
+
+CountingHashSet<String> inherited = new CountingHashSet<>();
+inherited.addAll(letters);
+System.out.println(inherited.addCount() + " " + inherited.size());
+
+CountingSet<String> forwarding = new CountingSet<>(new HashSet<>());
+forwarding.addAll(letters);
+System.out.println(forwarding.addCount() + " " + forwarding.size());
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+6 3
+3 3
+```
+
+The inherited `addAll` calls the subclass's `add` once per element, so each counts twice. Prefer composition unless the parent is designed and documented for extension.
+
+**Full explanation.** `HashSet` inherits `addAll` from `AbstractCollection`, which calls `add` per element [Src: `AbstractCollection.addAll`, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/AbstractCollection.html#addAll(java.util.Collection)). The wrapper's delegate calls its own `add`, never the wrapper's [Lab: Q01InheritanceOutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01InheritanceOutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *IS-A vs HAS-A?* IS-A is a subtype, by `extends` or `implements`, usable wherever the parent is expected (the Liskov substitution principle: a subtype must keep every promise of its parent). HAS-A is a field holding another object; whether it is created with `new` or injected does not matter.
+- *Why is inheritance still useful?* Reuse plus a substitutable type; a template method in a class built for it ([§9](#9-abstract-classes-and-interfaces)).
+
+**Trap to avoid.** "Inheritance is for code reuse." It also couples you to the parent's self-use, which no contract promises.
+
+</details>
 
 <a id="q01-18"></a>
 ### Q01.18 · Output · Field hiding, static hiding and overriding: what does `Parent p = new Child()` print for each?
+<!-- ledger: core-java-240-06-19, core-java-240-05-31, core-java-240-01-05, core-java-240-08-24, core-java-pdf-03-39 -->
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_18.java
+static class Parent {
+    String name = "parent";
+
+    static String kind() {
+        return "parent";
+    }
+
+    String who() {
+        return "parent";
+    }
+
+    String describe() {
+        return name;
+    }
+}
+
+static class Child extends Parent {
+    String name = "child";
+
+    static String kind() {
+        return "child";
+    }
+
+    @Override
+    String who() {
+        return "child";
+    }
+}
+
+@SuppressWarnings("static")
+public static void main(String[] args) {
+    Parent p = new Child();
+    System.out.println(p.name);
+    System.out.println(((Child) p).name);
+    System.out.println(p.kind());
+    System.out.println(p.who());
+    System.out.println(p.describe());
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+parent
+child
+parent
+child
+parent
+```
+
+Only `who()` is overridden. The fields and the static `kind()` are hidden, and the compiler binds them to the static type.
+
+**Full explanation.** A field with the same name hides the parent's; `p.name` reads the one declared in `Parent` [Doc: JLS 25 §8.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.3). A static method hides, never overrides [Doc: JLS 25 §8.4.8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.2). `describe()` is inherited code in `Parent`, so its `name` is `Parent.name` even on a `Child` [Lab: Q01InheritanceOutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01InheritanceOutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *What does `super` do?* `super(...)` calls a parent constructor ([Q01.14](#q01-14)); `super.who()` and `super.name` reach the parent's members, which is how a hidden field is still read.
+- *Why the `@SuppressWarnings`?* javac's `static` lint warns about a static member accessed through an instance [Doc: javac](https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html), because it reads like dispatch.
+
+**Trap to avoid.** "Fields are overridden too." Only instance methods are; name fields differently.
+
+</details>
 
 <a id="q01-19"></a>
 ### Q01.19 · Output · Overload resolution with `long`, `Integer`, `Object` and varargs candidates: which method is chosen?
+<!-- ledger: core-java-240-01-09, core-java-240-06-20, core-java-pdf-03-07 -->
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_19.java
+static String m(long value) {
+    return "long";
+}
+
+static String m(Integer value) {
+    return "Integer";
+}
+
+static String m(Object value) {
+    return "Object";
+}
+
+static String m(int... values) {
+    return "varargs";
+}
+
+public static void main(String[] args) {
+    System.out.println(m(1));
+    System.out.println(m(Integer.valueOf(1)));
+    System.out.println(m(1.5));
+    System.out.println(m());
+    System.out.println(m(1, 2));
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+long
+Integer
+Object
+varargs
+varargs
+```
+
+Widening beats boxing, and boxing beats varargs: javac stops at the first phase that finds a candidate.
+
+**Full explanation.** Phase 1 (no boxing, no varargs) takes `m(long)` for `1` and `m(Integer)` for an `Integer`; `1.5` cannot narrow to `long`. Phase 2 boxes it to `Double`, which only `m(Object)` accepts. Only phase 3 takes no argument or two [Doc: JLS 25 §15.12.2.2–15.12.2.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.2.2) [Lab: Q01InheritanceOutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01InheritanceOutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *And `m(null)` with `m(Integer)`, `m(Object)`, `m(int...)`?* `compiler.err.ref.ambiguous`: phase 1 treats `int...` as `int[]`, which accepts `null` [Doc: JLS 25 §15.12.2.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.2.2), and neither `Integer` nor `int[]` is more specific.
+- *Varargs rules?* At most one per method, and only last [Doc: JLS 25 §8.4.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.1); inside, it is an array.
+
+**Trap to avoid.** "The return type takes part." Overloads differ by parameters only.
+
+</details>
 
 <a id="q01-20"></a>
 ### Q01.20 · Difference · Overloading vs overriding: compile time vs run time, and every rule an override must follow
+<!-- ledger: core-java-240-01-06, core-java-240-01-04, core-java-240-01-36, core-java-pdf-03-43, core-java-pdf-02-37, core-java-pdf-03-09, core-java-240-01-32, core-java-pdf-03-24 -->
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Overloading: same name, different parameters, chosen at compile time from static types, possible in one class. Overriding: a subclass or implementer redefines an inherited instance method with the same signature, chosen at run time by the object's class.
+
+**Full explanation.** An override keeps the signature, may return a subtype (a primitive return must be identical), may widen access, and may throw fewer or narrower checked exceptions [Doc: JLS 25 §8.4.8.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.3). `static` methods are hidden; `final` ones cannot be overridden; `private` ones are not inherited, so `@Override` on one fails with `compiler.err.method.does.not.override.superclass` [Lab: Q01InheritanceOutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01InheritanceOutputsTest.java) [Lab: OverrideRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/OverrideRulesTest.java) ([§8](#8-polymorphism-overloading-overriding-and-dispatch)).
+
+**Follow-ups an interviewer will ask.**
+- *What does `instanceof` check?* The runtime class against a type; unrelated class types fail to compile [Doc: JLS 25 §15.20.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.20.2). Pattern matching is in [07](07-java-modern-language-features.md).
+- *Casting kinds?* Numeric (widening or narrowing, [§2](#2-primitive-types-conversions-and-overflow)) and reference: an upcast is free, a downcast is checked at run time ([§8](#8-polymorphism-overloading-overriding-and-dispatch)).
+
+**Trap to avoid.** "An override must return the same type." Since Java 5 it may return a subtype.
+
+</details>
 
 <a id="q01-21"></a>
 ### Q01.21 · Concept · How does a virtual call find its method at run time, and which calls are never dispatched?
 
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** For `invokevirtual` and `invokeinterface` the JVM takes the receiver's runtime class and searches it, then its superclasses, then the most specific default. `invokestatic`, `invokespecial` (constructors, `super.m()`) and private methods are bound to the resolved method.
+
+**Full explanation.** javac resolves the call to a symbolic method in the class file; `javap -c` shows which instruction it chose [Lab: BytecodeDispatchTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s08/BytecodeDispatchTest.java). At the call, selection follows JVMS 25 §5.4.6: a private resolved method is used as is [Doc: JVMS 25 §5.4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4.6). HotSpot implements the search with per-class vtables and itables ([§8](#8-polymorphism-overloading-overriding-and-dispatch)).
+
+**Follow-ups an interviewer will ask.**
+- *Is a virtual call slow?* The JIT can remove the lookup (inlining, devirtualization), which is [10](10-jvm-performance-and-troubleshooting.md)'s topic.
+- *Are private calls dispatched?* No. Since Java 11 they compile to `invokevirtual` [Doc: JEP 181](https://openjdk.org/jeps/181), but the private method is selected itself.
+
+**Trap to avoid.** "The JVM picks the overload from the argument's runtime class." javac fixed the signature in the class file; only the receiver is looked up.
+
+</details>
+
 <a id="q01-22"></a>
 ### Q01.22 · Difference · Abstract class vs interface in Java 25: what each can hold, and how to choose
+<!-- ledger: core-java-240-01-07, core-java-240-02-14, core-java-240-02-16, core-java-240-06-13, core-java-240-06-14, core-java-240-06-15, core-java-240-06-16, core-java-pdf-02-19, core-java-pdf-02-58, core-java-pdf-03-49, core-java-pdf-01-01, core-java-pdf-01-20, core-java-pdf-02-25 -->
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** An abstract class holds instance state, constructors and members of any access, and a class extends one. An interface holds constants and abstract, `default`, `static` and `private` methods, and a class implements many. State or shared steps in one family: abstract class. A capability for unrelated classes: interface.
+
+**Full explanation.** An abstract method has no body; a concrete subclass implements the abstract ones only. An interface field is `public static final` [Doc: JLS 25 §9.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.3); static interface methods are not inherited by implementers [Doc: JLS 25 §8.4.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8). A default cannot redeclare a non-private `Object` method: `compiler.err.default.overrides.object.member` [Doc: JLS 25 §9.4.1.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.4.1.2) [Lab: Q01InheritanceOutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01InheritanceOutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *`abstract final`?* Contradictory; it fails to compile [Lab: InterfaceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s09/InterfaceRulesTest.java).
+- *Interface modifiers?* `public`, `abstract` (redundant), `sealed`, `non-sealed`, `strictfp` (no effect since Java 17 [Doc: JEP 306](https://openjdk.org/jeps/306)); nested ones also `protected`, `private`, `static` [Doc: JLS 25 §9.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.1.1).
+
+**Trap to avoid.** "An interface can extend a class." It extends only interfaces.
+
+</details>
 
 <a id="q01-23"></a>
 ### Q01.23 · Output · Two interfaces declare the same default method: which runs, and when does the class fail to compile?
+<!-- ledger: honeywell-optum-md-01-10, core-java-pdf-01-14 -->
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/outputs/Q01_23.java
+interface Left {
+    default String hello() {
+        return "left";
+    }
+}
+
+interface Right {
+    default String hello() {
+        return "right";
+    }
+}
+
+interface Root {
+    default String origin() {
+        return "root";
+    }
+}
+
+interface A extends Root {}
+
+interface B extends Root {}
+
+interface Over extends Root {
+    @Override
+    default String origin() {
+        return "over";
+    }
+}
+
+static class Both implements Left, Right {
+    @Override
+    public String hello() {
+        return Left.super.hello() + "+" + Right.super.hello();
+    }
+}
+
+static class Joined implements A, B {}
+
+static class Skewed implements A, Over {}
+
+public static void main(String[] args) {
+    System.out.println(new Both().hello());
+    System.out.println(new Joined().origin());
+    System.out.println(new Skewed().origin());
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+left+right
+root
+over
+```
+
+A class method wins; else the most specific default wins; two unrelated defaults must be overridden, here combined with `X.super.m()`.
+
+**Full explanation.** `Joined` reaches one method, `Root.origin`, by two paths: no conflict. In `Skewed`, `Over.origin` overrides `Root.origin`, so only `Over`'s is inherited [Doc: JLS 25 §8.4.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8). Drop `Both`'s override and it fails with `compiler.err.types.incompatible`, as does a default meeting an unrelated abstract method [Doc: JLS 25 §8.4.8.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.4) [Lab: Q01InheritanceOutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01InheritanceOutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Why no multiple class inheritance?* Two parents' instance state and constructors would collide; interfaces add types and behavior, not state ([§9](#9-abstract-classes-and-interfaces)).
+- *Can `Both` call `Root.super.origin()`?* No. `X.super.m()` must name a direct superinterface, and none that another direct superinterface already extends [Doc: JLS 25 §15.12.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.1).
+
+**Trap to avoid.** "The first interface listed wins." The rules never look at declaration order.
+
+</details>
 
 <a id="q01-24"></a>
 ### Q01.24 · Trade-off · Marker interface or annotation?
+<!-- ledger: core-java-pdf-01-09 -->
 
-<!-- /TASK: QB-M01-03 -->
+<details>
+<summary>Answer</summary>
 
-<!-- TASK: QB-M01-04 -->
+**Short answer (30 seconds).** A marker interface is a type, so an API can demand it at compile time. An annotation carries values and can mark methods and fields, but it is invisible to the type system. Pick the marker when a parameter must require it; pick the annotation otherwise.
+
+**Full explanation.** `take(Marker m)` called with an unmarked object fails with `compiler.err.prob.found.req`. An annotation without `@Retention` defaults to `CLASS` [Doc: Retention](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/annotation/Retention.html), so reflection reads it only with `RUNTIME` [Lab: Q01InheritanceOutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/outputs/Q01InheritanceOutputsTest.java). `Serializable`, `Cloneable` and `RandomAccess` declare no methods, and library code checks them at run time ([§9](#9-abstract-classes-and-interfaces)).
+
+**Follow-ups an interviewer will ask.**
+- *What if the API takes `Object` anyway?* The check moves to run time: `ObjectOutputStream.writeObject` throws `NotSerializableException` [Doc: ObjectOutputStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/ObjectOutputStream.html).
+- *Is `@FunctionalInterface` a marker?* It is a marker annotation (no elements) [Doc: JLS 25 §9.7.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.7.2), but the compiler acts on it: it rejects an interface that is not functional [Doc: JLS 25 §9.6.4.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.6.4.9).
+
+**Trap to avoid.** "A marker tells the compiler something." Only your own signatures make the compiler check it.
+
+</details>
+
+
 <a id="q01-25"></a>
 ### Q01.25 · Production scenario · A shared-library constant was changed and redeployed, but one service still uses the old value
+<!-- ledger: core-java-240-01-25, core-java-240-02-13 -->
+
+`shared-lib` 2.4 raised `public static final int MAX_ITEMS` from 50 to 100. Every service now ships the 2.4 JAR, yet checkout still rejects carts above 50. No error anywhere.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `MAX_ITEMS` is a constant variable, so javac copied 50 into checkout's class files. Checkout was repackaged with 2.4 but not recompiled. Rebuild it, and expose values that change through a method.
+
+**Full explanation.** *Symptoms:* one service, old value, no error: a stale binary.
+
+*Hypotheses, ranked:* (1) the value was inlined at compile time; (2) an old JAR wins on the classpath; (3) the limit comes from configuration.
+
+*Evidence:* `javap -c` on checkout's class finds no reference to `MAX_ITEMS`: a binary keeps none for a static constant, only its value [Doc: JLS 25 §13.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.1). In the lab, recompiling only the declaring class leaves the caller on the old value [Lab: ConstantInliningTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/ConstantInliningTest.java). `java -verbose:class` names the JAR each class loads from [Doc: java](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html), ruling out (2); no configuration key sets the limit, ruling out (3).
+
+*Fix:* rebuild checkout. Then make the field private with an accessor, as JLS recommends [Doc: JLS 25 §13.4.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.4.9); a method-call initializer is read at run time too [Lab: ConstantInliningTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/ConstantInliningTest.java).
+
+*Prevention and monitoring:* a library bump rebuilds every dependent; `public static final` only for true constants; log the effective limit at startup, so a stale value shows on the first deploy.
+
+**Follow-ups an interviewer will ask.**
+- *How do you declare a constant?* `static final`, primitive or `String`, constant-expression initializer [Doc: JLS 25 §4.12.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.4). A `static final List` is read at run time.
+- *Does `final` make the object immutable?* No, it fixes the reference [Lab: StaticFinalRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s10/StaticFinalRulesTest.java). On classes and methods it closes extension ([§10](#10-static-final-and-constants)).
+
+**Trap to avoid.** "It runs with the new JAR, so it has the new value." Only recompiling the caller does that.
+
+</details>
 
 <a id="q01-26"></a>
 ### Q01.26 · Production scenario · Memory grows after each request: anonymous listeners keep their creators alive
+<!-- ledger: core-java-pdf-02-30, core-java-240-05-15 -->
+
+Each request builds a handler that calls `bus.register(new Runnable() { public void run() { log.add(title); } })` on an application-wide `EventBus`. Heap used after each full GC (a garbage collection of the whole heap) climbs with traffic until `OutOfMemoryError`.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The anonymous listener reads its creator's fields, so it holds the creator; the bus holds the listener, so no handler is ever unreachable. Unregister when done, and register a static nested class or a lambda capturing only its data.
+
+**Full explanation.** *Symptoms:* a floor that rises with request count: something long-lived keeps per-request objects.
+
+*Hypotheses, ranked:* (1) a registry (bus, static map) accumulates entries; (2) an unbounded cache; (3) the heap is too small (refuted: the floor keeps rising).
+
+*Evidence:* `jcmd <pid> GC.heap_dump <file>` writes a heap dump in HPROF, the JDK's binary heap-dump format, [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html); the path to GC roots reads bus → listener → outer field → handler. Created in an instance method, the anonymous class's enclosing instance is `this` [Doc: JLS 25 §15.9.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.2); in the lab, an inner listener's synthetic field returns its creator [Lab: NestedTypesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s11/NestedTypesTest.java).
+
+*Fix:* the §11 `TitleListener` or lambda, plus an unregister path ([Exercise 01.3](#ex01-3)).
+
+*Prevention:* alert on heap after GC; a test that the listener count returns to zero.
+
+**Follow-ups an interviewer will ask.**
+- *Static nested vs inner class?* Nested: no outer instance, `new Outer.Nested()`; inner: bound to one, `outer.new Inner()` [Lab: NestedTypesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s11/NestedTypesTest.java). Both have instances.
+- *Does Java 18 fix it?* Only for inner classes that never use the outer instance [Doc: JDK 18 release note](https://bugs.openjdk.org/browse/JDK-8277604); this one reads `title`.
+
+**Trap to avoid.** "The GC frees a handler once the request ends." Finished is not unreachable.
+
+</details>
 
 <a id="q01-27"></a>
-### Q01.27 · Design · Replace a `switch` over a type code with an enum that carries behaviour
+### Q01.27 · Design · Replace a `switch` over a type code with an enum that carries behavior
+<!-- ledger: core-java-240-06-17, core-java-240-06-18 -->
+
+Discounts are stored as `int discountType` (0, 1, 2), and three services each `switch` on it. Someone added type 3 and one service missed its case: those orders paid full price.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Make the type an enum whose constants each implement an abstract `apply`. A new constant without its rule does not compile, and a code like 7 cannot exist.
+
+**Full explanation.** Four steps, ending at §12's `Discount`:
+
+1. Declare the constants. The set is closed: `new` does not compile [Lab: EnumCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s12/EnumCompileRulesTest.java), and each constant is the only instance of its name [Doc: JLS 25 §8.9.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.9.1).
+2. Move each `switch` arm into a constant body. An abstract method compiles only if every constant implements it [Doc: JLS 25 §8.9.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.9.2): the guarantee the `int` lacked.
+3. Parse input once at the boundary; `valueOf` throws on unknown names [Lab: EnumsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s12/EnumsTest.java).
+4. Persist `name()`, never `ordinal()`, which follows declaration order [Lab: EnumsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s12/EnumsTest.java).
+
+Keep a `switch` when the behavior belongs to another layer: a `switch` expression must be exhaustive [Doc: JLS 25 §15.28.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.28.1), so without `default` a new constant breaks the build ([07](07-java-modern-language-features.md)).
+
+**Follow-ups an interviewer will ask.**
+- *What can't an enum do?* Extend a class or declare a `public` constructor; it may implement interfaces [Lab: EnumCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s12/EnumCompileRulesTest.java).
+- *Enum or Strategy classes?* An enum when the set is closed at compile time; an interface when other modules add rules ([51](51-design-principles-and-patterns.md)).
+
+**Trap to avoid.** Replacing the `int` with an enum and keeping the three `switch` statements: the gap moves, it does not close.
+
+</details>
 
 <a id="q01-28"></a>
 ### Q01.28 · Production scenario · Order lookup by id works in tests and fails for real customers
+<!-- ledger: core-java-240-08-27, honeywell-optum-md-01-13, core-java-pdf-01-13, core-java-pdf-02-29, core-java-240-05-36, core-java-240-05-37, core-java-pdf-01-43 -->
 
-<!-- /TASK: QB-M01-04 -->
+Order ids are `Long`. Tests with ids 1 and 2 pass; in production almost every lookup returns empty, without an exception. The few customers it finds have ids below 128.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The lookup compares two `Long` objects with `==`, which compares references. `Long.valueOf` shares cached objects for -128 to 127, so test ids match by accident. Compare with `equals`.
+
+**Full explanation.** *Symptoms:* misses that depend on the id's value: identity, not data.
+
+*Hypotheses, ranked:* (1) `==` on wrappers; (2) `equals` across types, as in `Long.valueOf(1).equals(1)`, which is `false` [Lab: WrappersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrappersTest.java); (3) missing rows.
+
+*Evidence:* every miss in the logs has an id above 127. The lab reproduces it: `findByIdentity` finds a cached id and misses an uncached one, `findById` finds both [Lab: WrappersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrappersTest.java). The range is the library's promise [Src: JDK 25, java.lang.Long]; the JLS guarantees only boxed constants in range [Doc: JLS 25 §5.1.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.7).
+
+*Ruling out the others:* both sides are declared `Long`, so (2) cannot apply; the missed ids exist in the database, so (3) is out.
+
+*Fix:* compare with `equals`:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/s13/OrderBook.java
+public Optional<Order> findByIdentity(Long id) {
+    // Deliberate bug: == compares references, not values.
+    return orders.stream().filter(order -> order.id() == id).findFirst();
+}
+
+public Optional<Order> findById(Long id) {
+    return orders.stream().filter(order -> order.id().equals(id)).findFirst();
+}
+```
+
+*Prevention and monitoring:* fixture ids above 127, a static-analysis rule that flags `==` on boxed types, and a metric on the lookup-miss rate.
+
+**Follow-ups an interviewer will ask.**
+- *Is `String` a wrapper?* No: the eight wrappers each box a primitive [Doc: JLS 25 §5.1.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.7).
+- *Can a `Byte` be cast to `double`?* Yes, by unboxing then widening; `(Double)` does not compile [Lab: WrapperCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrapperCompileRulesTest.java).
+- *Other boxing incidents?* `map.get` into an `int` throws NPE on a missing key [Lab: WrappersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrappersTest.java); boxing in hot loops allocates ([10](10-jvm-performance-and-troubleshooting.md)).
+
+**Trap to avoid.** "`Integer` 128 `==` 128 is always `false`." HotSpot's default says so, `-XX:AutoBoxCacheMax` changes it [Lab: WrappersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/s13/WrappersTest.java); never rely on either.
+
+</details>
+
 
 ## Hands-on exercises
 
-<!-- TASK: EX-M01-01 -->
 <a id="ex01-1"></a>
 ### Exercise 01.1 · An order total that cannot overflow or lose a cent
-<!-- /TASK: EX-M01-01 -->
 
-<!-- TASK: EX-M01-02 -->
+**Problem.** This checkout code sums an order in `double`. Finance reports totals a cent off, a bulk order once came out negative, and a line with no quantity crashed with a stack trace that names no field. Rewrite it so every amount is exact and every bad input fails loudly.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex1/broken/OrderTotal.java
+public static double total(List<Line> lines, double discountRate) {
+    double total = 0;
+    for (Line line : lines) {
+        // Defect: unboxing a null quantity throws an opaque NullPointerException.
+        int q = line.quantity();
+        // Defect: int * long silently wraps on overflow.
+        long gross = q * line.unitPriceCents();
+        // Defect: binary double cannot represent cents exactly; no per-line rounding.
+        total += gross / CENTS_PER_UNIT * (1 - discountRate);
+        // Defect: currencyCode is never compared, so mixed currencies are summed.
+    }
+    return total;
+}
+```
+
+**Constraints.** Prices stay `long` cents and quantities stay `Integer` (they come from JSON). The discount rate is a `BigDecimal` per order.
+
+**Acceptance criteria.**
+- [ ] (1) Line totals and the order total are `BigDecimal` with scale 2, rounded `HALF_EVEN`, and match a table of expected values.
+- [ ] (2) A quantity × unit price that overflows `long` throws `ArithmeticException` instead of wrapping.
+- [ ] (3) A line in another currency is rejected with `IllegalArgumentException`.
+- [ ] (4) A `null` quantity is rejected with a message that names it, not an unboxing NPE.
+
+<details><summary>Hint 1</summary>
+
+Each defect has a one-line fix in [§2](#2-primitive-types-conversions-and-overflow) or [§13](#13-wrappers-autoboxing-and-the-integer-cache). Where should the `null` check live so no caller can skip it?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.**
+1. Make the line a record whose compact constructor rejects `null` fields, so a bad line never exists.
+2. Compute the gross with `Math.multiplyExact`, which throws on overflow.
+3. Turn cents into `BigDecimal.valueOf(cents, 2)`, apply the discount, and round once per line with `setScale(2, HALF_EVEN)`.
+4. Check the currency before any arithmetic, and sum the rounded lines.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex1/OrderTotal.java
+public BigDecimal lineTotal(OrderLine line) {
+    if (!currency.equals(line.currency())) {
+        throw new IllegalArgumentException(
+                "Line currency " + line.currency().getCurrencyCode() + " does not match order currency "
+                        + currency.getCurrencyCode());
+    }
+    return BigDecimal.valueOf(line.grossCents(), MONEY_SCALE)
+            .multiply(BigDecimal.ONE.subtract(discountRate))
+            .setScale(MONEY_SCALE, RoundingMode.HALF_EVEN);
+}
+```
+`OrderLine.grossCents()` is `Math.multiplyExact(quantity.longValue(), unitPriceCents)`, and its constructor calls `Objects.requireNonNull(quantity, "quantity must not be null")` [Lab: OrderLine](../labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex1/OrderLine.java).
+
+**How each criterion is met** [Lab: OrderTotalTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/ex1/OrderTotalTest.java):
+- (1) `Ex01.1 · (1) lineTotal rounds half-even …`: 0.225 becomes 0.22 and 0.315 becomes 0.32, the even neighbour. Two of those lines total 0.54, and no lines total 0.00. The broken code's 0.10 + 0.20 is not 0.30.
+- (2) `Ex01.1 · (2) …`: `Integer.MAX_VALUE` × `Long.MAX_VALUE / 1000` throws, while the broken code returns a wrapped, smaller amount.
+- (3) `Ex01.1 · (3) …`: a EUR line on a USD order throws from `lineTotal` and from `total`, and the message names both codes.
+- (4) `Ex01.1 · (4) …`: the message is exactly `quantity must not be null`. The broken code's NPE only mentions `Integer.intValue()`.
+
+**Alternative approach:** keep everything in `long` cents with `Math.*Exact` and apply the discount in integer arithmetic. **Trade-offs:** it is faster and has no scale to manage, but you must write the rounding rule by hand, and the `HALF_EVEN` tie case is easy to get wrong.
+
+**Interviewer follow-ups.**
+- *Why round each line, not the order?* Because the invoice prints line amounts and they must add up to the total. [Q01.06](#q01-06) shows the cent this moves.
+- *Why `BigDecimal.valueOf(cents, 2)` and not `new BigDecimal(cents / 100.0)`?* The `double` division brings back the binary error the exercise removes ([§2](#2-primitive-types-conversions-and-overflow)).
+
+**Tests:** [OrderTotalTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/ex1/OrderTotalTest.java).
+
+</details>
+
 <a id="ex01-2"></a>
-### Exercise 01.2 · Shipping rules as an enum with behaviour
-<!-- /TASK: EX-M01-02 -->
+### Exercise 01.2 · Shipping rules as an enum with behavior
 
-<!-- TASK: EX-M01-03 -->
+**Problem.** Checkout prices shipping with a `switch` on the method name it receives as a string. A typo in a client request becomes a 500, and when product added a new method, one branch was forgotten and nothing failed until production. Move the rules into an enum so the compiler, not a code review, catches the forgotten rule.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex2/broken/ShippingCalculator.java
+public static long costCents(String method, int weightGrams) {
+    // Defect: negative weights are never validated.
+    int startedKg = Math.ceilDiv(weightGrams, GRAMS_PER_KG);
+    // Defect: names are matched as raw strings, so case and whitespace variants fail.
+    return switch (method) {
+        case STANDARD -> 499 + 100L * startedKg;
+        case EXPRESS -> 999 + 250L * startedKg;
+        case PICKUP -> 0;
+        // Defect: unknown names escape as exceptions, and a new method is silently forgotten.
+        default -> throw new IllegalArgumentException("Unknown shipping method: " + method);
+    };
+}
+```
+
+**Constraints.** Costs stay `long` cents: standard is 4.99 plus 1.00 per started kilogram, express 9.99 plus 2.50, pickup is free. The method name still arrives as a `String`.
+
+**Acceptance criteria.**
+- [ ] (1) Each shipping method returns the expected cost for a table of weights.
+- [ ] (2) Parsing an unknown method name yields `Optional.empty()`; no exception escapes.
+- [ ] (3) A new constant without a body, so without the cost method, fails to compile.
+- [ ] (4) The calculator has no `switch` or `if` chain on the method.
+
+<details><summary>Hint 1</summary>
+
+[§12](#12-enums) shows a constant with its own body. What does the compiler demand of every constant once the enum declares an `abstract` method ([§9](#9-abstract-classes-and-interfaces))?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.**
+1. Declare `abstract long costCents(int weightGrams)` on the enum and give each constant a body: the Strategy pattern, dispatched by overriding ([§8](#8-polymorphism-overloading-overriding-and-dispatch)).
+2. Put the shared arithmetic and the negative-weight check in one private static helper, so each body is one line.
+3. Parse names through a map built once from `values()`, returning `Optional`, instead of calling `valueOf`.
+4. Reduce the calculator to one delegation.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex2/ShippingMethod.java
+public enum ShippingMethod {
+    STANDARD {
+        @Override
+        public long costCents(int weightGrams) {
+            return tariff(weightGrams, 499, 100);
+        }
+    },
+    EXPRESS {
+        @Override
+        public long costCents(int weightGrams) {
+            return tariff(weightGrams, 999, 250);
+        }
+    },
+    PICKUP {
+        @Override
+        public long costCents(int weightGrams) {
+            return tariff(weightGrams, 0, 0);
+        }
+    };
+
+    private static final Map<String, ShippingMethod> BY_NAME =
+            Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(ShippingMethod::name, Function.identity()));
+
+    public abstract long costCents(int weightGrams);
+
+    public static Optional<ShippingMethod> parse(String name) {
+        if (name == null || name.isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(BY_NAME.get(name.strip().toUpperCase(Locale.ROOT)));
+    }
+}
+```
+`ShippingCalculator.quote` is `ShippingMethod.parse(methodName).map(method -> method.costCents(weightGrams))` [Lab: ShippingCalculator](../labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex2/ShippingCalculator.java).
+
+**How each criterion is met** [Lab: ShippingCalculatorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/ex2/ShippingCalculatorTest.java):
+- (1) `Ex01.2 · (1) …`: 1,000 g costs 599 and 1,001 g costs 699 (a second started kilogram), express at 2,500 g costs 1749, and the broken code agrees for valid names. A negative weight throws on every constant.
+- (2) `Ex01.2 · (2) …`: `"DRONE"`, `""` and `null` give an empty `Optional`, and `" express "` parses. The broken code throws `IllegalArgumentException` for `"DRONE"`.
+- (3) `Ex01.2 · (3) …`: an enum whose second constant has no body fails with `compiler.err.abstract.cant.be.instantiated`. The enum is abstract, so a constant without a body cannot be created. Give it a body and it compiles.
+- (4) `Ex01.2 · (4) …`: the test reads the calculator's source and finds no `switch`, `case`, `if (` or constant name.
+
+**Alternative approach:** pass base and rate to an enum constructor, `STANDARD(499, 100)`, with one concrete `costCents`. **Trade-offs:** it is shorter while every rule has the same shape. Once a rule differs, for example free above a weight, constant bodies keep it local, not as a flag in shared code.
+
+**Interviewer follow-ups.**
+- *Why not wrap `valueOf` in `try`/`catch`?* An unknown name is expected input, so an exception is the wrong control flow, and an unmapped one becomes a 500 ([§12](#12-enums), security item).
+- *When is a `switch` on the enum still fine?* When the logic belongs to the caller, not the enum. [Q01.27](#q01-27) shows the exhaustive form.
+
+**Tests:** [ShippingCalculatorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/ex2/ShippingCalculatorTest.java).
+
+</details>
+
 <a id="ex01-3"></a>
 ### Exercise 01.3 · Repair a leaky, fragile listener registry
-<!-- /TASK: EX-M01-03 -->
+
+**Problem.** A plugin host keeps listeners in a registry that extends `HashSet`. Bulk registration doubles its count, every dashboard that subscribes stays in memory after it closes, and a subclass that names itself reads `null` in its creation hook. Repair all three.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex3/broken/ListenerRegistry.java
+public class ListenerRegistry extends HashSet<Runnable> {
+    public ListenerRegistry() {
+        // Defect: overridable call from the constructor, so a subclass hook runs before its fields are assigned.
+        onCreated();
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends Runnable> listeners) {
+        // Defect: HashSet.addAll calls add, so each element counts twice.
+        registrations += listeners.size();
+        return super.addAll(listeners);
+    }
+}
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex3/broken/Dashboard.java
+// Defect: the inner class keeps a synthetic reference to the dashboard.
+final class Refresh implements Runnable {
+    @Override
+    public void run() {
+        log.add(title);
+    }
+}
+```
+
+**Constraints.** Count every listener offered exactly once. Listeners keep doing what they do now.
+
+**Acceptance criteria.**
+- [ ] (1) `add` of one listener plus `addAll` of two reports 3 registrations, and the registry extends no collection.
+- [ ] (2) A dashboard's registered listener has no field of the dashboard's type.
+- [ ] (3) A creation hook sees the registry fully initialized.
+
+<details><summary>Hint 1</summary>
+
+Which method does the inherited `addAll` call ([§7](#7-inheritance-composition-and-object))? What does an inner class hold that a lambda over locals does not ([§11](#11-nested-types))?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.**
+1. Wrap a `LinkedHashSet` instead of extending `HashSet`, and route `addAll` through the registry's own `add`, so counting happens in one place.
+2. Register a lambda that captures local copies of the title and the log.
+3. Make the registry `final` with a private constructor, and call the hook from a static factory once the object is built.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex3/ListenerRegistry.java
+public static ListenerRegistry create(String name, Consumer<? super ListenerRegistry> onCreated) {
+    Objects.requireNonNull(onCreated);
+    ListenerRegistry registry = new ListenerRegistry(name);
+    onCreated.accept(registry);
+    return registry;
+}
+
+public boolean addAll(Collection<? extends Runnable> toAdd) {
+    boolean changed = false;
+    for (Runnable listener : toAdd) {
+        changed |= add(listener);
+    }
+    return changed;
+}
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m01/ex3/Dashboard.java
+public void subscribe(ListenerRegistry registry) {
+    // Locals are copied first because using the fields inside the lambda would capture this.
+    String capturedTitle = title;
+    List<String> capturedLog = log;
+    registry.add(() -> capturedLog.add(capturedTitle));
+}
+```
+
+**How each criterion is met** [Lab: ListenerRegistryTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/ex3/ListenerRegistryTest.java):
+- (1) `Ex01.3 · (1) …`: 3 registrations, superclass `Object`. The broken registry reports 5.
+- (2) `Ex01.3 · (2) …`: the lambda's class declares no `Dashboard` field, while the broken `Refresh` declares one. Both append the title.
+- (3) `Ex01.3 · (3) …`: the hook given to `create` reads `"audit"`. A broken subclass's hook reads `null`: it runs inside `super()`, before the subclass assigns its field.
+
+**Alternative approach:** keep the subclass hook and assign the field before `super()` with a flexible constructor body ([§5](#5-constructors-and-initialization-order)). **Trade-offs:** it fixes one subclass, and every future subclass must remember to do the same. The factory fixes the registry once.
+
+**Interviewer follow-ups.**
+- *Why not drop the count from the overridden `addAll`?* That relies on the parent calling `add`, an implementation detail that may change ([§7](#7-inheritance-composition-and-object)).
+- *Is a lambda always safe?* Only while it touches no field or instance method. Otherwise it captures `this` and leaks like the inner class ([Q01.26](#q01-26)).
+
+**Tests:** [ListenerRegistryTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m01/ex3/ListenerRegistryTest.java).
+
+</details>
 
 ## Check your understanding
-<!-- TASK: CLOSE-M01 -->
-<!-- /TASK: CLOSE-M01 -->
+**Explain it back.**
+1. To a teammate who says Java passes objects by reference: what `swap` and a mutating method each leave in the caller, and why.
+2. To a reviewer who sees `==` between two `Long` ids: why the tests pass, why production fails, and the fix.
+3. To a new hire: the order in which static blocks, field initializers and constructors run for `new Child()` in a two-level hierarchy.
+4. To an on-call engineer: why one service still uses an old constant after the library shipped a new value, and how to prevent it.
+5. To a colleague choosing between an abstract class and an interface: what each can hold, and what decides the choice.
+
+**Flashcards.**
+
+<details><summary>What is <code>1 &lt;&lt; 32</code> for an <code>int</code>?</summary>
+
+`1`: the shift distance is masked to five bits ([Q01.08](#q01-08)).
+
+</details>
+
+<details><summary>For a <code>byte b</code>, does <code>b += 1</code> compile? And <code>b = b + 1</code>?</summary>
+
+The first does, with a hidden cast back to `byte`; the second does not ([Q01.07](#q01-07)).
+
+</details>
+
+<details><summary>What does a superclass constructor see when it calls a method the subclass overrides?</summary>
+
+The subclass method runs with the subclass's fields still at their defaults ([Q01.13](#q01-13)).
+
+</details>
+
+<details><summary>With <code>Parent p = new Child()</code> and a static <code>kind()</code> in both, which runs for <code>p.kind()</code>?</summary>
+
+The parent's: static methods are hidden, so the reference type decides ([Q01.18](#q01-18)).
+
+</details>
+
+<details><summary>In which overload-resolution phase do boxing and varargs become allowed?</summary>
+
+Boxing in phase 2, varargs in phase 3; phase 1 allows neither ([Q01.19](#q01-19)).
+
+</details>
+
+<details><summary>Why not persist an enum by <code>ordinal()</code>?</summary>
+
+Ordinals follow declaration order, so inserting or reordering constants remaps stored values ([§12](#12-enums)).
+
+</details>
+
+<details><summary>Why does <code>==</code> on two <code>Long</code> ids pass with test data?</summary>
+
+`Long.valueOf` shares cached objects for -128 to 127, so small ids match by reference ([Q01.28](#q01-28)).
+
+</details>
 
 ## Connections
-<!-- TASK: CLOSE-M01 -->
-<!-- /TASK: CLOSE-M01 -->
+- **Builds on:** nothing; this is the guide's entry module.
+- **Read next:** [02. Equality, immutability and records](02-java-equality-immutability-records.md), because `equals`, `hashCode` and records build on the `Object` methods of §7 and the wrapper equality of §13; [03. Generics](03-java-generics.md), because erasure extends the override rules of §8.
+- **Uses these ideas later:** [06. Exceptions, strings and I/O](06-java-exceptions-strings-io.md) (the `throws` rules an override must respect); [08. JVM memory and class loading](08-jvm-memory-and-class-loading.md) (the class initialization of §5 and the heap objects of §4); [10. JVM performance and troubleshooting](10-jvm-performance-and-troubleshooting.md) (JIT devirtualization of §8's calls, boxing cost of §13); [11. Threads and the JMM](11-concurrency-threads-and-jmm.md) (why `final` fields and static state matter across threads); [15. Spring IoC and bean lifecycle](15-spring-ioc-and-bean-lifecycle.md) (constructor injection relies on §5); [51. Design principles and patterns](51-design-principles-and-patterns.md) (composition over inheritance from §7, the enum singleton from §12).
+- **Comparisons:** [05. Lambdas, streams and Optional](05-java-lambdas-streams-optional.md), for lambdas against the anonymous classes of §11; [07. Modern language features](07-java-modern-language-features.md), for sealed interfaces and records against the abstract classes of §9 and the enums of §12.

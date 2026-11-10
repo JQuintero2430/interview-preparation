@@ -19,6 +19,9 @@ class Q01OutputsTest {
     private static final String LOSSY_CONVERSION_CODE = "compiler.err.prob.found.req";
     private static final String LOSSY_CONVERSION_TEXT = "possible lossy conversion from int to byte";
     private static final String ILLEGAL_START_OF_EXPRESSION = "compiler.err.illegal.start.of.expr";
+    private static final String FEATURE_NOT_SUPPORTED_IN_SOURCE = "compiler.err.feature.not.supported.in.source";
+    private static final String RECURSIVE_CTOR_INVOCATION = "compiler.err.recursive.ctor.invocation";
+    private static final String NULL_POINTER_EXCEPTION = "NullPointerException";
     private static final String FOO = "Foo";
     private static final String TINY = "Tiny";
     private static final String TINY_SOURCE = "class Tiny {}";
@@ -222,6 +225,201 @@ class Q01OutputsTest {
 
         assertThat(value >> 1).isEqualTo(-4);
         assertThat(value / 2).isEqualTo(-3);
+    }
+
+    @Test
+    @DisplayName("Q01.09 · labeled continue and break, String switch fall-through, switch on null")
+    void main_printsLabelAndStringSwitchLines_whenQ01_09Runs() {
+        List<String> lines = OutputCapture.linesOf(() -> Q01_09.main(new String[0]));
+
+        assertThat(lines).containsExactly("0,0", "1,0", "1,1", "pro", "basic", NULL_POINTER_EXCEPTION);
+    }
+
+    @Test
+    @DisplayName("Q01.10 · references are passed by value, primitives are not changed")
+    void main_printsPassByValueLines_whenQ01_10Runs() {
+        List<String> lines = OutputCapture.linesOf(() -> Q01_10.main(new String[0]));
+
+        assertThat(lines).containsExactly("a b", "a-v2", "1");
+    }
+
+    // Static initialization runs once per JVM, so no other test may touch Q01_12 or the static lines vanish.
+    @Test
+    @DisplayName("Q01.12 · static blocks run once, instance steps run for every new object")
+    void main_printsInitializationOrder_whenQ01_12Runs() {
+        List<String> lines = OutputCapture.linesOf(() -> Q01_12.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly(
+                        "Parent static block",
+                        "Child static field",
+                        "Parent field",
+                        "Parent constructor",
+                        "Child instance block",
+                        "Child field",
+                        "Child constructor",
+                        "--",
+                        "Parent field",
+                        "Parent constructor",
+                        "Child instance block",
+                        "Child field",
+                        "Child constructor");
+    }
+
+    @Test
+    @DisplayName("Q01.13 · an overridable call from the constructor sees the uninitialized field")
+    void main_throwsNullPointerException_whenOverriddenMethodRunsBeforeFieldInitializer() {
+        assertThatThrownBy(() -> Q01_13.main(new String[0]))
+                .isInstanceOf(NullPointerException.class)
+                .hasMessage("Cannot invoke \"java.util.List.add(Object)\" because \"this.topics\" is null");
+    }
+
+    @Test
+    @DisplayName("Q01.13 · assigning the field before super() makes the overridable call safe")
+    void topics_containsAudit_whenFieldIsAssignedBeforeSuperCall() {
+        List<String> topics = new Q01_13.FixedAuditHandler().topics();
+
+        assertThat(topics).containsExactly("audit");
+    }
+
+    @Test
+    @DisplayName("Q01.13 · a field assigned before super() is rejected under --release 24")
+    void compile_reportsFeatureNotSupported_whenFieldIsAssignedBeforeSuperUnderRelease24() {
+        String source = "class Early { private final int value; Early() { value = 1; super(); } }";
+
+        InMemoryCompiler.Result result = InMemoryCompiler.compile(Map.of("Early", source), "--release", "24");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).contains(FEATURE_NOT_SUPPORTED_IN_SOURCE);
+    }
+
+    @Test
+    @DisplayName("Q01.09 · a duplicate case label is rejected")
+    void compile_reportsDuplicateCaseLabel_whenSwitchRepeatsAConstant() {
+        InMemoryCompiler.Result result =
+                compileA("class A { void m(int x){ switch(x){ case 1: break; case 1: break; } } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly("compiler.err.duplicate.case.label");
+    }
+
+    @Test
+    @DisplayName("Q01.09 · a case label must be a constant expression")
+    void compile_reportsConstantExpressionRequired_whenCaseLabelIsAVariable() {
+        InMemoryCompiler.Result result = compileA("class A { void m(int x, int y){ switch(x){ case y: break; } } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly("compiler.err.const.expr.req");
+    }
+
+    @Test
+    @DisplayName("Q01.09 · continue needs a loop label")
+    void compile_reportsNotLoopLabel_whenContinueTargetsABlockLabel() {
+        InMemoryCompiler.Result result = compileA("class A { void m(){ blk: { continue blk; } } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly("compiler.err.not.loop.label");
+    }
+
+    @Test
+    @DisplayName("Q01.09 · a for loop may declare and update two variables")
+    void compile_succeeds_whenForLoopDeclaresAndUpdatesTwoVariables() {
+        InMemoryCompiler.Result result =
+                compileA("class A { void m(){ for (int i = 0, j = 10; i < j; i++, j--) {} } }");
+
+        assertThat(result.success()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Q01.11 · a local read on a path where it is unassigned is rejected")
+    void compile_reportsUninitializedVariable_whenLocalIsAssignedOnlyInOneBranch() {
+        InMemoryCompiler.Result result = compileA("class A { int m(boolean f){ int v; if (f) v = 1; return v; } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly("compiler.err.var.might.not.have.been.initialized");
+    }
+
+    @Test
+    @DisplayName("Q01.11 · a final local assigned in both branches is definitely assigned")
+    void compile_succeeds_whenFinalLocalIsAssignedInBothBranches() {
+        InMemoryCompiler.Result result =
+                compileA("class A { int m(boolean f){ final int v; if (f) v = 1; else v = 2; return v; } }");
+
+        assertThat(result.success()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Q01.11 · a local cannot shadow another local in an enclosing block")
+    void compile_reportsAlreadyDefined_whenInnerBlockRedeclaresALocal() {
+        InMemoryCompiler.Result result = compileA("class A { void m(){ int v = 1; { int v = 2; } } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly("compiler.err.already.defined");
+    }
+
+    @Test
+    @DisplayName("Q01.11 · a local may shadow a field and wins inside the method")
+    void m_returnsLocalValue_whenLocalShadowsField() throws Exception {
+        InMemoryCompiler.Result result = compileA("class A { int v = 1; int m(){ int v = 2; return v; } }");
+        assertThat(result.success()).isTrue();
+        Class<?> type = result.load("A");
+        var constructor = type.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        var method = type.getDeclaredMethod("m");
+        method.setAccessible(true);
+
+        Object value = method.invoke(constructor.newInstance());
+
+        assertThat(value).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Q01.14 · a constructor calling itself is rejected")
+    void compile_reportsRecursiveConstructorInvocation_whenConstructorCallsItself() {
+        InMemoryCompiler.Result result = compileA("class A { A(){ this(); } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly(RECURSIVE_CTOR_INVOCATION);
+    }
+
+    @Test
+    @DisplayName("Q01.14 · a cycle between two constructors is rejected")
+    void compile_reportsRecursiveConstructorInvocation_whenTwoConstructorsCallEachOther() {
+        InMemoryCompiler.Result result = compileA("class A { A(int x){ this(); } A(){ this(1); } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly(RECURSIVE_CTOR_INVOCATION);
+    }
+
+    @Test
+    @DisplayName("Q01.14 · this(...) and super(...) cannot both appear in a constructor")
+    void compile_reportsRedundantSuperclassInit_whenThisIsFollowedBySuper() {
+        InMemoryCompiler.Result result = compileA("class A { A(int x){} A(){ this(1); super(); } }");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly("compiler.err.redundant.superclass.init");
+    }
+
+    @Test
+    @DisplayName("Q01.15 · a top-level class cannot be private")
+    void compile_reportsModifierNotAllowed_whenTopLevelClassIsPrivate() {
+        InMemoryCompiler.Result result = compileA("private class A {}");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).containsExactly("compiler.err.mod.not.allowed.here");
+    }
+
+    @Test
+    @DisplayName("Q01.15 · a nested class can read the private member of its outer class")
+    void compile_succeeds_whenNestedClassReadsPrivateFieldOfOuterClass() {
+        InMemoryCompiler.Result result =
+                compileA("class A { private int secret = 7; static class In { int read(A a){ return a.secret; } } }");
+
+        assertThat(result.success()).isTrue();
+    }
+
+    private static InMemoryCompiler.Result compileA(String source) {
+        return InMemoryCompiler.compile(Map.of("A", source));
     }
 
     private static InMemoryCompiler.Result compileInMethod(String statements) {

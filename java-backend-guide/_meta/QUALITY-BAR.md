@@ -79,7 +79,7 @@ Written by planning step P4 (session S20261025-0027-claudecode), adapted from th
 
 ## G. Size and breadth
 
-- [ ] **G1 Prose budget.** Within the module's SYLLABUS §1 prose cap, or an approved exception in SYLLABUS "Resolved decisions". Under the cap is fine only when G2 holds. *Check:* `node labs/tools/module-stats.mjs` shows no prose flag; reviewer finds no redundancy to cut.
+- [ ] **G1 Prose budget.** No redundancy or filler; the SYLLABUS §1 prose cap is advisory, not a limit (SYLLABUS §9 decision 19). *Check:* reviewer finds no redundancy to cut.
 - [ ] **G2 Breadth.** Every SYLLABUS §4 checkbox of the module is covered by a section or a question, as mapped in `_meta/modules/Mxx.md`. *Check:* reviewer walks the checklist against the plan's mapping and the module.
 
 ## H. Repository state

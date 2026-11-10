@@ -1,7 +1,7 @@
 // Per-module statistics for the guide: questions, exercises, Production scenario questions,
 // type mix and prose words.
 // Usage: node labs/tools/module-stats.mjs [--strict] [guideRoot]
-// Flags floors (STYLE-GUIDE §12), SYLLABUS §1 ceilings and the per-module prose cap (SYLLABUS §1).
+// Flags floors (STYLE-GUIDE §12) and SYLLABUS §1 ceilings. The prose cap is advisory (SYLLABUS §9 decision 19): never flagged.
 // Exit code 1 only with --strict and at least one flag. Node standard library only.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -74,7 +74,7 @@ export function flagsFor(stats, row) {
   if (stats.production < floor.ps) flags.push(`Production scenario ${stats.production} < floor ${floor.ps}`);
   if (stats.questions > row.qMax) flags.push(`questions ${stats.questions} > ceiling ${row.qMax}`);
   if (stats.exercises > row.exMax) flags.push(`exercises ${stats.exercises} > ceiling ${row.exMax}`);
-  if (row.proseCap && stats.prose > row.proseCap) flags.push(`prose ${stats.prose} > cap ${row.proseCap}`);
+  // ponytail: prose cap is advisory since SYLLABUS §9 decision 19; reported, never flagged.
   return flags;
 }
 

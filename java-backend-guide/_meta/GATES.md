@@ -16,7 +16,7 @@ What to review:
 
 ## G2: Source deletion and cross-guide link rewrite approved
 
-- [ ] **G2 ticked**
+- [x] **G2 ticked**
 
 Blocks: every `DELETE-<src>` task (and, by order, Phase D). Tick it only while no other guide session is running, because DELETE rewrites references in other guides (the "⇢" links in `angular-fullstack-guide/SYLLABUS.md`, the link in `react-full-stack-interview-guide/27-interview-execution.md`, the root `README.md`) and removes files at the repository root. Review first: [SOURCE-MAP](sources/SOURCE-MAP.md) and the ledgers, to confirm that every question of each source has a home.
 

@@ -25,7 +25,7 @@ Status values: `planned`, `planning`, `writing`, `closed`, `reviewed`, `done` (c
 
 | # | Slug | Kind | Status | Q / Ex written |
 |---|---|---|---|---|
-| 01 | [`java-oop-fundamentals`](modules/01-java-oop-fundamentals.md) | core | planned | 0/30 Q · 0/4 Ex |
+| 01 | [`java-oop-fundamentals`](modules/01-java-oop-fundamentals.md) | core | closed | 28/30 Q · 3/4 Ex |
 | 02 | [`java-equality-immutability-records`](modules/02-java-equality-immutability-records.md) | core | planned | 0/24 Q · 0/3 Ex |
 | 03 | [`java-generics`](modules/03-java-generics.md) | core | planned | 0/24 Q · 0/3 Ex |
 | 04 | [`java-collections-internals`](modules/04-java-collections-internals.md) | core | planned | 0/32 Q · 0/4 Ex |

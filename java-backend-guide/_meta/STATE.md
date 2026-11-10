@@ -3,11 +3,11 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 01 `java-oop-fundamentals` (core, cap 18,000 words, lab `java-language`). Planned: [M01](modules/M01.md), skeleton `modules/01-java-oop-fundamentals.md`, 21 tasks (SEC 13, QB 4, EX 3, CLOSE). Module 17 (pilot) closed, reviewed, fixed.
+- **Current module:** 02 `java-equality-immutability-records` (core, advisory target 18,000 words, lab `java-language`). Planned: [M02](modules/M02.md), skeleton `modules/02-java-equality-immutability-records.md`, 16 tasks (SEC 8, QB 3, EX 3, CLOSE, REVIEW); SEC-M02-01 to 08 done. Modules 17 and 01 closed, reviewed, fixed.
 - **In progress:** none
-- **Last finished task:** QB-M01-01 (S20261105-2210-claudecode). Before it: SEC-M01-13 (S20261105-2202-claudecode).
-- **Next task:** QB-M01-02 (M, no Docker), then the M01 queue in TASKS.md order. `m01/outputs/` and `Q01OutputsTest` exist. Prose cap pressure: see Standing notes.
-- **Counts:** modules done 0/55 (17 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 2/55 (17, 01); REVIEW 1/55.
+- **Last finished task:** SEC-M02-08 (S20261108-1849-claudecode). Before it: SEC-M02-07 (S20261108-1738-claudecode).
+- **Next task:** QB-M02-01 (M, java-workflow, Normal mode): Q02.01–Q02.08.
+- **Counts:** modules done 0/55 (17 and 01 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 3/55 (17, 01, 02); CLOSE 2/55 (17, 01); REVIEW 2/55 (17, 01).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
   - G1 "Syllabus and pilot approved": **ticked** (noticed S20261101-2100); `PLAN-Mxx` tasks are eligible.
@@ -18,7 +18,11 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
   - `verify -DexcludedGroups=docker`: exit 0. `spotless:apply` then `verify`: exit 0.
   - Node tool tests: 8 pass, 0 fail. `check-links.mjs --planned`: exit 0. `module-stats.mjs`: exit 0 ("0 module(s) of 55 planned").
 - **Standing notes:**
-  - M01 prose cap (S20261105-2210): module-stats reads 13,256 of 18,000 after QB-M01-01. It counts tags, ledger lines and HTML tokens, and QB-M01-01 landed at about 242 per question. At 215 for the other 20 questions, plus exercises (1,000) and closing, the projection is about 18,700: aim for about 180 per question, or Jorge approves an exception as for module 17.
+  - Wrapper constructors are only `@Deprecated(since="9")` in JDK 25 (JDK-8354338 dropped `forRemoval`; S20261108-1849, VERSIONS.md feature notes): later sections must not say "deprecated for removal".
+  - java-reviewer has no Write tool (S20261108-1738): the main session transcribes its verdict into the session's review.md.
+  - java-workflow (S20261107-2128): run `~/.claude/scripts/session-init.sh` from the repository root (from `IdeaProjects/` it picks another repo), and give the orchestrator and implementer absolute lab paths under `java-backend-guide/labs/`: one implementer wrote to `interview-preparation/labs/`.
+  - Prose caps are advisory, not limits (SYLLABUS §9 decision 19, Jorge, 2026-11-07); `module-stats` no longer flags prose. The cap notes below are history.
+  - M01 prose cap: Jorge approved 19,400 (SYLLABUS §9 decision 18, 2026-11-07, superseding decision 17's 19,000); module 01 closed at 19,336.
   - Prose cap: Jorge approved 23,000 for module 17 (SYLLABUS §9 decision 12, 2026-11-01); module 17 closed at 22,722 prose words.
   - Every `@SpringBootTest` R2 class inherits `@DirtiesContext` from PostgresTestBase (HOUSE-08): each class gets a new container port, so cached contexts must not be reused.
   - Harness write guard also blocks the java-workflow tester/implementer subagents (S20261101-2100): the main session writes tests first (red logged), then code, through the shell; java-orchestrator plans and java-reviewer reviews (read-only).
@@ -28,6 +32,6 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
   - Narrow test runs: name the classes (`-Dtest='NestedTypesTest,NestedTypeCompileRulesTest'`). A package pattern (`-Dtest='dev.interview...s11.*'`) matched 0 tests and `-Dsurefire.failIfNoSpecifiedTests=false` hid it behind BUILD SUCCESS (S20261105-2146); check the `Tests run:` count.
   - Every Maven command needs `JAVA_HOME=$(/usr/libexec/java_home -v 25)` (Homebrew Maven defaults to JDK 27).
   - Docker runs in Colima (HOUSE-01, 2026-10-29: both smoke tests ran and passed). Maven needs the Colima env prefix from [TASKS](TASKS.md) "Standard checks", otherwise docker tests are silently skipped; Colima must be started (`colima start`) for docker tasks.
-  - Calibration (S20261102-1341): latest same-window sample 19% → 26% for 1 M (S20261102-1331) = 1.4 per unit (M ≈ 7). Pooled row S 2.26, M 5.64, L 11.28. Budget M ≈ 10 per java-workflow section.
+  - Calibration (S20261108-1849): latest same-window sample 11% → 20% for 1 M (S20261108-1738) = 1.8 per unit. Pooled row S 2.47, M 6.18, L 12.36. Budget M ≈ 8–10 per java-workflow section, L ≈ 16–20.
   - IDE note: Jorge works in IntelliJ IDEA. Run Maven there on JDK 25 (Settings → Build, Execution, Deployment → Build Tools → Maven → Runner → JRE = 25): on JDK 27, spotless (palantir-java-format 2.102.0) fails with `NoSuchFieldError ... endPositions`. The CLI build is unaffected.
   - Harness capabilities (S20261025-1603-codex): docker no (probe exit 127), vision yes (all 24 Spring.pdf pages inspected). Recovery saved at E=35%, U=0%, RESETS=20:00; exact model backend identifier unavailable.

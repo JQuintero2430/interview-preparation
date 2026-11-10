@@ -9,7 +9,7 @@ This file is the plan. It lists every module with its permanent slug, its kind, 
 **Legend.**
 - **Kind.** `core` modules teach a topic interviewers drill in depth; `supporting` modules teach a topic that is asked, but less deeply. `core (pilot)` marks the pilot (Resolved decision 5).
 - **Q / Ex** are ceilings, not quotas. The floors are in STYLE-GUIDE (core: 20 questions and 3 exercises; supporting: 12 questions and 2 exercises). No filler is written to reach a number. A module that exhausts its topic below a floor records the reason in `PROGRESS.md`.
-- **Prose cap** counts words outside code fences (`labs/tools/module-stats.mjs`). Exceeding it needs an exception in "Resolved decisions" approved by Jorge (RUN.md §9).
+- **Prose cap** counts words outside code fences (`labs/tools/module-stats.mjs`). Since decision 19 it is an advisory size target, not a limit: exceeding it needs no exception, and redundancy is judged in review.
 - **Lab** is the Maven module under `labs/` that holds the module's compiled snippets and tests. `—` means the module has no code of its own (its exercises are written designs checked against a rubric, STYLE-GUIDE §8).
 - **Slugs are permanent.** Revisions may add modules (new numbers after 55) but never rename or renumber one, because `node-backend-guide/` and `python-backend-guide/` will link to them.
 
@@ -17,7 +17,7 @@ This file is the plan. It lists every module with its permanent slug, its kind, 
 
 | # | Slug | Part | Kind | Q | Ex | Prose cap | Lab | Prerequisites |
 |---|---|---|---|---|---|---|---|---|
-| 01 | `java-oop-fundamentals` | A · Java language | core | 30 | 4 | 18000 | java-language | none |
+| 01 | `java-oop-fundamentals` | A · Java language | core | 30 | 4 | 19400 | java-language | none |
 | 02 | `java-equality-immutability-records` | A | core | 24 | 3 | 18000 | java-language | 01 |
 | 03 | `java-generics` | A | core | 24 | 3 | 18000 | java-language | 01 |
 | 04 | `java-collections-internals` | A | core | 32 | 4 | 18000 | java-language | 02, 03 |
@@ -991,6 +991,9 @@ The difference between the rows is mostly who does the work: the conservative ro
 14. **G1 answers: the pilot is 17 `spring-transactions`** (Jorge, 2026-11-01, §10 question 2), confirming decision 5.
 15. **G1 answers: the core cap stays 18,000 words** (Jorge, 2026-11-01, §10 question 3; not lowered to 15,000). Jorge accepts going above it when a module needs the depth. Each such module still gets its own numbered exception here, with its number and reason, so `module-stats.mjs --strict` checks the approved figure (decision 3, RUN.md §9). A review finding of redundancy is still fixed, not covered by an exception.
 16. **G1 answers: the Honeywell/Optum full text does not exist** (Jorge, 2026-11-01, §10 question 4). Its topics are written fresh as guide content in the modules its TOC row maps to (§7, `honeywell-optum-md-01`), placed where they fit each module's problem → mechanism → trade-off flow rather than as a separate company-specific section. Its pure-DSA "Coding problems" stay out of scope.
+17. **Prose-cap exception: module 01 at 19,000 words** (approved by Jorge, 2026-11-07, session S20261107-0852-claudecode). After QB-M01-04 the module stood at 17,384 prose words of its 18,000 cap, leaving 616 for three exercises (~330 each planned) and CLOSE-M01 (~400). The §1 cap for 01 is raised to 19,000 so `module-stats.mjs --strict` checks the approved number; the exercises keep their planned ~330 words (Jorge: do not squeeze them to ~150). Other caps are unchanged.
+18. **Prose-cap exception: module 01 at 19,400 words** (approved by Jorge, 2026-11-07, session S20261107-0925-claudecode, superseding decision 17's number). After EX-M01-03 the module stood at 18,699 prose words, leaving 301 for CLOSE-M01, below what the STYLE-GUIDE §2.3 and §9 closing sections need at full quality (~700). The §1 cap for 01 is raised to 19,400. Other caps are unchanged.
+19. **Prose caps removed as limits** (decided by Jorge, 2026-11-07, session S20261107-0959-claudecode: "remove the word restriction, as it will be frequently violated"). The §1 "Prose cap" column stays as an advisory size target for planning. No module needs a cap exception, `module-stats.mjs` no longer flags prose (also under `--strict`), and QUALITY-BAR G1 checks only for redundancy and filler. Supersedes the limit parts of decisions 3, 12, 17 and 18.
 
 ## 10. Open questions for G1
 
