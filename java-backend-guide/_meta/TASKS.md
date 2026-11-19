@@ -944,59 +944,231 @@ Appended by PLAN-M02 (S20261107-1313-claudecode). Plan: [M02](modules/M02.md). S
 - Done by: S20261108-1849-claudecode (claude-opus-5-5; java-workflow: orchestrator, tester, implementer, reviewer on sonnet)
 
 ### QB-M02-01 · M · Q02.01–Q02.08
-- Status: `todo` · Deps: SEC-M02-01, -02 · needs: none
+- Status: `done` · Deps: SEC-M02-01, -02 · needs: none
 - Files touched: `modules/02-java-equality-immutability-records.md` (region `QB-M02-01`), lab `m02/outputs/**` (main `Q02_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M02](modules/M02.md) §5 rows Q02.01–Q02.08 and §3 (ledger rows of each question, with Notes); STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question has the anchor and heading of the skeleton unchanged, a `<!-- ledger: … -->` line listing its M02 §5 rows plus their duplicates (M02 §3), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`; hash-order and identity outcomes as permitted sets, STYLE-GUIDE §7.5); Production scenario answers follow D9; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261115-0835-claudecode (claude-opus-5-5; java-workflow: orchestrator and reviewer on sonnet, tests and code written by the main session through the shell per the background write-guard note)
+
+### FIX-M02-01 · S · §2 Production scenario names a legal hashCode as the cause
+- Status: `done` · Deps: SEC-M02-02 · needs: none · Source: finding during QB-M02-01 (S20261115-0835-claudecode)
+- Files touched: `modules/02-java-equality-immutability-records.md` (region `SEC-M02-02`, the `Production scenario` callout only)
+- Inputs: the callout in §2 "Production scenario: a cache's hit rate collapses…"; Q02.08 hypotheses (region QB-M02-01); [Doc: Object.hashCode Javadoc, Java 25].
+- Finding: the callout's evidence list says "a new field in `equals` but not in `hashCode`". That is legal (equal objects still hash alike; it only costs collisions). The breaking change is the reverse: `hashCode` reads a field that `equals` ignores (as §2 Best practices and Q02.08 say).
+- Acceptance: the phrase is replaced by "a field read by `hashCode` but ignored by `equals`" (or equivalent), consistent with §2 Best practices and Q02.08; no other text changes; Standard checks rows 5, 6.
+- Done by: S20261115-0835-claudecode (claude-opus-5-5; self-found during QB-M02-01, one-phrase fix; Q02.08 is the independent statement of the same hypotheses)
 
 ### QB-M02-02 · M · Q02.09–Q02.16
-- Status: `todo` · Deps: SEC-M02-03, -04, -05 · needs: none
+- Status: `done` · Deps: SEC-M02-03, -04, -05 · needs: none
 - Files touched: `modules/02-java-equality-immutability-records.md` (region `QB-M02-02`), lab `m02/outputs/**` (main `Q02_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M02](modules/M02.md) §5 rows Q02.09–Q02.16 and §3 (ledger rows of each question, with Notes); STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question has the anchor and heading of the skeleton unchanged, a `<!-- ledger: … -->` line listing its M02 §5 rows plus their duplicates (M02 §3), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`; hash-order and identity outcomes as permitted sets, STYLE-GUIDE §7.5); Production scenario answers follow D9; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261115-0846-claudecode (claude-fable-5-2; java-workflow: orchestrator and reviewer on sonnet, reviewer PASS round 1; tests and code written by the main session through the shell per the background write-guard note)
 
 ### QB-M02-03 · M · Q02.17–Q02.22
-- Status: `todo` · Deps: SEC-M02-05, -06, -07, -08 · needs: none
+- Status: `done` · Deps: SEC-M02-05, -06, -07, -08 · needs: none
 - Files touched: `modules/02-java-equality-immutability-records.md` (region `QB-M02-03`), lab `m02/outputs/**` (main `Q02_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M02](modules/M02.md) §5 rows Q02.17–Q02.22 and §3 (ledger rows of each question, with Notes); STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question has the anchor and heading of the skeleton unchanged, a `<!-- ledger: … -->` line listing its M02 §5 rows plus their duplicates (M02 §3), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`; hash-order and identity outcomes as permitted sets, STYLE-GUIDE §7.5); Production scenario answers follow D9; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261115-0846-claudecode (claude-fable-5-2; java-workflow: orchestrator and reviewer on sonnet, reviewer PASS round 1; test and code written by the main session through the shell per the background write-guard note)
 
 ### EX-M02-01 · M · Ex02.1 · A `Money` value type that behaves the same in every collection
-- Status: `todo` · Deps: SEC-M02-02, SEC-M02-04, SEC-M02-06 · needs: none
+- Status: `done` · Deps: SEC-M02-02, SEC-M02-04, SEC-M02-06 · needs: none
 - Files touched: `modules/02-java-equality-immutability-records.md` (region `EX-M02-01`), lab `m02/ex1/**` (main: starting code under `ex1/broken/` if the exercise starts from broken code, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M02](modules/M02.md) §6 row Ex02.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M02 §6 criterion has a test `@DisplayName("Ex02.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261115-0846-claudecode (claude-fable-5-2; java-workflow: orchestrator and reviewer on sonnet, reviewer PASS round 1; tests and code written by the main session through the shell per the background write-guard note)
 
 ### EX-M02-02 · M · Ex02.2 · An immutable `Order` with a builder and withers
-- Status: `todo` · Deps: SEC-M02-05, SEC-M02-07 · needs: none
+- Status: `done` · Deps: SEC-M02-05, SEC-M02-07 · needs: none
 - Files touched: `modules/02-java-equality-immutability-records.md` (region `EX-M02-02`), lab `m02/ex2/**` (main: starting code under `ex2/broken/` if the exercise starts from broken code, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M02](modules/M02.md) §6 row Ex02.2; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M02 §6 criterion has a test `@DisplayName("Ex02.2 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261115-1722-claudecode (claude-fable-5-2; java-workflow: orchestrator and reviewer on sonnet, reviewer PASS round 1; test and code written by the main session through the shell per the background write-guard note)
 
 ### EX-M02-03 · M · Ex02.3 · Repair a broken equality hierarchy and its sort
-- Status: `todo` · Deps: SEC-M02-03, SEC-M02-04 · needs: none
+- Status: `done` · Deps: SEC-M02-03, SEC-M02-04 · needs: none
 - Files touched: `modules/02-java-equality-immutability-records.md` (region `EX-M02-03`), lab `m02/ex3/**` (main: starting code under `ex3/broken/` if the exercise starts from broken code, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M02](modules/M02.md) §6 row Ex02.3; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M02 §6 criterion has a test `@DisplayName("Ex02.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261115-1722-claudecode (claude-fable-5-2; java-workflow: orchestrator and reviewer on sonnet, reviewer PASS round 1; test and code written by the main session through the shell per the background write-guard note)
 
 ### CLOSE-M02 · M
-- Status: `todo` · Deps: every SEC, QB and EX task of M02 · needs: none
+- Status: `done` · Deps: every SEC, QB and EX task of M02 · needs: none
 - Files touched: `modules/02-java-equality-immutability-records.md` (the three `CLOSE-M02` regions: Summary, Check your understanding, Connections), the ledgers in `_meta/sources/` (status `mapped` → `written` for the rows homed in 02, per M02 §3), `PROGRESS.md` (row 02), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: the whole module; [M02](modules/M02.md) §2, §3; STYLE-GUIDE §2.3, §9; [QUALITY-BAR](QUALITY-BAR.md) (all items).
 - Acceptance: QUALITY-BAR F1–F4 and every other item checked with its command, one line per item in the LOG; `grep -c 'TASK:' modules/02-java-equality-immutability-records.md` prints 0; Standard checks row 8 (full build, `-DexcludedGroups=docker` if Docker is absent) plus rows 4, 5, 6; module-stats row 02 has no flag; ledger rows of M02 §3 with primary target 02 set to `written` (secondary mentions untouched).
-- Done by:
+- Done by: S20261115-1722-claudecode (claude-fable-5-2; main session, no subagents, one full build)
+
+### FIX-M02-02 · S · Six test Excerpts in §2–§7 also carry a `<sub>Source:` line
+- Status: `done` · Deps: CLOSE-M02 · needs: none · Source: finding during CLOSE-M02 (QUALITY-BAR C7, S20261115-1722-claudecode)
+- Files touched: `modules/02-java-equality-immutability-records.md` (the six `<sub>Source:` lines only)
+- Inputs: STYLE-GUIDE §7.3 (a Complete block carries `<sub>Source:`; an Excerpt carries the `// Excerpt of labs/…` first line); the six blocks, one per `### Code` of §2 to §7, excerpting `HashContractTest`, `HierarchyEqualityTest`, `OrderingTest`, `ImmutabilityTest`, `RecordsTest`, `BuildersAndWithersTest`.
+- Finding: each of the six blocks starts with `// Excerpt of …` and is followed by a `<sub>Source: …</sub>` line, so it is marked as both kinds. The content is correct: every line was found in order in its file (script, CLOSE-M02).
+- Acceptance: the six `<sub>Source:` lines under Excerpt blocks are removed (the test stays linked from the section's `[Lab: …]` tags; if a block's test is linked nowhere else, the link moves into the sentence that introduces the block); no other text changes; every `<sub>Source:` left in the module sits under a block equal to its file; Standard checks rows 5, 6.
+- Done by: S20261115-1722-claudecode (claude-fable-5-2; self-found during CLOSE-M02, mechanical removal by script; REVIEW-M02 re-checks C7 independently)
 
 ### REVIEW-M02 · L
-- Status: `todo` · Deps: CLOSE-M02 · needs: none
+- Status: `done` · Deps: CLOSE-M02 · needs: none
 - Files touched: `_meta/reviews/REVIEW-M02.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: RUN.md §4 (independent review); the module file; [M02](modules/M02.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: run in a session different from every `Done by` of M02's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M02; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection.
+- Done by: S20261115-1847-claudecode (route: fresh read-only subagent, general-purpose on claude-opus-5-5, given only the module, M02, QUALITY-BAR, STYLE-GUIDE and the m02 lab, plus SOURCES.md for C8; writers ran on claude-fable-5-2; review in `_meta/reviews/REVIEW-M02.md`, verdict CHANGES_REQUIRED, 3 MAJOR, 7 MINOR, 5 NIT, 17 findings → FIX-M02-03..08)
+
+### FIX-M02-03 · S · Java 25 record-constructor rule (JEP 513)
+- Status: `done` · Deps: REVIEW-M02 · needs: none · Source: REVIEW-M02 findings 1
+- Files touched: `modules/02-java-equality-immutability-records.md`, `SOURCES.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M02](reviews/REVIEW-M02.md) (the findings named), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes.
+- Acceptance: JEP 513 text read first (if it does not allow a prologue before `this(…)` in a non-canonical record constructor, the finding is rejected in REVIEW-M02 and the text left unchanged); L842, L852, L864, L2101 corrected with a `[Final since Java 25, JEP 513]` marker and Doc tag; JEP 513 URL under SOURCES.md 02; Standard checks rows 5 and 6 pass (02 flags none).
+- Done by: S20261116-0839-claudecode (claude-opus-5-5, main session)
+
+### FIX-M02-04 · S · Lab tags that overclaim
+- Status: `done` · Deps: REVIEW-M02 · needs: none · Source: REVIEW-M02 findings 2, 3
+- Files touched: `modules/02-java-equality-immutability-records.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M02](reviews/REVIEW-M02.md) (the findings named), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes.
+- Acceptance: each "in the lab" sentence at §6 L846, L850 and §8 L1407 claims only what its test asserts (prose narrowed; no test change, or, if a test is extended, the java-workflow skill is used and row 3 passes); Standard checks rows 5 and 6 pass (02 flags none).
+- Done by: S20261116-0839-claudecode (claude-opus-5-5, main session)
+
+### FIX-M02-05 · M · Production scenario callouts duplicate their questions
+- Status: `done` · Deps: REVIEW-M02 · needs: none · Source: REVIEW-M02 findings 4
+- Files touched: `modules/02-java-equality-immutability-records.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M02](reviews/REVIEW-M02.md) (the findings named), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes.
+- Acceptance: the §2, §4 and §5 callouts each describe an incident different from Q02.08, Q02.14 and Q02.17, using only facts already taught and tagged in their section; no sentence of a callout repeats its question; B10 still ≥ 2; Standard checks rows 5 and 6 pass (02 flags none).
+- Done by: S20261116-0839-claudecode (claude-opus-5-5, main session)
+
+### FIX-M02-06 · S · Repeated passages (Lombok, Timestamp, HashMap internals, class histogram)
+- Status: `done` · Deps: REVIEW-M02 · needs: none · Source: REVIEW-M02 findings 5, 6, 7
+- Files touched: `modules/02-java-equality-immutability-records.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M02](reviews/REVIEW-M02.md) (the findings named), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes.
+- Acceptance: Lombok version facts stated once (§7 How it actually works); `Timestamp` explained once (§3 L353); §2 tree-bin paragraph reduced to two sentences plus a link to 04; class histogram introduced once in §2 Failure modes; no anchor or tag lost (row 5); Standard checks rows 5 and 6 pass (02 flags none).
+- Done by: S20261116-0839-claudecode (claude-opus-5-5, main session)
+
+### FIX-M02-07 · S · Section mechanics: analogy, myth origins, §5 Version notes, markers, placement
+- Status: `done` · Deps: REVIEW-M02 · needs: none · Source: REVIEW-M02 findings 8–15
+- Files touched: `modules/02-java-equality-immutability-records.md`, `SOURCES.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M02](reviews/REVIEW-M02.md) (the findings named), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes.
+- Acceptance: §4 Mental model has an analogy; the 12 Misconceptions have an origin clause; §5 has a Version notes callout (JEP 269 URL in SOURCES.md 02); §8 L1422 carries `[Deprecated since Java 9 — use valueOf]` (never "for removal"); flashcard 2 agrees with Q02.06; L663 has a "because"; L550–554 table tagged; the four callouts moved before Best practices; Standard checks rows 5 and 6 pass (02 flags none).
+- Done by: S20261116-0839-claudecode (claude-opus-5-5, main session)
+
+### FIX-M02-08 · S · TREEIFY off-by-one and two garbled sentences
+- Status: `done` · Deps: REVIEW-M02 · needs: none · Source: REVIEW-M02 findings 16, 17
+- Files touched: `modules/02-java-equality-immutability-records.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M02](reviews/REVIEW-M02.md) (the findings named), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes.
+- Acceptance: `HashMap.putVal` in JDK 25 `src.zip` read first (if it treeifies at the 8th node, reject finding 16 in REVIEW-M02); §2 tree-bin sentence corrected (after FIX-M02-06 if that ran first); Q02.08 L1704 and Q02.15 L1980 reworded; Standard checks rows 5 and 6 pass (02 flags none).
+- Done by: S20261116-0839-claudecode (claude-opus-5-5, main session)
+
+### PLAN-M03 · M
+- Status: `done` · Deps: G1 (ticked), REVIEW-M02 fixes done · needs: none
+- Files touched: `_meta/modules/M03.md`, `modules/03-java-generics.md` (skeleton with `<!-- TASK: <ID> -->` regions, STYLE-GUIDE §2.4), `labs/java-language/**` (package `dev.interview.javalanguage.m03`: one smoke test), `_meta/TASKS.md` (append SEC, QB, EX, CLOSE tasks), `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: RUN.md §9; SYLLABUS §1 row 03, §4 module 03 checklist (and its delegated boundaries), §5, §9; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md); ledger rows targeting 03; `labs/java-language/`; the `### Q` headings of modules 01, 02 and 17; [M02](modules/M02.md) as the shape reference.
+- Acceptance: the RUN.md §9 outputs 1 to 4; breadth gate (every SYLLABUS 03 checkbox and every ledger row targeting 03 has a section, a question or a recorded reason); the skeleton has every heading and anchor; Standard checks rows 3 (no Docker needed), 4, 5, 6 pass for `java-language`; SEC, QB, EX, CLOSE tasks appended with inputs, files, `needs:` and acceptance.
+- Done by: S20261116-0839-claudecode (claude-opus-5-5, main session; smoke test by java-workflow: java-orchestrator planned, test written by the main session through the shell, java-reviewer PASS with 3 MINOR)
+
+Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). Shared rules for every task below: write only inside the task's own `<!-- TASK: <ID> -->` region(s) of `modules/03-java-generics.md`, in one edit at the end; lab paths are under `labs/java-language/src/{main,test}/java/dev/interview/javalanguage/m03/` (main and test mirror each other); `m01.support.OutputCapture` and `m01.support.InMemoryCompiler` are read-only; R2 tests assert diagnostic keys, never message text; `SOURCES.md` under a "03 java-generics" heading for every new URL; `VERSIONS.md` only to add a Java feature-status row the task verified; `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md` for bookkeeping. No task needs Docker or vision. Java 25 final features only (no `--enable-preview`). No dependency is added (spring-core 7.0.10 is already on the test classpath; Jackson is cited, not run). Every task that writes Java follows the java-workflow skill.
+
+### SEC-M03-01 · M · §1 Why generics: compile-time safety and raw types
+- Status: `done` · Deps: none · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-01`), lab `m03/s01/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §1; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §1 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261116-1747-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, PASS in round 2)
+
+### SEC-M03-02 · M · §2 Generic types, generic methods and type inference
+- Status: `done` · Deps: none · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-02`), lab `m03/s02/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §2; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §2 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261116-1747-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, PASS in round 1)
+
+### SEC-M03-03 · M · §3 Bounded type parameters
+- Status: `done` · Deps: none · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-03`), lab `m03/s03/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §3; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §3 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261116-1747-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, PASS in round 1)
+
+### SEC-M03-04 · M · §4 Wildcards, PECS and variance
+- Status: `done` · Deps: none · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-04`), lab `m03/s04/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §4; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §4 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261116-1747-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, PASS in round 2)
+
+### SEC-M03-05 · M · §5 Type erasure and bridge methods
+- Status: `done` · Deps: SEC-M03-01 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-05`), lab `m03/s05/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §5; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §5 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261117-0826-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, tests and code by the main session through the shell, PASS in round 1)
+
+### SEC-M03-06 · M · §6 Reifiable types, generic arrays and heap pollution
+- Status: `done` · Deps: SEC-M03-05 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-06`), lab `m03/s06/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §6; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §6 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261117-0826-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, tests and code by the main session through the shell, PASS in round 1)
+
+### SEC-M03-07 · M · §7 Capturing types at run time: class tokens and super type tokens
+- Status: `done` · Deps: SEC-M03-05 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-07`), lab `m03/s07/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §7; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §7 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261117-0826-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, tests and code by the main session through the shell, PASS in round 2)
+
+### SEC-M03-08 · M · §8 Reading generic signatures in the JDK
+- Status: `todo` · Deps: SEC-M03-03, SEC-M03-04 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `SEC-M03-08`), lab `m03/s08/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §8; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §8 (M03 §3).
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M03-01 · M · Q03.01–Q03.08
+- Status: `todo` · Deps: SEC-M03-01, -02, -03 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `QB-M03-01`), lab `m03/outputs/**` (main `Q03_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M03](modules/M03.md) §5 rows Q03.01–Q03.08 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M03 §5 lists rows, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`, by diagnostic key); Production scenario answers follow D9 and do not repeat a section callout; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M03-02 · M · Q03.09–Q03.16
+- Status: `todo` · Deps: SEC-M03-04, -05 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `QB-M03-02`), lab `m03/outputs/**` (main `Q03_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M03](modules/M03.md) §5 rows Q03.09–Q03.16 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M03 §5 lists rows, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`, by diagnostic key); Production scenario answers follow D9 and do not repeat a section callout; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M03-03 · M · Q03.17–Q03.23
+- Status: `todo` · Deps: SEC-M03-05, -06, -07, -08 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `QB-M03-03`), lab `m03/outputs/**` (main `Q03_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M03](modules/M03.md) §5 rows Q03.17–Q03.23 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M03 §5 lists rows, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`, by diagnostic key); Production scenario answers follow D9 and do not repeat a section callout; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M03-01 · M · Ex03.1 · A type-safe heterogeneous container
+- Status: `todo` · Deps: SEC-M03-02, SEC-M03-05, SEC-M03-07 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `EX-M03-01`), lab `m03/ex1/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M03](modules/M03.md) §6 row Ex03.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M03 §6 criterion has a test `@DisplayName("Ex03.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M03-02 · M · Ex03.2 · Generic utilities with the right bounds and wildcards
+- Status: `todo` · Deps: SEC-M03-03, SEC-M03-04 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `EX-M03-02`), lab `m03/ex2/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M03](modules/M03.md) §6 row Ex03.2; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M03 §6 criterion has a test `@DisplayName("Ex03.2 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M03-03 · M · Ex03.3 · A super type token from scratch
+- Status: `todo` · Deps: SEC-M03-05, SEC-M03-07 · needs: none
+- Files touched: `modules/03-java-generics.md` (region `EX-M03-03`), lab `m03/ex3/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M03](modules/M03.md) §6 row Ex03.3; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M03 §6 criterion has a test `@DisplayName("Ex03.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### CLOSE-M03 · M
+- Status: `todo` · Deps: every SEC, QB and EX task of M03 · needs: none
+- Files touched: `modules/03-java-generics.md` (the three `CLOSE-M03` regions: Summary, Check your understanding, Connections), `PROGRESS.md` (row 03), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md` (no ledger row has 03 as primary target, M03 §3, so no ledger status changes)
+- Inputs: the whole module; [M03](modules/M03.md) §2, §3; STYLE-GUIDE §2.3, §9; [QUALITY-BAR](QUALITY-BAR.md) (all items).
+- Acceptance: QUALITY-BAR F1–F4 and every other item checked with its command, one line per item in the LOG; `grep -c 'TASK:' modules/03-java-generics.md` prints 0; Standard checks row 8 (full build, `-DexcludedGroups=docker` if Docker is absent) plus rows 4, 5, 6; module-stats row 03 has no flag.
 - Done by:
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)

@@ -290,6 +290,9 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://jakarta.ee/specifications/persistence/3.2/jakarta-persistence-spec-3.2.html#composite-primary-keys
 - https://openjdk.org/jeps/395
 - https://openjdk.org/jeps/440
+- https://openjdk.org/jeps/513
+- https://openjdk.org/jeps/269
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Comparable.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/IllegalStateException.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.compiler/share/classes/javax/annotation/processing/Filer.java
 - https://openjdk.org/jeps/468
@@ -312,6 +315,77 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://openjdk.org/jeps/401
 - https://openjdk.org/projects/jdk/28/
 - https://docs.oracle.com/javase/8/docs/api/java/lang/doc-files/ValueBased.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.21.1
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Double.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Enum.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/math/BigDecimal.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/net/URI.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/net/URL.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Currency.java
+
+## 03 java-generics
+
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html
+- https://docs.oracle.com/javase/1.5.0/docs/guide/language/generics.html
+- https://docs.oracle.com/javase/specs/jls/se15/html/jls-15.html#jls-15.20.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-10.html#jls-10.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.4.13
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.4.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.10.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.20.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.8.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-18.html#jls-18.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.6
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.7
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.8
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.9
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.10
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.5.5.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.6.4.7
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.6
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.7.9
+- https://docs.oracle.com/javase/tutorial/java/generics/types.html
+- https://docs.oracle.com/javase/tutorial/java/generics/wildcardGuidelines.html
+- https://gafter.blogspot.com/2006/12/super-type-tokens.html
+- https://github.com/FasterXML/jackson-core/blob/jackson-core-3.1.7/src/main/java/tools/jackson/core/type/TypeReference.java
+- https://github.com/FasterXML/jackson-databind/blob/jackson-databind-3.1.7/src/main/java/tools/jackson/databind/deser/jdk/UntypedObjectDeserializer.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Class.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Enum.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/SafeVarargs.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/SuppressWarnings.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/time/chrono/ChronoLocalDate.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Date.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumSet.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/BridgeMethodResolver.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/ParameterizedTypeReference.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/ResolvableType.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-web/src/main/java/org/springframework/web/client/RestClient.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-web/src/main/java/org/springframework/web/client/RestTemplate.java
+- https://jcp.org/en/jsr/detail?id=14
+- https://jcp.org/en/jsr/detail?id=334
+- https://openjdk.org/jeps/101
+- https://openjdk.org/jeps/213
+- https://openjdk.org/jeps/286
+- https://openjdk.org/jeps/323
+- https://repo1.maven.org/maven2/org/springframework/boot/spring-boot-dependencies/4.1.2/spring-boot-dependencies-4.1.2.pom
 
 ## 17 spring-transactions
 
