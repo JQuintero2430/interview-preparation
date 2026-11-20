@@ -1116,18 +1116,18 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261117-0826-claudecode, claude-fable-5-2 (java-workflow: orchestrator and reviewer on sonnet, tests and code by the main session through the shell, PASS in round 2)
 
 ### SEC-M03-08 · M · §8 Reading generic signatures in the JDK
-- Status: `todo` · Deps: SEC-M03-03, SEC-M03-04 · needs: none
+- Status: `done` · Deps: SEC-M03-03, SEC-M03-04 · needs: none
 - Files touched: `modules/03-java-generics.md` (region `SEC-M03-08`), lab `m03/s08/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
 - Inputs: [M03](modules/M03.md) §1 (lab design) and §4 entry §8; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §8 (M03 §3).
 - Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M03 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; about the word budget of M03 §4 (advisory), no filler; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261120-0358-claudecode-cloud (claude-opus-5-5; written and tested in the main session, tests first, no java-workflow skill in this harness)
 
 ### QB-M03-01 · M · Q03.01–Q03.08
-- Status: `todo` · Deps: SEC-M03-01, -02, -03 · needs: none
+- Status: `done` · Deps: SEC-M03-01, -02, -03 · needs: none
 - Files touched: `modules/03-java-generics.md` (region `QB-M03-01`), lab `m03/outputs/**` (main `Q03_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M03](modules/M03.md) §5 rows Q03.01–Q03.08 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M03 §5 lists rows, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`, by diagnostic key); Production scenario answers follow D9 and do not repeat a section callout; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261120-0358-claudecode-cloud (claude-opus-5-5; written and tested in the main session, tests first, no java-workflow skill in this harness)
 
 ### QB-M03-02 · M · Q03.09–Q03.16
 - Status: `todo` · Deps: SEC-M03-04, -05 · needs: none

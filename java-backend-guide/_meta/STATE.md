@@ -3,10 +3,10 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 03 `java-generics` (core, advisory target 18,000 words, lab `java-language`). Planned: [M03](modules/M03.md) by PLAN-M03 (S20261116-0839-claudecode); skeleton with 17 regions, §1 to §7 written (SEC-M03-01..07); SEC-M03-08, QB, EX, CLOSE todo. Modules 17, 01 and 02 closed, reviewed, fixed.
+- **Current module:** 03 `java-generics` (core, advisory target 18,000 words, lab `java-language`). Planned: [M03](modules/M03.md) by PLAN-M03 (S20261116-0839-claudecode); skeleton with 17 regions, §1 to §8 written (SEC-M03-01..08), Q03.01–Q03.08 written (QB-M03-01); QB-M03-02..03, EX, CLOSE todo. Modules 17, 01 and 02 closed, reviewed, fixed.
 - **In progress:** none
-- **Last finished task:** SEC-M03-07 (S20261117-0826-claudecode, claude-fable-5-2).
-- **Next task:** SEC-M03-08 (M, java-workflow), then QB-M03-01..03, EX-M03-01..03, CLOSE-M03 in TASKS order.
+- **Last finished task:** QB-M03-01 (S20261120-0358-claudecode-cloud, claude-opus-5-5).
+- **Next task:** QB-M03-02 (M), then QB-M03-03, EX-M03-01..03, CLOSE-M03 in TASKS order.
 - **Counts:** modules done 0/55 (17, 01 and 02 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 4/55 (17, 01, 02, 03); CLOSE 3/55 (17, 01, 02); REVIEW 3/55 (17, 01, 02).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
@@ -18,6 +18,7 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
   - `verify -DexcludedGroups=docker`: exit 0. `spotless:apply` then `verify`: exit 0.
   - Node tool tests: 8 pass, 0 fail. `check-links.mjs --planned`: exit 0. `module-stats.mjs`: exit 0 ("0 module(s) of 55 planned").
 - **Standing notes:**
+  - Cloud scheduled runs (S20261120-0358-claudecode-cloud): `JAVA_HOME=/opt/jdk-25`, no Colima prefix; the container sets `JAVA_TOOL_OPTIONS` and `_JAVA_OPTIONS`, whose "Picked up" lines break `LaunchProtocolTest`, so run Maven as `env -u JAVA_TOOL_OPTIONS -u _JAVA_OPTIONS JAVA_HOME=/opt/jdk-25 mvn -o …`. github.com and docs.oracle.com return 403 through the proxy: read JDK sources from `/opt/jdk-25/lib/src.zip`.
   - java-workflow in this guide (S20261117-0826): never launch a subagent with `isolation: worktree` (RUN.md §7 forbids worktrees), and run `~/.claude/scripts/session-init.sh` before each new task's orchestrator so the DONE session is archived, not overwritten.
   - Wrapper constructors are only `@Deprecated(since="9")` in JDK 25 (JDK-8354338 dropped `forRemoval`; S20261108-1849, VERSIONS.md feature notes): later sections must not say "deprecated for removal".
   - java-reviewer has no Write tool (S20261108-1738): the main session transcribes its verdict into the session's review.md.

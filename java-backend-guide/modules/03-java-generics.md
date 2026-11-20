@@ -1157,15 +1157,127 @@ The diamond in `new TypeToken<>() {}` infers `List<String>` from the target type
 Questions that drill this section: [Q03.22](#q03-22), [Exercise 03.1](#ex03-1), [Exercise 03.3](#ex03-3).
 
 ## 8. Reading generic signatures in the JDK
-<!-- TASK: SEC-M03-08 -->
 ### The problem it solves
+
+A developer opens the Javadoc of `Collections.max` to check whether it accepts a `List<LocalDate>` and finds `public static <T extends Object & Comparable<? super T>> T max(Collection<? extends T> coll)`. Read as one line of punctuation, it is easier to guess than to understand, so the developer writes a cast, a copy into a `List<Comparable>`, or a hand-rolled loop. The signature already answered the question, and every wildcard in it is there so that a call like theirs compiles. This section is a method for reading such signatures, applied to four JDK methods that interviews use.
+
 ### Mental model
+
+Read a generic signature the way you read a contract: first the parties, then the conditions, then what each party gives and receives. The parties are the type parameters in the angle brackets before the return type. The conditions are their bounds. Each parameter is then either a producer that the method reads from (`? extends`) or a consumer that the method feeds (`? super`), the PECS rule of [§4](#4-wildcards-pecs-and-variance). The return type is what the caller receives. Four questions, in that order, take apart any signature in the JDK:
+
+| Step | Question | `Collections.max` | `Stream<T>.collect` |
+|---|---|---|---|
+| 1 | Which type parameters does the method declare? | `T` | `R`, `A` (and the class's `T`) |
+| 2 | What bounds them? | `Object & Comparable<? super T>` | none |
+| 3 | Is each parameter a producer or a consumer of `T`? | `Collection<? extends T>`: producer | `Collector<? super T, A, R>`: consumer of `T` |
+| 4 | What does the caller get back? | `T` | `R` |
+
 ### How it actually works
+
+**`Collections.max`.** The declaration in JDK 25 is `<T extends Object & Comparable<? super T>> T max(Collection<? extends T> coll)` [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java). Step 2: `Comparable<? super T>` lets `T` be a type that inherits its comparison from a supertype, such as `LocalDate`, which is `Comparable<ChronoLocalDate>` ([§3](#3-bounded-type-parameters)). Step 3: the collection only produces elements, so `? extends T` lets the method pick a `T` wider than the element type. In the lab, `Collections.max` returns the latest of three `LocalDate`s with no cast [Lab: JdkSignatureCallsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCallsTest.java). The bound `Object &` adds nothing at compile time, because every type is already an `Object`. It exists for the erasure. A type variable erases to its leftmost bound ([§5](#5-type-erasure-and-bridge-methods)), so with `Object` first the erased method returns `Object`, which is what `max` returned before generics, and class files compiled against the old signature still link. Without `Object &`, the erasure would return `Comparable`, a different method descriptor [Doc: Gilad Bracha, Generics in the Java Programming Language (2004), §10](https://www.oracle.com/technetwork/java/javase/generics-tutorial-159168.pdf). The lab reads both facts by reflection: `getReturnType()` of `Collections.max` is `Object.class`, the declared bounds are `Object` then `Comparable<? super T>`, and a look-alike declared without `Object &` erases to `Comparable` [Lab: JdkSignatureReflectionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureReflectionTest.java).
+
+**`Stream<T>.collect`.** The declaration is `<R, A> R collect(Collector<? super T, A, R> collector)` [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java). `T` belongs to the stream; the method adds `R` and `A`. In `Collector<T, A, R>`, `T` is the input element type, `A` the mutable accumulation type, "often hidden as an implementation detail", and `R` the result type [Src: JDK 25, java.util.stream.Collector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collector.java). That is why factory methods such as `Collectors.toList()` return `Collector<T, ?, List<T>>`: the caller never names `A`, and inference fills it from the collector. The collector consumes the elements, so `? super T` accepts a collector written for any supertype. In the lab, one `Collector<Object, ?, String>` collects both a `Stream<Integer>` and a `Stream<LocalDate>` [Lab: JdkSignatureCallsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCallsTest.java), and the same call against a look-alike that takes `Collector<T, A, R>` fails with `compiler.err.cant.apply.symbol` [Lab: JdkSignatureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCompileRulesTest.java). How collectors work belongs to [05](05-java-lambdas-streams-optional.md).
+
+**`Map<K, V>.computeIfAbsent`.** The declaration is `default V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction)` [Src: JDK 25, java.util.Map](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Map.java). No new type parameter: `K` and `V` come from the map. The function consumes a key (`? super K`) and produces a value (`? extends V`), so on a `Map<String, List<String>>` a `Function<CharSequence, ArrayList<String>>` is accepted. In the lab it creates the bucket once and the second call reuses it; with `Function<K, V>` in its place the call does not compile [Lab: JdkSignatureCallsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCallsTest.java) [Lab: JdkSignatureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCompileRulesTest.java). The return type is `V`, not `? extends V`: the caller gets the map's own type back.
+
+**`Comparator.comparing`.** The one-argument form is `<T, U extends Comparable<? super U>> Comparator<T> comparing(Function<? super T, ? extends U> keyExtractor)` [Src: JDK 25, java.util.Comparator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Comparator.java). It combines all the pieces: `U` is the key type with the same robust bound as `max`, and the extractor consumes a `T` and produces a `U`. In the lab, `comparing(Parcel::shippedOn)` sorts parcels by a `LocalDate` key [Lab: JdkSignatureCallsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCallsTest.java). Using comparators is [02 §4](02-java-equality-immutability-records.md#4-ordering-comparable-and-comparator).
+
 ### Code
+
+One call per signature. Each compiles only because of the wildcard or bound named in its comment:
+
+```java
+package dev.interview.javalanguage.m03.s08;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+// Module 03 §8: one call per JDK signature read in the section. Each compiles only because of a wildcard or bound.
+public final class Shipments {
+
+    // ? super K accepts a function over a supertype of the key; ? extends V accepts a subtype of the value.
+    private static final Function<CharSequence, ArrayList<String>> NEW_BUCKET = key -> new ArrayList<>();
+
+    private Shipments() {}
+
+    // <T extends Object & Comparable<? super T>>: LocalDate is Comparable<ChronoLocalDate>, a supertype's comparison.
+    public static LocalDate latestShipDate(Collection<LocalDate> dates) {
+        return Collections.max(dates);
+    }
+
+    // A Collector<Object, ?, String> fits Stream<T>.collect(Collector<? super T, A, R>) for every T.
+    public static Collector<Object, ?, String> describingAnything() {
+        return Collectors.mapping(String::valueOf, Collectors.joining(", "));
+    }
+
+    public static void index(Map<String, List<String>> byPrefix, String prefix, String value) {
+        byPrefix.computeIfAbsent(prefix, NEW_BUCKET).add(value);
+    }
+
+    // <T, U extends Comparable<? super U>>: U is LocalDate here.
+    public static List<Parcel> byShipDate(List<Parcel> parcels) {
+        return parcels.stream().sorted(Comparator.comparing(Parcel::shippedOn)).toList();
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m03/s08/Shipments.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m03/s08/Shipments.java)</sub>
+
+The erasure that `Object &` protects, read by reflection (excerpt):
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureReflectionTest.java
+    @Test
+    @DisplayName("M03 §8 · the erasure of Collections.max returns Object")
+    void getReturnType_isObject_whenFirstBoundIsObject() throws NoSuchMethodException {
+        Method max = Collections.class.getMethod(MAX, Collection.class);
+
+        assertThat(max.getReturnType()).isEqualTo(Object.class);
+        assertThat(max.toString()).isEqualTo(ERASED_MAX);
+        assertThat(max.toGenericString()).isEqualTo(DECLARED_MAX);
+    }
+
+    @Test
+    @DisplayName("M03 §8 · without Object & the same signature erases to Comparable")
+    void getReturnType_isComparable_whenObjectBoundIsMissing() throws NoSuchMethodException {
+        Method lookAlike = JdkSignatureReflectionTest.class.getDeclaredMethod(LOOK_ALIKE, Collection.class);
+
+        assertThat(lookAlike.getReturnType()).isEqualTo(Comparable.class);
+    }
+
+    @SuppressWarnings("unused") // read by reflection only: the JDK's signature minus "Object &"
+    private static <T extends Comparable<? super T>> T maxWithoutObjectBound(Collection<? extends T> values) {
+        return Collections.max(values);
+    }
+```
+
+The two constants hold the strings the test compares: `ERASED_MAX` is `public static java.lang.Object java.util.Collections.max(java.util.Collection)`, and `DECLARED_MAX` is `public static <T extends java.lang.Object & java.lang.Comparable<? super T>> T java.util.Collections.max(java.util.Collection<? extends T>)`.
+
 ### Failure modes and operations
+
+Reading a signature has no run-time behavior of its own; a call that does not fit fails at compile time, and on JDK 25 the key is `compiler.err.cant.apply.symbol` [Lab: JdkSignatureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCompileRulesTest.java). The run-time risk is on the library side. The first bound decides the erased descriptor, so a library that changes it breaks callers compiled against the old one, which is the binary-compatibility rule of [§3](#3-bounded-type-parameters) and the reason `max` carries `Object &` [Doc: Gilad Bracha, Generics in the Java Programming Language (2004), §10](https://www.oracle.com/technetwork/java/javase/generics-tutorial-159168.pdf). What to observe: `Method.toString()`, `getReturnType()` and `getParameterTypes()` show the erased signature that callers link against, and `toGenericString()` shows the declared one, bounds included [Lab: JdkSignatureReflectionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureReflectionTest.java).
+
 ### Best practices and anti-patterns
+
+- Read a signature in the four steps (type parameters, bounds, producer or consumer, return type) before writing a cast or a copy, because the wildcards usually already allow the call.
+- Copy the JDK's shapes into your own APIs: `Comparable<? super T>` for orderable types, `? extends` on inputs you read, `? super` on functions and sinks you feed, because those are the shapes that accept `LocalDate`, subtypes and general-purpose lambdas.
+- Return the plain type (`V`, `T`, `List<T>`), not a wildcard, because a wildcard in a return type forces every caller to deal with a capture ([§4](#4-wildcards-pecs-and-variance)).
+- When generifying an existing public method, check that its erasure is unchanged (put `Object &` first if needed), because old class files link against the erased descriptor.
+
 ### Misconceptions and traps
-<!-- /TASK: SEC-M03-08 -->
+
+- *"`T extends Object & …` is redundant noise."* It changes nothing for the compiler's type checks, but it sets the erasure to `Object` [Lab: JdkSignatureReflectionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureReflectionTest.java). The myth exists because the bound is indeed redundant in source, and erasure is invisible until you read the class file.
+- *"The `A` in `collect` is something the caller must supply."* It is a type parameter of the method that inference fills from the collector; collectors hide it as `?` [Src: JDK 25, java.util.stream.Collector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collector.java). The confusion comes from seeing three type arguments where only one, the result, matters to the caller.
+- *"`? super K` in `computeIfAbsent` means the map can hold supertypes of `K`."* The wildcard is on the function, not on the map: it widens the lambdas you may pass, and the map stays a `Map<K, V>`. The trap comes from reading wildcards as properties of the collection rather than of the parameter they sit on.
+
+Questions that drill this section: [Q03.23](#q03-23), [Exercise 03.2](#ex03-2).
 
 ## Summary
 <!-- TASK: CLOSE-M03 -->
@@ -1173,24 +1285,263 @@ Questions that drill this section: [Q03.22](#q03-22), [Exercise 03.1](#ex03-1), 
 
 ## Question bank
 
-<!-- TASK: QB-M03-01 -->
 <a id="q03-01"></a>
 ### Q03.01 · Concept · What do generics buy you, and what does a raw type give up?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Generics move the element check from run time to compile time: `List<String>` rejects `add(42)` at compile time, and the compiler inserts the casts on reads, so the source has none. A raw `List` switches that checking off for the variable: it accepts any element, with an `unchecked` warning at most, and the wrong element surfaces later as a `ClassCastException` far from the line that added it.
+
+**Full explanation.** A parameterized type such as `List<String>` gives the compiler two jobs: reject a wrong argument at the call that writes, and insert a cast where an element is read as `String` ([§1](#1-why-generics-compile-time-safety-and-raw-types)). The raw type is the generic type's name without type arguments; its members are their erasures, so `add(E)` becomes `add(Object)` [Doc: JLS §4.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.8). Raw types still compile because pre-Java-5 code had to keep compiling. What they give up is the guarantee: if no unchecked warning occurs, heap pollution, a variable of a parameterized type referring to an object not of that type, cannot happen [Doc: JLS §4.12.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.2). In the lab, a raw-typed `add` of an `Integer` makes the exception appear in `SkuReport`, typed code with no cast in its source [Lab: RawTypesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s01/RawTypesTest.java). The cost is zero at run time: one class serves every parameterization [Lab: M03LabSmokeTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/smoke/M03LabSmokeTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Is a raw `List` the same as `List<Object>`?* No. `List<Object>` is checked like any parameterized type and is not a supertype of `List<String>`; the raw type accepts any list and any element. [Q03.12](#q03-12) takes the three forms apart.
+- *How do you find the bad write in an existing code base?* Compile with `-Xlint:rawtypes,unchecked` to list the unchecked operations, and wrap the suspicious list in `Collections.checkedList` so the exception moves to the bad `add` [Lab: RawTypesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s01/RawTypesTest.java).
+
+**Trap to avoid.** "It compiled without errors, so the types are right." A raw `add` is a warning, not an error, and default javac output hides it behind a one-line note [Lab: RawTypeCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s01/RawTypeCompileRulesTest.java).
+
+</details>
+
 <a id="q03-02"></a>
 ### Q03.02 · Output · A raw `List` holding a `String` and an `Integer`: what compiles, what warns, and which line throws?
+
+Compiled with `-Xlint:rawtypes,unchecked`. What does it print, which warnings appear, and where does it fail?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_02.java
+List raw = new ArrayList();
+raw.add("sku-1");
+raw.add(42);
+List<String> skus = raw;
+
+System.out.println(skus.size());
+System.out.println(skus.get(0));
+String second = skus.get(1);
+System.out.println(second);
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+2
+sku-1
+```
+
+Then `String second = skus.get(1)` throws `ClassCastException` (`java.lang.Integer` cannot be cast to `java.lang.String`). Everything compiles, with five warnings: two raw-type uses, two unchecked calls to `add`, and one unchecked assignment to `List<String>`.
+
+**Full explanation.** The raw list checks nothing, so both `add`s succeed, and `size()` and the first read, which really is a `String`, work. The assignment `List<String> skus = raw` is an unchecked conversion: allowed, with a warning [Doc: JLS §4.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.8). The third read is where javac inserted a cast to `String`, and that cast is the first check the `Integer` meets. The lab captures the two lines and the exception, and compiles the first four lines in memory to assert the warning keys in order: `compiler.warn.raw.class.use` twice, `compiler.warn.unchecked.call.mbr.of.raw.type` twice, and `compiler.warn.prob.found.req` for the assignment [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Does `Object o = skus.get(1);` throw?* Not with javac 25: the target is `Object`, so no cast to `String` is needed, and in the lab the read returns the `Integer` [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). That is why logging or copying a polluted list "works" and only typed use fails.
+- *Which warning points at the real bug?* The two unchecked calls to `add`: they are the writes that javac could not check. The rawtypes warnings only say where checking is off.
+
+**Trap to avoid.** Answering "the line `raw.add(42)` throws". Nothing checks the raw `add`; the failure waits for the first read that needs a `String`.
+
+</details>
+
 <a id="q03-03"></a>
 ### Q03.03 · Production scenario · A `ClassCastException` in code with no cast, after a legacy library returned a raw `List`
+
+*As the interviewer frames it:* "After upgrading a vendor SDK, our nightly export fails with `ClassCastException: class java.lang.Long cannot be cast to class java.lang.String` in `ExportJob.writeRow`. That method takes a `List<String>` and has no cast in it. The SDK call is `List<String> ids = client.fetchIds();`, and `fetchIds()` is declared to return a raw `List`. Nothing else changed."
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The SDK now puts `Long` values into the raw list it returns. The assignment to `List<String>` is unchecked, so nothing fails until `writeRow` reads an element as `String` through the cast javac inserted. Confirm by inspecting the list's element classes at the SDK boundary, fix it by converting explicitly there, and prevent it by treating unchecked warnings at third-party boundaries as errors.
+
+**Full explanation.** *What the symptoms tell you:* an exception in code with no source-level cast means a compiler-inserted cast, so a typed variable holds an object of another type, which is heap pollution ([§1](#1-why-generics-compile-time-safety-and-raw-types)). *Hypotheses, ranked:* (1) the SDK's raw return now contains `Long`s, likely an ID type change in the new version; (2) some code of ours adds to the list through a raw reference; (3) a deserializer fills the list without a type token ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)). *Evidence:* the build log of the call site shows an unchecked-assignment warning under `-Xlint:unchecked` [Doc: javac, Java 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html); a debugger or a one-off log of `ids.get(0).getClass()` at the boundary shows `Long`, which settles hypothesis 1; to rule out 2, wrap the list in `Collections.checkedList(ids, String.class)` in a test run, which throws at the polluting `add` instead of the read [Lab: RawTypesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s01/RawTypesTest.java). *Fix:* stop pretending at the boundary. Declare the SDK result as `List<?>` and convert each element explicitly (`String.valueOf(id)` or a typed parser), so the decision lives in one adapter. *Prevention:* keep raw SDK types inside one adapter class, compile with `-Xlint:rawtypes,unchecked` and `-Werror`, and add a contract test on the SDK's element type that runs on every dependency upgrade.
+
+**Follow-ups an interviewer will ask.**
+- *Why not just add `@SuppressWarnings("unchecked")` to the assignment?* It silences the only warning that pointed at the problem. Suppression is honest only when the code proves the cast safe, in the smallest scope, with a comment saying why.
+- *Would `Collections.checkedList` fix production?* It only moves the exception to the write, which here is inside the SDK. It is a diagnostic; the conversion in the adapter is the fix.
+
+**Trap to avoid.** Debugging `writeRow`. The stack trace shows where the wrong element was first read as a `String`, not where it entered the list.
+
+</details>
+
 <a id="q03-04"></a>
 ### Q03.04 · Difference · Generic class vs generic method: where `T` is declared and who chooses it
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A class's type parameter (`class Box<T>`) is chosen once by whoever names the type or creates the instance, and it is fixed for that object. A method's type parameter (`static <T> T firstOr(List<T>, T)`) is declared before the return type and chosen at every call, almost always by inference.
+
+**Full explanation.** A class is generic when its declaration declares type variables [Doc: JLS §8.1.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.2); a method is generic when it declares its own [Doc: JLS §8.4.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.4). The class's `T` belongs to instances, so static members cannot use it: one class serves every parameterization. A method's `T` is local to the call, so a static utility in a non-generic class can be generic, and a generic class can add method-level parameters, as `Box.map` adds `<R>`. In the lab, a `Box<String>` stays a box of strings, while `Elements.firstOr` returns an `Integer` for one call and a `String` for the next [Lab: GenericDeclarationsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s02/GenericDeclarationsTest.java). Choose a class parameter when the type is part of the object's state; choose a method parameter when it only relates the call's arguments and result.
+
+**Code.** The class fixes `T`; the method adds its own `R` per call:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/s02/Box.java
+    public <R> Box<R> map(Function<T, R> mapper) {
+        return new Box<>(mapper.apply(value));
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Why can't a static field be of type `T`?* Static members belong to the one runtime class shared by `Box<String>` and `Box<Integer>`, so there is no single `T` for them ([§5](#5-type-erasure-and-bridge-methods)).
+- *When do you write the type argument of a method call?* Only when inference has no information, for example a generic call used as the receiver of another call: `Collections.<String>emptyList().stream()` ([Q03.05](#q03-05)).
+
+**Trap to avoid.** Making a class generic only because one method needs a type parameter. Callers then have to name a type argument that describes nothing about the object.
+
+</details>
+
 <a id="q03-05"></a>
 ### Q03.05 · Output · Diamond, target typing and `var`: which type does each declaration infer?
+
+What does each declaration infer, and what does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_05.java
+List<String> a = new ArrayList<>();
+var b = new ArrayList<>();
+var c = new ArrayList<String>();
+List<String> d = Collections.emptyList();
+List<String> e = Collections.<String>emptyList().stream().toList();
+
+b.add(1);
+b.add("two");
+System.out.println(b);
+c.add("three");
+a.addAll(c);
+System.out.println(a + " " + d.size() + " " + e);
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+[1, two]
+[three] 0 []
+```
+
+`a` is `ArrayList<String>` (the declared type is the target), `b` is `ArrayList<Object>` (`var` gives the diamond no target), `c` is `ArrayList<String>` (written out), `d` infers `T = String` from its target, and `e` needs the witness `<String>`, because a call used as a receiver gets no target type.
+
+**Full explanation.** The diamond and a generic method call are poly expressions: their type arguments come from the arguments and, in an assignment or invocation context, from the target type [Doc: JLS §15.9](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9) [Doc: JLS §15.12](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12). `var` types the variable from its initializer as if it were not in an assignment context, so `new ArrayList<>()` has nothing to infer from and becomes `ArrayList<Object>` [Doc: JLS §14.4.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.4.1); that is why `b` takes an `Integer` and a `String`. In `e`, `emptyList()` is the receiver of `.stream()`, not the right-hand side of the assignment, so without the witness it infers `List<Object>` and the statement fails with `compiler.err.prob.found.req`. The lab asserts the printed lines and, by compiling variants in memory, that `String s = b.get(0);`, `a.add(1);` and `c.add(1);` are each rejected with `compiler.err.prob.found.req`, that `b.add(1); b.add("x");` compiles, and that the chain compiles only with the witness [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Is `b` a raw type?* No. It is a fully parameterized `ArrayList<Object>` and compiles without warnings; `new ArrayList()` without the diamond is the raw one ([§2](#2-generic-types-generic-methods-and-type-inference)).
+- *How would you fix `b` and keep `var`?* Write the argument: `var b = new ArrayList<String>();`, as `c` does.
+
+**Trap to avoid.** Saying `var` "copies the type from the other declarations" or "infers from later use". It looks only at the initializer, once.
+
+</details>
+
 <a id="q03-06"></a>
 ### Q03.06 · Bug hunt · `<T> T get(String key)`: why does the `ClassCastException` appear in the caller?
+
+`Settings` stores values as `Object` and offers `@SuppressWarnings("unchecked") public <T> T get(String key) { return (T) values.get(key); }`. Where does this fail, and what is the bug?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_06.java
+Settings settings = new Settings();
+settings.put(PORT, PORT_TEXT);
+
+Integer port = settings.get(PORT);
+System.out.println(port + 1);
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `PORT_TEXT` is the string `"8080"`. `Integer port = settings.get(PORT)` throws `ClassCastException`, and the top stack frame is the caller, not `get`. The `(T)` cast inside `get` is erased to `Object` and checks nothing; the real cast is the one javac inserts at the caller's assignment, for the `T` the caller's target type chose.
+
+**Full explanation.** `T` appears only in the return type, so no argument constrains it and the target type decides: here `T = Integer` [Doc: JLS §15.12](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12). Inside `get`, `T` erases to `Object`, so `(T)` is an unchecked cast that compiles to nothing ([§5](#5-type-erasure-and-bridge-methods)); javac warns about it at the getter and never at the caller [Lab: TypeInferenceCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s02/TypeInferenceCompileRulesTest.java). The caller then needs an `Integer`, and the inserted cast fails in its frame [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). The bug is the signature: it promises any type the caller asks for, and the suppression hides that promise. The fix: take a `Class<T>` and return `type.cast(value)`, which checks inside `get` ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)).
+
+**Code.** The checked version, from §7:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/s07/TypedSettings.java
+    public <T> T get(String key, Class<T> type) {
+        return type.cast(values.get(key));
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *What does `String.valueOf(settings.get(PORT))` do?* It throws too, with a message naming `[C`. Overload resolution picks the most specific applicable `valueOf`, which is `valueOf(char[])`, so `T` is inferred as `char[]` and the inserted cast fails [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java).
+- *And `Object port = settings.get(PORT);`?* No exception: `T` is `Object` and nothing needs a cast [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). The bug only shows in callers that guessed wrong.
+
+**Trap to avoid.** Looking for the bug in the caller because the stack trace points there. The caller is the victim of a getter that lets it choose its own cast.
+
+</details>
+
 <a id="q03-07"></a>
 ### Q03.07 · Concept · Bounds and multiple bounds: what `<T extends Number & Comparable<T>>` lets the body call, and what `T` erases to
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The body may call the members of every bound: `doubleValue()` from `Number` and `compareTo(T)` from `Comparable<T>`. Callers must pass a type that satisfies all of them, such as `Integer`. At most one bound may be a class and it must come first, and `T` erases to that first bound, `Number`.
+
+**Full explanation.** A type variable's members are those of its bound, `Object` when none is declared, and a type argument must be a subtype of the bound [Doc: JLS §4.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.4). With `&`, the variable is treated as the intersection of the listed types, so the body sees all their members [Doc: JLS §4.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.4). The order is constrained (a class only first) and significant for one more reason: the erasure of a type variable is the erasure of its leftmost bound [Doc: JLS §4.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.6). In the lab, `Bounds.clamp` calls `compareTo` on a `T` that must also be a `Number`, reflection shows its bounds `Number` then `Comparable<T>` and its erased return type `Number`, and `<T extends Comparable<T> & Number>` is rejected with `compiler.err.intf.expected.here` [Lab: BoundReflectionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s03/BoundReflectionTest.java) [Lab: BoundCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s03/BoundCompileRulesTest.java).
+
+**Code.** Both bounds at work in one body:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/s03/Bounds.java
+    public static <T extends Number & Comparable<T>> T clamp(T value, T low, T high) {
+        if (value.compareTo(low) < 0) {
+            return low;
+        }
+        if (value.compareTo(high) > 0) {
+            return high;
+        }
+        return value;
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Why does the erasure matter if the source meaning is the same?* The erased descriptor is what compiled callers link against, so reordering bounds in a published library breaks binary compatibility; `Collections.max` puts `Object` first for exactly that reason ([§8](#8-reading-generic-signatures-in-the-jdk)).
+- *Can a type parameter have a lower bound?* No. `<T super Integer>` is a syntax error; `super` exists only on wildcards [Lab: BoundCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s03/BoundCompileRulesTest.java).
+
+**Trap to avoid.** "`extends` in a bound means subclass." In a bound it means subtype, interfaces included; there is no `implements` form.
+
+</details>
+
 <a id="q03-08"></a>
 ### Q03.08 · Output · Difference · `<T extends Comparable<T>>` vs `<T extends Comparable<? super T>>`: which compiles for a `List<LocalDate>`?
-<!-- /TASK: QB-M03-01 -->
+
+Two versions of `max(List<T>)` differ only in the bound. Which of them accept a `List<LocalDate>` and a `List<Integer>`, and what does the second version print here?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_08.java
+    public static void main(String[] args) {
+        System.out.println(latest(List.of(LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 9))));
+        System.out.println(latest(List.of(3, 7, 5)));
+    }
+
+    public static <T extends Comparable<? super T>> T latest(List<T> values) {
+        return Collections.max(values);
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** With `Comparable<T>`, `List<Integer>` compiles and `List<LocalDate>` does not (`compiler.err.cant.apply.symbol`). With `Comparable<? super T>`, both compile, and the program prints:
+
+```text
+2026-03-09
+7
+```
+
+`Integer` implements `Comparable<Integer>`, but `LocalDate` implements `Comparable<ChronoLocalDate>` through its interface, so only the `? super T` bound admits it.
+
+**Full explanation.** `Comparable<T>` demands that `T` be comparable with exactly itself. `LocalDate` implements `ChronoLocalDate`, which extends `Comparable<ChronoLocalDate>` [Src: JDK 25, java.time.chrono.ChronoLocalDate](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/time/chrono/ChronoLocalDate.java), so with `T = LocalDate` the bound `Comparable<LocalDate>` is not satisfied, and no other `T` matches the list. `Comparable<? super T>` accepts a comparison declared on any supertype of `T`, and `ChronoLocalDate` is one. The lab compiles all four combinations in memory and runs `latest` [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). The same holds for `java.sql.Timestamp`, which inherits `Comparable<Date>` [Lab: BoundCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s03/BoundCompileRulesTest.java). The JDK's `Collections.max` uses the robust form, plus `Object &` for erasure ([§8](#8-reading-generic-signatures-in-the-jdk)).
+
+**Follow-ups an interviewer will ask.**
+- *Why does the error not say "LocalDate is not comparable"?* Because it is comparable, with `ChronoLocalDate`; the message reports that no `T` satisfies the bound for that argument, which is what `cant.apply.symbol` covers.
+- *Is `Comparable<? super T>` ever worse?* Not for a parameter: it accepts strictly more types and the body can still call `compareTo(T)`. It is the shape `Comparator.comparing` uses for its key type too ([§8](#8-reading-generic-signatures-in-the-jdk)).
+
+**Trap to avoid.** Testing a sort utility only with `String` and `Integer`, which implement `Comparable` of themselves; the strict bound passes those tests and fails on the first date type.
+
+</details>
 
 <!-- TASK: QB-M03-02 -->
 <a id="q03-09"></a>
