@@ -1992,10 +1992,83 @@ You are designing a client library method that returns a deserialized body of an
 
 ## Hands-on exercises
 
-<!-- TASK: EX-M03-01 -->
 <a id="ex03-1"></a>
 ### Exercise 03.1 · A type-safe heterogeneous container
-<!-- /TASK: EX-M03-01 -->
+
+**Problem.** A web service keeps per-request objects (the tenant, the caller's `Locale`, a retry budget) in a `Map<String, Object>` and reads them with `<T> T get(String key)`. When a filter stores the wrong kind of value, the `ClassCastException` appears in whichever handler reads it, far from the line that stored it ([Q03.06](#q03-06)). Write a `RequestContext` that holds at most one value per type and catches a wrong value at the moment it is stored.
+
+**Constraints.** JDK only. No `@SuppressWarnings` and no unchecked cast in the solution. The key is the value's type, so the container holds one entry per class.
+
+**Acceptance criteria.**
+- [ ] (1) `put(Class<T>, T)` then `get(Class<T>)` returns the instance with static type `T`; the caller needs no cast and compiles with no warning under `-Xlint:all`.
+- [ ] (2) A value of the wrong run-time type smuggled in through a raw `Class` is rejected at `put` with `ClassCastException`, and nothing is stored.
+- [ ] (3) A `null` type is rejected by `put` and by `get` with a `NullPointerException` that names it.
+- [ ] (4) `String` and `Integer` entries are stored and retrieved independently.
+
+<details><summary>Hint 1</summary>
+
+If the key is a `Class<T>` and not a `String`, what does the compiler know about the value at `get` that it did not know before ([§2](#2-generic-types-generic-methods-and-type-inference))?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+The map itself can only be `Map<Class<?>, Object>`: no single type argument relates each key to its value. Which method of `Class` checks an `Object` and hands it back as a `T` without an unchecked cast ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens))?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** The method's type parameter ties the key to the value; `Class.cast` enforces that tie at run time, where erasure removed it ([§5](#5-type-erasure-and-bridge-methods)).
+1. Store entries in a `Map<Class<?>, Object>`. The wildcard accepts any key; the map no longer promises anything about values, so the methods must.
+2. Declare `<T> void put(Class<T> type, T value)`. Generic callers cannot pass a `Locale` for `Class<Integer>`, and raw callers get an unchecked warning.
+3. Reject a `null` type first, then store `type.cast(value)`. `cast` throws `ClassCastException` for a non-null value that is not an instance of the class, and its message is "Cannot cast" plus both class names [Src: JDK 25, java.lang.Class](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Class.java). A smuggled value fails here, before the `put` into the map.
+4. In `<T> T get(Class<T> type)`, return `type.cast(values.get(type))`. Every stored value already passed the check, so this second `cast` cannot fail; it is there because it converts `Object` to `T` with no unchecked warning. A missing entry returns `null`, which `cast` passes through.
+
+```java
+package dev.interview.javalanguage.m03.ex1;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+// Module 03 Ex03.1: a type-safe heterogeneous container. The key is the value's Class, so put and get agree on T,
+// and Class.cast checks each value where it enters, not where some later caller reads it.
+public final class RequestContext {
+
+    private static final String TYPE = "type";
+
+    private final Map<Class<?>, Object> values = new HashMap<>();
+
+    public <T> void put(Class<T> type, T value) {
+        Objects.requireNonNull(type, TYPE);
+        values.put(type, type.cast(value));
+    }
+
+    public <T> T get(Class<T> type) {
+        Objects.requireNonNull(type, TYPE);
+        return type.cast(values.get(type));
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m03/ex1/RequestContext.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m03/ex1/RequestContext.java)</sub>
+
+**How each criterion is met** [Lab: RequestContextTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/ex1/RequestContextTest.java):
+- (1) `Ex03.1 · (1) get returns the stored instance with static type T`: `Locale locale = context.get(Locale.class)` returns the same `Locale.CANADA_FRENCH`. `Ex03.1 · (1) a caller compiles with no cast and no warning under -Xlint:all`: the same calls, compiled in memory against the lab class, succeed with zero warnings.
+- (2) `Ex03.1 · (2) a value smuggled in through a raw Class is rejected at put`: `put(raw, "not a number")` with `raw = Integer.class` throws with `java.lang.String` and `java.lang.Integer` in the message, and `get(Integer.class)` then returns `null`. `Ex03.1 · (2) the raw-Class call compiles only with an unchecked warning`: javac reports `compiler.warn.unchecked.meth.invocation.applied` for it.
+- (3) `Ex03.1 · (3) a null type is rejected by put …` and `… by get …`: both throw `NullPointerException` with the message `type`.
+- (4) `Ex03.1 · (4) String and Integer entries are stored and retrieved independently`: the tenant `"acme"` and the retry budget `3` come back from their own keys.
+
+**Alternative approach:** typed keys, `record Key<T>(String name, Class<T> type)`, with `put(Key<T>, T)` and `get(Key<T>)`. **Trade-offs:** several entries of one type become possible (two `String`s, tenant and user), and a key can carry a description, at the cost of a key constant per entry. A `Class` key is shorter and admits exactly one value per class, which suits a context of distinct types.
+
+**Interviewer follow-ups.**
+- *Can it hold a `List<Order>`?* Not as such: `List<Order>.class` cannot be written [Doc: JLS §15.8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.8.2), and a `List.class` key would accept any list. Keying by a super type token instead is [Exercise 03.3](#ex03-3) and [§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens).
+- *What does `put(int.class, 3)` do?* It compiles, because `int.class` has type `Class<Integer>` [Doc: JLS §15.8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.8.2). `Class.isInstance` returns `false` for every object when the class represents a primitive type, so `cast` throws [Src: JDK 25, java.lang.Class](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Class.java). Use the wrapper class as the key.
+- *Is it thread-safe?* No; `HashMap` is not. A request context usually lives on one thread. If it is shared, a `ConcurrentHashMap` works, but it allows no `null` key or value [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java), so a `null` value must then be rejected explicitly. `ConcurrentHashMap` internals are module [12](12-concurrency-locks-atomics-collections.md).
+
+**Tests:** [RequestContextTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/ex1/RequestContextTest.java).
+
+</details>
 
 <!-- TASK: EX-M03-02 -->
 <a id="ex03-2"></a>

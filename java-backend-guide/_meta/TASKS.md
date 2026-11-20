@@ -1144,11 +1144,11 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261120-0358-claudecode-cloud (claude-opus-5-5; written and tested in the main session, tests first, no java-workflow skill in this harness)
 
 ### EX-M03-01 · M · Ex03.1 · A type-safe heterogeneous container
-- Status: `todo` · Deps: SEC-M03-02, SEC-M03-05, SEC-M03-07 · needs: none
+- Status: `done` · Deps: SEC-M03-02, SEC-M03-05, SEC-M03-07 · needs: none
 - Files touched: `modules/03-java-generics.md` (region `EX-M03-01`), lab `m03/ex1/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M03](modules/M03.md) §6 row Ex03.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M03 §6 criterion has a test `@DisplayName("Ex03.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261120-0602-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M03-02 · M · Ex03.2 · Generic utilities with the right bounds and wildcards
 - Status: `todo` · Deps: SEC-M03-03, SEC-M03-04 · needs: none
