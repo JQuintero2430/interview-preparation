@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dev.interview.javalanguage.m01.support.InMemoryCompiler;
 import dev.interview.javalanguage.m01.support.OutputCapture;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.tools.Diagnostic;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 
 // The printed lines, exceptions and diagnostic keys are the claims the guide makes, so the expected values stay
 // literal.
@@ -51,6 +55,19 @@ class Q03OutputsTest {
     private static final String INVARIANT_PUBLISH = "static void publishAll(List<Event> events) { }";
     private static final String COVARIANT_PUBLISH = "static void publishAll(List<? extends Event> events) { }";
     private static final String PUBLISH_ORDERS = "void run(List<OrderPlaced> placed) { publishAll(placed); }";
+
+    private static final String NAME_CLASH = "compiler.err.name.clash.same.erasure";
+    private static final String DOCUMENTS = "record Order() {}\nrecord Invoice() {}\n";
+    private static final String PROCESS_ORDERS = "void process(List<Order> orders) { }\n";
+    private static final String PROCESS_INVOICES = "void process(List<Invoice> invoices) { }\n";
+    private static final String PROCESS_INVOICE_SET = "void process(Set<Invoice> invoices) { }\n";
+    private static final String PROCESS_INVOICES_RENAMED = "void processInvoices(List<Invoice> invoices) { }\n";
+    private static final String VARARGS_DECLARATION = "compiler.warn.unchecked.varargs.non.reifiable.type";
+    private static final String GENERIC_ARRAY_CREATION = "compiler.warn.unchecked.generic.array.creation";
+    private static final String PICK_TWO = """
+            static <T> T[] toArray(T... args) { return args; }
+            static <T> T[] pickTwo(T a, T b, T c) { return toArray(a, b); }
+            """;
 
     @Test
     @DisplayName("Q03.02 · prints 2 and sku-1, then the typed read of the Integer throws ClassCastException")
@@ -251,6 +268,79 @@ class Q03OutputsTest {
                         "equals(Object)",
                         "hashCode()",
                         "toString()");
+    }
+
+    @Test
+    @DisplayName("Q03.17 · process(List<Order>) and process(List<Invoice>) clash after erasure")
+    void compile_failsWithNameClash_whenOverloadsEraseToTheSameSignature() {
+        assertThat(compileMembers(DOCUMENTS + PROCESS_ORDERS + PROCESS_INVOICES).errorCodes())
+                .containsExactly(NAME_CLASH);
+    }
+
+    @Test
+    @DisplayName("Q03.17 · a different erased parameter type or a different name compiles")
+    void compile_succeeds_whenErasuresDiffer() {
+        assertThat(compileMembers(DOCUMENTS + PROCESS_ORDERS + PROCESS_INVOICE_SET)
+                        .success())
+                .isTrue();
+        assertThat(compileMembers(DOCUMENTS + PROCESS_ORDERS + PROCESS_INVOICES_RENAMED)
+                        .success())
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("Q03.18 · a dispatcher that matches methods by name calls the handler twice, once through the bridge")
+    void dispatch_invokesHandlerTwice_whenBridgeMethodIsNotSkipped() {
+        assertThat(Q03_18.deliveries(Q03_18.Scan.ALL_METHODS)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Q03.18 · skipping bridge methods delivers the event once")
+    void dispatch_invokesHandlerOnce_whenBridgeMethodsAreSkipped() {
+        assertThat(Q03_18.deliveries(Q03_18.Scan.SKIP_BRIDGES)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("Q03.20 · String[] s = pickTwo(\"a\", \"b\", \"c\") throws ClassCastException naming Object[]")
+    void main_throwsClassCastException_whenVarargsArrayOfTEscapes() {
+        assertThatThrownBy(() -> Q03_20.main(new String[0]))
+                .isInstanceOf(ClassCastException.class)
+                .hasMessageContaining("[Ljava.lang.Object;")
+                .hasMessageContaining("[Ljava.lang.String;");
+    }
+
+    @Test
+    @DisplayName("Q03.20 · the same call into an Object[] variable works and holds the first two arguments")
+    void pickTwo_returnsObjectArray_whenCallerDoesNotNeedStringArray() {
+        Object[] picked = Q03_20.pickTwo("a", "b", "c");
+
+        assertThat(picked).containsExactly("a", "b");
+        assertThat(picked.getClass()).isEqualTo(Object[].class);
+    }
+
+    @Test
+    @DisplayName("Q03.20 · toArray warns at its declaration and pickTwo's call warns about generic array creation")
+    void compile_warnsTwice_whenGenericVarargsIsDeclaredAndCalled() {
+        InMemoryCompiler.Result result = compileMembers(PICK_TWO, "-Xlint:unchecked");
+
+        assertThat(result.success()).isTrue();
+        assertThat(warningCodes(result)).containsExactly(VARARGS_DECLARATION, GENERIC_ARRAY_CREATION);
+    }
+
+    @Test
+    @DisplayName("Q03.22 · ResolvableType.forClassWithGenerics builds List<String> at run time from a Class token")
+    void forClassWithGenerics_buildsParameterizedType_whenGivenClassTokens() {
+        Type listOfString = listTypeOf(String.class);
+
+        assertThat(listOfString).isInstanceOf(ParameterizedType.class);
+        assertThat(((ParameterizedType) listOfString).getRawType()).isEqualTo(List.class);
+        assertThat(((ParameterizedType) listOfString).getActualTypeArguments()).containsExactly(String.class);
+        assertThat(ParameterizedTypeReference.forType(listOfString).getType()).isEqualTo(listOfString);
+    }
+
+    // The generic-helper fix of Q03.22: the caller passes a Class<T>, and the helper builds the full type from it.
+    private static <T> Type listTypeOf(Class<T> elementType) {
+        return ResolvableType.forClassWithGenerics(List.class, elementType).getType();
     }
 
     private static void runCatching(Runnable action, AtomicReference<RuntimeException> thrown) {

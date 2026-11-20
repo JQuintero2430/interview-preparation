@@ -1798,22 +1798,197 @@ Two `compareTo` methods: the one in the source, and a bridge `compareTo(Object)`
 
 </details>
 
-<!-- TASK: QB-M03-03 -->
 <a id="q03-17"></a>
 ### Q03.17 · Bug hunt · `process(List<Order>)` beside `process(List<Invoice>)`: why does adding the overload break the build?
+
+A class has `void process(List<Order> orders)`. A teammate adds `void process(List<Invoice> invoices)` and the build fails. Why, and what are the fixes?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Both methods erase to `process(List)`, and a class cannot have two methods with the same name and the same erasure, so javac reports `compiler.err.name.clash.same.erasure`. Fix it with a different name (`processInvoices`) or with a parameter whose erased type differs (`process(Set<Invoice>)`).
+
+**Full explanation.** Overloads are legal only when their signatures differ, and type arguments do not count once they are erased: "a class cannot have two member methods with the same name and type erasure" [Doc: JLS §8.4.8.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.3). Constructors follow the same rule [Doc: JLS §8.8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.2). The reason is the class file: both would become the descriptor `(Ljava/util/List;)V`, and the JVM could not tell which one a call means ([§5](#5-type-erasure-and-bridge-methods)). The lab compiles the clash and both fixes in memory [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). The name is usually the better fix: two `process` methods that differ only by container type are hard to call correctly, because the caller's static type picks the overload.
+
+**Follow-ups an interviewer will ask.**
+- *Why did it compile until the second method was added?* One method has nothing to clash with. The error appears at the declaration that creates the duplicate erasure, often in a later change by someone else.
+- *Would `process(List<? extends Document>)` with an `instanceof` inside work?* It compiles, but the type test on elements replaces what overloading was meant to do; a separate method per type, or a `Document` interface with polymorphic behavior, is clearer.
+
+**Trap to avoid.** "Overloading uses the full generic type." Overload resolution happens at compile time with generic types, but declarations must still differ after erasure.
+
+</details>
+
 <a id="q03-18"></a>
 ### Q03.18 · Production scenario · A reflection-based event dispatcher calls every handler twice after handlers implement `Handler<E>`
+
+*As the interviewer frames it:* "Our in-house event bus finds handler methods by reflection: every method named `handle` with one parameter that accepts the event. Last sprint we introduced `interface Handler<E> { void handle(E event); }` and made the handlers implement it. Since the release, every `OrderPlaced` email goes out twice. The bus code did not change, and the handlers' bodies did not change."
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Implementing `Handler<OrderPlaced>` made javac add a bridge method `handle(Object)` to each handler, next to `handle(OrderPlaced)`. The dispatcher's filter (name `handle`, one parameter that accepts the event) matches both, and the bridge delegates to the real method, so each event is delivered twice. Skip methods where `isBridge()` is true.
+
+**Full explanation.** *What the symptoms tell you:* exactly twice, for every handler, starting with a change to the type hierarchy and not to the bodies, points at something the compiler generated. *Hypotheses, ranked:* (1) the scan finds a second, compiler-generated method; (2) handlers are registered twice (for example, once by the interface and once by the class); (3) the broker redelivers. *Evidence:* log each matched `Method` at registration; two entries per handler, one with `isBridge()` and `isSynthetic()` true and a parameter of type `Object`, confirm hypothesis 1. `javap -p` on a handler class shows the same pair, and a redelivery would show two message IDs in the broker log instead of one. *Mechanism:* `Handler<E>.handle(E)` erases to `handle(Object)`, so javac emits a bridge with that descriptor that casts and calls `handle(OrderPlaced)` [Doc: JVMS §4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.6). `getDeclaredMethods()` returns both ([Q03.16](#q03-16)). In the lab, a dispatcher that matches by name calls the handler twice, and the same dispatcher with a `!method.isBridge()` filter calls it once [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). *Fix:* filter out bridge methods, or better, stop scanning: dispatch through the interface (`handler.handle(event)`), which the JVM routes through the bridge exactly once. If the scan must stay, Spring's `BridgeMethodResolver.findBridgedMethod` maps a bridge to the method it calls [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java). *Prevention:* a dispatcher test with a handler that implements a generic interface, and an idempotency key on side effects such as emails, so one duplicate delivery cannot reach a customer. Monitor sent-email counts per order ID.
+
+**Code.** The dispatcher; the `Scan` strategy decides whether bridges are skipped:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_18.java
+    public static void dispatch(Object handler, Object event, Scan scan)
+            throws IllegalAccessException, InvocationTargetException {
+        for (Method method : handler.getClass().getDeclaredMethods()) {
+            if (isHandlerFor(method, event) && scan.accepts(method)) {
+                method.invoke(handler, event);
+            }
+        }
+    }
+
+    private static boolean isHandlerFor(Method method, Object event) {
+        return method.getName().equals(HANDLE)
+                && method.getParameterCount() == 1
+                && method.getParameterTypes()[0].isInstance(event);
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Why does the bridge accept an `OrderPlaced`?* Its parameter type is `Object`, so `isInstance` is true for any event; the bridge then casts to `OrderPlaced` and delegates.
+- *Would checking `getParameterTypes()[0] == event.getClass()` fix it?* For this case, yes, but it breaks handlers declared for a supertype of the event. Skipping bridges keeps the intended matching.
+
+**Trap to avoid.** Looking for a double registration or a broker redelivery first. The release changed only the type hierarchy, and the duplicate is a method the source does not contain.
+
+</details>
+
 <a id="q03-19"></a>
 ### Q03.19 · Concept · Reifiable types: why `new T[]` and `new List<String>[]` are illegal, and how `ArrayList<E>` stores its elements
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** An array checks every store against its component type at run time, so it needs a component type that exists at run time: a reifiable type. `T` and `List<String>` are erased, so `new T[n]` and `new List<String>[n]` are compile errors (`compiler.err.generic.array.creation`); `new List<?>[n]` is allowed. `ArrayList<E>` avoids the problem by storing an `Object[]` and casting each element on the way out.
+
+**Full explanation.** Reifiable types are those fully available at run time: primitives, non-generic types, raw types, parameterized types whose arguments are all unbounded wildcards, and arrays of those [Doc: JLS §4.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.7). Creating an array whose element type is not reifiable is a compile-time error [Doc: JLS §15.10.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.10.1), because the array could not keep its promise: a `List<String>[]` would let a `List<Integer>` past the store check, which only knows `List` [Lab: GenericArrayTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayTest.java). The lab asserts the error keys and that `new List<?>[3]` compiles [Lab: GenericArrayCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayCompileRulesTest.java). `ArrayList` declares `transient Object[] elementData` and reads with `(E) elementData[index]` [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java); the `(E)` erases to nothing, and the real check is the cast at the caller ([§6](#6-reifiable-types-generic-arrays-and-heap-pollution)).
+
+**Follow-ups an interviewer will ask.**
+- *How do you get a real `T[]`?* From a `Class<T>` with `Array.newInstance`, or let the caller allocate, as `Collection.toArray(IntFunction<T[]>)` does [Lab: GenericArrayTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayTest.java).
+- *Is `(T[]) new Object[n]` acceptable?* Inside a class whose array never escapes, yes, and `ArrayList` does the equivalent. Returning that array to a caller is the bug in [Q03.20](#q03-20) and the §6 callout.
+
+**Trap to avoid.** "`ArrayList<String>` is backed by a `String[]`." It is backed by an `Object[]`; `toArray(new String[0])` is how you get a `String[]` out of it.
+
+</details>
+
 <a id="q03-20"></a>
 ### Q03.20 · Output · Bug hunt · A generic `pickTwo(T a, T b, T c)` built on a varargs `toArray(T...)`: what does `String[] s = pickTwo("a", "b", "c")` do?
+<!-- ledger: core-java-240-06-20 -->
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_20.java
+    public static void main(String[] args) {
+        String[] picked = pickTwo("a", "b", "c");
+        System.out.println(picked.length);
+    }
+
+    @SuppressWarnings("unchecked") // the generic array creation for toArray(a, b) is the bug this question shows
+    public static <T> T[] pickTwo(T a, T b, T c) {
+        return toArray(a, b);
+    }
+
+    @SuppressWarnings("unchecked") // the warning is right: returning the varargs array exposes it to callers
+    private static <T> T[] toArray(T... args) {
+        return args;
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Nothing is printed. `String[] picked = pickTwo("a", "b", "c")` throws `ClassCastException`: `[Ljava.lang.Object;` cannot be cast to `[Ljava.lang.String;`. Inside `pickTwo`, `T` is erased to `Object`, so the array javac builds for the varargs call `toArray(a, b)` is an `Object[]`, and it escapes to a caller that needs a `String[]`.
+
+**Full explanation.** A varargs call creates an array of the parameter's type. In `pickTwo` that type is `T[]`, and the only class javac can use for an erased `T` is `Object`, so it creates `new Object[]{a, b}`; that is the "unchecked generic array creation" javac warns about at the call [Doc: JLS §9.6.4.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.6.4.7). `toArray` returns the array unchanged and `pickTwo` returns it as `T[]`, which costs nothing at run time. The caller chose `T = String` and needs a `String[]`, so javac inserted a cast to `String[]` there, and an `Object[]` is not one. In the lab, the call throws with both array names in the message; the same call stored in an `Object[]` variable works and holds `"a"` and `"b"`; and compiling the two methods with `-Xlint:unchecked` gives `compiler.warn.unchecked.varargs.non.reifiable.type` at `toArray` and `compiler.warn.unchecked.generic.array.creation` at the call [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). The bug is `toArray` exposing its varargs array. The fix: return `List<T>` (`List.of(a, b)`), or take an `IntFunction<T[]>` and let the caller allocate. How varargs take part in overload resolution is [Q01.19](01-java-oop-fundamentals.md#q01-19).
+
+**Follow-ups an interviewer will ask.**
+- *Why does `toArray("a", "b")` called directly from `main` work?* There `T = String` is known at the call site, so javac creates a real `String[]`. The bug appears only when the varargs call happens inside another generic method.
+- *Would `@SafeVarargs` on `toArray` fix it?* It would only remove the warnings. Returning the array is exactly what the annotation promises not to do ([Q03.21](#q03-21)).
+
+**Trap to avoid.** Saying the exception is thrown inside `toArray` or `pickTwo`. Both run fine; the cast that fails is in the caller's assignment.
+
+</details>
+
 <a id="q03-21"></a>
 ### Q03.21 · Concept · `@SafeVarargs`: where it is allowed, what it promises, and when it is a lie
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** It is allowed on static, final and private methods and on constructors, the declarations no override can replace. It promises that the body does nothing unsafe with its varargs array: no stores into it, and no exposing it. javac does not check the promise; it only removes the heap-pollution warnings at the declaration and at every call site. It is a lie when the body writes into the array or lets it escape.
+
+**Full explanation.** The annotation is "a programmer assertion that the body of the annotated method or constructor does not perform potentially unsafe operations on its varargs parameter" [Src: JDK 25, java.lang.SafeVarargs](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/SafeVarargs.java). Because the promise is about one body, the JLS makes it a compile-time error on a variable-arity method that is neither static, final nor private [Doc: JLS §9.6.4.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.6.4.7); private methods are allowed since Java 9 [Doc: JEP 213](https://openjdk.org/jeps/213). In the lab, it fails on a plain instance method with `compiler.err.varargs.invalid.trustme.anno` and removes both warnings from a static `listOf` [Lab: GenericArrayCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayCompileRulesTest.java). Honest uses only read the elements, as `Collections.addAll` does, which the JLS names as the canonical example [Doc: JLS §9.6.4.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.6.4.7). The lab's `VarargsPollution` carries a false `@SafeVarargs`, stores a `List<Integer>` through an `Object[]` view, compiles without a warning and fails with `ClassCastException` [Lab: GenericArrayTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayTest.java).
+
+**Code.** The lie, kept on purpose in the lab:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/s06/VarargsPollution.java
+    @SafeVarargs // A lie on purpose: the body stores into the array, which is what @SafeVarargs promises not to do.
+    public static String firstElement(List<String>... lists) {
+        Object[] view = lists;
+        view[0] = List.of(NOT_A_STRING);
+        return lists[0].get(0);
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Why not allow it on overridable methods?* An override could have an unsafe body, and the annotation on the parent would silence warnings at every call through the parent's type.
+- *What should a reviewer check?* That the method neither assigns to the array's elements nor returns, stores or passes the array to code that might; reading and iterating are fine.
+
+**Trap to avoid.** Adding `@SafeVarargs` to make a warning go away. The warning is the only signal that the method might pollute the heap.
+
+</details>
+
 <a id="q03-22"></a>
 ### Q03.22 · Design · Super type tokens: how `ParameterizedTypeReference<List<Order>>` keeps what erasure removes, and where it stops working
+
+You are designing a client library method that returns a deserialized body of any type, including `List<Order>`. How do you let callers say which type they want, and what are the limits?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Offer two overloads: one taking `Class<T>` for plain types, and one taking a super type token, `ParameterizedTypeReference<T>`, for types with type arguments. A token works because `new ParameterizedTypeReference<List<Order>>() {}` declares an anonymous subclass whose superclass, with its type argument, is written in the class file; `getGenericSuperclass()` reads it back. It stops working when the type argument is itself a type variable: a token created inside a generic helper records `T`, not the caller's type.
+
+**Full explanation.** `Class` objects cannot express `List<Order>`; `List.class` is the raw type ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)). Erasure removes type arguments from objects, but the declared superclass of a class is kept in its `Signature` attribute ([Q03.14](#q03-14)). Spring's `ParameterizedTypeReference` has a protected constructor that reads that superclass and keeps its single type argument for `getType()` [Src: Spring Framework 7.0.10, ParameterizedTypeReference](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/ParameterizedTypeReference.java), the idea of Gafter's "Super Type Tokens" [Doc: Neal Gafter, Super Type Tokens (2006)](https://gafter.blogspot.com/2006/12/super-type-tokens.html). `RestClient.ResponseSpec` follows exactly the two-overload design: `body(Class<T>)` and `body(ParameterizedTypeReference<T>)` [Src: Spring Framework 7.0.10, RestClient](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-web/src/main/java/org/springframework/web/client/RestClient.java). The limit: `static <T> … listOf() { return new ParameterizedTypeReference<List<T>>() {}; }` records `List<T>` for every caller [Lab: SuperTypeTokenTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s07/SuperTypeTokenTest.java). A generic helper must therefore take the token from its caller, or build the type at run time from `Class` objects: `ResolvableType.forClassWithGenerics(List.class, elementType).getType()` gives `List<String>` for `String.class`, and `ParameterizedTypeReference.forType` wraps it [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java).
+
+**Code.** Building the type from a `Class` token inside a generic helper:
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java
+    private static <T> Type listTypeOf(Class<T> elementType) {
+        return ResolvableType.forClassWithGenerics(List.class, elementType).getType();
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Why is the constructor protected and the class abstract?* So the only way to make one is an anonymous subclass, which is what carries the type; the lab's plain `TypeToken` rejects a raw subclass with `IllegalStateException` [Lab: SuperTypeTokenTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s07/SuperTypeTokenTest.java).
+- *Each `new … {}` is a new class. Does that matter?* Each is one more class to load, so declare tokens for fixed types as `static final` constants, which also documents the expected type in one place.
+
+**Trap to avoid.** Writing `body(List.class)` "because the variable is `List<Order>`". The converter only receives `List.class` and builds maps; that incident is the §7 callout.
+
+</details>
+
 <a id="q03-23"></a>
 ### Q03.23 · Concept · Reading JDK signatures: `Collections.max` and `Stream.collect`, part by part
-<!-- /TASK: QB-M03-03 -->
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Read type parameters, then bounds, then each parameter as producer or consumer, then the return type. `<T extends Object & Comparable<? super T>> T max(Collection<? extends T> coll)`: `T` must be comparable with itself or a supertype, the collection produces `T`s, and `Object &` makes the erased return type `Object`, as before generics. `<R, A> R collect(Collector<? super T, A, R> collector)`: the collector consumes the stream's `T`s, `A` is its hidden accumulation type, and the caller gets `R`.
+
+**Full explanation.** Both declarations are in JDK 25 as quoted [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java) [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java). In `max`, `Comparable<? super T>` admits `LocalDate`, which is `Comparable<ChronoLocalDate>` ([Q03.08](#q03-08)), and `? extends T` lets the method choose a `T` wider than the element type. A type variable erases to its first bound, so with `Object` first the erased method still returns `Object`, which old class files depend on [Doc: Gilad Bracha, Generics in the Java Programming Language (2004), §10](https://www.oracle.com/technetwork/java/javase/generics-tutorial-159168.pdf); in the lab `getReturnType()` is `Object.class`, and a look-alike without `Object &` erases to `Comparable` [Lab: JdkSignatureReflectionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureReflectionTest.java). In `collect`, `T` belongs to the stream and `R` and `A` to the method; the `Collector` Javadoc calls `A` "often hidden as an implementation detail", which is why `Collectors.toList()` returns `Collector<T, ?, List<T>>` [Src: JDK 25, java.util.stream.Collector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collector.java). `? super T` lets one `Collector<Object, ?, String>` collect a `Stream<Integer>`; an invariant look-alike rejects that call [Lab: JdkSignatureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCompileRulesTest.java). How collectors run is module [05](05-java-lambdas-streams-optional.md).
+
+**Follow-ups an interviewer will ask.**
+- *Read `Map.computeIfAbsent(K, Function<? super K, ? extends V>)`.* No new type parameters; the function consumes a key and produces a value, so a `Function<CharSequence, ArrayList<String>>` fits a `Map<String, List<String>>` [Lab: JdkSignatureCallsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCallsTest.java).
+- *Why does `max` return `T` and not `? extends T`?* A wildcard in a return type would force every caller to handle a capture; the return is the plain type, as the PECS guidelines advise ([Q03.10](#q03-10)).
+
+**Trap to avoid.** Calling `Object &` redundant. It is redundant for type checking and decisive for the erased signature.
+
+</details>
 
 ## Hands-on exercises
 
