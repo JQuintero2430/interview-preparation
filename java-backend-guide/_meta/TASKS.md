@@ -1179,10 +1179,52 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261120-0602-claudecode-cloud (claude-opus-5-5)
 
 ### REVIEW-M03 · L
-- Status: `todo` · Deps: CLOSE-M03 · needs: none
+- Status: `done` · Deps: CLOSE-M03 · needs: none
 - Files touched: `_meta/reviews/REVIEW-M03.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: RUN.md §4 (independent review); the module file; [M03](modules/M03.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: run in a session different from every `Done by` of M03's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M03; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection. Re-check B13 (CLOSE-M03 accepted 0 `**Security:**` items on the plan's "Security: none specific") and G1 (prose 24,711 against the 18,000 advisory target).
+- Done by: S20261120-1201-claudecode-cloud (fresh read-only general-purpose subagent on sonnet, a model that wrote none of M03; verdict transcribed by the main session into [REVIEW-M03](reviews/REVIEW-M03.md): CHANGES_REQUIRED, 0 BLOCKER · 3 MAJOR · 15 MINOR · 6 NIT → FIX-M03-01..06)
+
+### FIX-M03-01 · S · Factual accuracy and wording
+- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group A findings 1–7
+- Files touched: `modules/03-java-generics.md`, `labs/java-language/src/test/java/dev/interview/javalanguage/m03/` (only the test classes named), `SOURCES.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
+- Acceptance: A1 confirmed (JLS §15.9.5 or a test that two evaluations at one site share `getClass()`) then L1146 and the Q03.22 follow-up reworded; A2 and A3 reworded; A4: JLS 25 §9.6.4.7/§8.4.1 read (or, if unreachable through the proxy, the claim rewritten on the `src.zip` basis the review gives); A5: test added and tagged, or the sentence replaced by a JEP 394 citation; A6 reworded; A7: group IDs and versions checked against `labs/pom.xml` and VERSIONS.md, text corrected only if they differ; a finding the source contradicts is rejected in REVIEW-M03 and the text left unchanged; row 3 `java-language` passes if a test changed (row 4 first); rows 5 and 6 pass (03 flags none).
+- Done by:
+
+### FIX-M03-02 · M · Basis tags, snippet kinds and lab claims
+- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group B findings 1–5
+- Files touched: `modules/03-java-generics.md`, `labs/java-language/src/test/java/dev/interview/javalanguage/m03/` (only the test classes named), `labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/` (only if Q03.24 needs a lab class), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
+- Acceptance: the three Excerpts are whole members or statement-only, and match their files in order; the Q03.24 typed-key claims have a named test (`Q03.24 · …`) and tag, or are marked design reasoning; the `@SafeVarargs` no-warning claim carries `[Src: JDK 25, java.lang.SafeVarargs]` or a compile test; Q03.20 and Q03.15 follow-up claims asserted or tagged; tests first, red logged; rows 3, 4, 5, 6 pass (03 flags none).
+- Done by:
+
+### FIX-M03-03 · M · Checklist misses: steps, analogies, version notes, security, terms
+- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group C findings 1–5
+- Files touched: `modules/03-java-generics.md`, `SOURCES.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
+- Acceptance: approach plus numbered steps before the Code of §5–§8; analogies in §5 and §7 Mental model; §6 Version notes callout placed per STYLE-GUIDE §2.2, §5 L872 marker, JEP 286 marker only at its first §2 mention; one §7 `**Security:**` item whose basis (OWASP or Jackson docs) is read and its URL added to SOURCES.md "## 03" — if neither is reachable, an UNVERIFIED item and a VERIFY task are added instead of an untagged claim; the three terms defined; rows 5 and 6 pass (03 flags none, B13 ≥ 1).
+- Done by:
+
+### FIX-M03-04 · M · Redundancy: questions re-teaching sections and facts repeated
+- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group G findings 1, 2
+- Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
+- Acceptance: each question pair named in G1 answers the question and links its section for the mechanism; each fact listed in G2 is introduced once with its tag (plus the kept mentions the review names) and referred to elsewhere; no anchor, tag type or Output answer lost (row 5; tag counts logged before and after); prose words logged before and after; rows 5 and 6 pass (03 flags none).
+- Done by:
+
+### FIX-M03-05 · S · Redundancy: pre-narrated scenarios and small repeats
+- Status: `todo` · Deps: REVIEW-M03, FIX-M03-04 · needs: none · Source: REVIEW-M03 Group G findings 3, 4
+- Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
+- Acceptance: the §4, §5, §6, §7 passages named in G3 keep one sentence plus a link, the callouts keep their unique diagnosis; the G4 repeats cut to one statement and a link; prose words logged; rows 5 and 6 pass (03 flags none). Runs after FIX-M03-04.
+- Done by:
+
+### FIX-M03-06 · S · Nits: section links, §6 opening, drill list, Applies-to
+- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group N findings 1–4 (5 accepted as optional, no change)
+- Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
+- Acceptance: the plain "§n" references linked; §6 "The problem it solves" opens on the `snapshot()` crash; Q03.24 in §7's drill list; Applies-to names Spring Boot 4.1.2 for §7 only if VERSIONS.md lists it; rows 5 and 6 pass (03 flags none).
 - Done by:
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
