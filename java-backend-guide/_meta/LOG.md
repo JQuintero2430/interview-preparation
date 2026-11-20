@@ -1090,3 +1090,8 @@ Each session entry (RUN.md §11): Session, Harness, Model, capabilities, U at st
 - Open questions for Jorge (unattended run): none blocking. FYI: the JEP 431 number for sequenced collections was not cited (openjdk.org is unreachable from the cloud sandbox and src.zip does not name it); a local session can add `[Doc: JEP 431]` to 04 §1 and §1's Version notes.
 - Session end: S20261120-1801-claudecode-cloud; E ≈ 0 + 6.23 + 2.49 + 6.23 + 6.23 + 6.23 ≈ 27% (estimate). Open UNVERIFIED=0. G1, G2 and T1 ticked.
 - Next session should: read STATE.
+
+## Session S20261120-1801-claudecode-cloud (continued: Jorge's request after the session end)
+
+- HOUSE (S, unlisted): JEP 431 citation for 04 §1, the open item of this session's end. Jorge allowed openjdk.org in the environment's network policy; `curl https://openjdk.org/jeps/431` → 200. Read: "JEP 431: Sequenced Collections", Type Feature, Status Closed / Delivered, Release 21; Summary "Introduce new interfaces to represent collections with a defined encounter order." Changes: §1 How it works marker `[Changed in Java 21: …]` → `[Final since Java 21, JEP 431] [Doc: JEP 431]` (first mention, STYLE-GUIDE §4.2), with the quoted purpose; §1 Version notes Java 21 entry: the repeated marker replaced by `[Doc: JEP 431]`; `SOURCES.md` "## 04" + `https://openjdk.org/jeps/431`. Files: `modules/04-java-collections-internals.md`, `SOURCES.md`, `_meta/LOG.md`. Checks: row 5 and row 6 below. Note for later cloud sessions: the WebFetch tool still fails DNS for openjdk.org, but `curl` through the shell proxy works.
+- Session end: S20261120-1801-claudecode-cloud. Next session should: read STATE.

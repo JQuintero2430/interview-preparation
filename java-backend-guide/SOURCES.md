@@ -398,6 +398,7 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 
 ## 04 java-collections-internals
 
+- https://openjdk.org/jeps/431
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Iterable.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java
