@@ -1990,6 +1990,52 @@ You are designing a client library method that returns a deserialized body of an
 
 </details>
 
+<a id="q03-24"></a>
+### Q03.24 · Trade-off · Keying a heterogeneous container: `Class<T>` keys, typed keys, or super type tokens?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A `Class<T>` key is the simplest and the only one that can check every value at run time with `Class.cast`, but it allows one entry per class and no parameterized types. A typed key, `Key<T>(String name, Class<T> type)`, keeps the run-time check and allows several entries of one type, at the cost of a key constant per entry. A super type token key tells `List<String>` from `List<Integer>`, but nothing at run time can check a value against `List<String>`, so the container needs an unchecked cast and a smuggled value fails later, at the read.
+
+**Full explanation.**
+
+| | `Class<T>` key ([Exercise 03.1](#ex03-1)) | Typed key `Key<T>` | Super type token key ([Exercise 03.3](#ex03-3)) |
+|---|---|---|---|
+| Entries per type | one | many (by name) | one per full type |
+| Parameterized types | no: `List<String>.class` cannot be written | no: the key still carries a `Class` | yes |
+| Run-time check at `put` | yes, `type.cast` | yes, `key.type().cast` | none: an unchecked cast |
+| Cost at call sites | a class literal | a key constant | an anonymous class per token |
+
+The first column is the lab's `RequestContext`. Its check works because `Class.cast` compares the object with a real class [Src: JDK 25, java.lang.Class](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Class.java). Its limit is the class literal: a type name has no type arguments [Doc: JLS §15.8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.8.2), so `List<String>` and `List<Integer>` share the key `List.class`. In the lab, a `List<Integer>` stored under that key replaces a `List<String>`. With `TypeRef` keys, the two lists stay apart, because `TypeRef` equality follows the captured `Type` [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). The price is the read. `List<String>` erases to `List` ([§5](#5-type-erasure-and-bridge-methods)), so no `Class` object exists that could check a value against it, and `get` has to cast without checking. In the lab, a `List.of(7)` put under a raw view of the `List<String>` token is accepted, and the `ClassCastException` naming `java.lang.Integer` appears only when the caller reads an element as a `String`. That is heap pollution ([§6](#6-reifiable-types-generic-arrays-and-heap-pollution)), the failure the `Class` key prevents [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java).
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_24.java
+public final class Q03_24 {
+
+    private final Map<TypeRef<?>, Object> values = new HashMap<>();
+
+    public <T> void put(TypeRef<T> key, T value) {
+        values.put(key, value);
+    }
+
+    @SuppressWarnings("unchecked") // List<String> erases to List: no Class object can check the elements here
+    public <T> T get(TypeRef<T> key) {
+        return (T) values.get(key);
+    }
+}
+```
+
+Choose by what the container must hold. Distinct plain types, such as a request context or a set of per-plugin services, fit `Class` keys. Several values of one type fit typed keys, which keep the run-time check. Generic values fit tokens, provided every `put` is generic code, because the compiler is then the only check: keep raw types and `@SuppressWarnings` out of callers, and keep the single unchecked cast inside the container.
+
+**Follow-ups an interviewer will ask.**
+- *Can the token container check at least the raw type?* Yes, if the token also exposes its raw class (for a `ParameterizedType`, `getRawType()`): a `put` could then reject a `Set` under a `List<String>` key, but a `List<Integer>` would still pass, because the element type is gone at run time.
+- *Is a `Map<String, Object>` with documented keys simpler?* It is shorter to write, and it moves every check to callers' casts: the failure is the one in [Q03.06](#q03-06), at a distance from the line that stored the value.
+
+**Trap to avoid.** Treating the token key as a stronger `Class` key. It is more expressive and checks less at run time.
+
+</details>
+
 ## Hands-on exercises
 
 <a id="ex03-1"></a>

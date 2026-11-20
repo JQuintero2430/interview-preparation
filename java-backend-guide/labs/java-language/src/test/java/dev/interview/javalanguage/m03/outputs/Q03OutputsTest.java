@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import dev.interview.javalanguage.m01.support.InMemoryCompiler;
 import dev.interview.javalanguage.m01.support.OutputCapture;
+import dev.interview.javalanguage.m03.ex1.RequestContext;
+import dev.interview.javalanguage.m03.ex3.TypeRef;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
@@ -349,6 +351,47 @@ class Q03OutputsTest {
         } catch (RuntimeException e) {
             thrown.set(e);
         }
+    }
+
+    @Test
+    @DisplayName("Q03.24 · a Class key holds one List, so List<Integer> replaces List<String>")
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void q03_24_classKeyCannotSeparateParameterizations() {
+        RequestContext context = new RequestContext();
+        context.put(List.class, List.of("ada"));
+        context.put(List.class, List.of(7));
+
+        assertThat(context.get(List.class)).containsExactly(7);
+    }
+
+    @Test
+    @DisplayName("Q03.24 · TypeRef keys keep List<String> and List<Integer> apart")
+    void q03_24_typeRefKeysSeparateParameterizations() {
+        Q03_24 context = new Q03_24();
+        TypeRef<List<String>> names = new TypeRef<>() {};
+        TypeRef<List<Integer>> scores = new TypeRef<>() {};
+        context.put(names, List.of("ada"));
+        context.put(scores, List.of(7));
+
+        assertThat(context.get(names)).containsExactly("ada");
+        assertThat(context.get(scores)).containsExactly(7);
+    }
+
+    @Test
+    @DisplayName("Q03.24 · a value smuggled under a TypeRef key is accepted at put and fails at the read")
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void q03_24_typeRefKeyCannotCheckAtPut() {
+        Q03_24 context = new Q03_24();
+        TypeRef<List<String>> names = new TypeRef<>() {};
+        TypeRef raw = names;
+        context.put(raw, List.of(7));
+        List<String> read = context.get(names);
+
+        assertThatThrownBy(() -> {
+                    String first = read.get(0);
+                })
+                .isInstanceOf(ClassCastException.class)
+                .hasMessageContaining(Integer.class.getName());
     }
 
     private static InMemoryCompiler.Result compileBody(String body, String... options) {

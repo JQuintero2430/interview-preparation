@@ -1164,6 +1164,13 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Acceptance: QUALITY-BAR E1 anatomy; every M03 §6 criterion has a test `@DisplayName("Ex03.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
 - Done by: S20261120-0602-claudecode-cloud (claude-opus-5-5)
 
+### QB-M03-04 · M · Q03.24 (Trade-off, added by SYLLABUS §9 decision 20)
+- Status: `done` · Deps: EX-M03-01, EX-M03-03 · needs: none
+- Files touched: `modules/03-java-generics.md` (new question Q03.24 after Q03.23), `labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_24.java` (new), `labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java`, `_meta/modules/M03.md` (§5 row and type-mix line), `SYLLABUS.md` (§9 decision 20)
+- Inputs: [M03](modules/M03.md) §5; STYLE-GUIDE §5; QUALITY-BAR D; Exercises 03.1 and 03.3.
+- Acceptance: five answer parts, two answered follow-ups and a trap; every behavioral claim asserted by a `Q03.24 · …` test; module-stats row 03 shows `Trade-off`; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261120-0602-claudecode-cloud (claude-opus-5-5)
+
 ### CLOSE-M03 · M
 - Status: `todo` · Deps: every SEC, QB and EX task of M03 · needs: none
 - Files touched: `modules/03-java-generics.md` (the three `CLOSE-M03` regions: Summary, Check your understanding, Connections), `PROGRESS.md` (row 03), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md` (no ledger row has 03 as primary target, M03 §3, so no ledger status changes)
@@ -1254,3 +1261,4 @@ Take an S task from here only when nothing in RUN.md §4 steps 1 to 3 fits. HOUS
 | HOUSE-06 | S | done (runs: Kafka, Hibernate, Micrometer and Resilience4j S20261029-0726-claudecode, claude-opus-5-5; JUnit, Mockito and Testcontainers; Flyway and Liquibase S20261029-0736-claudecode, claude-opus-5-5; final run gRPC, Spring gRPC, pgjdbc, Lettuce, MongoDB/Cassandra drivers and server, MapStruct, Gradle S20261029-0740-claudecode, claude-opus-5-5) | Replace UNVERIFIED support-policy cells in [VERSIONS](../VERSIONS.md) for one technology group per run (for example Hibernate and Spring Data; Kafka; Micrometer and Resilience4j; JUnit, Mockito, Testcontainers) with a value read from the project's own policy or release page, or keep UNVERIFIED and say why. Files: `VERSIONS.md`, `SOURCES.md`. Acceptance: each changed cell cites a URL and the date checked. |
 | HOUSE-08 | S | done (S20261025-0744-claudecode, claude-opus-5-5) | Fix the Docker probe in Standard checks row 1: `perl -e 'alarm 20; exec @ARGV' docker info` exits 0 when `docker` is not on PATH (a failed `exec` falls through to exit 0). Use `perl -e 'alarm 20; exec @ARGV or exit 127' docker info`. Files: `_meta/TASKS.md`. Acceptance: with no `docker` on PATH the new probe exits non-zero. |
 | HOUSE-07 | S | done (S20261029-0726-claudecode, claude-opus-5-5) | Keep STATE.md under 60 lines (RUN.md §2): fold resolved standing notes into LOG references. Files: `_meta/STATE.md`. Acceptance: `wc -l` under 60 and no open note lost. |
+| HOUSE-09 | S | done (S20261120-0602-claudecode-cloud, claude-opus-5-5) | `LaunchProtocolTest` (M01 §1) asserted the exact output of a child JVM, and failed wherever `JAVA_TOOL_OPTIONS` or `_JAVA_OPTIONS` is set (the cloud container), because the JVM prints "Picked up …" lines. The test now removes `JAVA_TOOL_OPTIONS`, `_JAVA_OPTIONS` and `JDK_JAVA_OPTIONS` from the child's environment (SYLLABUS §9 decision 20). Files: `labs/java-language/src/test/java/dev/interview/javalanguage/m01/s01/LaunchProtocolTest.java`. Acceptance: row 3 full `java-language` passes with both variables set. |

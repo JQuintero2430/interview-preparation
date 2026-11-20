@@ -27,6 +27,9 @@ class LaunchProtocolTest {
     private static final String BIN = "bin";
     private static final String JAVA = "java";
     private static final long LAUNCH_TIMEOUT_SECONDS = 30;
+    // The JVM echoes these variables as "Picked up ..." lines, which are not the launcher's output under test.
+    private static final List<String> ECHOED_OPTION_VARIABLES =
+            List.of("JAVA_TOOL_OPTIONS", "_JAVA_OPTIONS", "JDK_JAVA_OPTIONS");
 
     @Test
     @DisplayName("M01 §1 · compact source file runs its instance main")
@@ -65,9 +68,9 @@ class LaunchProtocolTest {
 
     private static Launch launch(Path sourceFile) throws IOException, InterruptedException {
         Path java = Path.of(System.getProperty(JAVA_HOME_PROPERTY), BIN, JAVA);
-        Process process = new ProcessBuilder(java.toString(), sourceFile.toString())
-                .redirectErrorStream(true)
-                .start();
+        ProcessBuilder builder = new ProcessBuilder(java.toString(), sourceFile.toString()).redirectErrorStream(true);
+        builder.environment().keySet().removeAll(ECHOED_OPTION_VARIABLES);
+        Process process = builder.start();
         if (!process.waitFor(LAUNCH_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
             process.destroyForcibly();
             fail("launcher did not finish within " + LAUNCH_TIMEOUT_SECONDS + " s");
