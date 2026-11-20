@@ -1280,8 +1280,11 @@ Reading a signature has no run-time behavior of its own; a call that does not fi
 Questions that drill this section: [Q03.23](#q03-23), [Exercise 03.2](#ex03-2).
 
 ## Summary
-<!-- TASK: CLOSE-M03 -->
-<!-- /TASK: CLOSE-M03 -->
+Generics move type checks from run time to compile time: a `List<String>` rejects an `Integer` at the `add`, while a raw `List` accepts it and the `ClassCastException` appears later, at a read with no cast in sight. A program is only as safe as its unchecked warnings say, so a clean compile with warnings is not a clean compile ([§1](#1-why-generics-compile-time-safety-and-raw-types)). A type parameter is declared by a class and fixed by its user, or declared by a method and inferred at each call from the arguments and the target type; the diamond and `var` infer, they do not turn checking off, and `<T> T get(String key)` with nothing constraining `T` is a cast in disguise ([§2](#2-generic-types-generic-methods-and-type-inference)). A bound says what the body may call on a `T`; `Comparable<? super T>` is the form that admits `LocalDate`, the first bound decides the erasure, and a class bound can only come first ([§3](#3-bounded-type-parameters)).
+
+Generic types are invariant: a `List<Integer>` is not a `List<Number>`, which is what keeps a write from breaking the list, while arrays are covariant and pay with `ArrayStoreException`. Wildcards restore flexibility by direction: a parameter that produces `T`s takes `? extends T`, one that consumes them takes `? super T`, and one that does both takes `T` (PECS) ([§4](#4-wildcards-pecs-and-variance)). The compiler then erases type arguments: one class serves every parameterization, casts are inserted at reads, bridge methods keep overriding working, and two overloads with the same erasure clash. The declared signatures survive in the class file, so reflection can still read them ([§5](#5-type-erasure-and-bridge-methods)). Because arrays check their element type at run time and generics cannot, `new T[]` and `new List<String>[]` are illegal, a generic varargs parameter warns of heap pollution, and `@SafeVarargs` is a promise the compiler does not check ([§6](#6-reifiable-types-generic-arrays-and-heap-pollution)).
+
+To get a type back at run time, pass it as a value: a `Class<T>` token checks with `Class.cast` but cannot name `List<Order>`, and a super type token, an anonymous subclass such as `new ParameterizedTypeReference<List<Order>>() {}`, reads the full type from its declared superclass, except when it is created inside a generic method, where it captures `T` ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)). Reading a JDK signature is the same four steps every time: type parameters, bounds, each parameter as producer or consumer, then the return type; `Object &` in `Collections.max` exists only to keep the pre-generics erasure ([§8](#8-reading-generic-signatures-in-the-jdk)).
 
 ## Question bank
 
@@ -2308,9 +2311,77 @@ public abstract class TypeRef<T> {
 </details>
 
 ## Check your understanding
-<!-- TASK: CLOSE-M03 -->
-<!-- /TASK: CLOSE-M03 -->
+**Explain it back.**
+1. To a teammate whose stack trace shows a `ClassCastException` on a line with no cast: where the bad element came from, and why the compiler warned about it earlier.
+2. To a reviewer who asks why a library method takes `Collection<? extends T>` and `Comparator<? super T>`: what each wildcard lets callers pass, and what it forbids the method to do.
+3. To a colleague who thinks `ArrayList<String>` and `ArrayList<Integer>` are two classes: what erasure removes, what the class file keeps, and what a bridge method is for.
+4. To a new hire who writes `(T[]) new Object[n]`: when that is safe, when it pollutes the heap, and what `@SafeVarargs` does and does not promise.
+5. To a developer whose REST client returns `LinkedHashMap`s instead of orders: why `body(List.class)` cannot know the element type, and how a super type token carries it.
+
+**Flashcards.**
+
+<details><summary>Is a <code>List&lt;Integer&gt;</code> a <code>List&lt;Number&gt;</code>?</summary>
+
+No: generic types are invariant; the two are related only through `List<? extends Number>` ([Q03.09](#q03-09)).
+
+</details>
+
+<details><summary>Why does <code>max(List&lt;LocalDate&gt;)</code> fail with <code>&lt;T extends Comparable&lt;T&gt;&gt;</code>?</summary>
+
+`LocalDate` is a `Comparable<ChronoLocalDate>`, not a `Comparable<LocalDate>`; `Comparable<? super T>` admits it ([Q03.08](#q03-08)).
+
+</details>
+
+<details><summary>What can you add to a <code>List&lt;? extends Number&gt;</code>?</summary>
+
+Only `null`; removing and clearing still work ([Q03.11](#q03-11)).
+
+</details>
+
+<details><summary>What does <code>new ArrayList&lt;String&gt;().getClass() == new ArrayList&lt;Integer&gt;().getClass()</code> give?</summary>
+
+`true`: erasure leaves one runtime class ([Q03.15](#q03-15)).
+
+</details>
+
+<details><summary>A class implements <code>Comparable&lt;Money&gt;</code>. How many <code>compareTo</code> methods does it declare in the class file?</summary>
+
+Two: `compareTo(Money)` and the synthetic bridge `compareTo(Object)` ([Q03.16](#q03-16)).
+
+</details>
+
+<details><summary>Why do <code>process(List&lt;Order&gt;)</code> and <code>process(List&lt;Invoice&gt;)</code> not compile together?</summary>
+
+Both erase to `process(List)`, a name clash ([Q03.17](#q03-17)).
+
+</details>
+
+<details><summary>Why is <code>new T[n]</code> illegal?</summary>
+
+An array must know its element type at run time to check stores, and `T` is erased ([Q03.19](#q03-19)).
+
+</details>
+
+<details><summary>What does <code>@SafeVarargs</code> check?</summary>
+
+Only where it is placed; the promise that the method does not misuse its varargs array is not checked ([Q03.21](#q03-21)).
+
+</details>
+
+<details><summary>What type does <code>new TypeToken&lt;List&lt;T&gt;&gt;() {}</code> capture inside a generic method?</summary>
+
+`List<T>`, with the type variable, whatever the caller's type is ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)).
+
+</details>
+
+<details><summary>Which container key can check every value at run time: a <code>Class&lt;T&gt;</code> or a super type token?</summary>
+
+The `Class<T>` key, with `Class.cast`; a token for `List<String>` has no class to check against ([Q03.24](#q03-24)).
+
+</details>
 
 ## Connections
-<!-- TASK: CLOSE-M03 -->
-<!-- /TASK: CLOSE-M03 -->
+- **Builds on:** [01. Java OOP fundamentals § 8. Polymorphism: overloading, overriding and dispatch](01-java-oop-fundamentals.md#8-polymorphism-overloading-overriding-and-dispatch), because bridge methods ([§5](#5-type-erasure-and-bridge-methods)) exist to keep overriding working after erasure, and the name clash of [Q03.17](#q03-17) is an overloading rule; [§ 9. Abstract classes and interfaces](01-java-oop-fundamentals.md#9-abstract-classes-and-interfaces), because generic interfaces such as `Comparable<T>` and the abstract token class of [§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens) build on them; [02. Equality, immutability and records](02-java-equality-immutability-records.md), because the tokens of [Exercise 03.3](#ex03-3) are map keys and follow its `equals` contract.
+- **Read next:** [04. Collections internals](04-java-collections-internals.md), because every collection is a generic type and its signatures use the wildcards of [§4](#4-wildcards-pecs-and-variance); [05. Lambdas, streams and Optional](05-java-lambdas-streams-optional.md), because `Function<? super T, ? extends R>` and `Collector<T, A, R>` are read with [§8](#8-reading-generic-signatures-in-the-jdk).
+- **Uses these ideas later:** [15. Spring IoC and the bean lifecycle](15-spring-ioc-and-bean-lifecycle.md) (generic types as injection qualifiers, through `ResolvableType`); [18. Spring MVC and REST controllers](18-spring-mvc-and-rest-controllers.md) (`ParameterizedTypeReference` in `RestClient` and `RestTemplate`); [12. Locks, atomics and concurrent collections](12-concurrency-locks-atomics-collections.md) (a concurrent version of the container of [Exercise 03.1](#ex03-1)); [07. Modern language features](07-java-modern-language-features.md) (pattern matching, whose `instanceof` with generic types follows the reifiability rule of [§5](#5-type-erasure-and-bridge-methods)).
+- **Comparisons:** [Angular guide, 07. Advanced types § 1. Generics](../../angular-fullstack-guide/modules/07-ts-advanced-types-and-decorators.md#1-generics-constraints-defaults-inference-and-const-type-parameters), for generics in a language that erases all types and checks them structurally, against Java's nominal checks and reified classes; [01 § 8 Q01.19](01-java-oop-fundamentals.md#q01-19), for varargs overload resolution next to the generic varargs of [§6](#6-reifiable-types-generic-arrays-and-heap-pollution).

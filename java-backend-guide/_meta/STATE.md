@@ -3,17 +3,17 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 03 `java-generics` (core, advisory target 18,000 words, lab `java-language`). Planned: [M03](modules/M03.md) by PLAN-M03 (S20261116-0839-claudecode); skeleton with 17 regions, §1 to §8 written (SEC-M03-01..08), question bank Q03.01–Q03.24 written (QB-M03-01..03), Exercises 03.1–03.3 written (EX-M03-01..03), Q03.24 added (QB-M03-04); CLOSE todo. Modules 17, 01 and 02 closed, reviewed, fixed.
+- **Current module:** 03 `java-generics` (core, lab `java-language`), **closed** by CLOSE-M03 (S20261120-0602-claudecode-cloud): 8 sections, 24 questions (Q03.24 added by decision 20), 3 exercises, closing sections written; REVIEW-M03 todo. Modules 17, 01 and 02 closed, reviewed, fixed.
 - **In progress:** none
-- **Last finished task:** QB-M03-04 and HOUSE-09 (S20261120-0602-claudecode-cloud, claude-opus-5-5).
-- **Next task:** CLOSE-M03 (M), then REVIEW-M03. QUALITY-BAR D3 is settled: Q03.24 (`Trade-off`) added by QB-M03-04 (SYLLABUS §9 decision 20, Jorge, 2026-11-20).
-- **Counts:** modules done 0/55 (17, 01 and 02 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 4/55 (17, 01, 02, 03); CLOSE 3/55 (17, 01, 02); REVIEW 3/55 (17, 01, 02).
+- **Last finished task:** CLOSE-M03 (S20261120-0602-claudecode-cloud, claude-opus-5-5).
+- **Next task:** REVIEW-M03 (L), independent of every session that wrote M03 (RUN.md §4: a different session or a fresh read-only subagent); then FIX-M03-nn, then PLAN-M04.
+- **Counts:** modules done 0/55 (17, 01 and 02 closed, reviewed, fixed; 03 closed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 4/55 (17, 01, 02, 03); CLOSE 4/55 (17, 01, 02, 03); REVIEW 3/55 (17, 01, 02).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
   - G1 "Syllabus and pilot approved": **ticked** (noticed S20261101-2100); `PLAN-Mxx` tasks are eligible.
   - G2 "Source deletion and cross-guide link rewrite approved": **ticked** (noticed S20261115-0846-claudecode); `DELETE-<src>` tasks become eligible once their ledger rows are `written` (Phase D).
   - T1 "Docker available" (informational): ticked; Docker probe, not the checkbox, decides eligibility for `VERIFY-06`, `HOUSE-01` and every docker-tagged test run.
-- **Last full verification (CLOSE-M02, 2026-11-15, S20261115-1722-claudecode):** full `verify -DexcludedGroups=docker` exit 0 (docker tests skipped: daemon not running); `check-links --planned` exit 0; `module-stats` row 02 no flag. Earlier baseline (P5, 2026-10-25, S20261025-0048-claudecode):
+- **Last full verification (CLOSE-M03, 2026-11-20, S20261120-0602-claudecode-cloud):** row 8 full `verify -DexcludedGroups=docker` exit 0 (java-language 567 tests, spring-transactions 70, persistence 0 run; docker tests skipped, no daemon); `check-links --planned` exit 0; `module-stats` row 03 no flag. Previous: CLOSE-M02, 2026-11-15, S20261115-1722-claudecode, same results for its module. Earlier baseline (P5, 2026-10-25, S20261025-0048-claudecode):
   - Full `verify`: exit 0 (java-language: 1 test passed; persistence and spring-transactions smoke tests skipped, no Docker).
   - `verify -DexcludedGroups=docker`: exit 0. `spotless:apply` then `verify`: exit 0.
   - Node tool tests: 8 pass, 0 fail. `check-links.mjs --planned`: exit 0. `module-stats.mjs`: exit 0 ("0 module(s) of 55 planned").
