@@ -6,7 +6,7 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 - **Current module:** 03 `java-generics` (core, advisory target 18,000 words, lab `java-language`). Planned: [M03](modules/M03.md) by PLAN-M03 (S20261116-0839-claudecode); skeleton with 17 regions, §1 to §8 written (SEC-M03-01..08), question bank Q03.01–Q03.23 written (QB-M03-01..03), Exercises 03.1–03.3 written (EX-M03-01..03); CLOSE todo. Modules 17, 01 and 02 closed, reviewed, fixed.
 - **In progress:** none
 - **Last finished task:** EX-M03-03 (S20261120-0602-claudecode-cloud, claude-opus-5-5).
-- **Next task:** CLOSE-M03 (M), then REVIEW-M03 in TASKS order. CLOSE-M03 must settle QUALITY-BAR D3: the M03 plan has no `Trade-off` question (see LOG S20261120-0358).
+- **Next task:** CLOSE-M03 (M), then REVIEW-M03. CLOSE-M03 is waiting on Jorge: QUALITY-BAR D3 needs a `Trade-off` question and the M03 plan has none; add Q03.24 (`Trade-off`, ceiling 24) or retag an existing question? (asked in LOG S20261120-0358 and S20261120-0602; unattended runs stop before CLOSE-M03 until he answers.)
 - **Counts:** modules done 0/55 (17, 01 and 02 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 4/55 (17, 01, 02, 03); CLOSE 3/55 (17, 01, 02); REVIEW 3/55 (17, 01, 02).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
