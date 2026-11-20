@@ -1186,18 +1186,18 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261120-1201-claudecode-cloud (fresh read-only general-purpose subagent on sonnet, a model that wrote none of M03; verdict transcribed by the main session into [REVIEW-M03](reviews/REVIEW-M03.md): CHANGES_REQUIRED, 0 BLOCKER · 3 MAJOR · 15 MINOR · 6 NIT → FIX-M03-01..06)
 
 ### FIX-M03-01 · S · Factual accuracy and wording
-- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group A findings 1–7
+- Status: `done` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group A findings 1–7
 - Files touched: `modules/03-java-generics.md`, `labs/java-language/src/test/java/dev/interview/javalanguage/m03/` (only the test classes named), `SOURCES.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
 - Acceptance: A1 confirmed (JLS §15.9.5 or a test that two evaluations at one site share `getClass()`) then L1146 and the Q03.22 follow-up reworded; A2 and A3 reworded; A4: JLS 25 §9.6.4.7/§8.4.1 read (or, if unreachable through the proxy, the claim rewritten on the `src.zip` basis the review gives); A5: test added and tagged, or the sentence replaced by a JEP 394 citation; A6 reworded; A7: group IDs and versions checked against `labs/pom.xml` and VERSIONS.md, text corrected only if they differ; a finding the source contradicts is rejected in REVIEW-M03 and the text left unchanged; row 3 `java-language` passes if a test changed (row 4 first); rows 5 and 6 pass (03 flags none).
-- Done by:
+- Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M03-02 · M · Basis tags, snippet kinds and lab claims
-- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group B findings 1–5
+- Status: `done` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group B findings 1–5
 - Files touched: `modules/03-java-generics.md`, `labs/java-language/src/test/java/dev/interview/javalanguage/m03/` (only the test classes named), `labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/` (only if Q03.24 needs a lab class), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
 - Acceptance: the three Excerpts are whole members or statement-only, and match their files in order; the Q03.24 typed-key claims have a named test (`Q03.24 · …`) and tag, or are marked design reasoning; the `@SafeVarargs` no-warning claim carries `[Src: JDK 25, java.lang.SafeVarargs]` or a compile test; Q03.20 and Q03.15 follow-up claims asserted or tagged; tests first, red logged; rows 3, 4, 5, 6 pass (03 flags none).
-- Done by:
+- Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M03-03 · M · Checklist misses: steps, analogies, version notes, security, terms
 - Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group C findings 1–5

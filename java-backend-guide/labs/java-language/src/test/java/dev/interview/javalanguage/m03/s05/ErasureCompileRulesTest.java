@@ -25,6 +25,11 @@ class ErasureCompileRulesTest {
             boolean test(List<String> l) { return l instanceof ArrayList<String>; }
             int size(List<String> l) { return l instanceof ArrayList<String> a ? a.size() : 0; }
             """;
+    private static final String INSTANCEOF_ARRAY_LIST_ONLY =
+            "boolean test(List<String> l) { return l instanceof ArrayList<String>; }";
+    private static final String NOT_SUPPORTED_IN_SOURCE = "compiler.err.feature.not.supported.in.source";
+    private static final String RELEASE = "--release";
+    private static final String JAVA_15 = "15";
     private static final String RECORDS = "record Order() {} record Invoice() {}\n";
     private static final String OVERLOADS_SAME_ERASURE =
             RECORDS + "void process(List<Order> o) {} void process(List<Invoice> i) {}";
@@ -44,6 +49,16 @@ class ErasureCompileRulesTest {
         assertThat(compile(INSTANCEOF_LIST_OF_STRING).errorCodes()).contains(NOT_SAFE_INSTANCEOF);
         assertThat(compile(INSTANCEOF_LIST_OF_UNBOUNDED).success()).isTrue();
         assertThat(compile(INSTANCEOF_ARRAY_LIST_FROM_LIST).success()).isTrue();
+    }
+
+    @Test
+    @DisplayName("M03 §5 · instanceof ArrayList<String> from List<String> is rejected with --release 15")
+    void compile_rejectsCheckedNonReifiableInstanceof_whenReleaseIs15() {
+        InMemoryCompiler.Result result =
+                InMemoryCompiler.compile(Map.of(SOURCE_NAME, source(INSTANCEOF_ARRAY_LIST_ONLY)), RELEASE, JAVA_15);
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.errorCodes()).anySatisfy(code -> assertThat(code).startsWith(NOT_SUPPORTED_IN_SOURCE));
     }
 
     @Test

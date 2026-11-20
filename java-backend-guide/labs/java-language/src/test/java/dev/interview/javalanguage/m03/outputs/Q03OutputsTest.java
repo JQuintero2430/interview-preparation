@@ -7,6 +7,7 @@ import dev.interview.javalanguage.m01.support.InMemoryCompiler;
 import dev.interview.javalanguage.m01.support.OutputCapture;
 import dev.interview.javalanguage.m03.ex1.RequestContext;
 import dev.interview.javalanguage.m03.ex3.TypeRef;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
@@ -70,6 +71,8 @@ class Q03OutputsTest {
             static <T> T[] toArray(T... args) { return args; }
             static <T> T[] pickTwo(T a, T b, T c) { return toArray(a, b); }
             """;
+    private static final String DIRECT_TO_ARRAY =
+            "static Object direct() { String[] s = toArray(\"a\", \"b\"); return s; }";
 
     @Test
     @DisplayName("Q03.02 · prints 2 and sku-1, then the typed read of the Integer throws ClassCastException")
@@ -258,6 +261,14 @@ class Q03OutputsTest {
     }
 
     @Test
+    @DisplayName("Q03.15 · the pattern form o instanceof List<String> l is rejected for the same reason")
+    void compile_rejectsInstanceofPattern_whenTypeArgumentIsNotCheckable() {
+        assertThat(compileBody("Object o = new ArrayList<String>(); boolean b = o instanceof List<String> l;")
+                        .errorCodes())
+                .containsExactly(NOT_REIFIABLE);
+    }
+
+    @Test
     @DisplayName("Q03.16 · Money declares compareTo(Money) and a synthetic bridge compareTo(Object)")
     void main_printsDeclaredMethodsSorted_whenRecordImplementsComparableOfItself() {
         List<String> lines = OutputCapture.linesOf(() -> Q03_16.main(new String[0]));
@@ -330,6 +341,18 @@ class Q03OutputsTest {
     }
 
     @Test
+    @DisplayName("Q03.20 · toArray(\"a\", \"b\") called with T = String known at the call returns a real String[]")
+    void toArray_returnsStringArray_whenCalledWithConcreteTypeArgument() throws Exception {
+        InMemoryCompiler.Result result = compileMembers(PICK_TWO + DIRECT_TO_ARRAY);
+        assertThat(result.success()).isTrue();
+
+        Method direct = result.load(SOURCE_NAME).getDeclaredMethod("direct");
+        direct.setAccessible(true);
+
+        assertThat(direct.invoke(null)).isInstanceOf(String[].class).isEqualTo(new String[] {"a", "b"});
+    }
+
+    @Test
     @DisplayName("Q03.22 · ResolvableType.forClassWithGenerics builds List<String> at run time from a Class token")
     void forClassWithGenerics_buildsParameterizedType_whenGivenClassTokens() {
         Type listOfString = listTypeOf(String.class);
@@ -392,6 +415,33 @@ class Q03OutputsTest {
                 })
                 .isInstanceOf(ClassCastException.class)
                 .hasMessageContaining(Integer.class.getName());
+    }
+
+    @Test
+    @DisplayName("Q03.24 · typed keys keep two String entries apart and still check the value at put")
+    void q03_24_typedKeysAllowSeveralEntriesOfOneType() {
+        Q03_24TypedKeys context = new Q03_24TypedKeys();
+        Q03_24TypedKeys.Key<String> user = new Q03_24TypedKeys.Key<>("user", String.class);
+        Q03_24TypedKeys.Key<String> tenant = new Q03_24TypedKeys.Key<>("tenant", String.class);
+        context.put(user, "ada");
+        context.put(tenant, "acme");
+
+        assertThat(context.get(user)).isEqualTo("ada");
+        assertThat(context.get(tenant)).isEqualTo("acme");
+    }
+
+    @Test
+    @DisplayName("Q03.24 · a typed key rejects a wrong value at put, through a raw view")
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void q03_24_typedKeyRejectsWrongValueAtPut() {
+        Q03_24TypedKeys context = new Q03_24TypedKeys();
+        Q03_24TypedKeys.Key raw = new Q03_24TypedKeys.Key<>("user", String.class);
+
+        assertThatThrownBy(() -> context.put(raw, 7))
+                .isInstanceOf(ClassCastException.class)
+                .hasMessageContaining(Integer.class.getName())
+                .hasMessageContaining(String.class.getName());
+        assertThat(context.get(raw)).isNull();
     }
 
     private static InMemoryCompiler.Result compileBody(String body, String... options) {

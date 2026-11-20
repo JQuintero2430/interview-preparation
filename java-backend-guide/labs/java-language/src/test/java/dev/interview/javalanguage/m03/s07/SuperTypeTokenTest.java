@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,19 @@ class SuperTypeTokenTest {
         TypeToken<List<String>> token = new TypeToken<>() {};
 
         assertListOf(token.type(), String.class);
+    }
+
+    @Test
+    @DisplayName("M03 §7 · a token expression evaluated twice yields one anonymous class; another site yields another")
+    void typeToken_sharesOneClassPerSourceSite_whenEvaluatedRepeatedly() {
+        List<Class<?>> sameSite = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+            sameSite.add(new TypeToken<List<String>>() {}.getClass());
+        }
+        Class<?> otherSite = new TypeToken<List<String>>() {}.getClass();
+
+        assertThat(sameSite.get(0)).isSameAs(sameSite.get(1));
+        assertThat(otherSite).isNotSameAs(sameSite.get(0));
     }
 
     @Test
