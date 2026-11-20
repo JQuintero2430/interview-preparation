@@ -1543,24 +1543,260 @@ Two versions of `max(List<T>)` differ only in the bound. Which of them accept a 
 
 </details>
 
-<!-- TASK: QB-M03-02 -->
 <a id="q03-09"></a>
 ### Q03.09 · Output · Is a `List<Integer>` a `List<Number>`? Is a `String[]` an `Object[]`? What happens when you store an `Integer`?
+
+`List<Number> n = new ArrayList<Integer>();` and the code below: which compile, and what does the code print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_09.java
+Object[] objects = new String[1];
+System.out.println(objects.getClass().getSimpleName());
+try {
+    objects[0] = 42;
+} catch (ArrayStoreException e) {
+    System.out.println(e.getClass().getSimpleName() + ": " + e.getMessage());
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The list assignment does not compile (`compiler.err.prob.found.req`): generic types are invariant. The array code compiles, because arrays are covariant, and prints:
+
+```text
+String[]
+ArrayStoreException: java.lang.Integer
+```
+
+The array remembers its real component type, `String`, and checks every store at run time.
+
+**Full explanation.** If `List<Integer>` were a `List<Number>`, code holding it as `List<Number>` could add a `Double`, and the owner would later read it as an `Integer`; so `List<A>` and `List<B>` are unrelated unless `A` and `B` are the same, and only `List<? extends Number>` relates them [Doc: JLS §4.10.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.2). Arrays took the other design: `String[]` is a subtype of `Object[]` [Doc: JLS §4.10.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.3), so the bad write compiles, and the language pays for it with a run-time check on every store into a reference array that throws `ArrayStoreException` [Doc: JLS §10.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-10.html#jls-10.5). The lab asserts both printed lines and both compile outcomes [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). Generics catch the same mistake at compile time, which is possible only because they gave up covariance.
+
+**Follow-ups an interviewer will ask.**
+- *Why can arrays check at run time and lists cannot?* An array object stores its component type; a list's element type is erased ([§5](#5-type-erasure-and-bridge-methods)), so there is nothing to check against.
+- *How do you pass a `List<Integer>` to a method that only reads `Number`s?* Declare the parameter `List<? extends Number>` ([Q03.10](#q03-10)).
+
+**Trap to avoid.** "`Integer` is a `Number`, so a list of `Integer` is a list of `Number`." Subtyping of elements does not carry over to generic containers.
+
+</details>
+
 <a id="q03-10"></a>
 ### Q03.10 · Concept · PECS: when to use `? extends` and when `? super`, read through `Collections.copy`
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Producer extends, consumer super: a parameter the method reads `T`s from is `? extends T`, a parameter it writes `T`s into is `? super T`, and a parameter it does both with takes no wildcard. `Collections.copy(List<? super T> dest, List<? extends T> src)` reads the source and writes the destination, so it can copy a `List<Integer>` into a `List<Number>`.
+
+**Full explanation.** Through `List<? extends T>` the elements are some unknown subtype of `T`, so reading gives a `T` and writing anything but `null` is rejected; through `List<? super T>` the elements are some unknown supertype of `T`, so writing a `T` is safe and reading gives only `Object` [Doc: JLS §4.5.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1). PECS (the mnemonic from Joshua Bloch's *Effective Java*) is that rule from the method's side. In `Collections.copy`, `T` is chosen so that `src` produces it and `dest` consumes it, and `Collections.addAll(Collection<? super T> c, T... elements)` has the consumer half alone [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java). In the lab, `Transfers.appendAll` with the same shape copies a `List<Integer>` into a `List<Number>` [Lab: VarianceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s04/VarianceTest.java). The Java Tutorials state the same rule as "in" and "out" variables and add: no wildcard for a variable that is both, and none in return types [Doc: The Java Tutorials, Guidelines for Wildcard Use](https://docs.oracle.com/javase/tutorial/java/generics/wildcardGuidelines.html).
+
+**Code.** One producer and one consumer in a single signature:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/s04/Transfers.java
+    public static <T> void appendAll(List<? super T> destination, List<? extends T> source) {
+        for (T element : source) {
+            destination.add(element);
+        }
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Is a `Comparator<? super T>` a producer or a consumer?* A consumer: the method passes `T`s into `compare`. That is why `List.sort` takes `Comparator<? super E>` and `Collections.max(coll, comp)` takes `Comparator<? super T>` [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java) [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java).
+- *Why not put wildcards on the return type too?* The caller would receive a capture it cannot name, so every call site pays for the flexibility the method did not need.
+
+**Trap to avoid.** Reading `super` as "a supertype comes out". `? super T` describes what may go in.
+
+</details>
+
 <a id="q03-11"></a>
 ### Q03.11 · Bug hunt · `void addDefaults(List<? extends Number> list)` does not compile: why, and what is wildcard capture?
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java
+    private static final String ADD_DEFAULTS_EXTENDS = "void addDefaults(List<? extends Number> list) { list.add(0); }";
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `list.add(0)` is rejected (`compiler.err.prob.found.req`): the list may be a `List<Double>`, and the compiler cannot prove an `Integer` belongs in it. The method writes, so its parameter is a consumer and should be `List<? super Integer>`, which compiles. Wildcard capture is how the compiler types such a list: it replaces `?` with a fresh, unnamed type variable, and nothing but `null` is a value of that type.
+
+**Full explanation.** When an expression of type `List<? extends Number>` is used, capture conversion turns it into `List<CAP#1>`, where `CAP#1` is a new type variable whose upper bound is `Number` [Doc: JLS §5.1.10](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.10). `add(CAP#1)` then needs an argument of that unknown type, and `Integer` is not known to be one. The lab compiles both declarations in memory [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). Each mention of the variable is captured separately, which is why even `list.set(0, list.get(1))` on a `List<?>` fails: the compiler cannot see that both captures are the same type. A private generic helper `<E> void swap(List<E> list)` gives the unknown type one name, and the call compiles [Lab: WildcardCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s04/WildcardCompileRulesTest.java). The fix: `void addDefaults(List<? super Integer> list)`.
+
+**Code.** The capture helper from §4:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/s04/Transfers.java
+    private static <E> void swapFirstTwoCaptured(List<E> list) {
+        E first = list.get(0);
+        list.set(0, list.get(1));
+        list.set(1, first);
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Is a `List<? extends Number>` read-only then?* No. `add(null)`, `remove(0)` and `clear()` all work through it [Lab: VarianceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s04/VarianceTest.java), so do not use it as an immutability guarantee; use an unmodifiable list.
+- *Why make the helper private?* It is an implementation detail; the public signature stays `List<?>`, which is simpler for callers.
+
+**Trap to avoid.** Fixing it with a cast to `List<Number>` or a raw `List`. It compiles and turns the compile error into heap pollution in the caller's `List<Double>`.
+
+</details>
+
 <a id="q03-12"></a>
 ### Q03.12 · Difference · `List<?>` vs `List<Object>` vs raw `List`
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `List<?>` is a list of one unknown type: any list can be passed, reading gives `Object`, and only `null` can be added. `List<Object>` is a list that holds any object: any element can be added, but only a `List<Object>` can be passed. A raw `List` accepts both, any list and any element, and checks neither, with warnings.
+
+**Full explanation.** The three differ on two axes, which lists can be assigned to them and what can be added through them:
+
+| Type | Accepts a `List<String>`? | `add(1)`? | Checked by the compiler? |
+|---|---|---|---|
+| `List<?>` | yes | no, only `null` | yes |
+| `List<Object>` | no | yes | yes |
+| raw `List` | yes | yes, with an `unchecked` warning | no |
+
+`List<String>` is a subtype of `List<?>` because `?` contains every type argument, and not of `List<Object>`, because generic types are invariant [Doc: JLS §4.5.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1) [Doc: JLS §4.10.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.2). The raw type's members are erased, so its `add` takes `Object` [Doc: JLS §4.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.8). The lab compiles every cell of the table: the rejected ones fail with `compiler.err.prob.found.req`, and the raw `add` compiles with `rawtypes` and `unchecked` warnings [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). Use `List<?>` for code that only needs "some list" (size, printing, clearing), `List<Object>` for a genuinely heterogeneous list you own, and the raw type only where legacy code forces it.
+
+**Follow-ups an interviewer will ask.**
+- *Is `List<?>` the same as `List<? extends Object>`?* Yes: the unbounded wildcard is equivalent to `? extends Object` [Doc: JLS §4.5.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1).
+- *Which one does `instanceof` accept?* `List<?>` and the raw `List`, which ask only about the class; `List<Object>` is rejected from an `Object` operand like any other type argument [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java) ([Q03.15](#q03-15)).
+
+**Trap to avoid.** Replacing a raw `List` parameter with `List<Object>` "to remove the warning". Every caller passing a `List<String>` then stops compiling; `List<?>` is the safe replacement for read-only use.
+
+</details>
+
 <a id="q03-13"></a>
 ### Q03.13 · Production scenario · A shared library takes `List<Event>`, and every caller copies its `List<OrderPlaced>` to call it
+
+*As the interviewer frames it:* "Our platform library has `EventBus.publishAll(List<Event> events)`. Twelve services call it. Each has a `List<OrderPlaced>` or `List<PaymentCaptured>` (both implement `Event`) and writes `bus.publishAll(new ArrayList<>(orders))`. A profiler shows those copies in the allocation hot path of the busiest service, at batch sizes around 5,000. Teams ask whether the library can be fixed without breaking anyone."
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The parameter is invariant, so a `List<OrderPlaced>` is not a `List<Event>` and callers copy to satisfy the compiler. `publishAll` only reads, so change the parameter to `List<? extends Event>`: every subtype list is accepted directly, existing calls with a `List<Event>` still compile, and the erasure stays `publishAll(List)`, so already-compiled callers keep linking. Then remove the copies.
+
+**Full explanation.** *What the symptoms tell you:* a defensive copy at every call site, for every subtype, points at a signature rather than at the callers. *Hypotheses, ranked:* (1) an invariant producer parameter; (2) the library mutates the list, and the copy protects callers; (3) the library keeps the list after the call, and the copy protects it. *Evidence:* read the library's `publishAll` body. If it only iterates, hypothesis 1 holds. Any `add`, `set` or stored reference supports 2 or 3, and then the copy belongs inside the library. Compiling a call with a `List<OrderPlaced>` reproduces the rejection, `compiler.err.prob.found.req`, and the same call compiles against `List<? extends Event>` [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). *Fix:* `publishAll(List<? extends Event> events)`, the producer half of PECS ([Q03.10](#q03-10)). It is source-compatible, since `List<Event>` is itself a `List<? extends Event>`, and binary-compatible, since erasure removes type arguments, so both declarations erase to `publishAll(List)` [Doc: JLS §4.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.6). The lab compiles both versions and compares their erased parameter types [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). *Prevention:* a review rule for public APIs, `? extends` on parameters the method reads and `? super` on those it writes; a compile-only test in the library that calls each public method with a subtype collection; and the allocation profile of the busy service as the metric that confirms the copies are gone.
+
+**Follow-ups an interviewer will ask.**
+- *What if the library does store the list?* Then copy once inside the library (`List.copyOf(events)`), where the ownership decision lives, and still take `List<? extends Event>`.
+- *Would `Collection<? extends Event>` be better?* If the method only iterates, yes: it also accepts sets and queues. Widening the parameter type is source-compatible for callers but changes the erasure, so it needs a new method or a major version.
+
+**Trap to avoid.** Changing the parameter to `List<Object>` or a raw `List`. The first still rejects `List<OrderPlaced>`; the second accepts it by turning type checking off.
+
+</details>
+
 <a id="q03-14"></a>
 ### Q03.14 · Concept · Type erasure: what the compiler removes, what the class file keeps, and what reflection can still see
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** javac replaces each type variable with the erasure of its leftmost bound and each parameterized type with its raw type, and inserts casts where an erased value is used at its real type. The class file still records every declared generic signature (of classes, fields, methods and parameters) in `Signature` attributes, which reflection reads. What no longer exists is the type argument of an individual object: an `ArrayList<String>` instance does not know about `String`.
+
+**Full explanation.** Erasure maps `G<T1,…,Tn>` to `G`, a type variable to the erasure of its leftmost bound, and every method signature to one without parameterized types or type variables [Doc: JLS §4.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.6). So there is one class for every parameterization: in the lab `ArrayList<String>` and `ArrayList<Integer>` share `ArrayList.class` [Lab: ErasureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureTest.java). The JVM never sees the type arguments, but a `Signature` attribute keeps the declaration for classes, fields, methods and record components that use type variables or parameterized types [Doc: JVMS §4.7.9](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.7.9). In the lab, `getType()` of the `Ledger.entries` field is the raw `List`, while `getGenericType()` returns `List<Money>` [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java). Erasure also forces javac to emit bridge methods where an override has a different erased descriptor ([Q03.16](#q03-16)). Everything that reads types at run time, from Spring's `ResolvableType` to super type tokens, reads those declared signatures ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)).
+
+**Follow-ups an interviewer will ask.**
+- *Why did Java choose erasure?* Migration compatibility: generic code had to run with, and be called from, pre-generics class files, which is also why raw types exist ([§1](#1-why-generics-compile-time-safety-and-raw-types)).
+- *Can you get the element type of a local `List<String>` variable at run time?* No. Reflection has no API for local variables, and the object carries no type argument; pass a `Class<T>` or a type token ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)).
+
+**Trap to avoid.** "All generic information is gone at run time." Declarations survive; only per-object type arguments are erased.
+
+</details>
+
 <a id="q03-15"></a>
 ### Q03.15 · Output · `new ArrayList<String>().getClass() == new ArrayList<Integer>().getClass()`, and `instanceof List<String>`
+
+What does this print? And does `Object o = …; o instanceof List<String>` compile?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_15.java
+List<String> strings = new ArrayList<>();
+List<Integer> numbers = new ArrayList<>();
+Object o = strings;
+
+System.out.println(strings.getClass() == numbers.getClass());
+System.out.println(strings.getClass().getName());
+System.out.println(o instanceof List<?>);
+System.out.println(strings instanceof ArrayList<String>);
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+true
+java.util.ArrayList
+true
+true
+```
+
+Both lists have the one runtime class `ArrayList`. `o instanceof List<String>` does not compile (`compiler.err.instanceof.reifiable.not.safe`): from an `Object`, nothing at run time can check the `String`. `List<?>` asks only about the class, and `ArrayList<String>` from a `List<String>` is safe, because the type argument is already known statically.
+
+**Full explanation.** All parameterizations of a generic class share one class at run time [Doc: JLS §8.1.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.2), so `getClass()` cannot tell them apart and its name has no type argument. `instanceof` requires the operand to be checked cast compatible with the type, that is, the cast must not be unchecked [Doc: JLS §15.20.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.20.2). From `Object` to `List<String>` the cast would be unchecked, so javac rejects it. From `List<String>` to `ArrayList<String>` only the class needs checking, which the JVM can do, so it compiles; that is allowed since Java 16, when the rule was relaxed from requiring a reifiable type ([§5](#5-type-erasure-and-bridge-methods)). The lab asserts the four lines and the compile error key [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *How do you check that a list from an `Object` holds only strings?* Test `instanceof List<?>`, then check the elements, or better, change the API so the type is known; `Collections.checkedList` guards future writes, not existing contents.
+- *Does a pattern change the rule?* No. `o instanceof List<String> l` is rejected for the same reason; the pattern only adds a binding.
+
+**Trap to avoid.** Reading `strings instanceof ArrayList<String>` as a check of the elements. It checks only the class; the `<String>` was already guaranteed by the static type `List<String>`.
+
+</details>
+
 <a id="q03-16"></a>
 ### Q03.16 · Output · Which methods does `getDeclaredMethods()` return for a class that implements `Comparable<Money>`?
-<!-- /TASK: QB-M03-02 -->
+
+`Money` is `record Money(long cents) implements Comparable<Money>` with one hand-written method, `compareTo(Money)`. What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m03/outputs/Q03_16.java
+    public static void main(String[] args) {
+        Arrays.stream(Money.class.getDeclaredMethods())
+                .map(Q03_16::describe)
+                .sorted()
+                .forEach(System.out::println);
+    }
+
+    private static String describe(Method method) {
+        String parameters = Arrays.stream(method.getParameterTypes())
+                .map(Class::getSimpleName)
+                .collect(Collectors.joining(", "));
+        String flags = (method.isBridge() ? " bridge" : "") + (method.isSynthetic() ? " synthetic" : "");
+        return method.getName() + "(" + parameters + ")" + flags;
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+cents()
+compareTo(Money)
+compareTo(Object) bridge synthetic
+equals(Object)
+hashCode()
+toString()
+```
+
+Two `compareTo` methods: the one in the source, and a bridge `compareTo(Object)` that javac generated because the interface method erases to `compareTo(Object)`. The other four are the record's accessor and its implicitly declared `equals`, `hashCode` and `toString`.
+
+**Full explanation.** `Comparable<T>.compareTo(T)` erases to `compareTo(Object)`, while `Money.compareTo(Money)` has a different descriptor, so a call through the interface would not reach it. javac therefore emits `compareTo(Object)`, which casts its argument to `Money` and delegates, flagged `ACC_BRIDGE` and `ACC_SYNTHETIC` [Doc: JVMS §4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.6). Reflection reports both, and `isBridge()` tells them apart [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java). The bridge's cast is also why a raw call with the wrong type throws `ClassCastException` [Lab: ErasureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureTest.java). The lab sorts the lines because the elements of the returned array "are not sorted and are not in any particular order" [Src: JDK 25, java.lang.Class](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Class.java), then asserts all six [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Why does this matter outside an interview?* Any code that scans methods by name, such as a home-grown event dispatcher, sees the bridge too and may call a handler twice; that incident is [Q03.18](#q03-18).
+- *How does a framework find the real method behind a bridge?* Spring's `BridgeMethodResolver.findBridgedMethod` returns the method the bridge delegates to; the lab runs it on `Money` [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java).
+
+**Trap to avoid.** Indexing into `getDeclaredMethods()` (`methods[0]`) in a test or framework. The order is unspecified; filter by name and `isBridge()`.
+
+</details>
 
 <!-- TASK: QB-M03-03 -->
 <a id="q03-17"></a>

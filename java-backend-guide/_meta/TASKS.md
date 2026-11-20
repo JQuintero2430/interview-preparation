@@ -1130,11 +1130,11 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261120-0358-claudecode-cloud (claude-opus-5-5; written and tested in the main session, tests first, no java-workflow skill in this harness)
 
 ### QB-M03-02 · M · Q03.09–Q03.16
-- Status: `todo` · Deps: SEC-M03-04, -05 · needs: none
+- Status: `done` · Deps: SEC-M03-04, -05 · needs: none
 - Files touched: `modules/03-java-generics.md` (region `QB-M03-02`), lab `m03/outputs/**` (main `Q03_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M03](modules/M03.md) §5 rows Q03.09–Q03.16 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M03 §5 lists rows, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (compile-time ones through `InMemoryCompiler`, by diagnostic key); Production scenario answers follow D9 and do not repeat a section callout; follow-ups answered; ~220 words per question on average (advisory); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261120-0358-claudecode-cloud (claude-opus-5-5; written and tested in the main session, tests first, no java-workflow skill in this harness)
 
 ### QB-M03-03 · M · Q03.17–Q03.23
 - Status: `todo` · Deps: SEC-M03-05, -06, -07, -08 · needs: none

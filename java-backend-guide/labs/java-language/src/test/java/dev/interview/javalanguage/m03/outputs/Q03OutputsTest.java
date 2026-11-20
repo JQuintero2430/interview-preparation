@@ -44,6 +44,14 @@ class Q03OutputsTest {
     private static final String MAX_OF_DATES = "LocalDate run(List<LocalDate> d) { return max(d); }";
     private static final String MAX_OF_INTEGERS = "Integer run(List<Integer> n) { return max(n); }";
 
+    private static final String ADD_DEFAULTS_EXTENDS = "void addDefaults(List<? extends Number> list) { list.add(0); }";
+    private static final String ADD_DEFAULTS_SUPER = "void addDefaults(List<? super Integer> list) { list.add(0); }";
+    private static final String NOT_REIFIABLE = "compiler.err.instanceof.reifiable.not.safe";
+    private static final String EVENTS = "interface Event {}\nrecord OrderPlaced() implements Event {}\n";
+    private static final String INVARIANT_PUBLISH = "static void publishAll(List<Event> events) { }";
+    private static final String COVARIANT_PUBLISH = "static void publishAll(List<? extends Event> events) { }";
+    private static final String PUBLISH_ORDERS = "void run(List<OrderPlaced> placed) { publishAll(placed); }";
+
     @Test
     @DisplayName("Q03.02 · prints 2 and sku-1, then the typed read of the Integer throws ClassCastException")
     void main_printsTwoLinesThenThrows_whenTypedReadMeetsTheInteger() {
@@ -137,6 +145,114 @@ class Q03OutputsTest {
         assertThat(Q03_08.latest(List.of(LocalDate.of(2026, 1, 1)))).isEqualTo(LocalDate.of(2026, 1, 1));
     }
 
+    @Test
+    @DisplayName("Q03.09 · String[] is an Object[], and storing an Integer throws ArrayStoreException naming Integer")
+    void main_printsArrayTypeAndStoreFailure_whenArrayIsCovariant() {
+        List<String> lines = OutputCapture.linesOf(() -> Q03_09.main(new String[0]));
+
+        assertThat(lines).containsExactly("String[]", "ArrayStoreException: java.lang.Integer");
+    }
+
+    @Test
+    @DisplayName("Q03.09 · List<Integer> is not a List<Number>, but it is a List<? extends Number>")
+    void compile_rejectsInvariantAssignment_whenElementTypesDiffer() {
+        assertThat(compileBody("List<Number> n = new ArrayList<Integer>();").errorCodes())
+                .containsExactly(INCOMPATIBLE);
+        assertThat(compileBody("List<? extends Number> n = new ArrayList<Integer>();")
+                        .success())
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("Q03.11 · add(0) on List<? extends Number> does not compile, on List<? super Integer> it does")
+    void compile_rejectsAddThroughExtendsWildcard_whenElementTypeIsUnknown() {
+        assertThat(compileMembers(ADD_DEFAULTS_EXTENDS).errorCodes()).containsExactly(INCOMPATIBLE);
+        assertThat(compileMembers(ADD_DEFAULTS_SUPER).success()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Q03.12 · a List<String> fits List<?> and raw List, not List<Object>")
+    void compile_acceptsListOfStringOnlyForWildcardAndRaw_whenAssigning() {
+        String strings = "List<String> s = new ArrayList<>();\n";
+
+        assertThat(compileBody(strings + "List<?> any = s;").success()).isTrue();
+        assertThat(compileBody(strings + "List<Object> objects = s;").errorCodes())
+                .containsExactly(INCOMPATIBLE);
+        assertThat(compileBody(strings + "List raw = s;").success()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Q03.12 · List<Object> and raw List accept an Integer, List<?> accepts only null")
+    void compile_acceptsWritesOnlyForObjectAndRaw_whenAddingAnInteger() {
+        assertThat(compileBody("List<?> any = new ArrayList<String>(); any.add(1);")
+                        .errorCodes())
+                .containsExactly(INCOMPATIBLE);
+        assertThat(compileBody("List<?> any = new ArrayList<String>(); any.add(null);")
+                        .success())
+                .isTrue();
+        assertThat(compileBody("List<Object> objects = new ArrayList<>(); objects.add(1);")
+                        .success())
+                .isTrue();
+        InMemoryCompiler.Result raw = compileBody("List raw = new ArrayList<String>(); raw.add(1);", LINT);
+        assertThat(raw.success()).isTrue();
+        assertThat(warningCodes(raw)).contains(RAW_USE, UNCHECKED_CALL);
+    }
+
+    @Test
+    @DisplayName("Q03.13 · publishAll(List<Event>) rejects a List<OrderPlaced>, List<? extends Event> accepts it")
+    void compile_acceptsSubtypeListOnlyWithExtendsWildcard_whenLibraryTakesEvents() {
+        assertThat(compileMembers(EVENTS + INVARIANT_PUBLISH + PUBLISH_ORDERS).errorCodes())
+                .containsExactly(INCOMPATIBLE);
+        assertThat(compileMembers(EVENTS + COVARIANT_PUBLISH + PUBLISH_ORDERS).success())
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("Q03.13 · List<Event> and List<? extends Event> parameters have the same erasure")
+    void erasure_isTheSame_whenOnlyTheWildcardChanges() throws Exception {
+        InMemoryCompiler.Result invariant = compileMembers(EVENTS + INVARIANT_PUBLISH);
+        InMemoryCompiler.Result covariant = compileMembers(EVENTS + COVARIANT_PUBLISH);
+
+        assertThat(publishAllParameters(invariant)).isEqualTo(publishAllParameters(covariant));
+    }
+
+    @Test
+    @DisplayName("Q03.15 · both lists have the class ArrayList; instanceof List<?> and ArrayList<String> are true")
+    void main_printsSameClassAndTwoTrueChecks_whenTypeArgumentsAreErased() {
+        List<String> lines = OutputCapture.linesOf(() -> Q03_15.main(new String[0]));
+
+        assertThat(lines).containsExactly("true", "java.util.ArrayList", "true", "true");
+    }
+
+    @Test
+    @DisplayName("Q03.15 · instanceof List<String> or List<Object> on an Object does not compile, raw List does")
+    void compile_rejectsInstanceofWithTypeArgument_whenOperandIsObject() {
+        assertThat(compileBody("Object o = new ArrayList<String>(); boolean b = o instanceof List<String>;")
+                        .errorCodes())
+                .containsExactly(NOT_REIFIABLE);
+        assertThat(compileBody("Object o = new ArrayList<String>(); boolean b = o instanceof List<Object>;")
+                        .errorCodes())
+                .containsExactly(NOT_REIFIABLE);
+        assertThat(compileBody("Object o = new ArrayList<String>(); boolean b = o instanceof List;")
+                        .success())
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("Q03.16 · Money declares compareTo(Money) and a synthetic bridge compareTo(Object)")
+    void main_printsDeclaredMethodsSorted_whenRecordImplementsComparableOfItself() {
+        List<String> lines = OutputCapture.linesOf(() -> Q03_16.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly(
+                        "cents()",
+                        "compareTo(Money)",
+                        "compareTo(Object) bridge synthetic",
+                        "equals(Object)",
+                        "hashCode()",
+                        "toString()");
+    }
+
     private static void runCatching(Runnable action, AtomicReference<RuntimeException> thrown) {
         try {
             action.run();
@@ -152,6 +268,13 @@ class Q03OutputsTest {
     private static InMemoryCompiler.Result compileMembers(String members, String... options) {
         String source = "import java.util.*;\nimport java.time.LocalDate;\nclass Probe {\n" + members + "\n}\n";
         return InMemoryCompiler.compile(Map.of(SOURCE_NAME, source), options);
+    }
+
+    private static List<Class<?>> publishAllParameters(InMemoryCompiler.Result result) throws Exception {
+        assertThat(result.success()).isTrue();
+        return List.of(result.load(SOURCE_NAME)
+                .getDeclaredMethod("publishAll", List.class)
+                .getParameterTypes());
     }
 
     private static List<String> warningCodes(InMemoryCompiler.Result result) {
