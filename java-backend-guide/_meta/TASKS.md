@@ -1221,11 +1221,11 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by:
 
 ### FIX-M03-06 · S · Nits: section links, §6 opening, drill list, Applies-to
-- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group N findings 1–4 (5 accepted as optional, no change)
+- Status: `done` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group N findings 1–4 (5 accepted as optional, no change)
 - Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
 - Acceptance: the plain "§n" references linked; §6 "The problem it solves" opens on the `snapshot()` crash; Q03.24 in §7's drill list; Applies-to names Spring Boot 4.1.2 for §7 only if VERSIONS.md lists it; rows 5 and 6 pass (03 flags none).
-- Done by:
+- Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
 

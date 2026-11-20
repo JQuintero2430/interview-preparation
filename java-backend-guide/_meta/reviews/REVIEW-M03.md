@@ -14,6 +14,7 @@
 - FIX-M03-01 (S20261120-1201-claudecode-cloud): group A accepted in full; A4 rewritten on `src.zip` bases because the JLS was unreachable.
 - FIX-M03-02 (same session): group B accepted in full; four tests and one lab class added.
 - FIX-M03-03 (same session): group C accepted, except one part of C3: the Doc tags on the Java 7 / Java 10 entries of the §2 L393 Version notes stay, because every claim in a callout keeps its own basis (QUALITY-BAR C1); only the repeated `[Final since Java 10, JEP 286]` marker at L408 was dropped.
+- FIX-M03-06 (same session): N1–N4 accepted (nine plain `§n` references linked; §6 opens on the `snapshot()` crash; Q03.24 in §7's drill list; Spring Boot 4.1.2 in Applies to, as VERSIONS.md's lab line); N5 accepted as optional, no change.
 
 ## Items
 
