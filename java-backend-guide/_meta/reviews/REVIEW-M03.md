@@ -9,6 +9,12 @@
   - Findings A4 and A7 are flagged "needs verification" by the reviewer; FIX-M03-01 must read JLS 25 §9.6.4.7 / §8.4.1 (or `src.zip`, and the labs pom for Jackson group IDs) before editing and leave the text unchanged where the source agrees with it. Finding C4's basis (OWASP / Jackson polymorphic-typing docs) must be read and recorded in SOURCES.md; if neither can be fetched through the proxy, record an UNVERIFIED item with a VERIFY task instead of writing an untagged claim.
   - Finding A1 is consistent with the rule that each anonymous class expression declares exactly one class (JLS §15.9.5), so it is queued as is; FIX-M03-01 confirms it (JLS text or a lab assertion that two `new TypeRef<…>(){}` evaluations at one site share `getClass()`) before editing.
 
+## Resolutions
+
+- FIX-M03-01 (S20261120-1201-claudecode-cloud): group A accepted in full; A4 rewritten on `src.zip` bases because the JLS was unreachable.
+- FIX-M03-02 (same session): group B accepted in full; four tests and one lab class added.
+- FIX-M03-03 (same session): group C accepted, except one part of C3: the Doc tags on the Java 7 / Java 10 entries of the §2 L393 Version notes stay, because every claim in a callout keeps its own basis (QUALITY-BAR C1); only the repeated `[Final since Java 10, JEP 286]` marker at L408 was dropped.
+
 ## Items
 
 | Item | Result | Evidence |

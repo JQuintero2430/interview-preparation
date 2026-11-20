@@ -1200,11 +1200,11 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M03-03 · M · Checklist misses: steps, analogies, version notes, security, terms
-- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group C findings 1–5
+- Status: `done` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group C findings 1–5
 - Files touched: `modules/03-java-generics.md`, `SOURCES.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
 - Acceptance: approach plus numbered steps before the Code of §5–§8; analogies in §5 and §7 Mental model; §6 Version notes callout placed per STYLE-GUIDE §2.2, §5 L872 marker, JEP 286 marker only at its first §2 mention; one §7 `**Security:**` item whose basis (OWASP or Jackson docs) is read and its URL added to SOURCES.md "## 03" — if neither is reachable, an UNVERIFIED item and a VERIFY task are added instead of an untagged claim; the three terms defined; rows 5 and 6 pass (03 flags none, B13 ≥ 1).
-- Done by:
+- Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M03-04 · M · Redundancy: questions re-teaching sections and facts repeated
 - Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group G findings 1, 2

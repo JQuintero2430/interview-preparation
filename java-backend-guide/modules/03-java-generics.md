@@ -209,7 +209,7 @@ The compile-time side: the source below compiles, and the test asserts the two w
 - When a warning cannot be removed, put `@SuppressWarnings("unchecked")` on the smallest declaration that works (a local variable or a short method) with a comment saying why the operation is safe, because the annotation covers everything inside the element it marks.
 - Do not suppress `rawtypes` and `unchecked` together by habit, because they answer different questions: `rawtypes` says a raw type is named here, `unchecked` says this operation may put a wrong element in.
 - Wrap a legacy raw API once, at the boundary, in a method that copies its result into a typed collection after checking each element, because the failure then happens at the boundary and names the library.
-- Use `Collections.checkedList` (and the other `checked…` views) to locate a bad writer, or when handing a collection to code you do not control, because the view fails at the insertion; it adds a check to every write, so it is a diagnostic and a guard, not a default.
+- Use `Collections.checkedList` (and the other `checked…` views) to locate a bad writer, or when handing a collection to code you do not control, because the view fails at the insertion; it adds a check to every write, so it is a diagnostic and a guard, not a default. Data that crosses a trust boundary as JSON needs the matching guard at binding time ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens), Best practices).
 
 ### Misconceptions and traps
 
@@ -405,7 +405,7 @@ Declaring and inferring type parameters happens entirely at compile time, so thi
 ### Misconceptions and traps
 
 - *"The diamond is a raw type with nicer syntax."* The diamond means "infer the type arguments"; the result is a fully parameterized type and compiles without warnings, while `new ArrayList()` is raw and warns [Lab: TypeInferenceCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s02/TypeInferenceCompileRulesTest.java). The confusion exists because both leave the type argument out.
-- *"`var` makes Java dynamically typed."* The type is inferred once, at compile time, and never changes [Final since Java 10, JEP 286] [Doc: JEP 286](https://openjdk.org/jeps/286). The myth comes from JavaScript, where `var` declares a variable that can hold any type.
+- *"`var` makes Java dynamically typed."* The type is inferred once, at compile time, and never changes [Doc: JEP 286](https://openjdk.org/jeps/286). The myth comes from JavaScript, where `var` declares a variable that can hold any type.
 - *"A method with `<T>` in its signature is type-safe."* Only when something constrains `T`. `<T> T get(String key)` compiles cleanly at every call site and fails in whichever one guessed wrong [Lab: GenericDeclarationsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s02/GenericDeclarationsTest.java). It looks safe because the caller writes no cast and sees no warning.
 - *"Inference looks at the whole statement."* It looks at the expression's own arguments and, only for an assignment or an argument, at its target type; a chained call's receiver is inferred alone [Doc: JLS §15.12](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12). The belief comes from lambdas and the diamond, where the target type visibly flows inward.
 
@@ -770,7 +770,7 @@ A `List<String>` and a `List<Integer>` are different types to the compiler and t
 
 ### Mental model
 
-javac is the only part of the toolchain that sees type arguments. It checks every use of them, then writes the class file as if you had written the pre-generics code by hand: raw types, a cast wherever a value of a type variable is used as a concrete type, and an extra method wherever an override would otherwise not line up after erasure. The JVM runs that hand-written-looking code. What javac keeps for later readers is a description of the *declarations*, not a label on each object.
+javac is the only part of the toolchain that sees type arguments. It checks every use of them, then writes the class file as if you had written the pre-generics code by hand: raw types, a cast wherever a value of a type variable is used as a concrete type, and an extra method wherever an override would otherwise not line up after erasure. The JVM runs that hand-written-looking code. What javac keeps for later readers is a description of the *declarations*, not a label on each object. Think of javac as a proofreader at a warehouse: it checks the label on every box, then peels the labels off before the boxes ship. The JVM moves unlabelled boxes; what survives is the warehouse catalogue, the `Signature` attributes, which says what each shelf was declared to hold.
 
 ```mermaid
 flowchart LR
@@ -794,13 +794,18 @@ What to notice: the interface's method erases to `compareTo(Object)`, so only th
 
 **No `new T()`, no `T.class`.** After erasure the method body has no class for `T` to instantiate or name. `new T()` fails with `compiler.err.type.found.req` (a class is required), and `T.class` fails with `compiler.err.type.var.cant.be.deref`. The usual fix is to pass the class in, as a `Class<T>` token, and that version compiles [Lab: ErasureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureCompileRulesTest.java). Tokens are the subject of §7.
 
-**Bridge methods.** `Comparable<T>` declares `compareTo(T)`, whose erasure is `compareTo(Object)`. `Money` declares `compareTo(Money)`. In source that is an override. In the class file the two have different descriptors, `(Ljava/lang/Object;)I` against one that takes `Money` (see the `javap` output below), so javac adds a method with the interface's descriptor: `compareTo(Object)`, flagged `ACC_BRIDGE` ("a bridge method, generated by the compiler") and `ACC_SYNTHETIC` ("not present in the source code") [Doc: JVMS §4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.6). Its body casts the argument to `Money` and calls the real method. The lab finds exactly one such method on `Money`, with `isBridge()` and `isSynthetic()` both true, while the declared `compareTo(Money)` has neither flag. A raw `Comparable` call with a `String` goes through the bridge, and the bridge's cast throws `ClassCastException` naming `Money` [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java) [Lab: ErasureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureTest.java).
+**Bridge methods.** `Comparable<T>` declares `compareTo(T)`, whose erasure is `compareTo(Object)`. `Money` declares `compareTo(Money)`. In source that is an override. In the class file the two have different descriptors (a descriptor is the JVM's encoding of a method's parameter and return types), `(Ljava/lang/Object;)I` against one that takes `Money` (see the `javap` output below), so javac adds a method with the interface's descriptor: `compareTo(Object)`, flagged `ACC_BRIDGE` ("a bridge method, generated by the compiler") and `ACC_SYNTHETIC` ("not present in the source code") [Doc: JVMS §4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.6). Its body casts the argument to `Money` and calls the real method. The lab finds exactly one such method on `Money`, with `isBridge()` and `isSynthetic()` both true, while the declared `compareTo(Money)` has neither flag. A raw `Comparable` call with a `String` goes through the bridge, and the bridge's cast throws `ClassCastException` naming `Money` [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java) [Lab: ErasureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureTest.java).
 
 **Overloads that clash after erasure.** "A class cannot have two member methods with the same name and type erasure" [Doc: JLS §8.4.8.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.3), and constructors follow the same rule [Doc: JLS §8.8.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.8.2). `process(List<Order>)` and `process(List<Invoice>)` both erase to `process(List)`, so the second declaration fails with `compiler.err.name.clash.same.erasure`. Overloads whose erased types differ, such as `process(List<Order>)` and `process(Set<Invoice>)`, compile [Lab: ErasureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureCompileRulesTest.java). The fix is a different method name, which also reads better at the call site.
 
 ### Code
 
-`Money` is an ordinary record. The interesting part is what javac adds to it.
+`Money` is an ordinary record. The interesting part is what javac adds to it. The approach is to compile one small override and then look at the class file from two sides, the disassembler and reflection:
+
+1. `Money` implements `Comparable<Money>` with a single `compareTo(Money)`.
+2. javac adds the bridge `compareTo(Object)`, which `javap` shows with its flags and body.
+3. The reflection test finds the bridge by name and flag, never by position.
+4. A compile test shows the `instanceof` rule that erasure imposes.
 
 ```java
 package dev.interview.javalanguage.m03.s05;
@@ -816,7 +821,7 @@ public record Money(long cents) implements Comparable<Money> {
 ```
 <sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m03/s05/Money.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m03/s05/Money.java)</sub>
 
-`javap -v -p` on the lab's compiled `Money` (JDK 25) shows the bridge, its flags and its two-step body:
+`javap` (the JDK's class-file disassembler) with `-v -p`, run on the lab's compiled `Money` (JDK 25), shows the bridge, its flags and its two-step body:
 
 ```text
   public int compareTo(java.lang.Object);
@@ -874,7 +879,7 @@ The `instanceof` rule, as a rejected source beside two accepted ones (excerpt):
 > **Framework vs language.** javac decides that a bridge exists and writes the `Signature` attributes. The JVM only runs the bridge like any other method, and core reflection reports what the class file contains. Spring adds `org.springframework.core.BridgeMethodResolver`, a "helper for resolving synthetic bridge Methods to the Method being bridged" [Src: Spring Framework 7.0.10, BridgeMethodResolver](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/BridgeMethodResolver.java). Its Javadoc recommends finding the bridged method before looking up annotations, so they are read from the method you wrote. In the lab, `findBridgedMethod` maps `Money`'s bridge back to `compareTo(Money)` [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java). Plain Java code gets the same effect by filtering on `isBridge()`.
 
 > [!NOTE]
-> **Version notes.** Java 5: generics, erasure and bridge methods, unchanged in their core since. Java 16: `instanceof` accepts a non-reifiable type when the cast to it is checked, as in `list instanceof ArrayList<String>`. Up to Java 15 the type after `instanceof` had to be reifiable [Doc: JLS 15 §15.20.2](https://docs.oracle.com/javase/specs/jls/se15/html/jls-15.html#jls-15.20.2), and JDK 25's javac with `--release 15` still rejects that line with a `compiler.err.feature.not.supported.in.source…` error [Lab: ErasureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureCompileRulesTest.java).
+> **Version notes.** Java 5: generics, erasure and bridge methods, unchanged in their core since. Java 16: `instanceof` accepts a non-reifiable type when the cast to it is checked, as in `list instanceof ArrayList<String>` [Changed in Java 16: `instanceof` accepts a non-reifiable type when the cast to it is checked]. Up to Java 15 the type after `instanceof` had to be reifiable [Doc: JLS 15 §15.20.2](https://docs.oracle.com/javase/specs/jls/se15/html/jls-15.html#jls-15.20.2), and JDK 25's javac with `--release 15` still rejects that line with a `compiler.err.feature.not.supported.in.source…` error [Lab: ErasureCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/ErasureCompileRulesTest.java).
 
 ### Best practices and anti-patterns
 
@@ -920,6 +925,13 @@ Sort types into two groups by one question: can the run time check it? A *reifia
 **`@SafeVarargs`.** The annotation is "a programmer assertion that the body of the annotated method or constructor does not perform potentially unsafe operations on its varargs parameter". It suppresses the warnings at the declaration and at every call site [Src: JDK 25, java.lang.SafeVarargs](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/SafeVarargs.java). Because the promise is about one body, it is allowed only where no override can replace that body: "it is a compile-time error if a variable arity method declaration that is neither static nor final nor private is annotated" with it, and constructors are allowed too [Doc: JLS §9.6.4.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.6.4.7). In the lab it fails on a plain instance method with `compiler.err.varargs.invalid.trustme.anno`, and compiles on private, final and static ones. On a static generic `listOf` it removes both warnings [Lab: GenericArrayCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayCompileRulesTest.java). The compiler cannot check the promise. `VarargsPollution` carries a false `@SafeVarargs` on purpose: it compiles without a warning, as the JDK's own example of such a method says [Src: JDK 25, java.lang.SafeVarargs](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/SafeVarargs.java), and fails at run time [Lab: GenericArrayTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayTest.java). `Collections.addAll` is an honest use, because it only reads the array and adds its elements, and it carries the annotation itself [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java). [Q03.21](#q03-21) tests the line between honest and dishonest.
 
 ### Code
+
+The approach is one class that is safe while its unchecked array stays private, plus one method that lets the array out on purpose, so the test can show the difference:
+
+1. The constructor casts an `Object[]` to `T[]` under `@SuppressWarnings`.
+2. `add` and `get` keep that array inside, where its real class never matters.
+3. `snapshot()` returns it: the defect.
+4. `snapshot(IntFunction<T[]>)` and `toList()` are the two fixes.
 
 `SnapshotBuffer` keeps the unchecked array inside, except in the one method that lets it escape on purpose:
 
@@ -1019,6 +1031,8 @@ The polluting store, which the array accepts (excerpt):
 > **Production scenario: a metrics export fails with `ClassCastException` after a buffer refactor.** *As the interviewer frames it:* "We replaced a `List<Event>` with a home-grown fixed-size buffer to cut allocations. Unit tests of the buffer pass. In staging, the exporter that calls `Event[] batch = buffer.snapshot()` fails on every flush with `class [Ljava.lang.Object; cannot be cast to class [Lcom.acme.Event;`."
 > **Reasoning.** The buffer's own tests read elements through `get`, which casts one element at a time and succeeds. The exporter is the first caller to take the array itself, and the array is an `Object[]` created by `(T[]) new Object[n]`, as the exception's source class shows. Evidence: the stack trace ends in the exporter's assignment, not inside the buffer; the buffer's constructor holds the unchecked cast under `@SuppressWarnings`; and the lab reproduces it with `SnapshotBuffer<String>` [Lab: GenericArrayTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayTest.java). Fix: return `List<T>`, or take an `IntFunction<T[]>` (or a `Class<T>`) so the caller supplies the component type. Prevention: a rule that a `(T[])` cast array never leaves its class, plus a test that assigns each array-returning method's result to a concrete array type.
 
+> **Version notes.** Java 7: `@SafeVarargs` added [Src: JDK 25, java.lang.SafeVarargs](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/SafeVarargs.java). Java 9: allowed on private instance methods as well [Changed in Java 9: `@SafeVarargs` on private methods] [Doc: JEP 213](https://openjdk.org/jeps/213). Java 11: `Collection.toArray(IntFunction<T[]>)` gives callers a typed array without a `Class` [Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java). Java 25 (default): the compiler still does not check the `@SafeVarargs` promise [Lab: GenericArrayTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s06/GenericArrayTest.java).
+
 ### Best practices and anti-patterns
 
 - Return `List<T>` rather than `T[]` from generic code, because a list carries no run-time component type that can disagree with its static type.
@@ -1044,7 +1058,7 @@ Erasure removes the type argument from every object, and some code needs it back
 
 ### Mental model
 
-A type token is a type passed as an argument. A `Class<T>` is the simple version: the run time already has one object per class, and its static type `Class<T>` lets the compiler connect it to `T`. For `List<Order>` there is no such object. The trick is to make javac write the type down where reflection can find it. Declare a class whose superclass is `TypeToken<List<Order>>`, and the class file records that superclass in its `Signature` attribute ([§5](#5-type-erasure-and-bridge-methods)). An anonymous subclass `new TypeToken<List<Order>>() {}` is the shortest way to declare one.
+A type token is a type passed as an argument. A `Class<T>` is the simple version: the run time already has one object per class, and its static type `Class<T>` lets the compiler connect it to `T`. For `List<Order>` there is no such object. The trick is to make javac write the type down where reflection can find it. Declare a class whose superclass is `TypeToken<List<Order>>`, and the class file records that superclass in its `Signature` attribute ([§5](#5-type-erasure-and-bridge-methods)). An anonymous subclass `new TypeToken<List<Order>>() {}` is the shortest way to declare one. An analogy: a `Class<T>` is a street name on a parcel, enough for a plain street. A parcel for `List<Order>` needs the full address, and the parcel itself, the object, carries none; so the address is painted on the delivery van, the anonymous class, which reflection can read.
 
 ```mermaid
 sequenceDiagram
@@ -1077,6 +1091,12 @@ What to notice: the type argument travels in the class, not in the object. That 
 **Where tokens stop working.** A token records what is written in source at the place where the anonymous class is declared. Inside `static <T> TypeToken<List<T>> listOf() { return new TypeToken<>() {}; }` what is written is `List<T>`, so every caller, whatever its `T`, gets a token whose argument is the type variable `T`. The lab shows this for the plain token and for `ParameterizedTypeReference` alike [Lab: SuperTypeTokenTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s07/SuperTypeTokenTest.java). A generic helper has to receive the token, or a `Class<T>`, from its caller instead of creating it.
 
 ### Code
+
+The approach is a token class whose constructor reads the type argument its subclass declared, and two tests that show where that works and where it cannot:
+
+1. The constructor calls `getClass().getGenericSuperclass()` and keeps the single type argument.
+2. A raw subclass, which records no argument, is rejected with `IllegalStateException`.
+3. The tests capture `List<String>` when the type is written out, and the type variable `T` when the token is created inside a generic method.
 
 The plain-Java token, with nothing but the reflection API:
 
@@ -1155,6 +1175,7 @@ The diamond in `new TypeToken<>() {}` infers `List<String>` from the target type
 - Declare tokens as constants where the type is concrete (`private static final ParameterizedTypeReference<List<Order>> ORDERS = new ParameterizedTypeReference<>() {};`), because the constant creates and parses the token once and names the type in one place. The anonymous class is not the cost: one class exists per source site, however often the expression runs [Lab: SuperTypeTokenTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s07/SuperTypeTokenTest.java).
 - Pass tokens into generic helpers. Never create one from a type variable, because it records `T` and not the caller's type.
 - Treat an unchecked warning on a client call as a bug, because it marks exactly the place where a raw `Class` replaced a full type.
+- **Security:** Bind untrusted JSON to the most specific concrete type a token can name (`new ParameterizedTypeReference<List<Order>>() {}`), never to `Object`, `Map<String, Object>` or a base type deserialized polymorphically with class names as type ids, because the payload then chooses which classes get instantiated. Jackson's `PolymorphicTypeValidator` exists for that case: an allow list "to avoid security problems that occur with unlimited class names" [Src: jackson-databind 3.1.7, PolymorphicTypeValidator](https://github.com/FasterXML/jackson-databind/blob/jackson-databind-3.1.7/src/main/java/tools/jackson/databind/jsontype/PolymorphicTypeValidator.java). A token fixes the shape and checks no values, so validate the bound object afterwards ([18](18-spring-mvc-and-rest-controllers.md) covers Bean Validation; [06](06-java-exceptions-strings-io.md) covers Java serialization's own deserialization risks).
 
 ### Misconceptions and traps
 
@@ -1192,6 +1213,12 @@ Read a generic signature the way you read a contract: first the parties, then th
 **`Comparator.comparing`.** The one-argument form is `<T, U extends Comparable<? super U>> Comparator<T> comparing(Function<? super T, ? extends U> keyExtractor)` [Src: JDK 25, java.util.Comparator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Comparator.java). It combines all the pieces: `U` is the key type with the same robust bound as `max`, and the extractor consumes a `T` and produces a `U`. In the lab, `comparing(Parcel::shippedOn)` sorts parcels by a `LocalDate` key [Lab: JdkSignatureCallsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureCallsTest.java). Using comparators is [02 §4](02-java-equality-immutability-records.md#4-ordering-comparable-and-comparator).
 
 ### Code
+
+The approach is to make each signature read in this section earn its wildcard or bound with a call that would not compile without it:
+
+1. One method per JDK signature, each with one call.
+2. Each call's comment names the wildcard or bound that lets it compile.
+3. A reflection test reads the erased signature that `Object &` protects.
 
 One call per signature. Each compiles only because of the wildcard or bound named in its comment:
 
@@ -1840,7 +1867,7 @@ A class has `void process(List<Order> orders)`. A teammate adds `void process(Li
 
 **Short answer (30 seconds).** Implementing `Handler<OrderPlaced>` made javac add a bridge method `handle(Object)` to each handler, next to `handle(OrderPlaced)`. The dispatcher's filter (name `handle`, one parameter that accepts the event) matches both, and the bridge delegates to the real method, so each event is delivered twice. Skip methods where `isBridge()` is true.
 
-**Full explanation.** *What the symptoms tell you:* exactly twice, for every handler, starting with a change to the type hierarchy and not to the bodies, points at something the compiler generated. *Hypotheses, ranked:* (1) the scan finds a second, compiler-generated method; (2) handlers are registered twice (for example, once by the interface and once by the class); (3) the broker redelivers. *Evidence:* log each matched `Method` at registration; two entries per handler, one with `isBridge()` and `isSynthetic()` true and a parameter of type `Object`, confirm hypothesis 1. `javap -p` on a handler class shows the same pair, and a redelivery would show two message IDs in the broker log instead of one. *Mechanism:* `Handler<E>.handle(E)` erases to `handle(Object)`, so javac emits a bridge with that descriptor that casts and calls `handle(OrderPlaced)` [Doc: JVMS §4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.6). `getDeclaredMethods()` returns both ([Q03.16](#q03-16)). In the lab, a dispatcher that matches by name calls the handler twice, and the same dispatcher with a `!method.isBridge()` filter calls it once [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). *Fix:* filter out bridge methods, or better, stop scanning: dispatch through the interface (`handler.handle(event)`), which the JVM routes through the bridge exactly once. If the scan must stay, Spring's `BridgeMethodResolver.findBridgedMethod` maps a bridge to the method it calls [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java). *Prevention:* a dispatcher test with a handler that implements a generic interface, and an idempotency key on side effects such as emails, so one duplicate delivery cannot reach a customer. Monitor sent-email counts per order ID.
+**Full explanation.** *What the symptoms tell you:* exactly twice, for every handler, starting with a change to the type hierarchy and not to the bodies, points at something the compiler generated. *Hypotheses, ranked:* (1) the scan finds a second, compiler-generated method; (2) handlers are registered twice (for example, once by the interface and once by the class); (3) the broker redelivers. *Evidence:* log each matched `Method` at registration; two entries per handler, one with `isBridge()` and `isSynthetic()` true and a parameter of type `Object`, confirm hypothesis 1. `javap -p` on a handler class shows the same pair, and a redelivery would show two message IDs in the broker log instead of one. *Mechanism:* `Handler<E>.handle(E)` erases to `handle(Object)`, so javac emits a bridge with that descriptor that casts and calls `handle(OrderPlaced)` [Doc: JVMS §4.6](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.6). `getDeclaredMethods()` returns both ([Q03.16](#q03-16)). In the lab, a dispatcher that matches by name calls the handler twice, and the same dispatcher with a `!method.isBridge()` filter calls it once [Lab: Q03OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/outputs/Q03OutputsTest.java). *Fix:* filter out bridge methods, or better, stop scanning: dispatch through the interface (`handler.handle(event)`), which the JVM routes through the bridge exactly once. If the scan must stay, Spring's `BridgeMethodResolver.findBridgedMethod` maps a bridge to the method it calls [Lab: BridgeMethodTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s05/BridgeMethodTest.java). *Prevention:* a dispatcher test with a handler that implements a generic interface, and an idempotency key (a unique key per operation that lets the receiver ignore a repeat; [30](30-kafka-fundamentals.md) covers idempotent consumers) on side effects such as emails, so one duplicate delivery cannot reach a customer. Monitor sent-email counts per order ID.
 
 **Code.** The dispatcher; the `Scan` strategy decides whether bridges are skipped:
 
