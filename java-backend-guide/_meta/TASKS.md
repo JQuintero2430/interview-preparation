@@ -1206,18 +1206,18 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Acceptance: approach plus numbered steps before the Code of §5–§8; analogies in §5 and §7 Mental model; §6 Version notes callout placed per STYLE-GUIDE §2.2, §5 L872 marker, JEP 286 marker only at its first §2 mention; one §7 `**Security:**` item whose basis (OWASP or Jackson docs) is read and its URL added to SOURCES.md "## 03" — if neither is reachable, an UNVERIFIED item and a VERIFY task are added instead of an untagged claim; the three terms defined; rows 5 and 6 pass (03 flags none, B13 ≥ 1).
 - Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
 
-### FIX-M03-04 · M · Redundancy: questions re-teaching sections and facts repeated
+### FIX-M03-04 · M · Readability: questions re-teaching sections and facts repeated
 - Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group G findings 1, 2
 - Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
-- Acceptance: each question pair named in G1 answers the question and links its section for the mechanism; each fact listed in G2 is introduced once with its tag (plus the kept mentions the review names) and referred to elsewhere; no anchor, tag type or Output answer lost (row 5; tag counts logged before and after); prose words logged before and after; rows 5 and 6 pass (03 flags none).
+- Acceptance: (rewritten 2026-11-20 for SYLLABUS §9 decision 21: no length target, word count is never the goal) each question pair named in G1 answers its question and links its section for the mechanism, cutting only what the reader would read twice; each fact listed in G2 is introduced once with its tag and referred to elsewhere, unless repeating it in a self-contained answer makes that answer easier to follow (keep it then, one clause, and log why); nothing is cut that a reader needs to follow the text; no anchor, tag type or Output answer lost (row 5; tag counts logged before and after); rows 5 and 6 pass (03 flags none).
 - Done by:
 
-### FIX-M03-05 · S · Redundancy: pre-narrated scenarios and small repeats
+### FIX-M03-05 · S · Readability: pre-narrated scenarios and small repeats
 - Status: `todo` · Deps: REVIEW-M03, FIX-M03-04 · needs: none · Source: REVIEW-M03 Group G findings 3, 4
 - Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
-- Acceptance: the §4, §5, §6, §7 passages named in G3 keep one sentence plus a link, the callouts keep their unique diagnosis; the G4 repeats cut to one statement and a link; prose words logged; rows 5 and 6 pass (03 flags none). Runs after FIX-M03-04.
+- Acceptance: (rewritten 2026-11-20 for decision 21) the §4, §5, §6, §7 passages named in G3 keep one sentence plus a link where the full retelling would be read twice, and the callouts keep their unique diagnosis; the G4 repeats cut to one statement and a link where that reads better; no length goal; rows 5 and 6 pass (03 flags none). Runs after FIX-M03-04.
 - Done by:
 
 ### FIX-M03-06 · S · Nits: section links, §6 opening, drill list, Applies-to

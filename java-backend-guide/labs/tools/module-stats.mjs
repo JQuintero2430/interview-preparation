@@ -1,7 +1,7 @@
 // Per-module statistics for the guide: questions, exercises, Production scenario questions,
 // type mix and prose words.
 // Usage: node labs/tools/module-stats.mjs [--strict] [guideRoot]
-// Flags floors (STYLE-GUIDE §12) and SYLLABUS §1 ceilings. The prose cap is advisory (SYLLABUS §9 decision 19): never flagged.
+// Flags floors (STYLE-GUIDE §12) and SYLLABUS §1 ceilings. Prose words are reported for information only (SYLLABUS §9 decision 21).
 // Exit code 1 only with --strict and at least one flag. Node standard library only.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -14,19 +14,19 @@ const FLOORS = {
 };
 
 // Rows of the SYLLABUS §1 table:
-// | # | Slug | Part | Kind | Q | Ex | Prose cap | Lab | Prerequisites |
-// -> { num, slug, part, kind, qMax, exMax, proseCap, lab }
+// | # | Slug | Part | Kind | Q | Ex | Lab | Prerequisites |
+// -> { num, slug, part, kind, qMax, exMax, lab }
 export function syllabusRows(syllabus) {
   const section = syllabus.split(/^## 1\./m)[1]?.split(/^## /m)[0] ?? '';
   const rows = [];
   for (const line of section.split('\n')) {
     const cells = line.split('|').slice(1, -1).map((c) => c.trim());
-    if (cells.length < 8 || !/^\d{2}$/.test(cells[0])) continue;
+    if (cells.length < 7 || !/^\d{2}$/.test(cells[0])) continue;
     const slug = /^`([a-z0-9-]+)`/.exec(cells[1]);
     const part = /^([A-Z])\b/.exec(cells[2]);
     const kind = /^(core|supporting)\b/.exec(cells[3]);
-    if (!slug || !part || !kind || !/^\d+$/.test(cells[4]) || !/^\d+$/.test(cells[5]) || !/^[\d,_]+$/.test(cells[6])) continue;
-    const lab = cells[7].replace(/`/g, '');
+    if (!slug || !part || !kind || !/^\d+$/.test(cells[4]) || !/^\d+$/.test(cells[5])) continue;
+    const lab = cells[6].replace(/`/g, '');
     rows.push({
       num: cells[0],
       slug: slug[1],
@@ -34,7 +34,6 @@ export function syllabusRows(syllabus) {
       kind: kind[1],
       qMax: Number(cells[4]),
       exMax: Number(cells[5]),
-      proseCap: Number(cells[6].replace(/[,_]/g, '')),
       lab: /^[—–-]*$/.test(lab) ? null : lab,
     });
   }
@@ -74,7 +73,6 @@ export function flagsFor(stats, row) {
   if (stats.production < floor.ps) flags.push(`Production scenario ${stats.production} < floor ${floor.ps}`);
   if (stats.questions > row.qMax) flags.push(`questions ${stats.questions} > ceiling ${row.qMax}`);
   if (stats.exercises > row.exMax) flags.push(`exercises ${stats.exercises} > ceiling ${row.exMax}`);
-  // ponytail: prose cap is advisory since SYLLABUS §9 decision 19; reported, never flagged.
   return flags;
 }
 

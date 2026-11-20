@@ -47,7 +47,7 @@ Quality is the constraint that never bends. The target is to match or exceed:
 
 Binding references (read only the parts a task needs):
 - `STYLE-GUIDE.md`: the module template, writing and code rules, callouts, status markers, verification-basis tags, and the snippet kinds.
-- `SYLLABUS.md`: §1 module list and targets (questions, exercises, prose cap, lab folder), the prerequisite graph, per-module topic checklists, delegated topics, and "Resolved decisions".
+- `SYLLABUS.md`: §1 module list and targets (questions, exercises, lab folder), the prerequisite graph, per-module topic checklists, delegated topics, and "Resolved decisions".
 - `VERSIONS.md`: the versions everything is written against, with their support policy and status vocabulary.
 - `_meta/QUALITY-BAR.md`: the measurable quality checklist.
 
@@ -189,7 +189,7 @@ After the bootstrap, continue with section 4.
 
 1. **`_meta/modules/Mxx.md`.** The module plan:
    - every SYLLABUS topic checkbox for the module, and every ledger row mapped to it (`_meta/sources/*.md`, target = this module), mapped to a section or a question. This is the breadth gate: the plan is not done until every checkbox and every mapped ledger row has a home, or a recorded reason for living elsewhere;
-   - per section: its topics, the key claims, how each claim will be verified (a test name or a source), and a word budget;
+   - per section: its topics, the key claims, and how each claim will be verified (a test name or a source);
    - the question list: titles, types (concept, difference, output, bug hunt, design, trade-off, production scenario), ordered from the basic idea to the internals, with the ledger row IDs each question answers;
    - the exercise list, with acceptance criteria;
    - the questions that belong to other modules or other guides, which are linked instead of repeated. Check the `### Q` headings across the existing modules and SYLLABUS's delegated topics.
@@ -197,7 +197,7 @@ After the bootstrap, continue with section 4.
 3. **The module's lab.** Create its Maven module (the folder named in SYLLABUS §1), add it to `<modules>` in `labs/pom.xml`, with only the dependencies and Testcontainers images this module needs, plus one smoke test. Build it (serialized), run `mvn spotless:apply`, and confirm the smoke test passes. If it needs Docker and this harness has none, the smoke test is recorded as `needs: docker` in TASKS.md and the plan still completes.
 4. **Tasks.** SEC, QB, EX and CLOSE tasks appended to `TASKS.md`, each with its inputs, its files, its `needs:` and its acceptance checks.
 
-Targets: the question and exercise numbers in SYLLABUS §1 are ceilings. The floors in STYLE-GUIDE are minimums. The prose cap per module in SYLLABUS §1 is an advisory size target, not a limit (SYLLABUS §9 decision 19); a review finding of redundancy is fixed by a FIX task. No filler.
+Targets: the question and exercise numbers in SYLLABUS §1 are ceilings. The floors in STYLE-GUIDE are minimums. There is no prose length target (SYLLABUS §9 decision 21): write as much as the content needs, keep it easy to follow, and fix a review finding of repetition that hurts readability with a FIX task. No filler.
 
 ## 10. Content and code rules
 
@@ -253,7 +253,7 @@ When every module in ROADMAP is closed and reviewed, PLAN the finish tasks:
 
 The job is done only when all of the following hold, with evidence (command, exit code, one-line result) recorded in the final LOG entry:
 - [ ] Every module in SYLLABUS §1 is `done` in PROGRESS.md, each CLOSEd, REVIEWed, and with its FIX tasks done.
-- [ ] `node labs/tools/module-stats.mjs --strict` exits 0: every module meets its STYLE-GUIDE floors and SYLLABUS §1 ceilings (prose is not flagged, decision 19).
+- [ ] `node labs/tools/module-stats.mjs --strict` exits 0: every module meets its STYLE-GUIDE floors and SYLLABUS §1 ceilings (prose length is not checked, decision 21).
 - [ ] `_meta/UNVERIFIED.md` has zero open items.
 - [ ] Every ledger row in `_meta/sources/` is `written`, `duplicate-of` or "no interview content", and every one of the 11 sources is deleted or in `attachments/`.
 - [ ] The full Maven build of `labs/` exits 0 (one serialized run, with Docker available), and `mvn spotless:check` exits 0.

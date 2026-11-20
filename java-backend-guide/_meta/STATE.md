@@ -6,7 +6,7 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 - **Current module:** 03 `java-generics` (core, lab `java-language`), closed by CLOSE-M03 and reviewed by REVIEW-M03 (S20261120-1201-claudecode-cloud: CHANGES_REQUIRED, 0 BLOCKER · 3 MAJOR · 15 MINOR · 6 NIT, [REVIEW-M03](reviews/REVIEW-M03.md)); FIX-M03-01, -02, -03, -06 done; FIX-M03-04, -05 todo. Modules 17, 01 and 02 closed, reviewed, fixed.
 - **In progress:** none
 - **Last finished task:** FIX-M03-06 (S20261120-1201-claudecode-cloud, claude-opus-5-5).
-- **Next task:** FIX-M03-04 (M, redundancy: questions re-teaching sections, facts repeated; prose now 25,543), then FIX-M03-05 (S, after -04); then PLAN-M04.
+- **Next task:** FIX-M03-04 (M, readability: questions that re-teach their section, facts repeated), then FIX-M03-05 (S, after -04); then PLAN-M04.
 - **Counts:** modules done 0/55 (17, 01 and 02 closed, reviewed, fixed; 03 closed, reviewed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 4/55 (17, 01, 02, 03); CLOSE 4/55 (17, 01, 02, 03); REVIEW 4/55 (17, 01, 02, 03).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
@@ -23,9 +23,7 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
   - Wrapper constructors are only `@Deprecated(since="9")` in JDK 25 (JDK-8354338 dropped `forRemoval`; S20261108-1849, VERSIONS.md feature notes): later sections must not say "deprecated for removal".
   - java-reviewer has no Write tool (S20261108-1738): the main session transcribes its verdict into the session's review.md.
   - java-workflow (S20261107-2128): run `~/.claude/scripts/session-init.sh` from the repository root (from `IdeaProjects/` it picks another repo), and give the orchestrator and implementer absolute lab paths under `java-backend-guide/labs/`: one implementer wrote to `interview-preparation/labs/`.
-  - Prose caps are advisory, not limits (SYLLABUS §9 decision 19, Jorge, 2026-11-07); `module-stats` no longer flags prose. The cap notes below are history.
-  - M01 prose cap: Jorge approved 19,400 (SYLLABUS §9 decision 18, 2026-11-07, superseding decision 17's 19,000); module 01 closed at 19,336.
-  - Prose cap: Jorge approved 23,000 for module 17 (SYLLABUS §9 decision 12, 2026-11-01); module 17 closed at 22,722 prose words.
+  - No prose length target (SYLLABUS §9 decision 21, Jorge, 2026-11-20): the §1 column is gone, plans set no word budgets, and length is never a review finding; only repetition that makes the text harder to follow is cut. Supersedes decisions 12, 17, 18, 19.
   - Every `@SpringBootTest` R2 class inherits `@DirtiesContext` from PostgresTestBase (HOUSE-08): each class gets a new container port, so cached contexts must not be reused.
   - Harness write guard also blocks the java-workflow tester/implementer subagents (S20261101-2100): the main session writes tests first (red logged), then code, through the shell; java-orchestrator plans and java-reviewer reviews (read-only).
   - Write guard not seen in S20261105-1850 (interactive session): java-tester and java-implementer wrote their files, so the normal pipeline ran. The older note above applies to background jobs.

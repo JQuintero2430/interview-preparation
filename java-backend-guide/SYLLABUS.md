@@ -4,74 +4,74 @@
 **Written against:** [VERSIONS.md](VERSIONS.md) (Java 25 LTS, Spring Boot 4.1.2, Spring Framework 7.0.10, snapshot 2026-10-25).
 **Format rules:** [STYLE-GUIDE.md](STYLE-GUIDE.md). **Protocol:** [_meta/RUN.md](_meta/RUN.md).
 
-This file is the plan. It lists every module with its permanent slug, its kind, its question and exercise ceilings, its prose cap, its lab folder and its prerequisites (§1), then the topic checklist and the delegated topics of each module (§4). Topic checkboxes are ticked in `PROGRESS.md`, never here.
+This file is the plan. It lists every module with its permanent slug, its kind, its question and exercise ceilings, its lab folder and its prerequisites (§1), then the topic checklist and the delegated topics of each module (§4). Topic checkboxes are ticked in `PROGRESS.md`, never here.
 
 **Legend.**
 - **Kind.** `core` modules teach a topic interviewers drill in depth; `supporting` modules teach a topic that is asked, but less deeply. `core (pilot)` marks the pilot (Resolved decision 5).
 - **Q / Ex** are ceilings, not quotas. The floors are in STYLE-GUIDE (core: 20 questions and 3 exercises; supporting: 12 questions and 2 exercises). No filler is written to reach a number. A module that exhausts its topic below a floor records the reason in `PROGRESS.md`.
-- **Prose cap** counts words outside code fences (`labs/tools/module-stats.mjs`). Since decision 19 it is an advisory size target, not a limit: exceeding it needs no exception, and redundancy is judged in review.
+- **No length target.** A module is as long as its content needs (decision 21). `labs/tools/module-stats.mjs` still reports prose words for information; review judges only whether the text is easy to follow (no repetition or filler that gets in the reader's way).
 - **Lab** is the Maven module under `labs/` that holds the module's compiled snippets and tests. `—` means the module has no code of its own (its exercises are written designs checked against a rubric, STYLE-GUIDE §8).
 - **Slugs are permanent.** Revisions may add modules (new numbers after 55) but never rename or renumber one, because `node-backend-guide/` and `python-backend-guide/` will link to them.
 
 ## 1. Module list
 
-| # | Slug | Part | Kind | Q | Ex | Prose cap | Lab | Prerequisites |
-|---|---|---|---|---|---|---|---|---|
-| 01 | `java-oop-fundamentals` | A · Java language | core | 30 | 4 | 19400 | java-language | none |
-| 02 | `java-equality-immutability-records` | A | core | 24 | 3 | 18000 | java-language | 01 |
-| 03 | `java-generics` | A | core | 24 | 3 | 18000 | java-language | 01 |
-| 04 | `java-collections-internals` | A | core | 32 | 4 | 18000 | java-language | 02, 03 |
-| 05 | `java-lambdas-streams-optional` | A | core | 30 | 4 | 18000 | java-language | 03, 04 |
-| 06 | `java-exceptions-strings-io` | A | core | 26 | 3 | 18000 | java-language | 01 |
-| 07 | `java-modern-language-features` | A | core | 26 | 3 | 18000 | java-language | 02, 05 |
-| 08 | `jvm-memory-and-class-loading` | B · JVM | core | 26 | 3 | 18000 | jvm | 01 |
-| 09 | `jvm-garbage-collection` | B | core | 28 | 3 | 18000 | jvm | 08 |
-| 10 | `jvm-performance-and-troubleshooting` | B | core | 30 | 3 | 18000 | jvm | 09 |
-| 11 | `concurrency-threads-and-jmm` | C · Concurrency | core | 30 | 4 | 18000 | concurrency | 01, 08 |
-| 12 | `concurrency-locks-atomics-collections` | C | core | 30 | 4 | 18000 | concurrency | 04, 11 |
-| 13 | `concurrency-executors-and-completablefuture` | C | core | 28 | 4 | 18000 | concurrency | 12 |
-| 14 | `concurrency-virtual-threads` | C | core | 24 | 3 | 18000 | concurrency | 13 |
-| 15 | `spring-ioc-and-bean-lifecycle` | D · Spring Framework | core | 32 | 4 | 18000 | spring-core | 01, 03 |
-| 16 | `spring-aop-and-proxies` | D | core | 24 | 3 | 18000 | spring-core | 15 |
-| 17 | `spring-transactions` | D | core (pilot) | 40 | 6 | 23000 | spring-transactions | 16, 22 |
-| 18 | `spring-mvc-and-rest-controllers` | D | core | 28 | 4 | 18000 | spring-web | 15 |
-| 19 | `spring-reactive-webflux` | D | core | 28 | 4 | 18000 | spring-reactive | 13, 18 |
-| 20 | `spring-boot-autoconfiguration-and-config` | E · Spring Boot | core | 28 | 4 | 18000 | spring-boot | 15 |
-| 21 | `spring-boot-actuator-and-operations` | E | core | 24 | 3 | 18000 | spring-boot | 20 |
-| 22 | `jdbc-and-connection-pooling` | F · Persistence and databases | supporting | 16 | 2 | 9000 | persistence | 06 |
-| 23 | `jpa-hibernate-fundamentals` | F | core | 32 | 4 | 18000 | persistence | 17, 22 |
-| 24 | `jpa-performance-and-locking` | F | core | 30 | 4 | 18000 | persistence | 23 |
-| 25 | `spring-data-and-schema-migrations` | F | core | 26 | 3 | 18000 | persistence | 24 |
-| 26 | `postgresql-internals` | F | core | 30 | 4 | 18000 | postgresql | 22 |
-| 27 | `redis` | F | core | 28 | 3 | 18000 | redis | 20 |
-| 28 | `mongodb` | F | supporting | 18 | 2 | 9000 | mongodb | 20 |
-| 29 | `cassandra` | F | supporting | 18 | 2 | 9000 | cassandra | 40 |
-| 30 | `kafka-fundamentals` | G · Messaging | core | 30 | 4 | 18000 | kafka | 13 |
-| 31 | `kafka-reliability-and-spring-kafka` | G | core | 30 | 4 | 18000 | kafka | 17, 30 |
-| 32 | `messaging-rabbitmq-sqs-sns` | G | supporting | 16 | 2 | 9000 | messaging | 30 |
-| 33 | `rest-api-design` | H · APIs | core | 26 | 3 | 18000 | spring-web | 18 |
-| 34 | `grpc` | H | supporting | 18 | 2 | 9000 | grpc | 33 |
-| 35 | `graphql` | H | supporting | 18 | 2 | 9000 | graphql | 33 |
-| 36 | `realtime-websockets-sse` | H | supporting | 14 | 2 | 9000 | spring-web | 18 |
-| 37 | `spring-security-architecture` | I · Security | core | 30 | 4 | 18000 | security | 16, 18 |
-| 38 | `oauth2-oidc-and-jwt` | I | core | 28 | 3 | 18000 | security | 37 |
-| 39 | `api-security-and-secrets` | I | core | 26 | 3 | 18000 | security | 33, 38 |
-| 40 | `distributed-systems-fundamentals` | J · Distributed systems and microservices | core | 28 | 3 | 18000 | distributed-systems | 13 |
-| 41 | `microservices-architecture` | J | core | 28 | 3 | 18000 | microservices | 33, 40 |
-| 42 | `resilience-patterns` | J | core | 26 | 4 | 18000 | microservices | 41 |
-| 43 | `distributed-transactions-and-data-patterns` | J | core | 28 | 4 | 18000 | microservices | 17, 31, 41 |
-| 44 | `observability-logging-metrics-slos` | K · Observability | core | 26 | 3 | 18000 | observability | 21 |
-| 45 | `opentelemetry` | K | core | 30 | 4 | 18000 | opentelemetry | 14, 44 |
-| 46 | `testing-junit-and-mockito` | L · Testing | core | 26 | 4 | 18000 | testing | 01 |
-| 47 | `testing-spring-integration-and-contracts` | L | core | 26 | 4 | 18000 | testing | 20, 46 |
-| 48 | `build-maven-and-gradle` | M · Delivery | supporting | 16 | 2 | 9000 | delivery | 01 |
-| 49 | `containers-kubernetes-and-aws` | M | core | 28 | 3 | 18000 | delivery | 21, 48 |
-| 50 | `cicd-and-jenkins` | M | core | 30 | 4 | 18000 | cicd | 48, 49 |
-| 51 | `design-principles-and-patterns` | N · Design, architecture and interview | core | 30 | 4 | 18000 | design | 01, 15 |
-| 52 | `ddd-and-clean-architecture` | N | core | 24 | 3 | 18000 | design | 41, 51 |
-| 53 | `system-design-method-and-cases` | N | core | 28 | 3 | 18000 | — | 40, 41 |
-| 54 | `architect-production-scenarios` | N | core | 30 | 3 | 18000 | — | 10, 17, 42, 45, 49 |
-| 55 | `interview-craft` | N | supporting | 14 | 2 | 9000 | — | none |
+| # | Slug | Part | Kind | Q | Ex | Lab | Prerequisites |
+|---|---|---|---|---|---|---|---|
+| 01 | `java-oop-fundamentals` | A · Java language | core | 30 | 4 | java-language | none |
+| 02 | `java-equality-immutability-records` | A | core | 24 | 3 | java-language | 01 |
+| 03 | `java-generics` | A | core | 24 | 3 | java-language | 01 |
+| 04 | `java-collections-internals` | A | core | 32 | 4 | java-language | 02, 03 |
+| 05 | `java-lambdas-streams-optional` | A | core | 30 | 4 | java-language | 03, 04 |
+| 06 | `java-exceptions-strings-io` | A | core | 26 | 3 | java-language | 01 |
+| 07 | `java-modern-language-features` | A | core | 26 | 3 | java-language | 02, 05 |
+| 08 | `jvm-memory-and-class-loading` | B · JVM | core | 26 | 3 | jvm | 01 |
+| 09 | `jvm-garbage-collection` | B | core | 28 | 3 | jvm | 08 |
+| 10 | `jvm-performance-and-troubleshooting` | B | core | 30 | 3 | jvm | 09 |
+| 11 | `concurrency-threads-and-jmm` | C · Concurrency | core | 30 | 4 | concurrency | 01, 08 |
+| 12 | `concurrency-locks-atomics-collections` | C | core | 30 | 4 | concurrency | 04, 11 |
+| 13 | `concurrency-executors-and-completablefuture` | C | core | 28 | 4 | concurrency | 12 |
+| 14 | `concurrency-virtual-threads` | C | core | 24 | 3 | concurrency | 13 |
+| 15 | `spring-ioc-and-bean-lifecycle` | D · Spring Framework | core | 32 | 4 | spring-core | 01, 03 |
+| 16 | `spring-aop-and-proxies` | D | core | 24 | 3 | spring-core | 15 |
+| 17 | `spring-transactions` | D | core (pilot) | 40 | 6 | spring-transactions | 16, 22 |
+| 18 | `spring-mvc-and-rest-controllers` | D | core | 28 | 4 | spring-web | 15 |
+| 19 | `spring-reactive-webflux` | D | core | 28 | 4 | spring-reactive | 13, 18 |
+| 20 | `spring-boot-autoconfiguration-and-config` | E · Spring Boot | core | 28 | 4 | spring-boot | 15 |
+| 21 | `spring-boot-actuator-and-operations` | E | core | 24 | 3 | spring-boot | 20 |
+| 22 | `jdbc-and-connection-pooling` | F · Persistence and databases | supporting | 16 | 2 | persistence | 06 |
+| 23 | `jpa-hibernate-fundamentals` | F | core | 32 | 4 | persistence | 17, 22 |
+| 24 | `jpa-performance-and-locking` | F | core | 30 | 4 | persistence | 23 |
+| 25 | `spring-data-and-schema-migrations` | F | core | 26 | 3 | persistence | 24 |
+| 26 | `postgresql-internals` | F | core | 30 | 4 | postgresql | 22 |
+| 27 | `redis` | F | core | 28 | 3 | redis | 20 |
+| 28 | `mongodb` | F | supporting | 18 | 2 | mongodb | 20 |
+| 29 | `cassandra` | F | supporting | 18 | 2 | cassandra | 40 |
+| 30 | `kafka-fundamentals` | G · Messaging | core | 30 | 4 | kafka | 13 |
+| 31 | `kafka-reliability-and-spring-kafka` | G | core | 30 | 4 | kafka | 17, 30 |
+| 32 | `messaging-rabbitmq-sqs-sns` | G | supporting | 16 | 2 | messaging | 30 |
+| 33 | `rest-api-design` | H · APIs | core | 26 | 3 | spring-web | 18 |
+| 34 | `grpc` | H | supporting | 18 | 2 | grpc | 33 |
+| 35 | `graphql` | H | supporting | 18 | 2 | graphql | 33 |
+| 36 | `realtime-websockets-sse` | H | supporting | 14 | 2 | spring-web | 18 |
+| 37 | `spring-security-architecture` | I · Security | core | 30 | 4 | security | 16, 18 |
+| 38 | `oauth2-oidc-and-jwt` | I | core | 28 | 3 | security | 37 |
+| 39 | `api-security-and-secrets` | I | core | 26 | 3 | security | 33, 38 |
+| 40 | `distributed-systems-fundamentals` | J · Distributed systems and microservices | core | 28 | 3 | distributed-systems | 13 |
+| 41 | `microservices-architecture` | J | core | 28 | 3 | microservices | 33, 40 |
+| 42 | `resilience-patterns` | J | core | 26 | 4 | microservices | 41 |
+| 43 | `distributed-transactions-and-data-patterns` | J | core | 28 | 4 | microservices | 17, 31, 41 |
+| 44 | `observability-logging-metrics-slos` | K · Observability | core | 26 | 3 | observability | 21 |
+| 45 | `opentelemetry` | K | core | 30 | 4 | opentelemetry | 14, 44 |
+| 46 | `testing-junit-and-mockito` | L · Testing | core | 26 | 4 | testing | 01 |
+| 47 | `testing-spring-integration-and-contracts` | L | core | 26 | 4 | testing | 20, 46 |
+| 48 | `build-maven-and-gradle` | M · Delivery | supporting | 16 | 2 | delivery | 01 |
+| 49 | `containers-kubernetes-and-aws` | M | core | 28 | 3 | delivery | 21, 48 |
+| 50 | `cicd-and-jenkins` | M | core | 30 | 4 | cicd | 48, 49 |
+| 51 | `design-principles-and-patterns` | N · Design, architecture and interview | core | 30 | 4 | design | 01, 15 |
+| 52 | `ddd-and-clean-architecture` | N | core | 24 | 3 | design | 41, 51 |
+| 53 | `system-design-method-and-cases` | N | core | 28 | 3 | — | 40, 41 |
+| 54 | `architect-production-scenarios` | N | core | 30 | 3 | — | 10, 17, 42, 45, 49 |
+| 55 | `interview-craft` | N | supporting | 14 | 2 | — | none |
 
 Module files live at `modules/NN-<slug>.md`. The module plan of each lives at `_meta/modules/Mxx.md`.
 
@@ -943,7 +943,7 @@ Made only from the headings in `_meta/sources/INVENTORY.md` (P1), never from con
 
 Computed by a script from the §1 table on 2026-10-25; refreshed by SYLLABUS-REVISE on 2026-10-28 (all 47 extraction chunks complete, 0 unreadable chunks, 40 new topics mapped append-only across existing 55 modules; module count stays at 55; 11 DELETE tasks queued under Phase D). Task counts are estimates; costs use `_meta/CALIBRATION.md` rows borrowed from the Angular guide.
 
-**Content totals (ceilings):** 55 modules (46 core, 9 supporting); 1444 questions; 182 exercises; 913,000 words of prose at the caps. The finished guide will land below these numbers, because ceilings are not quotas.
+**Content totals (ceilings):** 55 modules (46 core, 9 supporting); 1444 questions; 182 exercises; 913,000 words of prose at the former caps (history: length targets were removed by decision 21). The finished guide will land below these numbers, because ceilings are not quotas.
 
 **Estimated tasks**
 
@@ -995,6 +995,7 @@ The difference between the rows is mostly who does the work: the conservative ro
 18. **Prose-cap exception: module 01 at 19,400 words** (approved by Jorge, 2026-11-07, session S20261107-0925-claudecode, superseding decision 17's number). After EX-M01-03 the module stood at 18,699 prose words, leaving 301 for CLOSE-M01, below what the STYLE-GUIDE §2.3 and §9 closing sections need at full quality (~700). The §1 cap for 01 is raised to 19,400. Other caps are unchanged.
 19. **Prose caps removed as limits** (decided by Jorge, 2026-11-07, session S20261107-0959-claudecode: "remove the word restriction, as it will be frequently violated"). The §1 "Prose cap" column stays as an advisory size target for planning. No module needs a cap exception, `module-stats.mjs` no longer flags prose (also under `--strict`), and QUALITY-BAR G1 checks only for redundancy and filler. Supersedes the limit parts of decisions 3, 12, 17 and 18.
 20. **Module 03 gets a `Trade-off` question, Q03.24** (decided by Jorge, 2026-11-20, session S20261120-0602-claudecode-cloud: "agrega una pregunta adicional", answering the QUALITY-BAR D3 gap). Q03.24 compares `Class<T>` keys, typed keys and super type token keys for a heterogeneous container; the module now has 24 questions, its ceiling. In the same message Jorge left the `LaunchProtocolTest` question to the session, which chose to strip `JAVA_TOOL_OPTIONS`, `_JAVA_OPTIONS` and `JDK_JAVA_OPTIONS` from the launched JVM's environment (HOUSE-09).
+21. **Prose length targets eliminated** (decided by Jorge, 2026-11-20, after session S20261120-1201-claudecode-cloud: "Eliminate the 18,000-word targets rule. Keep the text easy to follow, but if you need more text no worries"). The §1 "Prose cap" column is removed; module plans no longer set word budgets; word counts are never a review finding or a reason to cut. Repetition is cut only where it makes the text harder to follow. Supersedes decisions 3 (prose part), 12, 15, 17, 18 and 19.
 
 ## 10. Open questions for G1
 

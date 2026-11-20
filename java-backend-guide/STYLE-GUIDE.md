@@ -321,4 +321,4 @@ Mermaid only (`flowchart`, `sequenceDiagram`, `stateDiagram-v2`, `classDiagram`,
 | core (including the pilot) | ≥ 20 | ≥ 3 | ≥ 3 |
 | supporting | ≥ 12 | ≥ 2 | ≥ 1 |
 
-The SYLLABUS §1 numbers are ceilings, not quotas. A module may finish under a floor only when its topic and its mapped ledger rows are exhausted, with the reason recorded in `PROGRESS.md`. Filler, duplicates and shallow answers are deleted in review. `node labs/tools/module-stats.mjs --strict` enforces the question and exercise floors and the ceilings; the prose cap is advisory (SYLLABUS §9 decision 19).
+The SYLLABUS §1 numbers are ceilings, not quotas. A module may finish under a floor only when its topic and its mapped ledger rows are exhausted, with the reason recorded in `PROGRESS.md`. Filler, duplicates and shallow answers are deleted in review. `node labs/tools/module-stats.mjs --strict` enforces the question and exercise floors and the ceilings; there is no prose length target (SYLLABUS §9 decision 21).
