@@ -1207,18 +1207,18 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M03-04 · M · Readability: questions re-teaching sections and facts repeated
-- Status: `todo` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group G findings 1, 2
+- Status: `done` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group G findings 1, 2
 - Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
 - Acceptance: (rewritten 2026-11-20 for SYLLABUS §9 decision 21: no length target, word count is never the goal) each question pair named in G1 answers its question and links its section for the mechanism, cutting only what the reader would read twice; each fact listed in G2 is introduced once with its tag and referred to elsewhere, unless repeating it in a self-contained answer makes that answer easier to follow (keep it then, one clause, and log why); nothing is cut that a reader needs to follow the text; no anchor, tag type or Output answer lost (row 5; tag counts logged before and after); rows 5 and 6 pass (03 flags none).
-- Done by:
+- Done by: S20261120-1801-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M03-05 · S · Readability: pre-narrated scenarios and small repeats
-- Status: `todo` · Deps: REVIEW-M03, FIX-M03-04 · needs: none · Source: REVIEW-M03 Group G findings 3, 4
+- Status: `done` · Deps: REVIEW-M03, FIX-M03-04 · needs: none · Source: REVIEW-M03 Group G findings 3, 4
 - Files touched: `modules/03-java-generics.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
 - Acceptance: (rewritten 2026-11-20 for decision 21) the §4, §5, §6, §7 passages named in G3 keep one sentence plus a link where the full retelling would be read twice, and the callouts keep their unique diagnosis; the G4 repeats cut to one statement and a link where that reads better; no length goal; rows 5 and 6 pass (03 flags none). Runs after FIX-M03-04.
-- Done by:
+- Done by: S20261120-1801-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M03-06 · S · Nits: section links, §6 opening, drill list, Applies-to
 - Status: `done` · Deps: REVIEW-M03 · needs: none · Source: REVIEW-M03 Group N findings 1–4 (5 accepted as optional, no change)
@@ -1226,6 +1226,148 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Inputs: [REVIEW-M03](reviews/REVIEW-M03.md) (the findings named; its main-session notes), the module file, STYLE-GUIDE; the lab test named when a Lab tag changes. Line numbers in the review predate every FIX: locate by quoted text.
 - Acceptance: the plain "§n" references linked; §6 "The problem it solves" opens on the `snapshot()` crash; Q03.24 in §7's drill list; Applies-to names Spring Boot 4.1.2 for §7 only if VERSIONS.md lists it; rows 5 and 6 pass (03 flags none).
 - Done by: S20261120-1201-claudecode-cloud (claude-opus-5-5, main session)
+
+### PLAN-M04 · M
+- Status: `done` · Deps: G1 (ticked), REVIEW-M03 fixes done · needs: none
+- Files touched: `_meta/modules/M04.md`, `modules/04-java-collections-internals.md` (skeleton with `<!-- TASK: <ID> -->` regions, STYLE-GUIDE §2.4), `labs/java-language/**` (package `dev.interview.javalanguage.m04`: one smoke test), `_meta/TASKS.md` (append SEC, QB, EX, CLOSE tasks), `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: RUN.md §9; SYLLABUS §1 row 04, §4 module 04 checklist (and its delegated boundaries); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md); ledger rows targeting 04; `labs/java-language/`; the `### Q` headings of modules 01, 02, 03 and 17; [M03](modules/M03.md) as the shape reference.
+- Acceptance: the RUN.md §9 outputs 1 to 4; breadth gate (every SYLLABUS 04 checkbox and every ledger row targeting 04 has a section, a question or a recorded reason); the skeleton has every heading and anchor; Standard checks rows 3 (no Docker needed), 4, 5, 6 pass for `java-language`; SEC, QB, EX, CLOSE tasks appended with inputs, files, `needs:` and acceptance.
+- Done by: S20261120-1801-claudecode-cloud (claude-opus-5-5, main session; smoke test written and run in the main session, no java-workflow skill in this harness)
+
+Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.md). Shared rules for every task below: write only inside the task's own `<!-- TASK: <ID> -->` region(s) of `modules/04-java-collections-internals.md`, in one edit at the end; lab paths are under `labs/java-language/src/{main,test}/java/dev/interview/javalanguage/m04/` (main and test mirror each other); `m01.support.OutputCapture` and `m01.support.InMemoryCompiler` are read-only; R2 tests assert diagnostic keys, never message text; R3 (private `java.util` state) only through a child JVM with `--add-opens` or not at all (M04 §1; never in the module's surefire `argLine`); no test asserts `HashMap` iteration order, a data-race outcome, GC timing or elapsed time; `SOURCES.md` under a "04 java-collections-internals" heading for every new URL; `VERSIONS.md` only to add a Java feature-status row the task verified; `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md` for bookkeeping. No task needs Docker or vision. Java 25 final features only. No dependency is added. No length target (SYLLABUS §9 decision 21). Every task that writes Java follows the java-workflow skill where the harness has it; otherwise tests first in the main session.
+
+### SEC-M04-01 · M · §1 The Collections Framework: interfaces, contracts and sequenced collections
+- Status: `done` · Deps: none · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-01`), lab `m04/s01/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §1; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §1 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261120-1801-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
+
+### SEC-M04-02 · M · §2 Lists: `ArrayList`, `LinkedList` and the legacy `Vector` and `Stack`
+- Status: `done` · Deps: SEC-M04-01 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-02`), lab `m04/s02/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §2; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §2 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: S20261120-1801-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
+
+### SEC-M04-03 · M · §3 `HashMap` internals
+- Status: `todo` · Deps: SEC-M04-02 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-03`), lab `m04/s03/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §3; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §3 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### SEC-M04-04 · M · §4 Ordered and special-purpose maps
+- Status: `todo` · Deps: SEC-M04-03 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-04`), lab `m04/s04/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §4; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §4 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### SEC-M04-05 · M · §5 Sets: views of maps
+- Status: `todo` · Deps: SEC-M04-04 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-05`), lab `m04/s05/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §5; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §5 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### SEC-M04-06 · M · §6 Queues and deques: `ArrayDeque` and `PriorityQueue`
+- Status: `todo` · Deps: SEC-M04-05 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-06`), lab `m04/s06/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §6; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §6 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### SEC-M04-07 · M · §7 Iterators: fail-fast, weakly consistent and snapshot
+- Status: `todo` · Deps: SEC-M04-06 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-07`), lab `m04/s07/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §7; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §7 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### SEC-M04-08 · M · §8 Immutable, unmodifiable and fixed-size lists
+- Status: `todo` · Deps: SEC-M04-07 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-08`), lab `m04/s08/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §8; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §8 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### SEC-M04-09 · M · §9 Utilities, sorting and collection equality
+- Status: `todo` · Deps: SEC-M04-08 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-09`), lab `m04/s09/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §9; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §9 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### SEC-M04-10 · M · §10 Choosing a collection: complexity, memory and workload
+- Status: `todo` · Deps: SEC-M04-09 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-10`), lab `m04/s10/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §10; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §10 (M04 §3); src.zip for JDK sources.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M04-01 · M · Q04.01–Q04.08
+- Status: `todo` · Deps: SEC-M04-01, -02 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `QB-M04-01`), lab `m04/outputs/**` (main `Q04_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M04](modules/M04.md) §5 rows Q04.01–Q04.08 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M04 §5 lists rows (and fixes the source errors M04 §3 lists), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M04-02 · M · Q04.09–Q04.16
+- Status: `todo` · Deps: SEC-M04-03, -04 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `QB-M04-02`), lab `m04/outputs/**` (main `Q04_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M04](modules/M04.md) §5 rows Q04.09–Q04.16 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M04 §5 lists rows (and fixes the source errors M04 §3 lists), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M04-03 · M · Q04.17–Q04.24
+- Status: `todo` · Deps: SEC-M04-04, -05, -06, -07 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `QB-M04-03`), lab `m04/outputs/**` (main `Q04_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M04](modules/M04.md) §5 rows Q04.17–Q04.24 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M04 §5 lists rows (and fixes the source errors M04 §3 lists), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### QB-M04-04 · M · Q04.25–Q04.32
+- Status: `todo` · Deps: SEC-M04-07, -08, -09, -10 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `QB-M04-04`), lab `m04/outputs/**` (main `Q04_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M04](modules/M04.md) §5 rows Q04.25–Q04.32 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M04 §5 lists rows (and fixes the source errors M04 §3 lists), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M04-01 · M · Ex04.1 · A bounded LRU cache on `LinkedHashMap`
+- Status: `todo` · Deps: SEC-M04-01, SEC-M04-04 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `EX-M04-01`), lab `m04/ex1/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M04](modules/M04.md) §6 row Ex04.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M04 §6 criterion has a test `@DisplayName("Ex04.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M04-02 · M · Ex04.2 · A minimal hash map: buckets, spreading and resize
+- Status: `todo` · Deps: SEC-M04-03 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `EX-M04-02`), lab `m04/ex2/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M04](modules/M04.md) §6 row Ex04.2; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M04 §6 criterion has a test `@DisplayName("Ex04.2 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### EX-M04-03 · M · Ex04.3 · A fail-fast iterator for a growable array list
+- Status: `todo` · Deps: SEC-M04-02, SEC-M04-07 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (region `EX-M04-03`), lab `m04/ex3/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M04](modules/M04.md) §6 row Ex04.3; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
+- Acceptance: QUALITY-BAR E1 anatomy; every M04 §6 criterion has a test `@DisplayName("Ex04.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by:
+
+### CLOSE-M04 · M
+- Status: `todo` · Deps: every SEC, QB and EX task of M04 · needs: none
+- Files touched: `modules/04-java-collections-internals.md` (the three `CLOSE-M04` regions: Summary, Check your understanding, Connections), `PROGRESS.md` (row 04), `_meta/sources/*.md` (status `written` for every primary row of M04 §3), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: the whole module; [M04](modules/M04.md) §2, §3; STYLE-GUIDE §2.3, §9; [QUALITY-BAR](QUALITY-BAR.md) (all items).
+- Acceptance: QUALITY-BAR F1–F4 and every other item checked with its command, one line per item in the LOG; `grep -c 'TASK:' modules/04-java-collections-internals.md` prints 0; every ledger row of M04 §3 whose primary target is 04 is `written` with its question or section; Standard checks row 8 (full build, `-DexcludedGroups=docker` if Docker is absent) plus rows 4, 5, 6; module-stats row 04 has no flag.
+- Done by:
+
+### REVIEW-M04 · L
+- Status: `todo` · Deps: CLOSE-M04 · needs: none
+- Files touched: `_meta/reviews/REVIEW-M04.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: RUN.md §4 (independent review); the module file; [M04](modules/M04.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: run in a session different from every `Done by` of M04's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M04; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection.
+- Done by:
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
 
