@@ -2070,10 +2070,102 @@ public final class RequestContext {
 
 </details>
 
-<!-- TASK: EX-M03-02 -->
 <a id="ex03-2"></a>
 ### Exercise 03.2 · Generic utilities with the right bounds and wildcards
-<!-- /TASK: EX-M03-02 -->
+
+**Problem.** A shared reporting library has two helpers: `<T extends Comparable<T>> T max(Collection<T> values)` and `<T> void copyMatching(List<T> src, Predicate<T> keep, Collection<T> dst)`. Callers cannot pass a `List<LocalDate>` to `max`, and cannot copy `Integer`s into a `List<Number>` with a filter written for `Object`, so they copy lists and add casts. Rewrite both signatures so that these calls compile, without changing what the methods do.
+
+**Constraints.** JDK only; no casts and no `@SuppressWarnings`. `max` keeps its name and returns the element itself, not an `Optional`.
+
+**Acceptance criteria.**
+- [ ] (1) `max(Collection<? extends T>)` with `<T extends Comparable<? super T>>` compiles for a `List<LocalDate>` and returns the latest date; the `Comparable<T>` version rejects the same call.
+- [ ] (2) `max` of an empty collection throws `NoSuchElementException`.
+- [ ] (3) `copyMatching(List<? extends T> src, Predicate<? super T> keep, Collection<? super T> dst)` copies `Integer`s into a `List<Number>` with a `Predicate<Object>`; the version without wildcards rejects that call.
+- [ ] (4) The signature rejects writing into `src`.
+
+<details><summary>Hint 1</summary>
+
+`LocalDate` is not a `Comparable<LocalDate>`. What is it comparable with ([§3](#3-bounded-type-parameters), [Q03.08](#q03-08))?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+For each parameter, ask whether the method reads `T`s out of it or hands `T`s to it. Then apply "producer `extends`, consumer `super`" ([§4](#4-wildcards-pecs-and-variance)). A `Predicate` is handed the elements.
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Each fix loosens one parameter in the direction that is safe for what the method does with it.
+1. `max` compares each element with another `T`, so `T` needs `compareTo` accepting a `T`. `Comparable<? super T>` says "comparable with `T` or a supertype", and `LocalDate`, a `Comparable<ChronoLocalDate>`, satisfies it.
+2. `max` only reads the collection, which makes it a producer: `Collection<? extends T>`. This is the shape of `Collections.max`, which also throws `NoSuchElementException` when the collection is empty [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java).
+3. Check `hasNext()` before the first `next()` and throw with a message. The iterator would throw too, but with a message that says nothing about `max`.
+4. In `copyMatching`, `src` produces elements (`? extends T`), `keep` consumes them (`? super T`), and `dst` consumes them (`? super T`). For the call in criterion (3), javac can pick `T = Integer`: the list produces `Integer`s, a `Predicate<Object>` accepts them, and a `List<Number>` stores them.
+5. The comparison sits in a private `larger` helper, so `max` keeps one loop and one condition.
+
+```java
+package dev.interview.javalanguage.m03.ex2;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.function.Predicate;
+
+// Module 03 Ex03.2: each parameter says whether it produces T or consumes T, so callers with related types fit.
+public final class Selections {
+
+    static final String EMPTY = "max of an empty collection";
+
+    private Selections() {}
+
+    // Comparable<? super T> admits LocalDate (a Comparable<ChronoLocalDate>); ? extends T lets T be wider than the
+    // element type.
+    public static <T extends Comparable<? super T>> T max(Collection<? extends T> values) {
+        Iterator<? extends T> iterator = values.iterator();
+        if (!iterator.hasNext()) {
+            throw new NoSuchElementException(EMPTY);
+        }
+        T best = iterator.next();
+        while (iterator.hasNext()) {
+            best = larger(best, iterator.next());
+        }
+        return best;
+    }
+
+    // src produces T, keep consumes T, dst consumes T: producer extends, consumer super.
+    public static <T> void copyMatching(List<? extends T> src, Predicate<? super T> keep, Collection<? super T> dst) {
+        for (T element : src) {
+            if (keep.test(element)) {
+                dst.add(element);
+            }
+        }
+    }
+
+    private static <T extends Comparable<? super T>> T larger(T best, T candidate) {
+        return candidate.compareTo(best) > 0 ? candidate : best;
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m03/ex2/Selections.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m03/ex2/Selections.java)</sub>
+
+**How each criterion is met** [Lab: SelectionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/ex2/SelectionsTest.java):
+- (1) `Ex03.2 · (1) max returns the latest LocalDate of a List<LocalDate>`: 10 January, 2 March and 14 February give 2 March. `Ex03.2 · (1) a max(List<LocalDate>) caller compiles; the Comparable<T> look-alike rejects it`: compiled in memory, the caller succeeds and the look-alike fails with `compiler.err.cant.apply.symbol`.
+- (2) `Ex03.2 · (2) max of an empty collection throws NoSuchElementException`, with the message `max of an empty collection`.
+- (3) `Ex03.2 · (3) copyMatching copies Integers into a List<Number> with a Predicate<Object>`: `[1, null, 3]` filtered by `Objects::nonNull` turns `[2.5]` into `[2.5, 1, 3]`. `Ex03.2 · (3) the invariant look-alike rejects the same Integer, Object, Number call`: `compiler.err.cant.apply.symbol`.
+- (4) `Ex03.2 · (4) writing a T into List<? extends T> does not compile; into Collection<? super T> it does`: the `add` into the producer fails with `compiler.err.prob.found.req` (the in-memory compiler's key for it, as in [Q03.11](#q03-11)), and the same `add` into a `Collection<? super T>` compiles.
+
+**Alternative approach:** drop the type parameter's bound and take a `Comparator<? super T>`, as the second `Collections.max` overload does: `<T> T max(Collection<? extends T> coll, Comparator<? super T> comp)` [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java). **Trade-offs:** it works for types with no natural order and for several orders of one type, at the cost of an argument at every call. Libraries usually offer both, and the `Comparable` form can delegate to the other with `Comparator.naturalOrder()`.
+
+**Interviewer follow-ups.**
+- *`Collections.max` declares `<T extends Object & Comparable<? super T>>`. Should `Selections.max` too?* Only to keep an old erased signature. `T` erases to its first bound [Doc: JLS §4.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.6), so this `max` returns `Comparable` in the class file, as the §8 look-alike without `Object &` does in the lab [Lab: JdkSignatureReflectionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s08/JdkSignatureReflectionTest.java), which is fine for a new method; `Collections.max` needed `Object` because class files compiled before generics call it that way ([§8](#8-reading-generic-signatures-in-the-jdk), [Q03.23](#q03-23)).
+- *A caller passes a `List<Integer>` and a `Collection<Object>`. Which `T` does javac pick, and does it matter?* Any `T` between `Integer` and the predicate's and destination's element types satisfies the bounds; inference picks one, and the body behaves the same for each, since it only reads, tests and adds. The wildcards are what make more than one choice valid ([§2](#2-generic-types-generic-methods-and-type-inference)).
+- *A library already ships the strict signatures. Is widening them a breaking change?* For applicability, no: each argument type the strict signature accepted is contained by the matching wildcard [Doc: JLS §4.5.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1), and `Comparable<T>` is one of the types `Comparable<? super T>` admits. For binaries, both versions erase to `Comparable max(Collection)` and `void copyMatching(List, Predicate, Collection)` [Doc: JLS §4.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.6), so compiled callers still link; [Q03.13](#q03-13) shows the same kind of change.
+
+**Tests:** [SelectionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/ex2/SelectionsTest.java).
+
+</details>
 
 <!-- TASK: EX-M03-03 -->
 <a id="ex03-3"></a>
