@@ -2167,10 +2167,99 @@ public final class Selections {
 
 </details>
 
-<!-- TASK: EX-M03-03 -->
 <a id="ex03-3"></a>
 ### Exercise 03.3 · A super type token from scratch
-<!-- /TASK: EX-M03-03 -->
+
+**Problem.** A service caches decoded configuration by target type, and some targets are generic: `List<String>`, `Map<String, List<Integer>>`. A `Class` key cannot tell `List<String>` from `List<Integer>` ([Exercise 03.1](#ex03-1)), and the project must not depend on Spring in this layer. Write `TypeRef<T>`, a super type token that captures the full type, rejects misuse, and can be used as a map key.
+
+**Constraints.** JDK only in the main code (the test may use Spring to compare). No unchecked cast.
+
+**Acceptance criteria.**
+- [ ] (1) `new TypeRef<List<String>>() {}.type()` is a `ParameterizedType` with raw type `List` and argument `String`.
+- [ ] (2) A raw `new TypeRef() {}` is rejected with `IllegalStateException` whose message names the problem.
+- [ ] (3) Two tokens for the same type are `equals` with equal hash codes; tokens for different type arguments are not equal.
+- [ ] (4) `type()` equals Spring's `new ParameterizedTypeReference<List<String>>() {}.getType()`.
+
+<details><summary>Hint 1</summary>
+
+Where does `List<String>` survive erasure ([§5](#5-type-erasure-and-bridge-methods))? Not in the object; in the class file of the anonymous subclass, which reflection can read ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)).
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+Every `new TypeRef<...>() {}` creates a different class. If `equals` is inherited from `Object`, what does a map with two such keys hold?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** The constructor reads the type argument from the subclass's generic superclass; equality is delegated to that `Type`, whose implementations must compare by declaration and arguments.
+1. Make the class abstract with a protected constructor, so a token exists only as a subclass, usually anonymous.
+2. In the constructor, call `getClass().getGenericSuperclass()`. For `new TypeRef<List<String>>() {}` it is the `ParameterizedType` `TypeRef<List<String>>`, and its first actual type argument is `List<String>`.
+3. A raw subclass has the plain `Class` `TypeRef` as its generic superclass. The pattern `instanceof ParameterizedType superclass` fails, and the constructor throws `IllegalStateException` with a message that shows the right form.
+4. Base `equals` and `hashCode` on the captured `Type`, and make both `final` so no subclass can bring back identity equality. This works across classes because the `ParameterizedType` contract requires `equals` to equate "any two instances that share the same generic class or interface declaration and have equal type parameters" [Src: JDK 25, java.lang.reflect.ParameterizedType](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/reflect/ParameterizedType.java).
+5. That same contract gives criterion (4): Spring's `ParameterizedTypeReference` keeps the type argument it reads the same way, and its own `equals` and `hashCode` delegate to the `Type` [Src: Spring Framework 7.0.10, ParameterizedTypeReference](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/ParameterizedTypeReference.java).
+
+```java
+package dev.interview.javalanguage.m03.ex3;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
+// Module 03 Ex03.3: a super type token. Each new TypeRef<...>() {} is a new anonymous class, so equality must come
+// from the captured Type, never from the class.
+public abstract class TypeRef<T> {
+
+    static final String MISSING_TYPE_ARGUMENT =
+            "TypeRef needs a type argument: write new TypeRef<List<String>>() {}, not a raw new TypeRef() {}";
+
+    private final Type type;
+
+    protected TypeRef() {
+        this.type = capturedTypeArgument();
+    }
+
+    public final Type type() {
+        return type;
+    }
+
+    @Override
+    public final boolean equals(Object other) {
+        return other instanceof TypeRef<?> that && type.equals(that.type);
+    }
+
+    @Override
+    public final int hashCode() {
+        return type.hashCode();
+    }
+
+    private Type capturedTypeArgument() {
+        if (getClass().getGenericSuperclass() instanceof ParameterizedType superclass) {
+            return superclass.getActualTypeArguments()[0];
+        }
+        throw new IllegalStateException(MISSING_TYPE_ARGUMENT);
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m03/ex3/TypeRef.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m03/ex3/TypeRef.java)</sub>
+
+**How each criterion is met** [Lab: TypeRefTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/ex3/TypeRefTest.java):
+- (1) `Ex03.3 · (1) new TypeRef<List<String>>() {}.type() is List with the argument String`: the raw type is `List.class` and the arguments are exactly `String.class`.
+- (2) `Ex03.3 · (2) a raw new TypeRef() {} is rejected with IllegalStateException naming the problem`: the message is the `MISSING_TYPE_ARGUMENT` text.
+- (3) `Ex03.3 · (3) two tokens for the same type are equal and hash alike`: two `Map<String, List<Integer>>` tokens have different classes and are still equal with equal hash codes. `Ex03.3 · (3) tokens for different type arguments are not equal`: `List<String>` against `List<Integer>`.
+- (4) `Ex03.3 · (4) type() equals Spring's ParameterizedTypeReference.getType() for List<String>`: equal, with equal hash codes.
+
+**Alternative approach:** use Spring's `ParameterizedTypeReference` where Spring is already a dependency, or build the `Type` at run time from parts with `ResolvableType.forClassWithGenerics` ([Q03.22](#q03-22)). **Trade-offs:** the library version handles more cases (below) and is what Spring's HTTP clients accept; the hand-written one keeps a framework out of a layer that must not have it, at the price of owning those cases.
+
+**Interviewer follow-ups.**
+- *What if someone writes `class StringListRef extends TypeRef<List<String>> {}` and then `new StringListRef() {}`?* This `TypeRef` reads only the immediate generic superclass, which is now the plain class `StringListRef`, so it throws. Spring's constructor first walks up `getSuperclass()` to the class whose direct superclass is `ParameterizedTypeReference`, and reads that one [Src: Spring Framework 7.0.10, ParameterizedTypeReference](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-core/src/main/java/org/springframework/core/ParameterizedTypeReference.java). Add the same walk if the API allows named subclasses.
+- *Why `final` on `equals` and `hashCode`?* A token is a value: a subclass that overrode `equals` could make two equal tokens differ in a `HashMap`, which is the contract [Exercise 02.1](02-java-equality-immutability-records.md#ex02-1) protects.
+- *How do you make a `TypeRef` for `List<T>` inside a generic method?* You cannot with an anonymous class: it captures the type variable `T` ([§7](#7-capturing-types-at-run-time-class-tokens-and-super-type-tokens)). Take the token from the caller, or build the type from a `Class<T>` as [Q03.22](#q03-22) does.
+
+**Tests:** [TypeRefTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/ex3/TypeRefTest.java).
+
+</details>
 
 ## Check your understanding
 <!-- TASK: CLOSE-M03 -->

@@ -1158,11 +1158,11 @@ Appended by PLAN-M03 (S20261116-0839-claudecode). Plan: [M03](modules/M03.md). S
 - Done by: S20261120-0602-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M03-03 · M · Ex03.3 · A super type token from scratch
-- Status: `todo` · Deps: SEC-M03-05, SEC-M03-07 · needs: none
+- Status: `done` · Deps: SEC-M03-05, SEC-M03-07 · needs: none
 - Files touched: `modules/03-java-generics.md` (region `EX-M03-03`), lab `m03/ex3/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M03](modules/M03.md) §6 row Ex03.3; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M03 §6 criterion has a test `@DisplayName("Ex03.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); ~330 words of prose; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261120-0602-claudecode-cloud (claude-opus-5-5)
 
 ### CLOSE-M03 · M
 - Status: `todo` · Deps: every SEC, QB and EX task of M03 · needs: none
