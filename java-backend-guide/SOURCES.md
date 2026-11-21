@@ -442,6 +442,21 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/jdk/internal/util/ArraysSupport.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java
+- https://github.com/openjdk/jdk8u/blob/master/jdk/src/share/classes/java/util/ArrayDeque.java
+- https://github.com/openjdk/jdk/blob/jdk-9%2B181/jdk/src/java.base/share/classes/java/util/ArrayDeque.java
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Queue.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayDeque.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ConcurrentModificationException.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Enumeration.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Iterator.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ListIterator.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.14.2
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayList.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/package-summary.html
 
 ## 17 spring-transactions
 
