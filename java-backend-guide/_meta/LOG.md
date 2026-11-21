@@ -1108,3 +1108,7 @@ Each session entry (RUN.md §11): Session, Harness, Model, capabilities, U at st
 - Open questions for Jorge (unattended run): none blocking. FYI: §4 gained a Production scenario callout the plan did not list (a `synchronizedMap` LRU whose key listing throws CME), because STYLE-GUIDE §6 requires one where a section has a production failure class; REVIEW-M04 can judge it.
 - Session end: S20261121-0002-claudecode-cloud; E ≈ 0 + 6.23 × 3 ≈ 19% (estimate). Open UNVERIFIED=0. G1, G2 and T1 ticked.
 - Next session should: read STATE.
+
+## Note after S20261121-0002-claudecode-cloud (Jorge's request in session S20261120-1801-claudecode-cloud)
+
+- Network note (2026-11-21, Jorge): docs.oracle.com allowed; `curl` → 200 for `jls/se25/html/jls-14.html` and the Java 25 API `SequencedCollection.html`; jcp.org → 200; github.com → 403. STATE standing note updated. Later sessions can read the JLS, JVMS and Javadoc directly (RUN.md §6 step 3 (c)) instead of only src.zip. Files: `_meta/STATE.md`, `_meta/LOG.md`.
