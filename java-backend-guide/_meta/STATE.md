@@ -3,10 +3,10 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 04 `java-collections-internals` (core, lab `java-language`), planned by PLAN-M04 (S20261120-1801-claudecode-cloud): [M04](modules/M04.md), skeleton `modules/04-java-collections-internals.md` (40 TASK markers), smoke test `m04/smoke/M04LabSmokeTest` (3 tests pass); SEC-M04-01 to -10 and QB-M04-01 (Q04.01–Q04.08) written. Modules 17, 01, 02 and 03 closed, reviewed, fixed (REVIEW-M03 group G closed by FIX-M03-04/-05 this session).
+- **Current module:** 04 `java-collections-internals` (core, lab `java-language`), planned by PLAN-M04 (S20261120-1801-claudecode-cloud): [M04](modules/M04.md), skeleton `modules/04-java-collections-internals.md` (40 TASK markers), smoke test `m04/smoke/M04LabSmokeTest` (3 tests pass); SEC-M04-01 to -10, QB-M04-01 to -03 (Q04.01–Q04.24) written. Modules 17, 01, 02 and 03 closed, reviewed, fixed (REVIEW-M03 group G closed by FIX-M03-04/-05 this session).
 - **In progress:** none
-- **Last finished task:** QB-M04-01 (S20261121-1201-claudecode-cloud, claude-opus-5-5).
-- **Next task:** QB-M04-02 (M, Q04.09–Q04.16), then QB-M04-03, -04, EX-M04-01..03, CLOSE-M04.
+- **Last finished task:** QB-M04-03 (S20261121-1501-claudecode-cloud, claude-opus-5-5).
+- **Next task:** QB-M04-04 (M, Q04.25–Q04.32), then EX-M04-01..03, CLOSE-M04.
 - **Counts:** modules done 0/55 (17, 01, 02 and 03 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 5/55 (17, 01, 02, 03, 04); CLOSE 4/55 (17, 01, 02, 03); REVIEW 4/55 (17, 01, 02, 03).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**

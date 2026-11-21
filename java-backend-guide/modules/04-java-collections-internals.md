@@ -1802,54 +1802,637 @@ What is `Vector`, how does it differ from `ArrayList`, and what should new code 
 <!-- TASK: QB-M04-02 -->
 <a id="q04-09"></a>
 ### Q04.09 · Concept · How `HashMap.put` and `get` find a bin: spreading, the index mask and the walk
+<!-- ledger: honeywell-optum-md-01-18 -->
+
+Walk through what `map.get(key)` does inside a `HashMap`, from `key.hashCode()` to the value. Why does the map change the hash code before using it?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The map spreads the hash code with `h ^ (h >>> 16)`, picks bin `(n - 1) & hash` in a table whose length `n` is a power of two, and walks that bin. A node matches when its stored hash equals the lookup hash and its key is `==` or `equals` to the lookup key. A `null` key hashes to 0 and lands in bin 0. The spreading exists because the mask keeps only the low bits, so hashes that differ only in the high bits would all collide.
+
+**Full explanation.** `hash(key)` is 0 for `null` and `(h = key.hashCode()) ^ (h >>> 16)` otherwise, and `getNode` indexes `tab[(n - 1) & hash]`, checks the first node, then either searches the tree, if the bin is a tree bin, or follows the `next` links [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Because `n` is a power of two, `(n - 1) & hash` equals the remainder of the hash modulo `n`, computed without a division. It also throws away every bit above the mask, which is why the source XORs the upper 16 bits into the lower 16: "sets of hashes that vary only in bits above the current mask will always collide" otherwise [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The match test compares the stored `hash` field first, an `int` comparison that skips most `equals` calls, and only then `==` and `equals` [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). `put` follows the same path and then either replaces the value of a matching node or appends a new node; the whole `putVal` flow, with resizes and tree bins, is the diagram of [§3](#3-hashmap-internals). The lab checks the arithmetic on a real map: keys whose hash codes are `0x10000`, `0x20000` and `0x30000` share their low 16 bits (all zero), so without spreading they would all fall into bin 0 of a 16-bucket table. With spreading they become `0x10001`, `0x20002` and `0x30003` and land in bins 1, 2 and 3. Hash code `0x11` (17) also lands in bin 1: different hashes can share a bin, and the stored-hash check tells them apart [Lab: Q04TableProbeTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04TableProbeTest.java). The equality half of the lookup, and why a key mutated after insertion is lost, are [02 §2](02-java-equality-immutability-records.md#2-hashcode-and-hash-based-collections) and [Q02.06](02-java-equality-immutability-records.md#q02-06).
+
+**Code.** The probe puts five keys with chosen hash codes into a default map and reports the bin that holds each one, reading the private table in a child JVM opened with `--add-opens java.base/java.util=ALL-UNNAMED` (the route of [§3](#3-hashmap-internals)'s `TableProbe`).
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_09.java
+    public static void main(String[] args) {
+        HashMap<Object, String> map = new HashMap<>();
+        List<Object> keys = Arrays.asList(
+                null, new FixedHash(0x11), new FixedHash(0x10000), new FixedHash(0x20000), new FixedHash(0x30000));
+        keys.forEach(key -> map.put(key, "v"));
+        System.out.println("table: " + TableProbe.capacity(map) + " buckets");
+        for (Object key : keys) {
+            System.out.println(label(key) + " -> bin " + binOf(map, key));
+        }
+    }
+```
+
+```text
+table: 16 buckets
+null -> bin 0
+0x11 -> bin 1
+0x10000 -> bin 1
+0x20000 -> bin 2
+0x30000 -> bin 3
+```
+
+**Follow-ups an interviewer will ask.**
+- *Why is the table length a power of two?* So the index is one AND with `n - 1`, and so a resize can move each node to either the same index or index plus the old capacity, decided by one bit (`hash & oldCap`), without calling `hashCode` again [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). `Hashtable`, the older design, uses `(hash & 0x7FFFFFFF) % tab.length` on a table of 11 that grows to `2n + 1` [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java).
+- *What does `get` cost?* Constant time "assuming the hash function disperses the elements properly among the buckets" [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). A crowded bin costs a walk, or a tree search for tree bins ([Q04.11](#q04-11)).
+- *Does `containsKey` do anything `get` does not?* It runs the same `getNode` and returns whether a node was found, which is the only way to tell an absent key from a key mapped to `null` [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) ([§3](#3-hashmap-internals)).
+
+**Trap to avoid.** Saying the index is `hashCode() % capacity`. It is the spread hash masked with `n - 1`; with the raw hash code, keys that differ only in their high bits would all share a bin.
+
+</details>
 
 <a id="q04-10"></a>
 ### Q04.10 · Output · `new HashMap<>(10)` vs `HashMap.newHashMap(10)`: what table sizes, and how many puts before the first resize?
+<!-- ledger: honeywell-optum-md-01-18 -->
+
+The probe reads the bucket count of each map before the first `put`, after it, and when the table first doubles. What does it print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_10.java
+    public static void main(String[] args) {
+        for (int n : new int[] {10, 13}) {
+            System.out.println("new HashMap<>(" + n + "): " + growth(new HashMap<>(n)));
+            System.out.println("HashMap.newHashMap(" + n + "): " + growth(HashMap.newHashMap(n)));
+        }
+    }
+
+    // Puts keys 1, 2, 3, ... until the table doubles, and reports the table sizes it saw.
+    static String growth(HashMap<Integer, Integer> map) {
+        int before = TableProbe.capacity(map);
+        map.put(1, 1);
+        int allocated = TableProbe.capacity(map);
+        int key = 1;
+        while (TableProbe.capacity(map) == allocated) {
+            key++;
+            map.put(key, key);
+        }
+        return before + " buckets, " + allocated + " after put 1, " + TableProbe.capacity(map) + " on put " + key;
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+new HashMap<>(10): 0 buckets, 16 after put 1, 32 on put 13
+HashMap.newHashMap(10): 0 buckets, 16 after put 1, 32 on put 13
+new HashMap<>(13): 0 buckets, 16 after put 1, 32 on put 13
+HashMap.newHashMap(13): 0 buckets, 32 after put 1, 64 on put 25
+```
+
+No constructor allocates the table; the first `put` does. `new HashMap<>(n)` treats `n` as a capacity and rounds it up to a power of two, so 13 still gets 16 buckets and resizes on the 13th put. `newHashMap(n)` treats `n` as an expected number of mappings and asks for `ceil(n / 0.75)`, so 13 gets 32 buckets.
+
+**Full explanation.** The capacity constructor stores `tableSizeFor(initialCapacity)`, the next power of two, and the first `put` allocates that many buckets with a threshold of 0.75 times it [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). For 10 that is 16 buckets and a threshold of 12, so 10 mappings happen to fit, and the 13th put doubles the table. `HashMap.newHashMap(int numMappings)` (`@since 19`) returns `new HashMap<>(calculateHashMapCapacity(numMappings))`, where the capacity is `(int) Math.ceil(numMappings / (double) DEFAULT_LOAD_FACTOR)` [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java): 10 becomes 14, which rounds to the same 16 buckets, so the first two lines agree. The two methods part ways when the expected count lands just above a threshold: 13 mappings do not fit the 16 buckets that `new HashMap<>(13)` allocates, while `newHashMap(13)` asks for 18, gets 32 buckets with a threshold of 24, and doubles only on the 25th put. The four lines are asserted in the lab [Lab: Q04TableProbeTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04TableProbeTest.java), and [§3](#3-hashmap-internals) shows the same rule at 100 mappings (128 buckets resizing on the 97th put, against 256 buckets that never resize).
+
+**Follow-ups an interviewer will ask.**
+- *Why not just always use `new HashMap<>(expected * 2)`?* It wastes buckets and slows iteration, which takes time "proportional to the 'capacity' of the `HashMap` instance … plus its size" [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). `newHashMap` computes the smallest capacity that fits.
+- *Do other hash-based classes have the same factory?* Yes: `LinkedHashMap.newLinkedHashMap(int)` and `WeakHashMap.newWeakHashMap(int)`, both `@since 19` and both built on the same capacity calculation [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java) [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java). `HashSet.newHashSet(int)` is the set version ([§5](#5-sets-views-of-maps)).
+- *Does `newHashMap(n)` promise that n puts never resize?* Its Javadoc says the capacity "is generally large enough so that the expected number of mappings can be added without resizing the map" [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java); for the counts in this probe and in [§3](#3-hashmap-internals) the lab saw no resize. Treat it as sizing advice, not a hard guarantee.
+
+**Trap to avoid.** Reading the constructor argument as "room for n entries". It is a capacity; an expected size belongs in `HashMap.newHashMap(n)`.
+
+</details>
 
 <a id="q04-11"></a>
 ### Q04.11 · Concept · Treeification: the 8, 6 and 64 thresholds, and what a tree bin protects against
+<!-- ledger: honeywell-optum-md-01-18 -->
+
+Since Java 8, a crowded `HashMap` bin can become a tree. When exactly does that happen, when does it turn back into a list, and what problem does it solve?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A list bin becomes a red-black tree when a key is added to a bin that already holds 8 nodes (`TREEIFY_THRESHOLD`), but only if the table has at least 64 buckets (`MIN_TREEIFY_CAPACITY`); in a smaller table the map resizes instead. A tree bin split by a resize turns back into a list when a half has 6 nodes or fewer (`UNTREEIFY_THRESHOLD`). Tree bins bound the cost of many colliding keys at O(log n) per operation, provided the keys are `Comparable`.
+
+**Full explanation.** The three constants and their comments are in the JDK 25 source: bins are converted "when adding an element to a bin with at least this many nodes" (8); `MIN_TREEIFY_CAPACITY` is "the smallest table capacity for which bins may be treeified (otherwise the table is resized if too many nodes in a bin)" and "should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts between resizing and treeification thresholds" (64); and `UNTREEIFY_THRESHOLD` is used for "a (split) bin during a resize operation" and "should be less than TREEIFY_THRESHOLD, and at most 6 to mesh with shrinkage detection under removal" (6) [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The gap between 8 and 6 means a half of 7 or 8 nodes keeps its tree. In the lab, keys with one shared hash code stay a list for 8 puts into a 16-bucket table; the 9th put resizes to 32, the 10th to 64, and the 11th treeifies the bin [Lab: HashMapTableTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s03/HashMapTableTest.java). What the tree protects against is a worst case, not the common case: with a good hash code, the source's Poisson table puts the chance of a bin reaching 8 nodes at 0.00000006, and tree nodes are about twice the size of list nodes, so trees are kept for crowded bins only [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). When many keys do share a hash, by accident or because an attacker chose them, a list bin makes each lookup a linear walk, and JEP 180 moved that worst case "from O(n) to O(log n)" [Doc: JEP 180](https://openjdk.org/jeps/180). The tree is ordered by hash and then by `compareTo` when the keys are mutually `Comparable`; keys with equal hashes that are not comparable get an arbitrary tie-break order that lookups cannot use, so their bin is still searched node by node [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). [§3](#3-hashmap-internals) walks through this mechanism, and its callout covers the attack.
+
+**Follow-ups an interviewer will ask.**
+- *Why resize before treeifying a small table?* A crowded bin in a small table is usually a table that is too small, and doubling it spreads keys that differ in the next bit. Resizing cannot separate identical hash codes, so for those the two resizes are wasted, as the lab's colliding keys show [Lab: HashMapTableTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s03/HashMapTableTest.java).
+- *Does removing keys turn a tree back into a list?* It can, but not by counting nodes: `removeTreeNode` converts the bin when the tree has become "too small" by its shape [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The count of 6 applies only to the halves of a split.
+- *Do `Hashtable` and `ConcurrentHashMap` treeify?* JEP 180 left `Hashtable` alone because legacy code depends on its iteration order [Doc: JEP 180](https://openjdk.org/jeps/180). `ConcurrentHashMap` has its own tree bins, part of [12](12-concurrency-locks-atomics-collections.md).
+
+**Trap to avoid.** "A bin becomes a tree at 8 entries, so `HashMap` is O(log n) in the worst case." The ninth key triggers it, only in a table of 64 or more, and the O(log n) bound holds only for keys whose hash codes differ or that are `Comparable`.
+
+</details>
 
 <a id="q04-12"></a>
 ### Q04.12 · Difference · `HashMap` vs `Hashtable` vs `ConcurrentHashMap` (and `Dictionary`): nulls, locking, iterators
+<!-- ledger: core-java-240-08-05, core-java-240-08-06, core-java-pdf-02-34, honeywell-optum-md-01-19 -->
+
+What are the differences between `HashMap`, `Hashtable` and `ConcurrentHashMap`, and what is the `Dictionary` class?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `HashMap` is unsynchronized and allows one `null` key and `null` values. `Hashtable` is the Java 1.0 class: every public method is `synchronized`, and it rejects `null` keys and `null` values. `ConcurrentHashMap` is thread-safe without one table-wide lock, lets reads run without locking, also rejects `null`, and its iterators never throw `ConcurrentModificationException`. `Dictionary` is `Hashtable`'s obsolete abstract parent. New code uses `HashMap` on one thread and `ConcurrentHashMap` when threads share the map.
+
+**Full explanation.**
+
+| | `HashMap` | `Hashtable` | `ConcurrentHashMap` |
+|---|---|---|---|
+| Since | 1.2 [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) | 1.0, retrofitted to `Map` in 1.2 [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java) | 1.5 [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java) |
+| `null` keys / values | one `null` key, `null` values [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) | neither: `NullPointerException` [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java) | neither [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java) |
+| Thread safety | none; external synchronization if any thread modifies it structurally [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) | `synchronized` methods, one lock for the whole table [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java) | thread-safe; retrievals "do *not* entail locking", and there is no way to lock the whole table [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java) |
+| Iteration | fail-fast iterators [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) | fail-fast iterators; `keys()` and `elements()` return `Enumeration`s that are not fail-fast [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java) | iterators reflect the map "at some point at or since" their creation and never throw `ConcurrentModificationException` [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java) |
+| Tree bins (Java 8) | yes | no [Doc: JEP 180](https://openjdk.org/jeps/180) | its own ([12](12-concurrency-locks-atomics-collections.md)) |
+
+`Hashtable`'s Javadoc itself recommends `HashMap` when thread safety is not needed and `ConcurrentHashMap` when it is, and its parent `Dictionary` is documented as "obsolete": "new implementations should implement the Map interface, rather than extending this class" [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java) [Src: JDK 25, java.util.Dictionary](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Dictionary.java). The `null` rejections of `Hashtable` and `ConcurrentHashMap` are tested in [§3](#3-hashmap-internals) [Lab: HashMapBehaviorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s03/HashMapBehaviorTest.java). Their iterators differ too: in the lab, a `put` after `next()` makes the next call on a `Hashtable` key iterator throw `ConcurrentModificationException`, while a loop over a `ConcurrentHashMap` key set that adds a key on each pass finishes normally, having seen either two or three keys, both permitted [Lab: Q04MapsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04MapsTest.java). One consequence of the `null` rule matters on a shared map: since no value can be `null`, a `get` that returns `null` always means "absent", whereas on a `HashMap` the caller would need a second call, `containsKey`, and on a shared map another thread can change the answer between the two calls. Per-method locking also explains why `Hashtable` is not the answer for threads: each call is atomic, a check-then-act pair is not ([Q04.08](#q04-08)). Material that describes `ConcurrentHashMap` as "locking segments" describes the Java 7 design: in JDK 25 the `Segment` class survives only as a "stripped-down version of helper class used in previous version, declared for the sake of serialization compatibility" [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java), and how the current map synchronizes is [12](12-concurrency-locks-atomics-collections.md)'s subject.
+
+**Follow-ups an interviewer will ask.**
+- *Is `Collections.synchronizedMap(new HashMap<>())` the same as `Hashtable`?* Close: both lock every call on one monitor, and neither makes a traversal atomic. The wrapper allows `null`s if the wrapped map does, and its Javadoc requires the caller to hold the map's lock while iterating a view [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java), while a `Hashtable` iterator only fails fast [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java); [§4](#4-ordered-and-special-purpose-maps)'s callout is the incident.
+- *Is `ConcurrentHashMap.size()` exact?* Only when no other thread is updating: the Javadoc says aggregate status methods such as `size`, `isEmpty` and `containsValue` "reflect transient states" under concurrent updates, "adequate for monitoring or estimation purposes, but not for program control" [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java).
+- *Is `Hashtable` deprecated?* No; it carries no `@Deprecated` in JDK 25. It is a legacy class whose Javadoc points to the replacements [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java).
+
+**Trap to avoid.** "`Hashtable` forbids `null` values but allows a `null` key." It rejects both, and so does `ConcurrentHashMap`; only `HashMap` (and `LinkedHashMap`) accept a `null` key.
+
+</details>
 
 <a id="q04-13"></a>
 ### Q04.13 · Production scenario · A service's startup builds a large `HashMap` and spends seconds resizing it
 
+*As the interviewer frames it:* "A pricing service loads 30 million rows of reference data into a `HashMap<Long, Price>` before it accepts traffic. Startup used to take 20 seconds; with this year's data it takes over a minute, and Kubernetes has started killing pods that miss their startup probe. A profile of startup shows `HashMap.resize` near the top, and the heap grows in big steps while the data loads. What is going on, and what do you change?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The map is filled one `put` at a time from the default capacity, so it doubles 22 times on the way to 30 million entries, relinking about 50 million nodes in total and briefly holding two bucket arrays at each doubling. Confirm it with the profile (time under `HashMap.resize` in the loader's stack) and rule out collisions and GC pressure. Fix it by presizing with `HashMap.newHashMap(rowCount)`, which removes every resize, and prevent a recurrence by tracking startup time against data volume.
+
+**Full explanation.**
+
+*What the symptoms say.* Startup time grew with the data while the code stayed the same, the profile points into the map, and the heap grows in steps rather than smoothly. Steps are what doubling looks like: every resize allocates a new bucket array twice the size of the old one, while the old one is still referenced until the copy finishes [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java).
+
+*Hypotheses, most likely first.*
+1. **Growth from the default capacity.** A default map has 16 buckets and doubles when its size exceeds 0.75 × capacity [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Holding 30 million mappings needs 2²⁶ = 67,108,864 buckets, because 0.75 × 2²⁵ is only 25,165,824; from 2⁴ to 2²⁶ is 22 doublings. Each doubling relinks every node already in the map, so the total work is the sum of the sizes at which the 22 resizes happen, 0.75 × (2²⁶ − 16) + 22 ≈ 50.3 million node moves, about 1.7 per entry (derived from `putVal` and `resize` [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java)). The lab checks the same arithmetic at a size a test can afford: 100,000 mappings from the default size take 14 resizes and 196,610 node moves, which is 0.75 × (2¹⁸ − 16) + 14, while `HashMap.newHashMap(100000)` reaches the same 262,144-bucket table with no resize at all [Lab: Q04TableProbeTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04TableProbeTest.java). The relinking is linear in total, but each move touches a node that may be anywhere on the heap, and each doubling of a table this size allocates a very large array.
+2. **Collisions.** If the key type's `hashCode` is poor, the time goes into crowded bins, not into resizing; [Q04.11](#q04-11) and the callout of [§3](#3-hashmap-internals) cover that case.
+3. **GC pressure.** Thirty million nodes plus their keys and values may be most of the heap, and the collector may be running back to back during the load. Then the map's code is merely where the allocation happens.
+4. **The time is elsewhere**, in parsing or I/O, and the profile was read from the wrong thread.
+
+*Evidence that separates them.* Record startup with JFR (`-XX:StartFlightRecording` on the command line, or `jcmd <pid> JFR.start` while it loads) [Doc: java command, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html) [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html). Hypothesis 1 shows as samples in `java.util.HashMap.resize` under the loader's `putVal` calls, and the steps in heap usage line up with resizes. Hypothesis 2 shows as samples in `HashMap$TreeNode` methods (`putTreeVal`, `find`) and `HashMap$TreeNode` instances in `jcmd <pid> GC.class_histogram` [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html), since tree nodes exist only in crowded bins [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Hypothesis 3 shows in a GC log (`-Xlog:gc`) [Doc: java command, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html) as frequent collections during the load with little memory freed. Hypothesis 4 shows as samples outside `java.util.HashMap` on the loading thread.
+
+*Fix.* Presize from the row count, which the loader knows or can read first: `HashMap.newHashMap(rowCount)` computes the capacity for that many mappings at the default load factor [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). If the map comes from a stream, `Collectors.toMap(keyMapper, valueMapper)` builds it with `HashMap::new`, the default size, so use the four-argument overload with a merge function and `() -> HashMap.newHashMap(rowCount)` as the map factory [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). Do not raise the load factor instead: that trades fewer resizes for longer lookups for the life of the process [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java).
+
+*Prevention and monitoring.* Export startup duration as a metric and alert on its trend, not only on probe failures. Keep a load test that starts the service with production-sized data. Record the expected row count with the data set, so the loader can presize and log a warning when the count jumps.
+
+**Follow-ups an interviewer will ask.**
+- *Would `new HashMap<>(30_000_000)` work?* It allocates 2²⁵ buckets with a threshold of about 25.2 million, so the load still resizes once, near the end, at the most expensive moment; the argument is a capacity ([Q04.10](#q04-10)).
+- *Does a resize call `hashCode` 30 million times?* No. Each node keeps the hash computed at `put`, and `resize` splits each bin by one bit of that stored hash [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java).
+- *After the load, the service removes half the entries. Does memory come back?* Not the table: `resize` only "initializes or doubles table size", so the bucket array keeps its length; copying into a new, presized map releases it ([§3](#3-hashmap-internals)) [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java).
+
+**Trap to avoid.** Blaming `HashMap` and reaching for a different library before reading the profile. Presizing removes the resizes in one line, and if the samples are in tree-bin methods or GC instead, the fix is the key's `hashCode` or the heap, not the map class.
+
+</details>
+
 <a id="q04-14"></a>
 ### Q04.14 · Concept · `LinkedHashMap`: insertion order vs access order, and what each costs
+<!-- ledger: core-java-240-08-03 -->
+
+What is a `LinkedHashMap`, how does it differ from `HashMap`, and what does its access-order mode do?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A `LinkedHashMap` is a `HashMap` whose entries are also linked in a doubly linked list, so it iterates in a defined order. By default that is insertion order, and putting an existing key again does not move it. With `accessOrder = true` it is access order, from least to most recently used: `get`, `put` and the other access methods move the entry to the end, which, together with `removeEldestEntry`, makes an LRU cache. The cost is two extra links per entry and slightly slower updates; iteration becomes proportional to the size instead of the capacity.
+
+**Full explanation.** `LinkedHashMap` extends `HashMap`, and its `Entry` adds `before` and `after` links to `HashMap.Node`, with `head` the eldest and `tail` the youngest entry [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). Lookups use the inherited hash table of [§3](#3-hashmap-internals). Iteration follows the list instead of scanning the table, so it "requires time proportional to the *size* of the map, regardless of its capacity", while iterating a `HashMap` is "likely to be more expensive, requiring time proportional to its *capacity*"; otherwise, performance is "likely to be just slightly below that of `HashMap`, due to the added expense of maintaining the linked list" [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). In insertion order, "encounter order is not affected if a key is re-inserted", which the lab confirms [Lab: OrderedMapsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s04/OrderedMapsTest.java). The three-argument constructor with `true` switches to access order, which the Javadoc calls "well-suited to building LRU caches": `put`, `putIfAbsent`, `get`, `getOrDefault`, `compute`, `computeIfAbsent`, `computeIfPresent` and `merge` move the entry they touch to the tail, while view operations do not [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). `containsKey` is not on that list either: `LinkedHashMap` does not override it, and `HashMap.containsKey` only runs `getNode` [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java), which [Q04.15](#q04-15) turns into an eviction. Moving an entry is a structural modification, so in access order "merely querying the map with `get` is a structural modification" [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java), and in the lab a loop that calls `get` while iterating the key set throws `ConcurrentModificationException` [Lab: OrderedMapsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s04/OrderedMapsTest.java). [§4](#4-ordered-and-special-purpose-maps) has the hooks (`afterNodeAccess`, `afterNodeInsertion`) behind both modes.
+
+**Follow-ups an interviewer will ask.**
+- *How do you give a caller a map in the same order as the one they passed?* Copy it into a `LinkedHashMap` (`new LinkedHashMap<>(input)`); the Javadoc presents this as the way to produce "a copy of a map that has the same order as the original, regardless of the original map's implementation" [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java).
+- *Is a `LinkedHashMap` sorted?* No: its order is insertion or access order. Key order is `TreeMap` ([Q04.16](#q04-16)).
+- *Can several threads share an access-ordered `LinkedHashMap` if they only call `get`?* No. Every `get` relinks the list, so readers are writers, and the map is not synchronized [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java); [§4](#4-ordered-and-special-purpose-maps)'s callout and [12](12-concurrency-locks-atomics-collections.md) cover shared caches.
+
+**Trap to avoid.** "`LinkedHashMap` is slower than `HashMap` at everything." It is slightly slower on updates and faster to iterate, because iteration no longer depends on the number of buckets.
+
+</details>
 
 <a id="q04-15"></a>
 ### Q04.15 · Output · An access-order `LinkedHashMap` with `removeEldestEntry` and capacity 2: which key is evicted after `get("a")` and `put("c")`?
+<!-- ledger: honeywell-optum-md-01-93 -->
+
+`Bounded` is a `LinkedHashMap` that evicts its eldest entry once it holds more than 2. Each line puts `a` and `b`, touches `a`, then puts `c`. What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_15.java
+    public static void main(String[] args) {
+        System.out.println(putTouchPut(new Bounded<>(MAX_ENTRIES, true), cache -> cache.get("a")));
+        System.out.println(putTouchPut(new Bounded<>(MAX_ENTRIES, true), cache -> cache.containsKey("a")));
+        System.out.println(putTouchPut(new Bounded<>(MAX_ENTRIES, false), cache -> cache.get("a")));
+    }
+
+    // Puts a and b, touches the map, then puts c, which pushes the map over its bound.
+    static Map<String, Integer> putTouchPut(Map<String, Integer> cache, Consumer<Map<String, Integer>> touch) {
+        cache.put("a", 1);
+        cache.put("b", 2);
+        touch.accept(cache);
+        cache.put("c", 3);
+        return cache;
+    }
+
+    static final class Bounded<K, V> extends LinkedHashMap<K, V> {
+        private final int maxEntries;
+
+        Bounded(int maxEntries, boolean accessOrder) {
+            super(16, 0.75f, accessOrder);
+            this.maxEntries = maxEntries;
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            return size() > maxEntries;
+        }
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+{a=1, c=3}
+{b=2, c=3}
+{b=2, c=3}
+```
+
+In access order, `get("a")` moves `a` behind `b`, so `b` is the eldest when `c` arrives and is evicted. `containsKey("a")` is not an access, so `a` stays eldest and goes. In insertion order (`false`) nothing a read does changes the order, so `a` goes again.
+
+**Full explanation.** After `put("c")` adds a new entry, `afterNodeInsertion` calls `removeEldestEntry(head)` and removes the head if it returns `true` [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java); the head is the entry at the front of the list, which is the least recently accessed one in access order and the oldest insertion otherwise. `get` on an access-ordered map calls `afterNodeAccess`, which unlinks the entry and appends it at the tail, so the list goes from `[a, b]` to `[b, a]` [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). `containsKey` is inherited from `HashMap` and only runs `getNode`, without that hook [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The lab asserts the three lines [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). The order of each printed map is the list order, eldest first, which is why `a` prints before `c` on the first line.
+
+**Follow-ups an interviewer will ask.**
+- *How many entries does the map hold when `removeEldestEntry` runs?* Already the new one: the hook runs after the insertion, so in the lab the sizes it sees on the three puts are 1, 2 and 3, and the map briefly holds 3 entries [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). That is why the idiom is `size() > max`, not `>=`.
+- *Would `put("a", 10)` instead of `get("a")` change the first line?* No: in access order, a `put` of an existing key is an access too; `putVal` calls `afterNodeAccess` on the existing node [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java), so `b` is still evicted and `a` holds 10.
+- *Is this the LRU cache an interviewer wants?* It is the JDK idiom for one thread. A production cache adds an eviction callback, hides the `Map` methods it should not expose, and needs a concurrent design when threads share it; [Exercise 04.1](#ex04-1) builds the single-threaded version by composition, and shared caches are [12](12-concurrency-locks-atomics-collections.md).
+
+**Trap to avoid.** Assuming every read counts as an access. Only the methods the Javadoc lists move an entry; `containsKey` and iteration over the views do not, so a "touch" through them leaves the entry where it was.
+
+</details>
 
 <a id="q04-16"></a>
 ### Q04.16 · Concept · `TreeMap` and `NavigableMap`: the red-black tree, `floorKey` and `headMap` views
+<!-- ledger: core-java-240-08-04 -->
+
+What is a `SortedMap`, and what does `TreeMap` add through `NavigableMap`? What do `floorKey` and `headMap` return?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A `SortedMap` keeps its keys in a total order, natural or given by a `Comparator`, and offers `firstKey`, `lastKey` and the range views `headMap`, `subMap` and `tailMap`. `NavigableMap` (Java 6) adds nearest-key queries (`floorKey`, `ceilingKey`, `lowerKey`, `higherKey`), inclusive or exclusive bounds, polling and a descending view. `TreeMap` implements it with a red-black tree, so `get`, `put`, `containsKey` and `remove` cost O(log n). `floorKey(k)` is the greatest key ≤ k, or `null`; `headMap(k)` is a live view of the keys strictly below k.
+
+**Full explanation.** `SortedMap` is "a `Map` that further provides a *total ordering* on its keys", ordered by the keys' natural ordering "or by a `Comparator` typically provided at sorted map creation time", and that order is the iteration order of its views [Src: JDK 25, java.util.SortedMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/SortedMap.java). `TreeMap` is the JDK's general-purpose implementation: it implements `NavigableMap` and "provides guaranteed log(n) time cost for the `containsKey`, `get`, `put` and `remove` operations" with a red-black tree, a binary search tree kept balanced by recoloring and rotations ([§4](#4-ordered-and-special-purpose-maps)) [Src: JDK 25, java.util.TreeMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeMap.java). The range views follow half-open intervals: `headMap(toKey)` holds keys "strictly less than" `toKey`, `tailMap(fromKey)` keys "greater than or equal to" `fromKey`, and `subMap(from, to)` runs from `from` inclusive to `to` exclusive [Src: JDK 25, java.util.SortedMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/SortedMap.java); `NavigableMap` adds overloads with a `boolean inclusive` for each bound [Src: JDK 25, java.util.NavigableMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/NavigableMap.java). With keys 10, 20 and 30, the lab gets `headMap(20)` = `[10]`, `headMap(20, true)` = `[10, 20]`, `tailMap(20)` = `[20, 30]`, and `floorKey(20)` = 20 while `lowerKey(20)` = 10: the floor and ceiling queries may return the key itself, the lower and higher ones never do [Lab: Q04MapsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04MapsTest.java). The views are live, they write through, and they reject keys outside their range, as [§4](#4-ordered-and-special-purpose-maps) shows in the lab. A `TreeMap` compares keys only with `compareTo` or the comparator, never with `equals`, which is what [Q02.14](02-java-equality-immutability-records.md#q02-14) turns into a bug.
+
+**Code.** The bounds, as the lab asserts them:
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04MapsTest.java
+    @Test
+    @DisplayName("Q04.16 · headMap excludes its bound, tailMap includes it, and the boolean overloads change that")
+    void q04_16_viewBounds() {
+        NavigableMap<Integer, String> map = new TreeMap<>(Map.of(10, "ten", 20, "twenty", 30, "thirty"));
+
+        assertThat(map.headMap(20).keySet()).containsExactly(10);
+        assertThat(map.headMap(20, true).keySet()).containsExactly(10, 20);
+        assertThat(map.tailMap(20).keySet()).containsExactly(20, 30);
+        assertThat(map.tailMap(20, false).keySet()).containsExactly(30);
+        assertThat(map.subMap(10, 30).keySet()).containsExactly(10, 20);
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *When would you choose `TreeMap` over `HashMap`?* When something needs the order: sorted output, ranges, or the nearest key, such as the tax band at or below an amount, which is one `floorEntry` call in [§4](#4-ordered-and-special-purpose-maps). Otherwise `HashMap`'s constant time wins [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java).
+- *Is there a thread-safe sorted map?* `ConcurrentSkipListMap`, a `ConcurrentNavigableMap` with "expected average *log(n)*" cost for the same operations [Src: JDK 25, java.util.concurrent.ConcurrentSkipListMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentSkipListMap.java); it belongs to [12](12-concurrency-locks-atomics-collections.md).
+- *Can a `TreeMap` hold a `null` key?* Not under natural ordering, where `put(null, …)` throws `NullPointerException`; with a comparator, only if the comparator accepts `null` ([§4](#4-ordered-and-special-purpose-maps)).
+
+**Trap to avoid.** Treating `headMap` as a copy. It is a view: a key added to the map later shows up in it, and a `put` outside its range throws `IllegalArgumentException`.
+
+</details>
 
 <!-- /TASK: QB-M04-02 -->
 
 <!-- TASK: QB-M04-03 -->
 <a id="q04-17"></a>
 ### Q04.17 · Difference · `EnumMap`, `IdentityHashMap` and `WeakHashMap`: what each compares and when to use it
+<!-- ledger: honeywell-optum-md-01-22 -->
+
+What are the use cases of `EnumMap`, `IdentityHashMap` and `WeakHashMap`? What does each one consider "the same key"?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `EnumMap` takes keys of one enum type and stores values in an array indexed by ordinal: compact, constant time, iterated in declaration order; use it for any map keyed by an enum. `IdentityHashMap` compares keys with `==` instead of `equals`; use it only where identity is the point, such as the visited-objects table of a deep copy or a serializer. `WeakHashMap` compares with `equals` like `HashMap` but holds its keys through weak references, so an entry disappears once nothing else references its key; use it to attach data to objects whose lifetime someone else controls, never as a memory-sensitive cache.
+
+**Full explanation.**
+
+| | `EnumMap` | `IdentityHashMap` | `WeakHashMap` |
+|---|---|---|---|
+| Same key when | same enum constant | `k1 == k2` | `equals`, as in `HashMap` |
+| Inside | `vals[key.ordinal()]` arrays [Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java) | one linear-probe array, keys and values alternating, hashed with `System.identityHashCode` [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java) | `HashMap`-like table of `WeakReference` entries with a `ReferenceQueue` [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java) |
+| Iteration order | declaration order of the constants | unspecified | unspecified |
+| `null` key | rejected | allowed | allowed |
+| Use it for | per-constant configuration, counters, state tables | object-graph traversal, copying, serialization bookkeeping | metadata attached to objects owned elsewhere |
+
+Every row is from the classes' JDK 25 Javadoc and source ([Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java) [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java) [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java)), and the behaviors are run in [§4](#4-ordered-and-special-purpose-maps): entries put as Friday, Monday, Wednesday iterate Monday, Wednesday, Friday; two `new String("order-42")` keys are two `IdentityHashMap` entries, and the literal `"order-42"` finds neither [Lab: OrderedMapsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s04/OrderedMapsTest.java). `IdentityHashMap` says of itself that it "is *not* a general-purpose `Map` implementation" because it "intentionally violates `Map`'s general contract", and names "topology-preserving object graph transformations, such as serialization or deep-copying" as its typical use: a deep copy must not treat two distinct but equal nodes as one, or the copy would merge them [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java). `WeakHashMap` removes an entry only after "the weak references to it, both inside and outside of the map, have been cleared by the garbage collector", and its values are "held by ordinary strong references", so a value that refers to its key keeps the entry forever [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java); [Q04.18](#q04-18) is that incident. It "is intended primarily for use with key objects whose `equals` methods test for object identity": with a key type such as `String`, an entry can vanish while an equal key can still be built and looked up [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java). What weak, soft and phantom reachability mean for the collector is [08](08-jvm-memory-and-class-loading.md)'s subject.
+
+**Follow-ups an interviewer will ask.**
+- *Why is `EnumMap` faster than a `HashMap<Day, V>`?* It never hashes or walks a bin: the ordinal is the array index. Its Javadoc says its operations are "likely (though not guaranteed) to be faster than their `HashMap` counterparts" [Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java).
+- *Is `WeakHashMap` a good cache?* No. Entries leave when their keys become weakly reachable, not when memory runs low; the reference kind the collector clears "in response to memory demand" is the soft reference [Src: JDK 25, java.lang.ref.SoftReference](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ref/SoftReference.java), and caching policy belongs in a cache library or a bounded map ([§4](#4-ordered-and-special-purpose-maps)).
+- *How do you get an identity-based set?* `Collections.newSetFromMap(new IdentityHashMap<>())`, which borrows the map's key semantics ([§5](#5-sets-views-of-maps)) [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java).
+
+**Trap to avoid.** Using `IdentityHashMap` to "speed up" a map of strings or boxed numbers. Two equal values are often different objects, so lookups miss and the map holds duplicates.
+
+</details>
 
 <a id="q04-18"></a>
 ### Q04.18 · Production scenario · A `WeakHashMap` metadata cache never shrinks
 
+*As the interviewer frames it:* "Our plugin host caches reflection data per plugin class in a `WeakHashMap<Class<?>, ClassMetadata>`, so that a plugin's classes can be unloaded when it is redeployed. `ClassMetadata` holds the class's accessor methods and a reference to the `Class` itself. After about forty redeploys in a week, the host dies with `OutOfMemoryError: Metaspace`, and the old heap dump shows thousands of `ClassMetadata` objects for plugin versions that were removed long ago. Why did the weak keys not help?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Each value refers to its own key, and values are strong references, so every key stays strongly reachable through the map itself: the entry, the `Class` and its class loader can never be collected. Confirm it with the heap dump's path from an old class loader to a GC root, which runs through `WeakHashMap$Entry.value`. Fix it by removing the back-reference from the value, or by wrapping the value in a `WeakReference` as the Javadoc suggests, and add a test that redeploys a plugin and checks that the old loader is collected.
+
+**Full explanation.**
+
+*What the symptoms say.* Metaspace is the native memory the JVM allocates for class metadata [Doc: java command, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html), so growth tied to redeploys means old plugin classes are never unloaded, and "a class or interface may be unloaded if and only if its defining class loader may be reclaimed by the garbage collector" [Doc: JLS 25 §12.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.7) ([08](08-jvm-memory-and-class-loading.md)). Thousands of `ClassMetadata` objects for removed versions say something still reaches those classes, and the obvious suspect is the structure that exists to forget them.
+
+*Hypotheses, most likely first.*
+1. **The value refers to its key.** `WeakHashMap` holds its values "by ordinary strong references", and the Javadoc warns that "value objects do not strongly refer to their own keys, either directly or indirectly, since that will prevent the keys from being discarded" [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java). The chain map → entry → `ClassMetadata` → `Class` keeps every key strongly reachable, and accessor `Method` objects refer back to their declaring class too (a `private final Class<?> clazz` field) [Src: JDK 25, java.lang.reflect.Method](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/reflect/Method.java), so the leak survives even if the explicit field is removed but the methods stay. In the lab, an entry whose value holds its own key is still there after garbage collections that cleared an unrelated weak reference [Lab: Q04QueuesAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04QueuesAndIteratorsTest.java).
+2. **Something else holds the keys.** A static registry, a `ThreadLocal` on a pooled thread, or a listener the plugin registered with the host can reach the old classes or their loader without the map's help; the weak keys are then irrelevant [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java).
+3. **Stale entries not yet expunged.** Cleared entries are removed by `expungeStaleEntries`, which runs only when the map is used [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java); a map nobody touches after a redeploy keeps the entries, and their values, until the next call. That delays the cleanup but cannot explain growth across forty redeploys of a map that is read on every request.
+
+*Evidence that separates them.* Take a heap dump (`jcmd <pid> GC.heap_dump <file>`) [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html) and, in a heap analyzer, follow the shortest path to a GC root from one of the old plugin class loaders. Through `WeakHashMap$Entry.value` → `ClassMetadata` → `Class` is hypothesis 1; through a static field, a `Thread` or a listener list is hypothesis 2. `jcmd <pid> VM.classloader_stats` shows how many loaders are alive [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html): one per redeploy, never decreasing, confirms that loaders leak. `jcmd <pid> GC.class_histogram` tracks the count of `ClassMetadata` over redeploys [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html).
+
+*Fix.* Make the value independent of its key: keep what the metadata needs (names, handles resolved on demand) without a strong path to the `Class`, or, where the map need not keep values alive, follow the Javadoc's own advice and "wrap values themselves within `WeakReferences` before inserting, as in: `m.put(key, new WeakReference(value))`, and then unwrapping upon each `get`" [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java). Better still, clear the plugin's entries explicitly in the undeploy hook and keep `WeakHashMap` as a safety net, not the mechanism.
+
+*Prevention and monitoring.* An integration test that deploys and undeploys a plugin, holds a `WeakReference` to its class loader, and asserts that the reference is cleared after collections (with a bounded retry, as the lab's test does). In production, alert on Metaspace usage and loaded-class counts that grow with each deploy instead of returning to a baseline.
+
+**Follow-ups an interviewer will ask.**
+- *Would a `SoftReference` value fix it?* It would let the collector drop values under memory pressure, but a soft reference is still a path to the key while it is not cleared, so the class would be unloaded only once memory ran short [Src: JDK 25, java.lang.ref.SoftReference](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ref/SoftReference.java). The fix is to remove the path, not to soften it.
+- *Can the reference be indirect?* Yes: the Javadoc points out that a value may reach its key "via the `WeakHashMap` itself", through another key's value that refers to the first key [Src: JDK 25, java.util.WeakHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/WeakHashMap.java).
+- *Why did the tests not catch it?* A leak needs many redeploys and garbage collections, and an entry that never disappears looks like a working cache in a functional test.
+
+**Trap to avoid.** Concluding "the GC did not run yet". The collector reclaims only unreachable objects; if a heap dump after a full collection still shows the entry, a strong path exists, and the dump shows exactly which one.
+
+</details>
+
 <a id="q04-19"></a>
 ### Q04.19 · Concept · How `HashSet` is built on `HashMap`, and what that means for `equals`, `hashCode` and `null`
+<!-- ledger: core-java-240-07-18, core-java-240-07-19, core-java-240-07-20, core-java-pdf-03-28 -->
+
+What is the `Set` interface, which classes implement it, and how does `HashSet` decide that an element is a duplicate?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `java.util.Set` is a `Collection` without duplicate elements, where "duplicate" means `equals`, with at most one `null`. `HashSet`, `LinkedHashSet`, `TreeSet`, `EnumSet`, and the unmodifiable sets of `Set.of` and `Set.copyOf` implement it. A `HashSet` is a `HashMap` whose keys are the elements and whose values are one shared dummy object, so a duplicate is an element whose `hashCode` lands it in a bin where `equals` finds a match. Both methods must be overridden and agree; `null` is allowed once.
+
+**Full explanation.** The `Set` interface lives in `java.util` and contains "no pair of elements `e1` and `e2` such that `e1.equals(e2)`, and at most one null element" [Src: JDK 25, java.util.Set](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Set.java). The null rule is per implementation: `HashSet` and `LinkedHashSet` permit one `null`, while `TreeSet` under natural ordering, `EnumSet`, and `Set.of` reject it ([§5](#5-sets-views-of-maps), [Lab: SetsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s05/SetsTest.java)). Nor is a set always unordered: `LinkedHashSet` keeps insertion order and `TreeSet` sorts ([Q04.20](#q04-20)). `HashSet` is "backed by a hash table (actually a `HashMap` instance)": `add(e)` is `map.put(e, PRESENT) == null`, so it returns `false` and changes nothing when an equal element is already a key [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java). Duplicate detection is therefore the `HashMap` lookup of [Q04.09](#q04-09): the element's spread `hashCode` picks the bin, and `equals` decides within it. Overriding only `hashCode` leaves `equals` as identity, so two equal-looking objects are both kept; overriding only `equals` gives them identity hash codes in different bins, so they are usually both kept as well. The contract that makes the two agree is [02 §2](02-java-equality-immutability-records.md#2-hashcode-and-hash-based-collections) and [Q02.05](02-java-equality-immutability-records.md#q02-05). The costs are the map's: constant time for `add`, `remove`, `contains` and `size` if the hash disperses well, and iteration proportional to the size "plus the 'capacity' of the backing `HashMap` instance" [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java). In the lab, two `int[] {1, 2}` are two elements, because arrays keep `Object.equals` [Lab: SetsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s05/SetsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *What happens if an element is mutated after it is added?* The `Set` Javadoc leaves the behavior unspecified when a change affects `equals` [Src: JDK 25, java.util.Set](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Set.java); in a `HashSet`, the node keeps the old hash, so `contains` usually misses the element, which [Q02.06](02-java-equality-immutability-records.md#q02-06) demonstrates for map keys.
+- *Why is `HashSet.add` returning `false` useful?* It is a check-and-insert in one call: `if (!seen.add(id))` detects a duplicate without a separate `contains` [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java).
+- *What does `TreeSet` use instead of `equals`?* `compareTo` or the comparator, so elements that compare as 0 are duplicates even if `equals` says otherwise ([§5](#5-sets-views-of-maps)).
+
+**Trap to avoid.** "A `HashSet` only needs `hashCode`." Equal hash codes put elements in the same bin; only `equals` makes them duplicates.
+
+</details>
 
 <a id="q04-20"></a>
 ### Q04.20 · Difference · `HashSet` vs `LinkedHashSet` vs `TreeSet` vs `EnumSet`
+<!-- ledger: core-java-240-07-21, core-java-240-08-01 -->
+
+Compare the four general-purpose `Set` implementations: order, cost, `null`, and when you would pick each.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `HashSet`: no order, constant-time operations, one `null`; the default. `LinkedHashSet`: the same plus insertion order, at the cost of a link per element; use it when output order matters. `TreeSet`: sorted by `compareTo` or a comparator, O(log n), navigation (`floor`, `subSet`), no `null` under natural ordering. `EnumSet`: enum constants only, a bit vector, very fast, declaration order; use it instead of `int` flags or a `HashSet` of enums.
+
+**Full explanation.**
+
+| | `HashSet` | `LinkedHashSet` | `TreeSet` | `EnumSet` |
+|---|---|---|---|---|
+| Backed by | `HashMap` [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java) | `LinkedHashMap` [Src: JDK 25, java.util.LinkedHashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashSet.java) | `TreeMap` (a `NavigableMap`) [Src: JDK 25, java.util.TreeSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeSet.java) | a `long` bit vector, or `long[]` above 64 constants [Src: JDK 25, java.util.EnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumSet.java) |
+| Iteration order | unspecified | insertion order | sorted | declaration order |
+| Duplicate test | `hashCode` + `equals` | `hashCode` + `equals` | `compareTo` or comparator returns 0 | same constant |
+| `add`, `remove`, `contains` | constant time | constant time | "guaranteed log(n)" [Src: JDK 25, java.util.TreeSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeSet.java) | constant time |
+| `null` element | one allowed | one allowed | `NullPointerException` under natural ordering | rejected |
+
+The rows come from the classes' JDK 25 sources ([Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java) [Src: JDK 25, java.util.LinkedHashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashSet.java) [Src: JDK 25, java.util.TreeSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeSet.java) [Src: JDK 25, java.util.EnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumSet.java)) and are run in [§5](#5-sets-views-of-maps): `LinkedHashSet` turns `[c, a, c, b, a]` into `[c, a, b]`; a `TreeSet` with `String.CASE_INSENSITIVE_ORDER` refuses `"A"` after `"a"`; `TreeSet` rejects `null`; `EnumSet.range(MONDAY, FRIDAY)` iterates the weekdays in order [Lab: SetsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s05/SetsTest.java). `LinkedHashSet` iterates in time proportional to its size, not its capacity, because it follows the linked list of its `LinkedHashMap` ([Q04.14](#q04-14)). `TreeSet`, as a `NavigableSet`, also answers `first()`, `floor(e)`, `ceiling(e)` and range views such as `subSet`, which are live like `headMap` ([Q04.16](#q04-16)). `EnumSet` has no public constructor: the static factories choose `RegularEnumSet` or `JumboEnumSet` by the number of constants [Src: JDK 25, java.util.EnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumSet.java), and its bulk operations on another `EnumSet` work on whole words of bits: `RegularEnumSet.containsAll` is one expression, `(es.elements & ~elements) == 0` [Src: JDK 25, java.util.RegularEnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/RegularEnumSet.java).
+
+**Follow-ups an interviewer will ask.**
+- *How do you deduplicate a list and keep its order?* `new ArrayList<>(new LinkedHashSet<>(list))`, which keeps the first occurrence of each element in its original position, because re-adding an element does not move it [Lab: SetsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s05/SetsTest.java).
+- *Can `LinkedHashSet` be access-ordered like `LinkedHashMap`?* No: its constructors always build an insertion-ordered map [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java).
+- *Which one for a thread-safe set?* None of these: `ConcurrentHashMap.newKeySet()` [Src: JDK 25, java.util.concurrent.ConcurrentHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java), `ConcurrentSkipListSet` or `CopyOnWriteArraySet` [Doc: Java 25 API, java.util.concurrent package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/package-summary.html), chosen in [12](12-concurrency-locks-atomics-collections.md).
+
+**Trap to avoid.** Picking `TreeSet` "because sorted is nicer". It costs a comparison per tree level on every operation and an entry object per element; pay for it only when the program uses the order.
+
+</details>
 
 <a id="q04-21"></a>
 ### Q04.21 · Output · A `PriorityQueue` of `[5, 1, 4, 2, 3]`: what do `toString()` and repeated `poll()` print?
 
+The numbers are offered one at a time, in this order. What are the three lines?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_21.java
+        PriorityQueue<Integer> queue = new PriorityQueue<>();
+        for (int n : new int[] {5, 1, 4, 2, 3}) {
+            queue.offer(n);
+        }
+        System.out.println(queue);
+        List<String> polled = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            polled.add(String.valueOf(queue.poll()));
+        }
+        System.out.println(String.join(" ", polled));
+        System.out.println(queue);
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+[1, 2, 4, 5, 3]
+1 2 3 4 5
+[]
+```
+
+`toString()` prints the heap array, which puts the minimum first but is not sorted; only `poll()` follows priority order, smallest first. After the polls the queue is empty.
+
+**Full explanation.** A `PriorityQueue` is a binary min-heap in an array: the children of `queue[n]` are at `2n + 1` and `2n + 2`, and every parent is less than or equal to its descendants [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java). `offer` appends the element and sifts it up while it is smaller than its parent at `(k - 1) >>> 1` [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java). Tracing the five offers: 5 → `[5]`; 1 is smaller than its parent 5, so they swap → `[1, 5]`; 4 stays under 1 → `[1, 5, 4]`; 2 lands at index 3 under 5, moves up past it, and stops under 1 → `[1, 2, 4, 5]`; 3 lands at index 4 under 2 and stays → `[1, 2, 4, 5, 3]`. `toString()` walks that array, as the iterator does, which is "not guaranteed to traverse the elements of the priority queue in any particular order" [Doc: Java 25 API, java.util.PriorityQueue](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html). Each `poll` removes the root, moves the last element to the root and sifts it down, so it always returns the least remaining element [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java). The lab asserts the three lines [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). [§6](#6-queues-and-deques-arraydeque-and-priorityqueue) draws a heap of the same kind as a tree.
+
+**Follow-ups an interviewer will ask.**
+- *Does `new PriorityQueue<>(List.of(5, 1, 4, 2, 3))` print the same?* For this input, yes, but not in general: the collection constructor runs `heapify` (Floyd's O(n) algorithm) instead of n offers [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java). In the lab, three offers of 3, 2, 1 give `[1, 3, 2]`, while the constructor turns `[3, 2, 1]` into `[1, 2, 3]` [Lab: Q04QueuesAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04QueuesAndIteratorsTest.java). Code that depends on either layout is wrong.
+- *How do you print the elements in priority order without emptying the queue?* Sort a copy: the Javadoc suggests `Arrays.sort(pq.toArray())` [Doc: Java 25 API, java.util.PriorityQueue](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html), or poll a copy.
+- *How do you make it a max-heap?* Pass `Comparator.reverseOrder()`; the head is "the least element with respect to the specified ordering", so reversing the ordering serves the largest first ([§6](#6-queues-and-deques-arraydeque-and-priorityqueue)).
+
+**Trap to avoid.** Answering `[1, 2, 3, 4, 5]` for the first line. Only the head is guaranteed to be the minimum; the rest of the array is in heap order.
+
+</details>
+
 <a id="q04-22"></a>
 ### Q04.22 · Difference · `ArrayDeque` vs `Stack` vs `LinkedList` as a stack or a queue
+
+You need a stack in one place and a FIFO queue in another, both on one thread. Compare `ArrayDeque`, `Stack` and `LinkedList` for the job.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Use `ArrayDeque` for both: a circular array with amortized constant-time operations at either end, no locking and no node per element, which its Javadoc expects to be faster than `Stack` as a stack and faster than `LinkedList` as a queue. `Stack` is a legacy `Vector` subclass with synchronized methods, inherited index operations and bottom-first iteration. `LinkedList` works as either but allocates a node per element; its one advantage is that it accepts `null`, which a queue should never hold anyway.
+
+**Full explanation.**
+
+| | `ArrayDeque` | `Stack` | `LinkedList` |
+|---|---|---|---|
+| Structure | circular array, grows when full [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java) | `Vector`: array, doubles [Src: JDK 25, java.util.Stack](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Stack.java) | doubly linked nodes [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java) |
+| Locking | none, not thread-safe [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java) | `synchronized` methods inherited from `Vector` [Src: JDK 25, java.util.Stack](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Stack.java) | none [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java) |
+| Stack operations | `push`, `pop`, `peek` (`Deque`) | `push`, `pop`, `peek`, `empty` | `push`, `pop`, `peek` (`Deque`) |
+| Queue operations | `offer`, `poll`, `peek` | none: not a `Queue` | `offer`, `poll`, `peek` |
+| Iteration after push 1, 2, 3 | `[3, 2, 1]` | `[1, 2, 3]` | `[3, 2, 1]` |
+| `null` elements | rejected | accepted | accepted |
+| Index access | none | `get(i)` and the rest of `List` | `get(i)`, a walk |
+
+The structure and locking rows come from the sources ([Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java) [Src: JDK 25, java.util.Stack](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Stack.java) [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java)); the iteration and `null` rows are asserted in the lab: after `push(1)`, `push(2)`, `push(3)` all three peek 3, but the `Stack` iterates bottom first, and `Stack` and `LinkedList` accept a pushed `null` while `ArrayDeque.push(null)` throws `NullPointerException` [Lab: Q04QueuesAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04QueuesAndIteratorsTest.java). The `ArrayDeque` Javadoc sums up the choice: it "is likely to be faster than `Stack` when used as a stack, and faster than `LinkedList` when used as a queue" [Doc: Java 25 API, java.util.ArrayDeque](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayDeque.html), and both `Deque` and `Stack` recommend `Deque` over `Stack` [Src: JDK 25, java.util.Deque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Deque.java) [Src: JDK 25, java.util.Stack](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Stack.java). The reasons are those of [§6](#6-queues-and-deques-arraydeque-and-priorityqueue): the ring never shifts, `Stack` takes a monitor on every call, and a `LinkedList` allocates a node per element. `null` matters because `poll` and `peek` return `null` for "empty", so a `null` element makes an empty queue and a queue holding `null` indistinguishable ([§6](#6-queues-and-deques-arraydeque-and-priorityqueue)).
+
+**Follow-ups an interviewer will ask.**
+- *What type should the variable have?* `Deque<T>` for a stack and `Queue<T>` for a FIFO queue, so callers see only the role's operations and the implementation can change ([§6](#6-queues-and-deques-arraydeque-and-priorityqueue)).
+- *Migrating from `Stack` to `ArrayDeque`, what can break?* Anything that iterates, prints or serializes the stack, because the iteration order flips, and any caller of the `List` methods `Stack` inherited, such as `get(0)` for the bottom element ([§6](#6-queues-and-deques-arraydeque-and-priorityqueue), [Q04.08](#q04-08)).
+- *And when threads share the queue?* None of the three: a `BlockingQueue` or a concurrent deque, chosen in [12](12-concurrency-locks-atomics-collections.md).
+
+**Trap to avoid.** "`Stack` is the stack class, and `LinkedList` is the queue class." Both are legacy habits; `ArrayDeque` is the default for both roles, and the JDK documentation says so.
+
+</details>
 
 <a id="q04-23"></a>
 ### Q04.23 · Output · Bug hunt · Removing elements inside a for-each loop: which removal throws, and which silently skips an element?
 
+What does `main` print? Then find the bug in `dropBlockedBuggy`, which should remove every blocked user.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_23.java
+    public static void main(String[] args) {
+        System.out.println(removeInLoop(new ArrayList<>(List.of("a", "b", "c", "d")), "b"));
+        System.out.println(removeInLoop(new ArrayList<>(List.of("a", "b", "c")), "b"));
+        System.out.println(removeInLoop(new ArrayList<>(List.of("a", "b", "c")), "c"));
+    }
+
+    // Removes doomed through the list while a for-each loop walks it, and reports what happened.
+    static String removeInLoop(List<String> list, String doomed) {
+        List<String> visited = new ArrayList<>();
+        try {
+            for (String s : list) {
+                visited.add(s);
+                if (s.equals(doomed)) {
+                    list.remove(s);
+                }
+            }
+            return "visited " + visited + ", list " + list;
+        } catch (ConcurrentModificationException e) {
+            return "visited " + visited + ", then ConcurrentModificationException";
+        }
+    }
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_23.java
+    // The review snippet: meant to drop every blocked user.
+    public static List<String> dropBlockedBuggy(List<String> source, Set<String> blocked) {
+        List<String> users = new ArrayList<>(source);
+        for (String user : users) {
+            if (blocked.contains(user)) {
+                users.remove(user);
+            }
+        }
+        return users;
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+visited [a, b], then ConcurrentModificationException
+visited [a, b], list [a, c]
+visited [a, b, c], then ConcurrentModificationException
+```
+
+Removing an early element throws on the next `next()`. Removing the second-to-last element makes `hasNext()` false, so the loop ends without an exception and never visits `c`. Removing the last element throws, although nothing was left to visit. `dropBlockedBuggy` has the same defect: with `bob` and `cy` blocked in `[ann, bob, cy]`, it removes `bob`, stops, and returns `[ann, cy]` with a blocked user still in it.
+
+**Full explanation.** A for-each loop over a list is an `Iterator` loop ([Doc: JLS 25 §14.14.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.14.2)). `ArrayList`'s iterator copies `modCount` when it is created, `next()` throws `ConcurrentModificationException` when the counts differ, and `hasNext()` only compares `cursor` with `size` [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). `list.remove(s)` is a structural change that increments `modCount` and shrinks the list. With four elements, removing `b` leaves cursor 2 and size 3: `hasNext()` is true and `next()` throws. With three, removing `b` leaves cursor 2 and size 2: the loop ends quietly. Removing `c` leaves cursor 3 and size 2: `hasNext()` is true because 3 ≠ 2, and `next()` throws. The lab asserts all three lines and the bug [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java); [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot) has the same three cases as a table. The bug passes a test that blocks only `bob` (second-to-last, and alone), returns a wrong list with no error when `bob` and `cy` are both blocked, and throws when `ann` is blocked [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_23.java
+    // The fix: removeIf removes every match in one call; ArrayList overrides it to compact the array once.
+    public static List<String> dropBlockedFixed(List<String> source, Set<String> blocked) {
+        List<String> users = new ArrayList<>(source);
+        users.removeIf(blocked::contains);
+        return users;
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Is `Iterator.remove` also a fix?* Yes: it removes the element last returned and resynchronizes the iterator's count, so the loop continues [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). Use it when the loop needs the removed elements; on a large `ArrayList` each call shifts the tail, while `removeIf` compacts once ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+- *Would a `CopyOnWriteArrayList` fix it?* The exception disappears, because its iterator walks a snapshot, but every removal copies the array ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot), [12](12-concurrency-locks-atomics-collections.md)). It hides the design problem at a cost; `removeIf` solves it.
+- *Is there another thread involved?* No. All three outcomes are deterministic on one thread; the exception's Javadoc says it "does not always indicate that an object has been concurrently modified by a different thread" [Src: JDK 25, java.util.ConcurrentModificationException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ConcurrentModificationException.java).
+
+**Trap to avoid.** Saying "removing inside a for-each loop always throws". The second-to-last case does not, and it is the one that ships, because it fails silently.
+
+</details>
+
 <a id="q04-24"></a>
 ### Q04.24 · Concept · `Iterator` and `ListIterator`: the cursor, `remove`, `set`, `add`, and the order a collection defines
+<!-- ledger: core-java-240-07-15, core-java-240-07-16, core-java-240-07-17, core-java-pdf-01-19, core-java-pdf-01-37 -->
+
+Is `Iterator` a class or an interface, what are its methods, and in what order does it return elements? How does `ListIterator` differ?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `Iterator` is an interface with `hasNext()`, `next()` and an optional `remove()` that deletes the element the last `next()` returned, at most once per `next()`. The order is whatever the collection defines: index order for a list, sorted for a `TreeSet`, unspecified for a `HashSet`. `ListIterator`, for lists, has a cursor between elements and adds `hasPrevious`/`previous`, `nextIndex`/`previousIndex`, `set` to replace the last returned element, and `add` to insert at the cursor. Most `java.util` iterators are fail-fast.
+
+**Full explanation.** `java.util.Iterator` is an interface, and every `Collection` provides one through `Iterable.iterator()`. `remove()` "removes from the underlying collection the last element returned by this iterator (optional operation)" and "can be called only once per call to `next`"; misuse throws `IllegalStateException`, and the default implementation throws `UnsupportedOperationException` [Src: JDK 25, java.util.Iterator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Iterator.java), which the lab checks for both misuses [Lab: IteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s07/IteratorsTest.java). The iterator follows the collection's own order: in the lab, `pear, apple, fig` iterates in that order from an `ArrayList` and a `LinkedHashSet`, sorted from a `TreeSet`, and top first from a deque they were pushed onto [Lab: IteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s07/IteratorsTest.java). `ListIterator` "has no current element; its cursor position always lies between the element that would be returned by a call to `previous()` and the element that would be returned by a call to `next()`" [Src: JDK 25, java.util.ListIterator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ListIterator.java). `add(e)` inserts before the cursor, so "a subsequent call to `next` would be unaffected, and a subsequent call to `previous` would return the new element"; `set(e)` replaces the element last returned by `next` or `previous` and "can be made only if neither `remove` nor `add` have been called after" that call [Src: JDK 25, java.util.ListIterator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ListIterator.java). In the lab, a loop that calls `set` with the upper-case word and then `add("|")` turns `[a, b, c]` into `[A, |, B, |, C]`, and a `set` right after an `add` throws `IllegalStateException` [Lab: Q04QueuesAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04QueuesAndIteratorsTest.java). The iterators of `ArrayList`, `HashMap` and the other general-purpose classes are fail-fast, and `Iterator.remove` (with `ListIterator.add` and `set`) is the way to change the list during the loop without breaking it; [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot) explains the `modCount` check and the iterators that never throw.
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_24.java
+    // Upper-cases each word in place and inserts a "|" after every word but the last.
+    public static List<String> withSeparators(List<String> words) {
+        List<String> result = new LinkedList<>(words);
+        for (ListIterator<String> it = result.listIterator(); it.hasNext(); ) {
+            it.set(it.next().toUpperCase(Locale.ROOT));
+            if (it.hasNext()) {
+                it.add("|");
+            }
+        }
+        return result;
+    }
+```
+
+On a `LinkedList`, each `add` through the iterator relinks two neighbours in constant time; the same insertions with `list.add(index, e)` would each walk to the index ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)) [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java).
+
+**Follow-ups an interviewer will ask.**
+- *How do you walk a list backwards?* Start the cursor after the last element with `listIterator(list.size())` and call `previous()` while `hasPrevious()`; the lab's `reversedCopy` turns `[a, b, c]` into `[c, b, a]` [Lab: Q04QueuesAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04QueuesAndIteratorsTest.java). Since Java 21, `list.reversed()` gives a reverse-ordered view instead ([§1](#1-the-collections-framework-interfaces-contracts-and-sequenced-collections)).
+- *What do alternating `next()` and `previous()` return?* The same element each time, as the Javadoc notes [Src: JDK 25, java.util.ListIterator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ListIterator.java): the cursor moves back and forth over one element.
+- *What came before `Iterator`?* `Enumeration` (`hasMoreElements`, `nextElement`), with no `remove`, still returned by `Vector.elements()` and `Hashtable.keys()` ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot), [Q04.12](#q04-12)).
+
+**Trap to avoid.** Describing the cursor as "pointing at the current element". A `ListIterator` has no current element; that model gets `add`, `previous` and `nextIndex` wrong.
+
+</details>
 
 <!-- /TASK: QB-M04-03 -->
 

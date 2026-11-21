@@ -479,6 +479,10 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-overview.html
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-designfaq.html
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.3
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ConcurrentSkipListMap.java
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.7
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/reflect/Method.java
 
 ## 17 spring-transactions
 
