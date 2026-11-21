@@ -1251,25 +1251,25 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
 - Done by: S20261120-1801-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
 
 ### SEC-M04-03 · M · §3 `HashMap` internals
-- Status: `todo` · Deps: SEC-M04-02 · needs: none
+- Status: `done` · Deps: SEC-M04-02 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-03`), lab `m04/s03/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
 - Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §3; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §3 (M04 §3); src.zip for JDK sources.
 - Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-0002-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
 
 ### SEC-M04-04 · M · §4 Ordered and special-purpose maps
-- Status: `todo` · Deps: SEC-M04-03 · needs: none
+- Status: `done` · Deps: SEC-M04-03 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-04`), lab `m04/s04/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
 - Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §4; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §4 (M04 §3); src.zip for JDK sources.
 - Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-0002-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
 
 ### SEC-M04-05 · M · §5 Sets: views of maps
-- Status: `todo` · Deps: SEC-M04-04 · needs: none
+- Status: `done` · Deps: SEC-M04-04 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-05`), lab `m04/s05/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
 - Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §5; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §5 (M04 §3); src.zip for JDK sources.
 - Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-0002-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
 
 ### SEC-M04-06 · M · §6 Queues and deques: `ArrayDeque` and `PriorityQueue`
 - Status: `todo` · Deps: SEC-M04-05 · needs: none
