@@ -1328,18 +1328,18 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
 - Done by: S20261121-1501-claudecode-cloud (claude-opus-5-5)
 
 ### QB-M04-04 · M · Q04.25–Q04.32
-- Status: `todo` · Deps: SEC-M04-07, -08, -09, -10 · needs: none
+- Status: `done` · Deps: SEC-M04-07, -08, -09, -10 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `QB-M04-04`), lab `m04/outputs/**` (main `Q04_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M04](modules/M04.md) §5 rows Q04.25–Q04.32 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M04 §5 lists rows (and fixes the source errors M04 §3 lists), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-1801-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M04-01 · M · Ex04.1 · A bounded LRU cache on `LinkedHashMap`
-- Status: `todo` · Deps: SEC-M04-01, SEC-M04-04 · needs: none
+- Status: `done` · Deps: SEC-M04-01, SEC-M04-04 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `EX-M04-01`), lab `m04/ex1/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M04](modules/M04.md) §6 row Ex04.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M04 §6 criterion has a test `@DisplayName("Ex04.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-1801-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M04-02 · M · Ex04.2 · A minimal hash map: buckets, spreading and resize
 - Status: `todo` · Deps: SEC-M04-03 · needs: none

@@ -483,6 +483,9 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.7
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/reflect/Method.java
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/jfr.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.2.4
 
 ## 17 spring-transactions
 

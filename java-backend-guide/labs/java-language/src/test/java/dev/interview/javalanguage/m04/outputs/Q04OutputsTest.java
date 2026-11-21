@@ -9,6 +9,8 @@ import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -108,6 +110,40 @@ class Q04OutputsTest {
         assertThat(Q04_23.dropBlockedFixed(users, Set.of("bob", "cy"))).containsExactly("ann");
         assertThatThrownBy(() -> Q04_23.dropBlockedBuggy(users, Set.of("ann")))
                 .isInstanceOf(ConcurrentModificationException.class);
+    }
+
+    @Test
+    @DisplayName(
+            "Q04.27 · List.of, unmodifiableList, Arrays.asList and Stream.toList answer set, add and contains(null)")
+    void q04_27_printsListBehaviors() {
+        List<String> lines = OutputCapture.linesOf(() -> Q04_27.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly(
+                        "List.of: set UnsupportedOperationException, add UnsupportedOperationException,"
+                                + " contains(null) NullPointerException",
+                        "unmodifiableList: set UnsupportedOperationException, add UnsupportedOperationException,"
+                                + " contains(null) false",
+                        "Arrays.asList: set a, add UnsupportedOperationException, contains(null) false",
+                        "[z, b]",
+                        "Stream.toList: set UnsupportedOperationException, add UnsupportedOperationException,"
+                                + " contains(null) false");
+    }
+
+    @Test
+    @DisplayName("Q04.27 · follow-ups: Collectors.toList accepts both mutators in JDK 25; List.of rejects a no-op set")
+    void q04_27_followUps() {
+        assertThat(Q04_27.probe("Collectors.toList", Stream.of("a", "b").collect(Collectors.toList())))
+                .isEqualTo("Collectors.toList: set a, add true, contains(null) false");
+        assertThatThrownBy(() -> List.of("a", "b").set(0, "a")).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    @DisplayName("Q04.30 · lists and sets compare by contents across classes, arrays by identity")
+    void q04_30_printsEqualityResults() {
+        List<String> lines = OutputCapture.linesOf(() -> Q04_30.main(new String[0]));
+
+        assertThat(lines).containsExactly("true true", "true true", "false false", "false true", "false true");
     }
 
     private static InMemoryCompiler.Result compileBody(String body) {

@@ -2439,28 +2439,393 @@ On a `LinkedList`, each `add` through the iterator relinks two neighbours in con
 <!-- TASK: QB-M04-04 -->
 <a id="q04-25"></a>
 ### Q04.25 · Difference · Fail-fast vs weakly consistent vs snapshot iterators, and why "fail-safe" misleads
+<!-- ledger: core-java-240-08-12, core-java-240-08-13 -->
+
+What are fail-fast iterators, and what are "fail-safe" iterators? Which collections have which, and what does each guarantee when the collection changes during the loop?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A fail-fast iterator (`ArrayList`, `HashMap`, `TreeMap` and the other general-purpose `java.util` classes) compares the collection's modification count on each step and throws `ConcurrentModificationException` once the collection was changed other than through the iterator. It is best-effort, and the usual cause is one thread changing the collection it is looping over. A weakly consistent iterator (`ConcurrentHashMap` and most of `java.util.concurrent`) walks the live structure, never throws, visits each element that existed at its creation exactly once, and may or may not show later changes. A snapshot iterator (`CopyOnWriteArrayList`) walks the array as it was when the iterator was created and never shows later changes. "Fail-safe" is a blog label for the last two together; the JDK does not use it, and it hides the difference between them.
+
+**Full explanation.**
+
+| | Fail-fast | Weakly consistent | Snapshot |
+|---|---|---|---|
+| Examples | `ArrayList`, `LinkedList`, `HashMap`, `TreeMap`, `Vector`, `Hashtable`'s views | `ConcurrentHashMap`, `ConcurrentLinkedQueue`, `EnumMap`, `EnumSet` | `CopyOnWriteArrayList`, `CopyOnWriteArraySet` |
+| Change during the loop | `ConcurrentModificationException` on the next step, best-effort | no exception; later changes may or may not appear | no exception; later changes never appear |
+| Works on | the live structure, checked by a counter | the live structure | the array as it was at `iterator()` |
+| Iterator's own `remove` | supported | supported where the collection supports removal | `UnsupportedOperationException` |
+| Safe with other threads | no: the collection itself is not thread-safe | yes | yes |
+
+*Fail-fast.* The iterator copies `modCount` when it is created, and `next()` throws when the collection's count has moved; only the iterator's own `remove` (and a `ListIterator`'s `add` and `set`) keep the two in step [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). The counter is a plain field, so across threads "fail-fast behavior cannot be guaranteed" and the exception is thrown "on a best-effort basis"; the Javadoc's rule is that "the fail-fast behavior of iterators should be used only to detect bugs" [Src: JDK 25, java.util.ConcurrentModificationException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ConcurrentModificationException.java) [Src: JDK 25, java.util.Vector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Vector.java). That fixes two errors in the usual definition: the exception is not a multi-thread detector, since its most common cause is one thread ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot), [Q04.23](#q04-23)), and it is not guaranteed, so code must never rely on it. Wrapping a list in `Collections.synchronizedList` changes nothing here: the wrapper's `iterator()` returns the backing list's iterator with the source comment "Must be manually synched by user!" [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java), and in the lab that iterator throws after an `add` like a plain `ArrayList`'s [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java).
+
+*Weakly consistent.* The `java.util.concurrent` package summary defines it: such iterators "may proceed concurrently with other operations", "will never throw `ConcurrentModificationException`", and "are guaranteed to traverse elements as they existed upon construction exactly once, and may (but are not guaranteed to) reflect any modifications subsequent to construction" [Doc: Java 25 API, java.util.concurrent package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/package-summary.html). Nothing is copied. How `ConcurrentHashMap` walks its table while other threads resize it is [12](12-concurrency-locks-atomics-collections.md).
+
+*Snapshot.* `CopyOnWriteArrayList` makes "a fresh copy of the underlying array" on every mutation, and its iterator "uses a reference to the state of the array at the point that the iterator was created", so it "will not reflect additions, removals, or changes to the list since the iterator was created" [Src: JDK 25, java.util.concurrent.CopyOnWriteArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java). The copy is paid by every write, not by the iterator.
+
+The lab runs all three against one change, an element added after the iterator was created: the `ArrayList` iterator throws on its next `next()`; a loop over a `ConcurrentHashMap`'s keys that puts a new key per key finishes and sees both original keys once (the test accepts the new keys as seen or not); and the `CopyOnWriteArrayList` iterator yields only the two original elements [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java).
+
+*Why "fail-safe" misleads.* The JDK's words are "fail-fast", "weakly consistent" and "snapshot" ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)). The "fail-safe" label suggests that every non-throwing iterator works on a copy, which is true only of the snapshot kind, and that it is "safe" in some general sense. A weakly consistent loop can see half of a concurrent batch of updates; a snapshot loop can act on an element another thread has already removed. Neither is wrong, but the code must be written for the one it has.
+
+**Follow-ups an interviewer will ask.**
+- *Is `Vector`, being synchronized, fail-safe?* No. Its iterators are fail-fast; its legacy `elements()` `Enumeration` is "not fail-fast", and if the vector is structurally modified meanwhile "the results of enumerating are undefined" [Src: JDK 25, java.util.Vector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Vector.java). `Hashtable`'s `keys()` and `elements()` say the same [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java). Not throwing is not the same as being correct.
+- *Can I catch `ConcurrentModificationException` and retry the loop?* No. Detection is best-effort, so the runs that do not throw may already have read inconsistent state; fix the cause instead: remove through the iterator, iterate a copy, or use a concurrent collection ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+- *Which one do I pick for a list of listeners that many threads read and rarely change?* A snapshot list: the `CopyOnWriteArrayList` Javadoc says the copying "is ordinarily too costly, but may be more efficient than alternatives when traversal operations vastly outnumber mutations" [Src: JDK 25, java.util.concurrent.CopyOnWriteArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java). [Q04.26](#q04-26) is the single-threaded version of that design.
+
+**Trap to avoid.** Defining fail-fast as "throws when another thread modifies the collection" and fail-safe as "iterates over a copy". The first misses the common single-thread case and the best-effort caveat; the second describes only `CopyOnWriteArrayList`, not `ConcurrentHashMap`.
+
+</details>
 
 <a id="q04-26"></a>
 ### Q04.26 · Production scenario · A single-threaded batch job throws `ConcurrentModificationException` from a listener callback
 
+*As the interviewer frames it:* "A nightly settlement job runs on one thread. It publishes a `settled` event for each batch through a small in-house event bus, and about ten listeners react: audit, metrics, notifications, and a one-shot 'first batch of the day' listener that unsubscribes itself after it fires. Since that listener was added, the job fails on the first batch with `ConcurrentModificationException`. On the day someone reordered the subscriptions, it stopped failing, and metrics showed one batch less than audit. There is no second thread anywhere. What is going on?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The bus walks its `ArrayList` of listeners with a for-each loop, and the one-shot listener calls `unsubscribe` from inside that loop, which removes from the list being iterated. The next step of the loop throws, or, when the one-shot listener happens to be second to last, the loop ends early and the last listener never gets the event. Confirm it from the stack trace (top frame `ArrayList$Itr.checkForComodification` under the bus's `publish`) and a test that subscribes a self-removing listener. Fix the bus, not the listener: deliver to a snapshot of the list, and test every position of a listener that unsubscribes.
+
+**Full explanation.**
+
+*What the symptoms say.* One thread rules out a race. A failure that appeared with a new listener and changed with the subscription order points at the loop that calls the listeners. Metrics missing one batch when the job "works" is the silent case of the same bug: [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot) showed that removing the second-to-last element of an `ArrayList` during a for-each loop ends the loop with no exception and skips the last element [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java).
+
+*Hypotheses, most likely first.*
+1. **A callback modifies the list being iterated (re-entrancy).** The listener calls back into the bus while the bus is still in its loop, and `unsubscribe` removes from that same `ArrayList`.
+2. **The bus itself changes the list in the loop**, for example by dropping listeners that threw.
+3. **Another thread after all**, such as a listener that hands work to an executor which later subscribes or unsubscribes. Then the failure would be intermittent and not tied to subscription order.
+4. **The list is sorted or rebuilt during delivery**, for example by priority: `ArrayList.sort` also increments `modCount` ([§9](#9-utilities-sorting-and-collection-equality)).
+
+*Evidence that separates them.* The exception's stack trace is the first evidence. Its top frames are `java.util.ArrayList$Itr.checkForComodification` and `ArrayList$Itr.next`, called from the bus's `publish`; the frame that did the damage, the listener's `unsubscribe`, already returned, so it is not in the trace [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). The lab reproduces exactly that trace with a three-listener bus [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). To find the modifier, read the listeners that the event reached before the failure (the loop had delivered to them), or log the thread name and stack in `subscribe`/`unsubscribe` temporarily. If every log line shows the job's thread and the call comes from inside `publish`, hypothesis 1 holds; a different thread name means hypothesis 3, which is a thread-safety problem for [12](12-concurrency-locks-atomics-collections.md). A `jcmd <pid> Thread.print`, which "prints all threads with stacktraces" [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html), confirms there is only one worker thread. The reorder observation settles it: in the lab, with the one-shot listener second of three, `publish` returns normally and the third listener receives nothing [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java).
+
+*Fix.* Make delivery independent of changes made during delivery. The bus iterates a copy, `List.copyOf(listeners)`, so an unsubscribe affects the next event, not the current one. When listeners are read far more often than they change, a `CopyOnWriteArrayList` gives the same snapshot semantics without the per-event copy, at the cost of a copy per subscribe or unsubscribe [Src: JDK 25, java.util.concurrent.CopyOnWriteArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java). Do not fix it in the listener (for example by unsubscribing "later" with a flag): every future listener would need to know the bus's internals. In the lab, the snapshot bus delivers `job-1` to all three listeners and `job-2` to the two that remain [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_26.java
+    // The incident: publish walks the live list, so an unsubscribe during delivery modifies it mid-loop.
+    public static final class LiveListBus implements Bus {
+
+        private final List<Listener> listeners = new ArrayList<>();
+
+        @Override
+        public void publish(String event) {
+            for (Listener listener : listeners) {
+                listener.onEvent(event, this);
+            }
+        }
+    }
+
+    // The fix: deliver to a snapshot; changes made during delivery apply from the next event.
+    public static final class SnapshotBus implements Bus {
+
+        private final List<Listener> listeners = new ArrayList<>();
+
+        @Override
+        public void publish(String event) {
+            for (Listener listener : List.copyOf(listeners)) {
+                listener.onEvent(event, this);
+            }
+        }
+    }
+```
+
+*Prevention and monitoring.* Add a bus test that subscribes a self-unsubscribing listener first, second to last and last, and checks that every other listener received the event; the middle position is the one that passes silently without such a test. Count deliveries per listener as a metric, so a listener that falls behind the others shows as a gap, not as nothing. Alert on any `ConcurrentModificationException` in job logs rather than retrying the job.
+
+**Follow-ups an interviewer will ask.**
+- *Would `Iterator.remove` help?* Not here: the removal happens in the listener, which has no access to the bus's iterator. `Iterator.remove` fixes loops that decide removal themselves ([Q04.23](#q04-23)).
+- *Should a listener that subscribes another listener during delivery receive the current event?* With a snapshot, no; say so in the bus's contract. The live-list loop has no quiet case for an add: the list grows, so `hasNext()` stays `true` and the next `next()` throws, even when the adding listener is the last one, as the lab shows [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java).
+- *What if the bus is called from several threads?* Then the snapshot taken with `List.copyOf` races with `subscribe` on a plain `ArrayList`; use a `CopyOnWriteArrayList` or a lock ([Q04.25](#q04-25), [12](12-concurrency-locks-atomics-collections.md)).
+
+**Trap to avoid.** Searching for a second thread because the exception's name says "concurrent", or catching it and retrying the batch. One thread, re-entering the bus from a callback, is enough, and the retry hides the silent skip.
+
+</details>
+
 <a id="q04-27"></a>
 ### Q04.27 · Output · `List.of`, `Collections.unmodifiableList`, `Arrays.asList` and `Stream.toList()`: which calls throw for `set`, `add` and `contains(null)`?
+
+Each list holds `a` and `b`. `probe` calls `set(0, "z")`, then `add("z")`, then `contains(null)` on its list and prints each return value or the simple name of the exception. What are the five lines?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_27.java
+    public static void main(String[] args) {
+        String[] array = {"a", "b"};
+        System.out.println(probe("List.of", List.of("a", "b")));
+        System.out.println(probe("unmodifiableList", Collections.unmodifiableList(new ArrayList<>(List.of("a", "b")))));
+        System.out.println(probe("Arrays.asList", Arrays.asList(array)));
+        System.out.println(Arrays.toString(array));
+        System.out.println(probe("Stream.toList", Stream.of("a", "b").toList()));
+    }
+
+    // Calls set, add and contains(null) in that order and reports each result or exception.
+    static String probe(String name, List<String> list) {
+        return name + ": set " + outcome(() -> list.set(0, "z"))
+                + ", add " + outcome(() -> list.add("z"))
+                + ", contains(null) " + outcome(() -> list.contains(null));
+    }
+
+    static String outcome(Supplier<Object> call) {
+        try {
+            return String.valueOf(call.get());
+        } catch (RuntimeException e) {
+            return e.getClass().getSimpleName();
+        }
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+List.of: set UnsupportedOperationException, add UnsupportedOperationException, contains(null) NullPointerException
+unmodifiableList: set UnsupportedOperationException, add UnsupportedOperationException, contains(null) false
+Arrays.asList: set a, add UnsupportedOperationException, contains(null) false
+[z, b]
+Stream.toList: set UnsupportedOperationException, add UnsupportedOperationException, contains(null) false
+```
+
+Three of the lists refuse both mutators; only `Arrays.asList` accepts `set`, returns the old element `a`, and writes `z` into the caller's array. Every list refuses `add`. Only `List.of` throws for the `null` query, because it does not allow `null` at all.
+
+**Full explanation.** Each line is one of [§8](#8-immutable-unmodifiable-and-fixed-size-lists)'s three behaviors behind one interface, and the lab asserts all five lines [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java).
+
+- `List.of` builds an immutable list whose mutators "always cause `UnsupportedOperationException` to be thrown" and which disallows `null` elements [Doc: Java 25 API, java.util.List, Unmodifiable Lists](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/List.html#unmodifiable). Its `indexOf`, which `contains` calls, rejects a `null` argument with `NullPointerException`, which the `Collection` contract permits for a collection that restricts its elements [Src: JDK 25, java.util.ImmutableCollections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ImmutableCollections.java) [Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java).
+- `Collections.unmodifiableList` is a view: mutators throw, queries "read through" to the backing `ArrayList`, which answers `contains(null)` with `false` [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java).
+- `Arrays.asList` is a fixed-size list over the array: `set` writes into the array and returns the previous element, while `add` is `AbstractList`'s, which throws [Doc: Java 25 API, java.util.Arrays.asList](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Arrays.html#asList(T...)) [Src: JDK 25, java.util.AbstractList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/AbstractList.java). The fourth line shows the write-through.
+- `Stream.toList()` is unmodifiable by contract [Doc: Java 25 API, java.util.stream.Stream.toList](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#toList()), but unlike `List.of` it allows `null`, so the query is an ordinary `false` [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java).
+
+The order of the calls matters only for `Arrays.asList`: `set` runs first, so the array already holds `z` when `add` fails.
+
+**Follow-ups an interviewer will ask.**
+- *What does `Collectors.toList()` print in the same probe?* `set a, add true, contains(null) false` in JDK 25 [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java), because it collects into an `ArrayList`, but its Javadoc gives "no guarantees on the type, mutability, serializability, or thread-safety" [Doc: Java 25 API, java.util.stream.Collectors.toList](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html#toList()); the lab asserts the `ArrayList` as an implementation fact in [§8](#8-immutable-unmodifiable-and-fixed-size-lists).
+- *Does `set` with the same element throw on `List.of`?* Yes. `AbstractImmutableList` overrides every mutator with an unconditional throw that never looks at its arguments [Src: JDK 25, java.util.ImmutableCollections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ImmutableCollections.java) [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java), which is the "throw unconditionally" style [§1](#1-the-collections-framework-interfaces-contracts-and-sequenced-collections) recommends.
+- *Which of the four can another piece of code still change under you?* The view (through its backing `ArrayList`) and `Arrays.asList` (through the array). `List.of` and `Stream.toList()` results have no other reference to their contents ([§8](#8-immutable-unmodifiable-and-fixed-size-lists), [Q02.16](02-java-equality-immutability-records.md#q02-16)).
+
+**Trap to avoid.** Answering "all four are read-only, so all four throw the same way". They differ on `set` (`Arrays.asList` allows it) and on `contains(null)` (`List.of` throws), and both differences reach production as exceptions far from the line that created the list.
+
+</details>
 
 <a id="q04-28"></a>
 ### Q04.28 · Bug hunt · `Arrays.asList(new int[] {1, 2, 3}).contains(1)` is false: the varargs and primitive-array trap
 
+A review snippet checks a status code against an allow-list kept as an `int[]`. Every request is rejected, including code 1, which is in the list. Find the bug.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_28.java
+    // The review snippet: is code one of the allowed codes?
+    public static boolean isAllowedBuggy(int[] allowedCodes, int code) {
+        return Arrays.asList(allowedCodes).contains(code);
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `Arrays.asList(T... a)` cannot take an `int[]` as `T[]`, because `T` must be a reference type. The compiler therefore passes the whole array as a single varargs element, with `T = int[]`, and the result is a `List<int[]>` holding one element: the array. `contains(code)` boxes `code` to an `Integer` and compares it with that `int[]`, which is never equal, so the method returns `false` for every code. It compiles because `contains` takes `Object`. The fix searches the `int[]` as ints, with `Arrays.stream(allowedCodes).anyMatch(...)`, or keeps the allow-list in a `Set<Integer>`.
+
+**Full explanation.** The signature is `asList(T... a)` [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java), and "type arguments may be either reference types or wildcards" [Doc: JLS 25 §4.5.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1), so `T` cannot be `int` and an `int[]` cannot be passed as the `T[]` itself. Overload resolution then tries variable arity invocation, where each argument is matched against the element type `T` [Doc: JLS 25 §15.12.2.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.2.4); `int[]` is a reference type, so `T = int[]` works and the compiler wraps the array in a one-element `int[][]`. The list then has size 1, and its only element is the caller's array itself, not a copy. `Collection.contains(Object o)` takes `Object` on purpose, so passing an `Integer` to a `List<int[]>` is legal, and the comparison `Integer.equals(int[])` is `false` [Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java). In the lab, `Arrays.asList(new int[] {1, 2, 3})` has one element that is the same array, `isAllowedBuggy(codes, 1)` is `false`, the fixed version finds 1 and rejects 9, and an `Integer[]` passed to `Arrays.asList` gives three elements and `contains(1)` is `true` [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). [§8](#8-immutable-unmodifiable-and-fixed-size-lists) has the same trap next to the other `Arrays.asList` behaviors. The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_28.java
+    // The fix: search the int[] as ints; no boxing, no List.
+    public static boolean isAllowedFixed(int[] allowedCodes, int code) {
+        return Arrays.stream(allowedCodes).anyMatch(allowed -> allowed == code);
+    }
+```
+
+`Arrays.stream(int[])` returns an `IntStream`, so nothing is boxed. For an allow-list checked on every request, build a `Set<Integer>` once (`Arrays.stream(codes).boxed().collect(Collectors.toUnmodifiableSet())`) and call `contains` on it, which is constant time instead of a scan ([§10](#10-choosing-a-collection-complexity-memory-and-workload)).
+
+**Follow-ups an interviewer will ask.**
+- *Does `List.of(codes)` avoid the trap?* No. It has the same `E...` signature, so in the lab `List.of(new int[] {1, 2, 3})` also has size 1 [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java) [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java).
+- *Why does the compiler not catch it?* It does when the target type says what you meant: `List<Integer> codes = Arrays.asList(new int[] {1, 2, 3});` fails to compile with `compiler.err.prob.found.req` (incompatible types), as the lab's in-memory compilation shows [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). Calling `contains` directly on the result gives the compiler no target type to check against, so the bug compiles.
+- *How do you turn an `int[]` into a `List<Integer>`?* `Arrays.stream(codes).boxed().toList()`, which boxes each element into a new unmodifiable list ([§8](#8-immutable-unmodifiable-and-fixed-size-lists)); there is no view over an `int[]` in `java.util`.
+
+**Trap to avoid.** Fixing it with `Arrays.asList(codes).contains(Integer.valueOf(code))`. The element is still the `int[]`, so the answer is still `false`; the problem is the list's element type, not the boxing of the argument.
+
+</details>
+
 <a id="q04-29"></a>
 ### Q04.29 · Concept · Sorting in the JDK: which sorts are stable, what TimSort brings, and what `Arrays.sort(int[])` uses
+<!-- ledger: honeywell-optum-md-01-08 -->
+
+Which algorithm does `Collections.sort` use? Is it stable, and why does that matter? What does `Arrays.sort` use for an `int[]`, and is that a problem?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Every object sort in the JDK, `List.sort`, `Collections.sort` and `Arrays.sort(Object[])`, is TimSort: a stable, adaptive merge sort, so elements that compare equal keep their input order, and partly sorted input costs far fewer comparisons than n log n. Stability is what makes "sort by the secondary key, then by the primary key" work and keeps ties in arrival order. `Arrays.sort` on primitive arrays uses a Dual-Pivot Quicksort with O(n log n) on all inputs; it makes no stability promise, and none is needed, because two equal `int`s cannot be told apart.
+
+**Full explanation.** `Collections.sort(list, c)` calls `list.sort(c)` ([02 §4](02-java-equality-immutability-records.md#4-ordering-comparable-and-comparator)), and `List.sort` "must not reorder equal elements" [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java). Both end in `Arrays.sort(Object[], …)`, "guaranteed to be stable" and implemented by `TimSort` or, for natural ordering, `ComparableTimSort` [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java). [§9](#9-utilities-sorting-and-collection-equality) walks through the copy-sort-write-back of the default `List.sort` and the merge steps; what the interview question needs is what TimSort brings:
+
+- **Stability.** In the lab, 1,000 records with only ten distinct keys come out of `List.sort` with every group of equal keys in input order [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). That size matters: below `MIN_MERGE = 32` elements TimSort runs only a binary insertion sort [Src: JDK 25, java.util.TimSort](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TimSort.java), so a stability test on five elements never exercises a merge.
+- **Adaptivity.** TimSort scans for runs, the longest ascending sequence or the longest strictly descending one, and reverses a descending run in place; the strictness is what keeps the reversal stable [Src: JDK 25, java.util.TimSort](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TimSort.java). The `List.sort` implementation note promises "far fewer than n lg(n) comparisons when the input array is partially sorted" and about n for nearly sorted input [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java). In the lab, counting the comparator's calls on JDK 25, sorting 1,000 elements that are already ascending, or strictly descending, takes exactly 999 comparisons (one run found and done), while a shuffled copy takes more than five times as many [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). The exact count is an observation of this implementation; the contract is the "approximately n" wording.
+- **Contract checking as a side effect.** Its merges detect some inconsistent comparators and throw `IllegalArgumentException: Comparison method violates its general contract!` ([§9](#9-utilities-sorting-and-collection-equality), [Q02.13](02-java-equality-immutability-records.md#q02-13)).
+
+For primitives, `Arrays.sort(int[])` and its siblings use "a Dual-Pivot Quicksort by Vladimir Yaroslavskiy, Jon Bentley, and Joshua Bloch" that "offers O(n log(n)) performance on all data sets" [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java); the implementation falls back to heap sort when recursion gets too deep, which is how it avoids quicksort's quadratic worst case [Src: JDK 25, java.util.DualPivotQuicksort](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/DualPivotQuicksort.java). Its Javadoc says nothing about stability, and an `int` has no identity or second field that could reveal an order among equal values. When you sort objects by an `int` key, you sort objects, so TimSort and its stability apply.
+
+**Follow-ups an interviewer will ask.**
+- *When would you rely on stability instead of a `thenComparing` chain?* When the second ordering already exists, such as rows that arrive in time order and must be grouped by status with time order kept inside each group: one stable sort by status does it. Writing both keys in one comparator is clearer when you sort from scratch ([§9](#9-utilities-sorting-and-collection-equality)).
+- *Is `stream().sorted()` stable?* For an ordered stream, yes: the `Stream.sorted` Javadoc says "for ordered streams, the sort is stable" [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java). Streams themselves are [05](05-java-lambdas-streams-optional.md).
+- *How much memory does a sort need?* TimSort uses temporary storage from "a small constant for nearly sorted input arrays" up to "n/2 object references for randomly ordered input arrays" [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java); the default `List.sort` also copies the list into an array first.
+
+**Trap to avoid.** "`Collections.sort` uses quicksort, so it is not stable." That describes only the primitive overloads of `Arrays.sort`; every object sort is a stable merge sort, by specification.
+
+</details>
 
 <a id="q04-30"></a>
 ### Q04.30 · Output · `equals` across implementations: `ArrayList` vs `LinkedList`, `HashSet` vs `TreeSet`, `List` vs `Set`, and two arrays
 
+What are the five lines?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_30.java
+        List<Integer> arrayList = new ArrayList<>(List.of(1, 2, 3));
+        List<Integer> linkedList = new LinkedList<>(List.of(1, 2, 3));
+        Set<Integer> hashSet = new HashSet<>(List.of(3, 1, 2));
+        Set<Integer> treeSet = new TreeSet<>(List.of(1, 2, 3));
+        int[] a = {1, 2, 3};
+        int[] b = {1, 2, 3};
+        System.out.println(arrayList.equals(linkedList) + " " + (arrayList.hashCode() == linkedList.hashCode()));
+        System.out.println(hashSet.equals(treeSet) + " " + (hashSet.hashCode() == treeSet.hashCode()));
+        System.out.println(arrayList.equals(treeSet) + " " + treeSet.equals(arrayList));
+        System.out.println(a.equals(b) + " " + Arrays.equals(a, b));
+        System.out.println(List.of(a).equals(List.of(b)) + " " + Arrays.deepEquals(new int[][] {a}, new int[][] {b}));
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+true true
+true true
+false false
+false true
+false true
+```
+
+Lists are equal when they hold equal elements in the same order, whatever their class, and sets when they hold the same members; their hash codes are fixed by formula, so they match too. A list never equals a set. Arrays inherit identity `equals`, so only `Arrays.equals` compares their contents, and a list whose elements are arrays inherits the same identity comparison, which `Arrays.deepEquals` avoids.
+
+**Full explanation.** Line by line, all asserted in the lab [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java):
+
+1. `List.equals` is true "if and only if the specified object is also a list, both lists have the same size, and all corresponding pairs of elements in the two lists are equal", and `List.hashCode` is the fixed `31 * h + e.hashCode()` fold over the elements, so an `ArrayList` and a `LinkedList` agree on both [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java).
+2. `Set.equals` needs another set of the same size whose every member is contained in this one, and a set's hash code is the sum of its members' hash codes, so insertion order (`3, 1, 2`) and internal structure (hash table or tree) do not matter [Src: JDK 25, java.util.Set](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Set.java) [Src: JDK 25, java.util.AbstractSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/AbstractSet.java).
+3. `AbstractList.equals` returns `false` unless its argument is a `List`, and `AbstractSet.equals` unless it is a `Set` [Src: JDK 25, java.util.AbstractList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/AbstractList.java) [Src: JDK 25, java.util.AbstractSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/AbstractSet.java). The contracts have to say so: if `[1, 2]` and `[2, 1]` both equaled the set `{1, 2}`, transitivity would make the two lists equal, which `List.equals` forbids.
+4. An array's `equals` is `Object.equals`, identity; `Arrays.equals(int[], int[])` compares length and elements [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java).
+5. `List.of(a)` is a `List<int[]>` of one element ([Q04.28](#q04-28)), and `List.equals` compares elements with their `equals`, which for arrays is identity again. `Arrays.deepEquals` descends into nested arrays, and is "appropriate for use with nested arrays of arbitrary depth" [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java).
+
+[§9](#9-utilities-sorting-and-collection-equality) has the definitions and a case where set equality stops being symmetric.
+
+**Follow-ups an interviewer will ask.**
+- *Does a `HashMap` equal a `TreeMap` with the same entries?* Yes: `Map.equals` is `entrySet().equals(…)`, set equality over entries ([§9](#9-utilities-sorting-and-collection-equality), lab-asserted there) [Src: JDK 25, java.util.Map](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Map.java).
+- *Is a set equality check always symmetric?* Only if both sets agree on membership. A `TreeSet` with a case-insensitive comparator equals a `HashSet` holding the other case, and not the reverse ([§9](#9-utilities-sorting-and-collection-equality), [Q02.14](02-java-equality-immutability-records.md#q02-14)).
+- *How do you compare a list and a set by contents?* Decide what "same" means first: as sets, `new HashSet<>(list).equals(set)`, which drops duplicates and order; as lists, sort both into lists and compare.
+
+**Trap to avoid.** Answering line 1 with `false` because the classes differ. Collection equality is defined by the interface, not by `getClass()`; the classes are irrelevant, and only `List` vs `Set` is fixed as unequal.
+
+</details>
+
 <a id="q04-31"></a>
 ### Q04.31 · Trade-off · Choosing a collection for a workload: access pattern, ordering, memory and concurrency
+
+*As the interviewer frames it:* "A login service keeps active sessions in memory: about two million of them. Every request looks a session up by its token and marks it as used. A session expires after 30 minutes without use, and a sweeper removes expired ones every few seconds. An admin page lists a user's sessions. For now one thread owns the store. Which collections do you use, and what changes if some sessions get a 30-day 'remember me' timeout?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** With one fixed timeout, use an access-order `LinkedHashMap` from token to session: lookup is constant time, each `get` moves the session to the tail, so the head is always the least recently used one, and the sweeper removes from the head until it reaches a session that has not expired. Add a `HashMap` from user to the set of that user's tokens for the admin page, and keep both behind one class. With per-session timeouts, use order is no longer expiry order, so index sessions by their deadline in a `TreeMap` or `TreeSet` (log n per update, range removal of everything expired), or use a `PriorityQueue` with lazy deletion. Once request threads share the store, the choice moves to the concurrent collections of 12.
+
+**Full explanation.** Start from the operations and their frequency, as [§10](#10-choosing-a-collection-complexity-memory-and-workload) does: lookup and touch on every request (the hot path), removal of the oldest by idle time every few seconds, a per-user listing now and then.
+
+*Option A: one access-order `LinkedHashMap`.* Access order puts "the order in which its entries were last accessed, from least-recently accessed to most-recently" into the iteration order, and the Javadoc calls it "well-suited to building LRU caches" [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). Basic operations stay constant time ([§10](#10-choosing-a-collection-complexity-memory-and-workload) table) and the `get` that reads the session is also the touch ([§4](#4-ordered-and-special-purpose-maps)). With one timeout for everyone, least recently used is the same as soonest to expire, so the sweeper walks from the head and stops at the first live session: its cost is proportional to what it removes, not to two million. Memory: one `LinkedHashMap.Entry` per session, a `HashMap` node plus `before` and `after` links ([§10](#10-choosing-a-collection-complexity-memory-and-workload) memory table). It wins whenever the expiry order equals the use order.
+
+*Option B: `HashMap` plus a `TreeSet` ordered by deadline.* With mixed timeouts (30 minutes and 30 days), the least recently used session may be a remember-me one that has years left, and access order no longer finds expired sessions. A sorted index by `(deadline, token)` does: each touch removes and re-inserts the session's entry, at the "guaranteed log(n) time cost" of `TreeMap`/`TreeSet` [Src: JDK 25, java.util.TreeMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeMap.java) [Src: JDK 25, java.util.TreeSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeSet.java), and the sweeper clears the head set below a key built from the current time (`headSet(…).clear()` removes through the view) ([§4](#4-ordered-and-special-purpose-maps), [Q04.16](#q04-16)). It costs a tree entry per session on top of the hash node, and log n on every request instead of constant time. It wins when deadlines differ per entry.
+
+*Option C: `HashMap` plus a `PriorityQueue` by deadline.* The heap gives the soonest deadline in constant time and `poll` in O(log n), but `remove(Object)` and `contains` are "linear time" [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java), so moving a session's deadline on each touch is a linear scan of two million entries. The workable version is lazy deletion: push a new `(deadline, token)` on each touch, and when the sweeper polls an entry, drop it if the session's current deadline is later. The queue then holds one entry per touch since the last sweep, which suits rare touches (a job scheduler) better than every request.
+
+*The per-user index.* `HashMap<UserId, Set<Token>>` answers the admin page in constant time per user; the risk is consistency, because every insert and expiry must update both maps. Hide both behind one class with one public API, as [§10](#10-choosing-a-collection-complexity-memory-and-workload)'s `ShipmentTracker` does. An admin page that is rare enough can instead scan the sessions, linear in the store size, and keep a single structure.
+
+| | A: access-order `LinkedHashMap` | B: `HashMap` + `TreeSet` by deadline | C: `HashMap` + `PriorityQueue`, lazy |
+|---|---|---|---|
+| Lookup and touch | constant time | constant lookup, log n re-index | constant lookup, log n push |
+| Sweep | from the head, proportional to the expired | clear the `headSet` below now | `poll` while expired, skipping stale entries |
+| Mixed timeouts | wrong order | correct | correct |
+| Extra objects per session | none beyond the entry's two links | one tree entry | one heap slot per touch since the last sweep |
+
+*Concurrency changes the answer.* None of these classes is thread-safe, and in an access-order `LinkedHashMap` "merely querying the map with `get` is a structural modification" [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java), so even read-only requests need a lock around it. When request threads share the store, the candidates are a lock around option A (simple, one lock on the hot path) or a `ConcurrentHashMap` with a separate expiry structure; that comparison is [12](12-concurrency-locks-atomics-collections.md)'s.
+
+**Follow-ups an interviewer will ask.**
+- *Why not just scan all sessions every few seconds?* Two million checks per sweep, every few seconds, whatever expired; it is linear in the store, while option A's sweep is linear in what it removes. A scan is fine for the rare admin listing, not for the sweep.
+- *Would a `TreeMap` keyed by token give anything?* Sorted tokens, which nobody asked for, at log n per request instead of constant time; pick `TreeMap` for sorted order or ranges only ([§10](#10-choosing-a-collection-complexity-memory-and-workload)).
+- *How do you bound memory if an attacker creates sessions in a loop?* Cap the store and evict the eldest on insert, which `removeEldestEntry` gives option A ([§4](#4-ordered-and-special-purpose-maps), [Exercise 04.1](#ex04-1)); the cap and rate limit per client are the security control ([§10](#10-choosing-a-collection-complexity-memory-and-workload)).
+
+**Trap to avoid.** Naming one "best" collection. The defensible answer names the hot operation, picks the structure that makes it cheap, and states the condition under which the choice flips: here, uniform versus per-session timeouts, and one thread versus many.
+
+</details>
 
 <a id="q04-32"></a>
 ### Q04.32 · Production scenario · An export job slows down quadratically after a `List` implementation change
 
+*As the interviewer frames it:* "A nightly CSV export of 200,000 rows used to take under a minute. After a release it runs for hours and gets killed. Profiling a test run shows a single thread at 100% CPU. The release changed the repository to build its result with `Collectors.toCollection(LinkedList::new)`, so that a header row could be added with `addFirst`. The export code itself did not change: it loops `for (int i = 0; i < rows.size(); i++)` and formats `rows.get(i)`. Doubling the rows in a test makes it about four times slower. What happened, and what do you do?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `get(i)` is constant time on an `ArrayList` but walks the links from the nearer end on a `LinkedList`, so the unchanged indexed loop became quadratic: for 200,000 rows about ten billion link steps instead of 200,000 array reads. Four times slower for twice the rows is the signature. Confirm it with CPU samples or a few thread dumps that all sit in `LinkedList.node`. Fix the loop, which should iterate instead of index, and the repository, which has no reason to return a `LinkedList`; prevent it with a test or a code-review rule against indexed loops over a `List` of unknown type.
+
+**Full explanation.**
+
+*What the symptoms say.* One busy thread with no I/O wait rules out the database and the disk. A time that grows with the square of the input points to an operation that is linear per row, inside a loop over the rows. The change that came with the release swapped the list's class; the code that uses it did not change, so the cost moved inside one of its calls.
+
+*Hypotheses, most likely first.*
+1. **Indexed access on a sequential list.** `LinkedList.get(i)` calls `node(i)`, which follows `next` from the first node when `i` is in the first half and `prev` from the last otherwise [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java). The loop calls it for every `i`, so the total is the sum of `min(i, n - 1 - i)`, which is n(n − 2)/4 for an even n: 2,499,950,000 steps for 100,000 rows and 9,999,900,000 for 200,000, four times as many for twice the rows (derived from `node(int)`; the arithmetic is checked in the lab) [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). Each step is a dependent load from a node that may be anywhere on the heap ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)).
+2. **Another linear call per row** with the same growth: `contains` or `indexOf` on a list to skip duplicates ([§10](#10-choosing-a-collection-complexity-memory-and-workload)'s opening case), or `remove(0)` on an `ArrayList`.
+3. **String building**, such as `+=` on a growing `String` for the whole file, which also copies more per row as it grows.
+4. **GC pressure** from holding the whole export in memory; then the samples land in the collector and the GC log shows back-to-back collections, not in application code.
+
+*Evidence that separates them.* Take three or four thread dumps a few seconds apart (`jcmd <pid> Thread.print` "prints all threads with stacktraces") [Doc: jcmd, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html), or record the run with JFR (`-XX:StartFlightRecording`) [Doc: java command, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html) and aggregate the samples with `jfr view` or `jfr print` [Doc: jfr, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jfr.html). Hypothesis 1 shows the export thread in `java.util.LinkedList.node` under `LinkedList.get` under the export loop in every dump. Hypothesis 2 shows `ArrayList.indexOf` or `LinkedList.indexOf` instead; hypothesis 3 shows array copying under `StringBuilder` or string concatenation; hypothesis 4 shows in a GC log (`-Xlog:gc`) [Doc: java command, JDK 25](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html). Checking the runtime class confirms it: a `LinkedList` is not `RandomAccess`, an `ArrayList` is [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java).
+
+*Fix.* Change the loop to a for-each loop, which walks the list once with its iterator and is linear for every `List`; in the lab both loops produce the same text from an `ArrayList` and a `LinkedList` [Lab: Q04ListsAndIteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04ListsAndIteratorsTest.java). Then fix the cause in the repository: one `addFirst` does not justify a `LinkedList` for 200,000 rows. Write the header before the rows, or return an `ArrayList` (or `Stream.toList()`, [§8](#8-immutable-unmodifiable-and-fixed-size-lists)) and let the writer emit the header first. The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_32.java
+    // The incident: get(i) is constant time on an ArrayList and a walk from the nearer end on a LinkedList.
+    public static String exportIndexed(List<String> rows, Function<String, String> format) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < rows.size(); i++) {
+            out.append(format.apply(rows.get(i))).append('\n');
+        }
+        return out.toString();
+    }
+
+    // The fix: one iterator walk, linear for every List implementation.
+    public static String exportIterated(List<String> rows, Function<String, String> format) {
+        StringBuilder out = new StringBuilder();
+        for (String row : rows) {
+            out.append(format.apply(row)).append('\n');
+        }
+        return out.toString();
+    }
+```
+
+*Prevention and monitoring.* Code that receives a `List` it did not create should iterate rather than index, or check `instanceof RandomAccess` first, which is what the `RandomAccess` Javadoc asks of generic algorithms because "the best algorithms for manipulating random access lists (such as `ArrayList`) can produce quadratic behavior when applied to sequential access lists (such as `LinkedList`)" [Src: JDK 25, java.util.RandomAccess](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/RandomAccess.java). Keep a performance test that runs the export at two sizes and fails when the time ratio is far above the size ratio. Track job duration against row count, so a change in the growth rate alerts before the job hits its kill limit.
+
+**Follow-ups an interviewer will ask.**
+- *Would `rows.stream().map(format)` have avoided it?* Yes: a stream walks the list with its spliterator, linearly for both classes [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java). Any iteration does; only indexing does not.
+- *Why did no test catch it?* Unit tests use a handful of rows, where n² is tiny. Only a test at two sizes, or production volume, shows the growth rate.
+- *Was `LinkedList` the right idea for `addFirst`?* Only for one cheap insertion, and it made every other operation of the consumers worse. `ArrayList.addFirst` (Java 21) shifts the whole array once, linear but once, and the header could simply be written first ([Q04.06](#q04-06)).
+
+**Trap to avoid.** Measuring with a small test file, seeing no difference, and blaming the database or the disk. A quadratic cost only shows at volume; check the growth rate and the samples before anything else.
+
+</details>
 <!-- /TASK: QB-M04-04 -->
 
 ## Hands-on exercises
@@ -2468,6 +2833,142 @@ On a `LinkedList`, each `add` through the iterator relinks two neighbours in con
 <!-- TASK: EX-M04-01 -->
 <a id="ex04-1"></a>
 ### Exercise 04.1 · A bounded LRU cache on `LinkedHashMap`
+
+**Problem.** A pricing service caches the last few thousand product lookups in a `HashMap` that nobody ever empties, and after a catalog import the heap fills up ([§10](#10-choosing-a-collection-complexity-memory-and-workload)). Write `LruCache<K, V>`: a cache with a fixed capacity that, when full, evicts the least recently used entry, where both reading and writing an entry count as using it. Callers must learn about each eviction (to count it as a metric), and must not be able to bypass the policy through `Map` methods.
+
+**Constraints.** JDK only, no hand-written linked list: build on `LinkedHashMap` ([§4](#4-ordered-and-special-purpose-maps)). The cache is used by one thread. `get` returns an `Optional<V>`.
+
+**Acceptance criteria.**
+- [ ] (1) With capacity 2, after `put(a)`, `put(b)`, `get(a)`, `put(c)`, the keys are `[a, c]` and `b` is gone; a `put` of an existing key replaces its value and also counts as a use.
+- [ ] (2) `get` of an absent key returns an empty `Optional` and does not change the order; `null` keys and values are rejected, so an empty `Optional` always means "absent".
+- [ ] (3) An eviction listener receives each evicted entry exactly once, and nothing when a `put` only replaces a value.
+- [ ] (4) A capacity below 1 is rejected with `IllegalArgumentException`, and a `null` listener with `NullPointerException`.
+- [ ] (5) The class composes a `LinkedHashMap`: it is not a `Map`, its only public methods are `get`, `put`, `size` and `keys`, `keys()` is an unmodifiable snapshot whose reading changes no order, and the class Javadoc says it is not thread-safe.
+
+<details><summary>Hint 1</summary>
+
+One `LinkedHashMap` constructor takes a third argument that switches the iteration order from insertion order to access order. In that order, which entry comes first ([§4](#4-ordered-and-special-purpose-maps), [Q04.14](#q04-14))?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+`LinkedHashMap` asks a protected method, after every insertion of a new key, whether it should remove its eldest entry ([Q04.15](#q04-15)). Overriding it needs a subclass, but nothing says that subclass has to be public.
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Let `LinkedHashMap` keep the use order and do the eviction, and keep that map private so that the class's API is the policy and nothing else.
+1. Create the map with `new LinkedHashMap<>(16, 0.75f, true)`: in access order, iteration runs "from least-recently accessed to most-recently", and `get` and `put` (with the other access methods) move the entry they touch to the end [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). The head is then the least recently used entry.
+2. Override `removeEldestEntry` in a private static subclass. `LinkedHashMap` "is invoked by `put` and `putAll` after inserting a new entry", passing "the least recently accessed entry" in an access-ordered map, and removes it when the method returns `true` [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). Return `size() > capacity`, and tell the listener first. A `put` that replaces a value inserts nothing, so it never reaches the method.
+3. Validate in the constructor: capacity at least 1, listener not `null`. Validate in `put`: no `null` key or value, so that `Optional.ofNullable(entries.get(key))` is empty only for an absent key. `LinkedHashMap.get` returns `null` for an absent key without touching the order, since only a found entry is moved [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java).
+4. Expose `keys()` as `List.copyOf(entries.keySet())`: iterating the key set reads the order without changing it, and the copy cannot be used to change the cache ([§8](#8-immutable-unmodifiable-and-fixed-size-lists)).
+
+```java
+package dev.interview.javalanguage.m04.ex1;
+
+// Module 04 Ex04.1: told about each entry the cache evicts to stay within its capacity.
+@FunctionalInterface
+public interface EvictionListener<K, V> {
+
+    /** Called once per evicted entry, before {@code put} returns. Must not call back into the cache. */
+    void onEviction(K key, V value);
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex1/EvictionListener.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex1/EvictionListener.java)</sub>
+
+```java
+package dev.interview.javalanguage.m04.ex1;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+/**
+ * Module 04 Ex04.1: a bounded least-recently-used cache. It composes an access-order {@link LinkedHashMap}, so
+ * {@code get} and {@code put} are constant time and no other {@code Map} method reaches callers.
+ *
+ * <p>Not thread-safe: even {@code get} reorders the entries. Confine it to one thread, or see module 12 for shared
+ * caches.
+ */
+public final class LruCache<K, V> {
+
+    private final AccessOrderMap<K, V> entries;
+
+    public LruCache(int capacity, EvictionListener<K, V> listener) {
+        if (capacity < 1) {
+            throw new IllegalArgumentException("capacity must be at least 1: " + capacity);
+        }
+        this.entries = new AccessOrderMap<>(capacity, Objects.requireNonNull(listener, "listener"));
+    }
+
+    /** The value for {@code key}, which then becomes the most recently used; empty if absent. */
+    public Optional<V> get(K key) {
+        return Optional.ofNullable(entries.get(key));
+    }
+
+    /** Stores the value as the most recently used, evicting the least recently used entry if the cache is full. */
+    public void put(K key, V value) {
+        entries.put(Objects.requireNonNull(key, "key"), Objects.requireNonNull(value, "value"));
+    }
+
+    public int size() {
+        return entries.size();
+    }
+
+    /** The keys from least to most recently used, as an unmodifiable snapshot. Reading it changes no order. */
+    public List<K> keys() {
+        return List.copyOf(entries.keySet());
+    }
+
+    // The policy lives in removeEldestEntry, which LinkedHashMap calls after each insertion of a new key.
+    private static final class AccessOrderMap<K, V> extends LinkedHashMap<K, V> {
+
+        private final int capacity;
+        private final EvictionListener<K, V> listener;
+
+        AccessOrderMap(int capacity, EvictionListener<K, V> listener) {
+            super(16, 0.75f, true);
+            this.capacity = capacity;
+            this.listener = listener;
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            if (size() <= capacity) {
+                return false;
+            }
+            listener.onEviction(eldest.getKey(), eldest.getValue());
+            return true;
+        }
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex1/LruCache.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex1/LruCache.java)</sub>
+
+`get` and `put` stay constant time: `LinkedHashMap` keeps `HashMap`'s constant-time basic operations, and moving an entry to the end relinks its `before` and `after` neighbours ([§10](#10-choosing-a-collection-complexity-memory-and-workload) table) [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). `keys()` is linear, which is why it is a diagnostic, not part of the hot path.
+
+**How each criterion is met** [Lab: LruCacheTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex1/LruCacheTest.java):
+- (1) `Ex04.1 · (1) capacity 2: put a, put b, get a, put c leaves [a, c] and evicts b`: after the four calls `keys()` is `[a, c]`, `get("b")` is empty and the size is 2. `Ex04.1 · (1) a put of an existing key replaces the value and counts as a use`: `put("a", 10)` after `a` and `b` makes `b` the one evicted by `put("c")`, and `get("a")` returns 10.
+- (2) `Ex04.1 · (2) get of an absent key is empty and changes no order`: `get("x")` is empty, the keys stay `[a, b]`, and the next `put` evicts `a`. `Ex04.1 · (2) null keys and values are rejected, so an empty Optional always means absent`: both `put` calls throw `NullPointerException` (messages `key` and `value`) and nothing is stored.
+- (3) `Ex04.1 · (3) the listener receives each evicted entry exactly once, and none for a replacement`: four keys into capacity 2 report `a=1` and `b=2`, once each; replacing `d` reports nothing.
+- (4) `Ex04.1 · (4) a capacity below 1 is rejected with IllegalArgumentException, a null listener with NPE`: capacities 0 and -1 throw, the message names the value, a `null` listener throws with the message `listener`, and capacity 1 keeps only the latest key.
+- (5) `Ex04.1 · (5) the cache is not a Map and exposes only get, put, size and keys`: by reflection, `LruCache` extends `Object`, is not assignable to `Map`, and declares exactly those four public methods. `Ex04.1 · (5) keys() is an unmodifiable snapshot, and reading it does not count as a use`: `add` on the returned list throws, the list does not change after an eviction, and the next eviction still removes `a`. The thread-safety note is the class Javadoc above.
+
+**Alternative approach:** a `HashMap<K, Node>` plus a hand-written doubly linked list with head and tail sentinels, moving a node to the tail on each use and unlinking the head on overflow: the whiteboard answer when the interviewer forbids `LinkedHashMap`. **Trade-offs:** it shows the mechanism and allows variants such as evicting by weight, but it is the same structure `LinkedHashMap` already implements (an `Entry` is a `HashMap` node with `before` and `after` links) [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java), with more code to get wrong. A third option, subclassing `LinkedHashMap` publicly as [§4](#4-ordered-and-special-purpose-maps) does, is the least code, but every `Map` method then reaches callers, including `getOrDefault`, `compute` and `merge`, which count as accesses in an access-ordered map [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java), and views such as `keySet()` that callers can remove through.
+
+**Interviewer follow-ups.**
+- *Make it safe for several threads.* A lock around every method, `get` included, because in an access-ordered `LinkedHashMap` "merely querying the map with `get` is a structural modification" [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java); `keys()` must hold the same lock while it copies. That serializes every request on one lock; designs that avoid it, and what they give up, are [12](12-concurrency-locks-atomics-collections.md).
+- *What if the listener calls `put` on the same cache?* The listener runs inside `removeEldestEntry`, during the outer `put`. The Javadoc permits that method to modify the map only if it then returns `false`, and "the effects of returning `true` after modifying the map from within this method are unspecified" [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). Hence the "must not call back into the cache" contract on `EvictionListener`; a stricter design records the evicted entry and notifies after `put` returns, the snapshot idea of [Q04.26](#q04-26).
+- *Entries should also expire after ten minutes.* Access order is then still expiry order, as long as every entry has the same time to live, so the eldest entries are also the oldest: `get` can drop an expired entry it finds, and a sweep can remove from the head until it meets a live one. Per-entry lifetimes need an index by deadline ([Q04.31](#q04-31)).
+- *Why reject `null` values instead of storing them?* With `null` stored, `Optional.ofNullable` would turn "cached as nothing" into "absent", and a caller would recompute it on every call. Callers that need to cache "not found" store an explicit marker value.
+
+**Tests:** [LruCacheTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex1/LruCacheTest.java).
+
+</details>
 <!-- /TASK: EX-M04-01 -->
 
 <!-- TASK: EX-M04-02 -->
