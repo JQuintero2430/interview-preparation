@@ -1300,18 +1300,18 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
 - Done by: S20261121-0901-claudecode-cloud (claude-opus-5-5, written in the main session, tests first)
 
 ### SEC-M04-10 · M · §10 Choosing a collection: complexity, memory and workload
-- Status: `todo` · Deps: SEC-M04-09 · needs: none
+- Status: `done` · Deps: SEC-M04-09 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `SEC-M04-10`), lab `m04/s10/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
 - Inputs: [M04](modules/M04.md) §1 (lab design), §2 (boundaries) and §4 entry §10; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §10 (M04 §3); src.zip for JDK sources.
 - Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M04 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M04 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-1201-claudecode-cloud (claude-opus-5-5)
 
 ### QB-M04-01 · M · Q04.01–Q04.08
-- Status: `todo` · Deps: SEC-M04-01, -02 · needs: none
+- Status: `done` · Deps: SEC-M04-01, -02 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `QB-M04-01`), lab `m04/outputs/**` (main `Q04_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M04](modules/M04.md) §5 rows Q04.01–Q04.08 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M04 §5 lists rows (and fixes the source errors M04 §3 lists), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-1201-claudecode-cloud (claude-opus-5-5)
 
 ### QB-M04-02 · M · Q04.09–Q04.16
 - Status: `todo` · Deps: SEC-M04-03, -04 · needs: none

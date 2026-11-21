@@ -473,6 +473,12 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/DualPivotQuicksort.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TimSort.java
 - https://www.oracle.com/java/technologies/compatibility.html
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PrimitiveIterator.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/BitSet.java
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-overview.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-designfaq.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.3
 
 ## 17 spring-transactions
 

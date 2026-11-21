@@ -1329,12 +1329,188 @@ Questions that drill this section: [Q04.29](#q04-29), [Q04.30](#q04-30); `Compar
 ## 10. Choosing a collection: complexity, memory and workload
 <!-- TASK: SEC-M04-10 -->
 ### The problem it solves
+
+A notification job keeps the ids it has already sent in an `ArrayList` and calls `sent.contains(id)` before each send. With a few thousand recipients a day nobody notices. After a campaign to a few million recipients, each check scans the whole list, the total work grows with the square of the list size, and the job runs past its window. A colleague "fixes" it by switching to a `LinkedList`, because "linked lists are fast at inserts", and the job gets slower still. Next door, a pricing cache declared as `Map<Long, Double>` holds a few million entries, and a heap histogram shows that most of the memory is not the prices but the objects around them: one map entry object, one boxed `Long` and one boxed `Double` per price. Neither failure is a bug in the JDK; both come from choosing a class by name instead of by the operations the workload performs, and both could have been read off the class Javadoc beforehand ([Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java)).
+
 ### Mental model
+
+Choosing a collection is choosing how a warehouse stores its stock, and the right layout depends on the question the clerks ask all day. Numbered shelves (an array: `ArrayList`, `ArrayDeque`) answer "what is in slot 7?" at once and are cheap to fill at the end, but inserting in the middle means moving everything after it. A card index by name (a hash table: `HashMap`, `HashSet`) jumps straight to the right drawer, as long as names spread evenly over the drawers. A sorted filing cabinet (a red-black tree: `TreeMap`, `TreeSet`) is slower per lookup but answers "everything between March and May" and "the nearest one before this". A triage desk (a heap: `PriorityQueue`) only ever knows who is most urgent. Every layout also has a fixed cost per item, the boxes and labels around the goods: that is the memory side of the choice. So ask, in order: what do I look things up by, what order do I need, how many items, and who else touches them?
+
+```mermaid
+flowchart TD
+  Q["Most frequent operation?"] -->|"by position, append, iterate"| AL["ArrayList"]
+  Q -->|"add and remove at the ends"| AD["ArrayDeque"]
+  Q -->|"always take the smallest"| PQ["PriorityQueue"]
+  Q -->|"lookup or membership by key"| K{"Key type?"}
+  K -->|"enum constant"| EN["EnumMap / EnumSet"]
+  K -->|"compare by identity"| IH["IdentityHashMap"]
+  K -->|"any other"| O{"Order needed?"}
+  O -->|"none"| HM["HashMap / HashSet"]
+  O -->|"insertion or access"| LH["LinkedHashMap / LinkedHashSet"]
+  O -->|"sorted, ranges"| TM["TreeMap / TreeSet"]
+```
+
+What to notice: no branch leads to `LinkedList`, `Vector`, `Stack` or `Hashtable`, because for each of their jobs another class is documented as the better default (`ArrayDeque` is "likely to be faster than `Stack` when used as a stack, and faster than `LinkedList` when used as a queue"; `Vector` and `Hashtable` recommend `ArrayList` and `HashMap` when thread safety is not needed) [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java) [Src: JDK 25, java.util.Vector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Vector.java) [Src: JDK 25, java.util.Hashtable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Hashtable.java); and two questions sit outside the tree because they apply to every leaf: whether the contents ever change after construction (then an unmodifiable collection, [§8](#8-immutable-unmodifiable-and-fixed-size-lists)) and whether several threads share it (then [12](12-concurrency-locks-atomics-collections.md)).
+
 ### How it actually works
+
+**Start from the access pattern.** Each need maps to the class whose data structure makes that operation cheap; the earlier sections explain each structure, so the table below is a map back to them, not a new lesson.
+
+| Need | Choose | Why (the structure) | Where explained |
+|---|---|---|---|
+| Read by index, append, iterate in order | `ArrayList` | one backing array; `get` and `set` are constant time | [§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack) |
+| Add and remove at both ends: a queue or a stack | `ArrayDeque` | a circular array; most operations amortized constant time | [§6](#6-queues-and-deques-arraydeque-and-priorityqueue) |
+| Membership or lookup by key, no order | `HashSet`, `HashMap` | a hash table; constant time if the hash codes spread well | [§3](#3-hashmap-internals), [§5](#5-sets-views-of-maps) |
+| The same, plus insertion or access order (an LRU cache) | `LinkedHashMap`, `LinkedHashSet` | a hash table plus a doubly linked list through the entries | [§4](#4-ordered-and-special-purpose-maps), [§5](#5-sets-views-of-maps) |
+| Sorted order, floor and ceiling lookups, ranges | `TreeMap`, `TreeSet` | a red-black tree; log(n) per operation | [§4](#4-ordered-and-special-purpose-maps), [§5](#5-sets-views-of-maps) |
+| Always take the most urgent element next | `PriorityQueue` | a binary heap in an array | [§6](#6-queues-and-deques-arraydeque-and-priorityqueue) |
+| Keys or members are enum constants | `EnumMap`, `EnumSet` | an array indexed by ordinal; a bit vector | [§4](#4-ordered-and-special-purpose-maps), [§5](#5-sets-views-of-maps) |
+| Keys compared by identity, not `equals` | `IdentityHashMap` | a linear-probe table keyed by `System.identityHashCode` | [§4](#4-ordered-and-special-purpose-maps) |
+| Contents fixed after construction | `List.of`, `Set.of`, `Map.of`, `copyOf` | compact immutable classes that reject `null` | [§8](#8-immutable-unmodifiable-and-fixed-size-lists) |
+| Shared and modified by several threads | `ConcurrentHashMap`, `CopyOnWriteArrayList`, blocking queues | concurrent designs | [12](12-concurrency-locks-atomics-collections.md) |
+
+**Complexity, as the Javadoc states it.** Interviewers ask for "the Big-O of `TreeMap.get`"; the defensible answer quotes the class documentation, because the documentation is the contract and anything stronger is an implementation detail. Every cell below is quoted or paraphrased from the JDK 25 class comment named in the last column; nothing is extrapolated.
+
+| Class | Operations | Cost, as documented | Basis |
+|---|---|---|---|
+| `ArrayList` | `size`, `isEmpty`, `get`, `set`, `getFirst`, `getLast`, `removeLast`, `iterator`, `listIterator`, `reversed` | "constant time" | [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) |
+| `ArrayList` | `add`, `addLast` | "amortized constant time, that is, adding n elements requires O(n) time" | same |
+| `ArrayList` | all the others (`add(int, E)`, `remove(int)`, `contains`, `indexOf`) | "linear time (roughly speaking)" | same |
+| `LinkedList` | operations that take an index | "traverse the list from the beginning or the end, whichever is closer to the specified index" | [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java) |
+| `HashMap`, `HashSet` | `get`, `put` (`add`, `remove`, `contains`, `size` for the set) | "constant-time performance … assuming the hash function disperses the elements properly among the buckets" | [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java) |
+| `HashMap`, `HashSet` | iteration | "time proportional to the 'capacity' … plus its size" | same |
+| `LinkedHashMap`, `LinkedHashSet` | basic operations | constant time, "likely to be just slightly below that of `HashMap`"; iteration proportional to the size, "regardless of its capacity" | [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java) [Src: JDK 25, java.util.LinkedHashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashSet.java) |
+| `TreeMap`, `TreeSet` | `containsKey`, `get`, `put`, `remove` (`add`, `remove`, `contains` for the set) | "guaranteed log(n) time cost" | [Src: JDK 25, java.util.TreeMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeMap.java) [Src: JDK 25, java.util.TreeSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeSet.java) |
+| `PriorityQueue` | `offer`, `poll`, `remove()`, `add` · `remove(Object)`, `contains` · `peek`, `element`, `size` | "O(log(n))" · "linear time" · "constant time" | [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java) |
+| `ArrayDeque` | most operations · `remove(Object)`, `removeFirstOccurrence`, `removeLastOccurrence`, `contains`, `iterator.remove()`, bulk operations | "amortized constant time" · "linear time" | [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java) |
+| `EnumMap`, `EnumSet` | basic operations (and `EnumSet` bulk operations with an enum-set argument) | "execute in constant time" | [Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java) [Src: JDK 25, java.util.EnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumSet.java) |
+| `IdentityHashMap` | `get`, `put` | "constant-time performance", assuming `System.identityHashCode` "disperses elements properly among the buckets" | [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java) |
+
+Three things in that table are what interviews probe. First, `HashMap`'s constant time is conditional. When many keys share a bin, a lookup walks the bin; since Java 8 a crowded bin becomes a tree, and the source comment says tree bins exist to give "worst-case O(log n)" when keys are `Comparable`, so a flood of colliding `String` keys degrades to a logarithm, not to a linear scan ([§3](#3-hashmap-internals) has the thresholds) [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Second, `LinkedList` has no index: `get(i)` calls the internal `node(int)` method, which walks from the nearer end, so an indexed `for` loop over a `LinkedList` is quadratic in total [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java). Third, Big-O is not the whole cost: the `ArrayList` class comment adds that its "constant factor is low compared to that for the `LinkedList` implementation" [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java), and [§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack) explains why a contiguous array also reads memory more efficiently than nodes scattered over the heap.
+
+**Memory, stated as structure.** This guide does not quote byte counts per element. They depend on the JVM's object layout ([08](08-jvm-memory-and-class-loading.md)), and the lab deliberately has no object-layout tool (M04 plan §1). What the source does fix is how many objects and references each element costs, which is enough to compare classes and to know what a heap histogram will show:
+
+| Class | Storage | Extra objects per element | Basis |
+|---|---|---|---|
+| `ArrayList` | one `Object[] elementData`, whose length (the capacity) is at least the size | none: one array slot per element, plus spare slots | [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) |
+| `ArrayDeque`, `PriorityQueue` | one `Object[]` (`elements`, `queue`) | none | [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java) [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java) |
+| `LinkedList` | a chain of nodes | one `Node` with `item`, `next`, `prev` | [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java) |
+| `HashMap` | a `Node[]` table plus nodes | one `Node` with `hash`, `key`, `value`, `next`; in a treeified bin a `TreeNode`, which adds `parent`, `left`, `right`, `prev` and `red` | [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) |
+| `HashSet` | a `HashMap` whose values are all one shared `PRESENT` object | one `HashMap` node | [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java) |
+| `LinkedHashMap` | a `HashMap` table plus a linked list | one `Entry`: a `HashMap` node plus `before` and `after` | [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java) |
+| `TreeMap` | a red-black tree, no array | one `Entry` with `key`, `value`, `left`, `right`, `parent`, `color` | [Src: JDK 25, java.util.TreeMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeMap.java) |
+| `IdentityHashMap` | one `Object[] table` holding keys at even indexes and values at odd ones | none | [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java) |
+| `EnumMap` | one `Object[] vals` indexed by ordinal | none | [Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java) |
+| `EnumSet` | one `long` bit vector for an enum of up to 64 constants (`RegularEnumSet`), a `long[]` beyond (`JumboEnumSet`) | none | [Src: JDK 25, java.util.EnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumSet.java) [Src: JDK 25, java.util.RegularEnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/RegularEnumSet.java) [Src: JDK 25, java.util.JumboEnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/JumboEnumSet.java) |
+
+In the lab, `EnumSet.allOf` on the four-constant `Status` enum returns a `RegularEnumSet`; the test pins the JDK 25 factory's choice (`universe.length <= 64`), which is not a public contract [Lab: CollectionFootprintTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s10/CollectionFootprintTest.java).
+
+**Boxing is the hidden column.** Collections hold references, so a `List<Integer>` or a `Map<Long, Double>` holds references to `Integer`, `Long` and `Double` objects, created by autoboxing through `valueOf`, because type arguments must be reference types ([01 §13](01-java-oop-fundamentals.md#13-wrappers-autoboxing-and-the-integer-cache) covers wrappers and the cache). `Integer.valueOf` "will always cache values in the range -128 to 127, inclusive, and may cache other values outside of this range" [Src: JDK 25, java.lang.Integer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Integer.java): in the lab, boxing 127 twice into a `List<Integer>` stores the same object twice [Lab: CollectionFootprintTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s10/CollectionFootprintTest.java), and beyond the cache each value is, in general, its own object. A `HashMap<Long, Double>` therefore costs, per entry, one node, one `Long` and one `Double`, while a sorted `long[]` searched with `Arrays.binarySearch` ([§9](#9-utilities-sorting-and-collection-equality)) costs one array slot. The `java.util` package has no collection classes for primitives; its primitive-specialized types are `OptionalInt` and its siblings, the summary-statistics classes, `PrimitiveIterator` and the primitive spliterators [Src: JDK 25, java.util.PrimitiveIterator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PrimitiveIterator.java), plus `BitSet`, "a vector of bits that grows as needed", which is not a `Collection` [Src: JDK 25, java.util.BitSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/BitSet.java). Third-party primitive collection libraries exist; [VERSIONS.md](../VERSIONS.md) lists none, so this guide recommends none.
+
+**Presizing, and the fact that tables never shrink.** When the expected size is known, say so: `new ArrayList<>(n)` or `ensureCapacity`, which "may reduce the amount of incremental reallocation" [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java), and `HashMap.newHashMap(n)`, `HashSet.newHashSet(n)`, `LinkedHashMap.newLinkedHashMap(n)` and `LinkedHashSet.newLinkedHashSet(n)` (Java 19), which take an expected number of entries rather than a capacity ([§3](#3-hashmap-internals) shows why `new HashMap<>(100)` still resizes) [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java) [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java) [Src: JDK 25, java.util.LinkedHashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashSet.java). Oversizing has its own cost, because `HashMap` iteration is proportional to capacity plus size [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The arrays also only grow: `HashMap.resize` "initializes or doubles table size", and `HashMap.clear` and `ArrayList.clear` null out the slots and keep the array [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). A long-lived map that once held a million entries keeps a million-entry table after `clear()`; `ArrayList.trimToSize` exists for lists, and for a map the remedy is to replace it with a new one.
+
 ### Code
+
+The approach: model one small service whose data is read in four different ways, and give each way its own structure instead of forcing one collection to serve all of them. A shipment tracker must find a shipment by id, list the shipments due in a time window, keep the last three status changes of each shipment, and count shipments per current status.
+
+1. Lookup by id is membership by key with no order: a `HashMap`, presized with `newHashMap` from the expected number of shipments.
+2. "Due between 10:00 and 11:00" is a range query over a sorted key: a `TreeMap` keyed by due time, read through the `subMap` view, with a `LinkedHashSet` per instant so ties keep registration order.
+3. "The last three statuses" adds at one end and drops at the other: an `ArrayDeque` per shipment, trimmed at the head when full.
+4. Counts per status are keyed by an enum: an `EnumMap`, which also iterates in declaration order.
+5. Results leave the class as unmodifiable copies or views, so callers cannot corrupt the indexes ([§8](#8-immutable-unmodifiable-and-fixed-size-lists)).
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/s10/ShipmentTracker.java
+public final class ShipmentTracker {
+
+    static final int HISTORY_LIMIT = 3;
+
+    // Lookup by id: a hash table, presized so the expected load never resizes it.
+    private final Map<String, Shipment> byId;
+
+    // Range queries by due time: a red-black tree; ids due at the same instant keep registration order.
+    private final NavigableMap<Instant, SequencedSet<String>> byDue = new TreeMap<>();
+
+    // The last few status changes per shipment: an array-backed deque, trimmed at the head.
+    private final Map<String, Deque<Status>> history;
+
+    public ShipmentTracker(int expectedShipments) {
+        byId = HashMap.newHashMap(expectedShipments);
+        history = HashMap.newHashMap(expectedShipments);
+    }
+
+    public void register(Shipment shipment) {
+        if (byId.putIfAbsent(shipment.id(), shipment) != null) {
+            throw new IllegalArgumentException("duplicate shipment: " + shipment.id());
+        }
+        byDue.computeIfAbsent(shipment.due(), due -> new LinkedHashSet<>()).add(shipment.id());
+        history.put(shipment.id(), new ArrayDeque<>(HISTORY_LIMIT));
+        update(shipment.id(), Status.CREATED);
+    }
+
+    // Half-open window [from, to): subMap is a view, so this walks only the entries inside it.
+    public List<String> dueBetween(Instant from, Instant to) {
+        List<String> ids = new ArrayList<>();
+        for (SequencedSet<String> sameDue : byDue.subMap(from, true, to, false).values()) {
+            ids.addAll(sameDue);
+        }
+        return List.copyOf(ids);
+    }
+
+    public void update(String id, Status status) {
+        Deque<Status> changes = historyOf(id);
+        if (changes.size() == HISTORY_LIMIT) {
+            changes.removeFirst();
+        }
+        changes.addLast(status);
+    }
+
+    // EnumMap: an array indexed by ordinal, iterated in declaration order.
+    public Map<Status, Integer> countByStatus() {
+        Map<Status, Integer> counts = new EnumMap<>(Status.class);
+        for (Deque<Status> changes : history.values()) {
+            counts.merge(changes.getLast(), 1, Integer::sum);
+        }
+        return Collections.unmodifiableMap(counts);
+    }
+}
+```
+
+`ShipmentTrackerTest` checks that `find` returns a registered shipment and an empty `Optional` for an unknown id, that a duplicate id is rejected, that `dueBetween(09:00, 11:00)` returns `early, b, a` (due order, the two 10:00 shipments in registration order, the 11:00 one excluded) and an empty window returns nothing, that after four statuses the history holds the last three oldest first, that `countByStatus` returns `CREATED=1, IN_TRANSIT=1, DELIVERED=1` in declaration order, that unknown ids throw `NoSuchElementException`, that the returned history and counts are unmodifiable, and that a negative expected size is rejected (by `HashMap.newHashMap`) [Lab: ShipmentTrackerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s10/ShipmentTrackerTest.java). Each operation costs what its structure documents: `find` constant time, `dueBetween` a log(n) descent plus the entries in the window, `update` amortized constant, and `countByStatus` one pass over the shipments. The class is not thread-safe; sharing it is [12](12-concurrency-locks-atomics-collections.md)'s subject.
+
 ### Failure modes and operations
+
+- **The wrong structure for the access pattern.** `contains` or `indexOf` on a list inside a loop, `get(i)` over a `LinkedList`, `remove(Object)` on a `PriorityQueue` or `contains` on an `ArrayDeque` are all linear per call [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java) [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java) [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java), so a loop over n items is quadratic. It passes every test with small data and shows up when the data grows: the job's duration grows much faster than its input, and a CPU profile or a few thread dumps show the time inside `ArrayList.indexOf` or `LinkedList.node`. [Q04.32](#q04-32) drills the diagnosis.
+- **Boxed collections in memory-bound services.** Each boxed key or value is an object, and each hash or tree entry is another one (the memory table above), so a `Map<Long, Double>` costs three objects per entry (a node, a `Long`, a `Double`) besides its table slot, where a primitive array costs one slot. Under load this shows as a high live heap and frequent collections ([09](09-jvm-garbage-collection.md)); `jcmd <pid> GC.class_histogram` "provides statistics about the Java heap usage" per class, where such a map appears as large instance counts of `java.util.HashMap$Node` and the boxed type, and the command's documented impact is "High", so run it on one instance, not the whole fleet [Doc: JDK 25 jcmd](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html). Measuring and heap dumps are [10](10-jvm-performance-and-troubleshooting.md)'s subject.
+- **Collections that only grow.** A map used as a cache without a bound grows until the heap is full, and clearing it does not return its table (see "Presizing, and the fact that tables never shrink" above). Bound it (an LRU on `LinkedHashMap`, [§4](#4-ordered-and-special-purpose-maps) and [Exercise 04.1](#ex04-1)), or replace it instead of clearing it. An unbounded queue fails the same way; [§6](#6-queues-and-deques-arraydeque-and-priorityqueue)'s production scenario is that incident.
+- **Oversized hash tables.** A `HashMap` created with a huge capacity "just in case" iterates in time proportional to that capacity even when nearly empty [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java); presize from a real estimate.
+- **Concurrent access.** The mutable classes in this section document that they are not synchronized and must be synchronized externally when one thread modifies them while others use them [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java); choosing a concurrent collection, and what each costs under contention, is [12](12-concurrency-locks-atomics-collections.md).
+
+> [!NOTE]
+> **Version notes.** Java 1.2: `ArrayList`, `LinkedList`, `HashMap`, `TreeMap` [Src: JDK 25, java.util.TreeMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeMap.java). Java 1.4: `LinkedHashMap`, `IdentityHashMap` [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java) [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java). Java 5: `EnumMap`, `EnumSet`, `PriorityQueue` [Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java) [Src: JDK 25, java.util.PriorityQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PriorityQueue.java). Java 6: `ArrayDeque` [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java). Java 8: tree bins in `HashMap`, bounding the cost of colliding `Comparable` keys [Doc: JEP 180](https://openjdk.org/jeps/180). Java 19: `newHashMap`, `newHashSet`, `newLinkedHashMap`, `newLinkedHashSet` [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Java 21: the sequenced methods, which `ArrayList` documents as constant time for `getFirst`, `getLast`, `removeLast` and `reversed` [Doc: JEP 431](https://openjdk.org/jeps/431) [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). Java 25 (default): no change to these complexity statements.
+
 ### Best practices and anti-patterns
+
+- Choose by the most frequent operation, then check the rest against the Javadoc table, because every class is cheap at something and linear at something else.
+- Default to `ArrayList` for sequences and `ArrayDeque` for queues and stacks, because both are documented as constant or amortized constant time for their main operations and store elements in one array; reach for `LinkedList` only after [§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)'s narrow case applies.
+- Use a `HashSet` or `HashMap` for membership tests inside loops instead of `List.contains`, because the list scans and the set does not.
+- Pick `LinkedHashMap` when you need insertion order and `TreeMap` only when you need sorted order or ranges, because the linked map keeps constant-time operations while the tree pays log(n) on every call.
+- Use `EnumMap` and `EnumSet` for enum keys, because they store an array or a bit vector and iterate in declaration order.
+- Presize with `new ArrayList<>(n)` or `HashMap.newHashMap(n)` when n is known, because it removes the resize copies; do not oversize hash tables, because iteration pays for the capacity.
+- Replace a large collection instead of calling `clear()` when it should give memory back, because `clear()` keeps the backing array.
+- Prefer a primitive array (sorted and searched with `Arrays`) to a boxed collection for large read-mostly numeric data, because every boxed element is a separate object.
+- Wrap several structures that must stay consistent in one class with one public API, as `ShipmentTracker` does, because callers that update one index and forget another corrupt the data.
+- **Security:** bound every collection whose size an outside caller controls (request parameters, uploaded rows, header lists) and reject input above the bound, because each element costs heap, so an unbounded collection lets one request exhaust memory; for maps keyed by untrusted strings, keep the keys `String` (which is `Comparable`, so colliding bins degrade to a tree) rather than a custom key type with a weak `hashCode`, as [§3](#3-hashmap-internals)'s hash-flooding scenario explains [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java).
+
 ### Misconceptions and traps
+
+- *"Big-O decides."* Two classes in the same complexity class can differ widely in constant factors and memory layout, and the `ArrayList` Javadoc says its constant factor "is low compared to that for the `LinkedList` implementation" [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java); a `LinkedList` insertion is constant time only once you hold the position, and finding it is a walk ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)). The myth comes from algorithm courses, which compare growth rates on an idealized machine where every memory access costs the same.
+- *"`HashMap` lookups are always O(1)."* They are constant time "assuming the hash function disperses the elements properly"; with collisions a lookup walks the bin, and since Java 8 a treeified bin bounds that walk at O(log n) for `Comparable` keys [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The myth comes from textbooks quoting the average case under uniform hashing, and from benchmarks run on well-spread keys.
+- *"I need a `TreeMap` to keep my map ordered."* A `TreeMap` keeps keys *sorted*; a `LinkedHashMap` keeps them in insertion (or access) order with constant-time operations [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). The myth comes from using "ordered" and "sorted" as synonyms.
+- *"`clear()` frees a collection's memory."* It frees the elements but keeps the backing array, because `HashMap.clear` and `ArrayList.clear` null the slots and keep the table [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java) [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). The belief comes from `size()` returning 0, which looks like an empty object.
+- *"A `List<Integer>` stores `int`s."* It stores references to `Integer` objects, cached only for -128 to 127 [Src: JDK 25, java.lang.Integer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Integer.java) [Lab: CollectionFootprintTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s10/CollectionFootprintTest.java). The myth exists because autoboxing makes `list.add(5)` look like it stores the number ([01 §13](01-java-oop-fundamentals.md#13-wrappers-autoboxing-and-the-integer-cache)).
+
+Questions that drill this section: [Q04.31](#q04-31), [Q04.32](#q04-32); the `ArrayList`-vs-`LinkedList` case itself is [Q04.06](#q04-06).
 <!-- /TASK: SEC-M04-10 -->
 
 ## Summary
@@ -1346,27 +1522,280 @@ Questions that drill this section: [Q04.29](#q04-29), [Q04.30](#q04-30); `Compar
 <!-- TASK: QB-M04-01 -->
 <a id="q04-01"></a>
 ### Q04.01 · Concept · collection, `Collection` and `Collections`: what the framework's root interface promises, and why `Map` is not a `Collection`
+<!-- ledger: core-java-240-07-02, core-java-240-07-03, core-java-240-07-04, core-java-240-07-05, core-java-240-07-06, core-java-240-08-02, core-java-pdf-01-18, core-java-pdf-01-31, core-java-pdf-02-48, core-java-pdf-02-62 -->
+
+What is the Collections Framework for, what is the difference between "a collection", `Collection` and `Collections`, what does `Collection` declare, and where does `Map` fit?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The Collections Framework is the JDK's unified set of collection interfaces, implementations and algorithms, so code can pass collections between unrelated APIs and switch implementations without rewriting callers. "A collection" is the idea, a group of objects; `Collection` is the root interface (size, membership, bulk add and remove, iteration), which promises neither order nor uniqueness; `Collections` is a class of static helpers. `Map` belongs to the framework but is not a `Collection`: its unit is a key-value pair, and it offers three collection views instead.
+
+**Full explanation.** The framework's own overview lists its advantages: it reduces programming effort with ready data structures and algorithms, increases performance because implementations of one interface are interchangeable and can be swapped to tune a program, provides interoperability between unrelated APIs through "a common language to pass collections back and forth", and fosters reuse [Doc: Collections Framework Overview, Java SE 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-overview.html). It did not throw away the older classes: `Vector` and `Hashtable` "were retrofitted to implement the collection interfaces", and arrays stay outside the framework, bridged by the `Arrays` utilities [Doc: Collections Framework Overview, Java SE 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-overview.html), so "it replaces vectors, arrays and hashtables" is the wrong summary. `Collection` declares `size`, `isEmpty` (true when there are no elements), `contains`, `add`, `remove`, the bulk operations `addAll`, `removeAll`, `retainAll` and `removeIf`, which return whether the collection changed, plus `iterator`, `toArray` and `stream`; in the lab, `addAll` of an element already in a `HashSet` returns `false` [Lab: CollectionContractTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s01/CollectionContractTest.java). The JDK has no direct implementation of it; the subinterfaces add the guarantees: `List` (positions), `Set` (no duplicates), `Queue` and `Deque` (ends), and since Java 21 `SequencedCollection` (a defined first and last element), which `List` and `Deque` extend ([Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java) [Src: JDK 25, java.util.SequencedCollection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/SequencedCollection.java); [§1](#1-the-collections-framework-interfaces-contracts-and-sequenced-collections)). `Collections` "consists exclusively of static methods that operate on or return collections" [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java). `Map` extends none of the collection interfaces, "takes the place of the `Dictionary` class", and exposes `keySet()`, `values()` and `entrySet()` as views; assigning a `HashMap` to `Collection<?>` fails with `compiler.err.prob.found.req` in the lab ([Src: JDK 25, java.util.Map](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Map.java) [Lab: CollectionCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s01/CollectionCompileRulesTest.java)).
+
+**Follow-ups an interviewer will ask.**
+- *Why is `Map` not a `Collection` of entries?* The design FAQ answers it: "mappings are not collections and collections are not mappings"; if the elements were key-value pairs, "you can't ask what value a given key maps to, nor can you delete the entry for a given key without knowing what value it maps to". Maps are instead viewable as collections of keys, values or pairs, the three views [Doc: Java Collections API Design FAQ, Java SE 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-designfaq.html).
+- *How do you represent a bag (an unordered collection with duplicates)?* With `Collection` itself: the Javadoc says bags or multisets "should implement this interface directly" [Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java).
+- *Which interfaces extend `Collection`?* In `java.util`: `List`, `Set`, `Queue`, and through them `Deque`, `SortedSet`, `NavigableSet` and the sequenced interfaces; `java.util.concurrent` adds `BlockingQueue` and `TransferQueue` [Doc: Collections Framework Overview, Java SE 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-overview.html).
+
+**Trap to avoid.** Saying "`Collection` is an ordered group of unique elements". The root promises neither; order and uniqueness come from `List`, `Set` and the sequenced interfaces.
+
+</details>
 
 <a id="q04-02"></a>
 ### Q04.02 · Output · Sequenced collections: what do `reversed()`, `getFirst()` and `putFirst` return on a `List`, a `LinkedHashSet` and a `LinkedHashMap`?
 
+What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_02.java
+List<String> letters = new ArrayList<>(List.of("a", "b", "c"));
+List<String> backwards = letters.reversed();
+System.out.println(backwards);
+System.out.println(letters.getFirst());
+letters.addLast("d");
+System.out.println(letters);
+System.out.println(backwards);
+
+LinkedHashSet<String> seen = new LinkedHashSet<>(List.of("a", "b", "c"));
+seen.addFirst("c");
+System.out.println(seen);
+System.out.println(seen.reversed().getFirst());
+
+LinkedHashMap<String, Integer> stock = new LinkedHashMap<>();
+stock.put("a", 1);
+stock.put("b", 2);
+System.out.println(stock.putFirst("b", 20));
+System.out.println(stock);
+System.out.println(stock.reversed().firstEntry());
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+[c, b, a]
+a
+[a, b, c, d]
+[d, c, b, a]
+[c, a, b]
+b
+2
+{b=20, a=1}
+a=1
+```
+
+`reversed()` is a live view, so the `d` added later shows up first in `backwards`; `addFirst` and `putFirst` on an element or key that is already present move it to the front, and `putFirst` returns the previous value, like `put`.
+
+**Full explanation.** `SequencedCollection.reversed()` returns "a reverse-ordered view", not a copy [Src: JDK 25, java.util.SequencedCollection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/SequencedCollection.java), which is why the fourth line changes without touching `backwards`. `getFirst()` reads the first element of the encounter order. A `LinkedHashSet` keeps one entry per element, so `addFirst("c")` cannot add a second `c`: "if this set already contains the element, it is relocated if necessary so that it is first in encounter order" [Src: JDK 25, java.util.LinkedHashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashSet.java). The reversed view of `[c, a, b]` starts with `b`. On the map, `putFirst` returns "the value previously associated with k, or null if none" [Src: JDK 25, java.util.SequencedMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/SequencedMap.java), here `2`, and relocates the existing mapping to the front with its new value [Src: JDK 25, java.util.LinkedHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedHashMap.java). `reversed().firstEntry()` is the last entry of the original, `a=1`. The lab runs the snippet and asserts the nine lines [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). How the sequenced interfaces fit together is [§1](#1-the-collections-framework-interfaces-contracts-and-sequenced-collections).
+
+**Follow-ups an interviewer will ask.**
+- *Does `tags.reversed().getFirst()` compile when `tags` is declared as `Set<String>` but holds a `LinkedHashSet`?* No. The static type decides which methods exist, and `Set` has no `reversed()`; in the lab javac reports `compiler.err.cant.resolve.location.args` [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). Declare it as `SequencedSet<String>` or `LinkedHashSet<String>`.
+- *What does the same `putFirst` do on a `TreeMap`?* It throws `UnsupportedOperationException`, always, because a sorted map's comparator decides positions [Src: JDK 25, java.util.TreeMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeMap.java) [Lab: SequencedViewsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s01/SequencedViewsTest.java).
+- *What does `getFirst()` do on an empty list?* It throws `NoSuchElementException`, where the old idiom `list.get(0)` threw `IndexOutOfBoundsException` [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java) [Lab: SequencedViewsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s01/SequencedViewsTest.java).
+
+**Trap to avoid.** Answering `[c, b, a]` for the fourth line. `reversed()` copies nothing; it reads the list as it is now.
+
+</details>
+
 <a id="q04-03"></a>
 ### Q04.03 · Concept · Optional operations: why `Collection.add` is allowed to throw `UnsupportedOperationException`
 
+A method takes a `List<String>` and calls `add` on it. A caller passes `List.of("a")` and gets `UnsupportedOperationException`. Why does the interface allow that, instead of having separate mutable and read-only list types?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The mutators of `Collection` are documented as "optional operations": an implementation that does not support one throws `UnsupportedOperationException`. The designers chose that on purpose, because encoding modifiability, fixed size, append-only and immutability as separate interfaces would have multiplied the hierarchy into some twenty interfaces and still needed run-time exceptions. The price is that the static type does not tell you whether `add` works; the contract (Javadoc) does.
+
+**Full explanation.** The `Collection` Javadoc marks `add`, `remove`, `addAll`, `removeAll`, `retainAll` and `clear` as optional; an unsupported one "should" throw `UnsupportedOperationException`, and an unmodifiable collection should throw even when the call would change nothing, "as throwing only in certain cases can lead to programming errors" [Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java). In the lab, `List.of("java")` throws from `add` and from `addAll` of an empty list [Lab: CollectionContractTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s01/CollectionContractTest.java), and an `Arrays.asList` list supports `set` but rejects `add` [Lab: ImmutableListsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s08/ImmutableListsTest.java). The design FAQ calls this "the most controversial design decision in the whole API" and walks through the alternative: modifiable variants of four interfaces, variable-size variants for array-backed lists, append-only logs, immutable variants, extra iterator types, "twenty or so interfaces and five iterators", and still value-based rejections at run time; the designers judged a small set of interfaces that can throw "a sound engineering compromise" [Doc: Java Collections API Design FAQ, Java SE 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-designfaq.html). The exception is unchecked because it signals a programming error, not a condition to catch [Doc: Java Collections API Design FAQ, Java SE 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-designfaq.html). Which factory allows what is [§8](#8-immutable-unmodifiable-and-fixed-size-lists).
+
+**Follow-ups an interviewer will ask.**
+- *Should callers wrap `add` in `try`/`catch (UnsupportedOperationException)`?* No. The FAQ says it was never the intention that programs catch it: the fix is a contract that says whether the returned collection may be modified, and a defensive copy (`new ArrayList<>(list)`) when you need to mutate one you did not create [Doc: Java Collections API Design FAQ, Java SE 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/doc-files/coll-designfaq.html).
+- *Which other operations are optional or may throw for some implementations?* Sequenced `addFirst`/`addLast` and `putFirst`/`putLast` on sorted collections throw always [Src: JDK 25, java.util.SortedSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/SortedSet.java); queries with an ineligible element, such as `List.of(...).contains(null)`, may throw `NullPointerException` [Lab: ImmutableListsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s08/ImmutableListsTest.java).
+
+**Trap to avoid.** Saying "`List.of` returns an immutable subclass, so `add` does not exist on it". The method exists on the interface and throws at run time; the compiler accepts the call.
+
+</details>
+
 <a id="q04-04"></a>
 ### Q04.04 · Concept · How an `ArrayList` grows: size vs capacity, the growth step, `ensureCapacity` and `trimToSize`
+<!-- ledger: core-java-240-07-10 -->
+
+What is an `ArrayList` underneath, what are its strengths and weaknesses, and what happens when you add the eleventh element to `new ArrayList<>()`?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** An `ArrayList` is a resizable array: an `Object[]` whose length is the capacity, plus a size. Indexed reads and writes are constant time and appends are amortized constant; inserting or removing in the middle is allowed but linear, because the tail is shifted. The no-argument constructor allocates ten slots on the first `add`; adding the eleventh element grows the array by half, to 15, and copies it. `ensureCapacity` grows ahead of time, `trimToSize` shrinks to the size, and nothing else ever shrinks it.
+
+**Full explanation.** The elements live in `elementData`, whose length is "always at least as large as the list size"; the no-argument constructor stores a shared empty array and allocates `DEFAULT_CAPACITY = 10` slots on the first add [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). When the array is full, `grow` computes the new length with `ArraysSupport.newLength(oldCapacity, minGrowth, oldCapacity >> 1)`, the old length plus the larger of what is needed and half the old length, capped near `SOFT_MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8`, then copies with `Arrays.copyOf` ([Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) [Src: JDK 25, jdk.internal.util.ArraysSupport](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/jdk/internal/util/ArraysSupport.java)). That policy is an implementation detail: the Javadoc only says "the details of the growth policy are not specified beyond the fact that adding an element has constant amortized time cost" [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). `ensureCapacity(n)` increases the capacity "if necessary" so one growth replaces many, and `trimToSize()` trims the capacity "to be the list's current size" [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). Strengths: constant-time `get`/`set`, cheap appends, one compact array, and the `RandomAccess` marker that tells generic algorithms an index loop is safe; weaknesses: linear `add(i, e)`, `remove(i)`, `contains` and `indexOf`, a copy on every growth, and capacity that stays after removals ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)). In the lab, `ArrayList` is `RandomAccess` and `LinkedList` is not, `add(1, "b")` shifts `[a, c, d]` to `[a, b, c, d]`, and `set(0, …)` on `new ArrayList<>(100)` throws `IndexOutOfBoundsException` because the size is 0 [Lab: ListInternalsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s02/ListInternalsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Why grow by a factor instead of by a fixed step?* With a fixed step, appending n elements copies O(n²) elements in total; growing by a factor makes the total copying proportional to n, which is what "amortized constant time" means [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java).
+- *Does `clear()` give the memory back?* No. It nulls the slots and keeps the array; only `trimToSize()` or dropping the list releases it [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) ([§10](#10-choosing-a-collection-complexity-memory-and-workload)).
+- *Does growth change `modCount`?* Yes: `add`, a growing `ensureCapacity` and `trimToSize` are structural changes, so an open iterator fails fast afterwards; `set` is not [Lab: ListInternalsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s02/ListInternalsTest.java) ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+
+**Trap to avoid.** Quoting "1.5×" as a guarantee. It is the JDK 25 implementation; the contract is only amortized constant `add`.
+
+</details>
 
 <a id="q04-05"></a>
 ### Q04.05 · Difference · Array vs `ArrayList`: length, primitives, covariance and generics
+<!-- ledger: core-java-240-07-11 -->
+
+How do a Java array and an `ArrayList` differ, and when would you still choose an array?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** An array has a fixed length, can hold primitives directly, knows its component type at run time and is covariant, so a bad store fails with `ArrayStoreException`. An `ArrayList` grows, holds only object references (primitives are boxed), is generic and invariant, so the compiler rejects the bad store, and it has the whole `List` API. Choose an array for fixed-size data, primitive-heavy numeric work, and varargs or low-level APIs; choose `ArrayList` everywhere a collection is expected.
+
+**Full explanation.**
+
+| Criterion | Array | `ArrayList` |
+|---|---|---|
+| Size | fixed at creation, `length` field | grows on `add`, `size()` method ([Q04.04](#q04-04)) |
+| Element types | primitives (`int[]`) or references | references only; `List<Integer>` boxes each `int` ([§10](#10-choosing-a-collection-complexity-memory-and-workload)) |
+| Type checking | covariant and reified: `String[]` is an `Object[]`, and a wrong store throws `ArrayStoreException` at run time | generic and invariant: `List<String>` is not a `List<Object>`, so the wrong store does not compile |
+| API | indexing, `length`, plus static helpers in `Arrays` | `List`, `SequencedCollection` and `Collection` methods, iterators, streams |
+| `equals` | identity; use `Arrays.equals` ([§9](#9-utilities-sorting-and-collection-equality)) | element-wise, across `List` implementations |
+
+Arrays are covariant [Doc: JLS §4.10.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.10.3), so the store check happens at run time: in the lab, storing an `Integer` through an `Object[]` view of a `String[]` throws `ArrayStoreException` [Lab: VarianceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m03/s04/VarianceTest.java). Generic types are invariant, which moves the same mistake to compile time ([03 §4](03-java-generics.md#4-wildcards-pecs-and-variance), [Q03.09](03-java-generics.md#q03-09)). Type arguments must be reference types, so a list of numbers holds wrapper objects ([01 §13](01-java-oop-fundamentals.md#13-wrappers-autoboxing-and-the-integer-cache)). An `ArrayList` is itself backed by an `Object[]`, not an `E[]`, because a generic array cannot be created ([03 §6](03-java-generics.md#6-reifiable-types-generic-arrays-and-heap-pollution)) [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). The two meet through `Arrays.asList`, a fixed-size list view of an array, and `list.toArray(new String[0])` ([§8](#8-immutable-unmodifiable-and-fixed-size-lists)).
+
+**Follow-ups an interviewer will ask.**
+- *What does `Arrays.asList(new int[] {1, 2, 3})` return?* A `List<int[]>` with one element, the array itself, because `T` cannot be `int` [Lab: ImmutableListsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s08/ImmutableListsTest.java); [Q04.28](#q04-28) drills it.
+- *Is an `ArrayList` slower than an array?* For indexed reads, `ArrayList.get` is a bounds check against `size` followed by one array read [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java); the real costs of the list are boxing for primitives and the growth copies, which presizing removes ([Q04.04](#q04-04)).
+
+**Trap to avoid.** Repeating "an `ArrayList` can hold primitives and an array cannot". It is the other way round: arrays hold primitives, and an `ArrayList` holds boxed objects.
+
+</details>
 
 <a id="q04-06"></a>
 ### Q04.06 · Trade-off · `ArrayList` vs `LinkedList`: when does `LinkedList` actually win?
+<!-- ledger: core-java-240-07-09, core-java-240-07-14, core-java-240-08-07, honeywell-optum-md-01-20 -->
+
+Which classes implement `List`, and between `ArrayList` and `LinkedList`, which would you pick and why?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Pick `ArrayList` by default: constant-time indexed access, amortized constant appends, one compact array, and a constant factor the Javadoc itself rates below `LinkedList`'s. `LinkedList` wins only when you insert or remove many elements at the position of an iterator you are already moving, or need a `Deque` that accepts `null`. Its "fast inserts" need the node first, and finding a node by index is a walk.
+
+**Full explanation.** The `List` implementations in the JDK are `ArrayList`, `LinkedList`, the legacy `Vector` and `Stack` ([Q04.08](#q04-08)), `CopyOnWriteArrayList` in `java.util.concurrent` ([12](12-concurrency-locks-atomics-collections.md)), and the unmodifiable and fixed-size lists behind `List.of`, `Collections.unmodifiableList` and `Arrays.asList` ([§8](#8-immutable-unmodifiable-and-fixed-size-lists)) [Src: JDK 25, java.util.concurrent.CopyOnWriteArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java) [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java). The comparison, on criteria:
+
+| Criterion | `ArrayList` | `LinkedList` |
+|---|---|---|
+| `get(i)`, `set(i, e)` | constant time | walks from the nearer end |
+| append, remove last | amortized constant · constant | constant |
+| insert or remove at index i | finds the slot at once, shifts the tail with `System.arraycopy` | walks to i, then relinks |
+| insert or remove at an iterator's position | shifts the tail | constant: relinks neighbours |
+| memory per element | one array slot (plus spare capacity) | one `Node` object with `item`, `next`, `prev` |
+| `RandomAccess` | yes | no |
+
+Every row comes from the class comments and sources [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java) and the lab's `RandomAccess` check [Lab: ListInternalsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s02/ListInternalsTest.java). The array side also reads memory sequentially, while nodes are separate objects that may be anywhere on the heap, so walking an `ArrayList` tends to be faster than walking a `LinkedList` of the same length even though both are linear (stated qualitatively; no benchmark is claimed here) ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)). The cases where `LinkedList` wins are narrow: a `ListIterator` that inserts or removes as it moves (a constant-time relink of the neighbours), and a `Deque` that must hold `null`, which `ArrayDeque` rejects ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack), [§6](#6-queues-and-deques-arraydeque-and-priorityqueue)). For a FIFO queue or a stack, `ArrayDeque` is the better default.
+
+**Follow-ups an interviewer will ask.**
+- *What about removing from the front of a large list?* `ArrayList.remove(0)` copies the whole tail each time, which is why queues belong in an `ArrayDeque` (amortized constant time for most operations), not in either list [Src: JDK 25, java.util.ArrayDeque](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayDeque.java).
+- *How do you write a loop that is efficient for both?* Use for-each or an `Iterator`, or check `instanceof RandomAccess` before indexing, as the `RandomAccess` Javadoc recommends [Src: JDK 25, java.util.RandomAccess](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/RandomAccess.java); in the lab, one `everyNth` method gives the same result for both lists [Lab: ListAccessTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s02/ListAccessTest.java).
+
+**Trap to avoid.** Answering "`LinkedList` for frequent inserts, `ArrayList` for frequent reads". It counts the relinking and forgets the walk to the position; [Q04.32](#q04-32) is the incident that follows.
+
+</details>
 
 <a id="q04-07"></a>
 ### Q04.07 · Output · Bug hunt · `list.remove(1)` on a `List<Integer>` holding `[1, 2, 3]`: which element goes, and what does `indexOf` return for a missing value?
+<!-- ledger: core-java-240-07-07, core-java-240-07-08, core-java-pdf-01-33, core-java-pdf-03-74 -->
+
+What does this print? Then find the bug in `removeBlocked`, which should remove the blocked id from the list.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_07.java
+List<Integer> ids = new ArrayList<>(List.of(1, 2, 3));
+ids.remove(1);
+System.out.println(ids);
+ids.remove(Integer.valueOf(1));
+System.out.println(ids);
+System.out.println(ids.indexOf(7));
+System.out.println(ids);
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_07.java
+// The review snippet: meant to drop the blocked id, but the int argument selects remove(int index).
+public static List<Integer> removeBlockedBuggy(List<Integer> source, int blockedId) {
+    List<Integer> ids = new ArrayList<>(source);
+    ids.remove(blockedId);
+    return ids;
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+[1, 3]
+[3]
+-1
+[3]
+```
+
+`remove(1)` with an `int` picks `remove(int index)` and removes the element at index 1, the `2`; `remove(Integer.valueOf(1))` removes the value `1`. `indexOf(7)` returns `-1` and changes nothing. The bug in `removeBlocked` is the same overload: it removes by index.
+
+**Full explanation.** `List` declares both `remove(int index)` and `remove(Object o)`. Overload resolution first looks for a method applicable without boxing, and `remove(int)` is one, so `remove(1)` never reaches the `Object` version ([01 §8](01-java-oop-fundamentals.md#8-polymorphism-overloading-overriding-and-dispatch)). `indexOf` returns "the index of the first occurrence of the specified element in this list, or -1 if this list does not contain the element", and is a pure query [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java). In the lab the four lines are asserted [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). The bug hides in tests that happen to use small ids: `removeBlockedBuggy([5, 1, 9], 1)` returns `[5, 9]`, the right answer by accident, because the value 1 sits at index 1; with id 0 it removes `5`, and with id 9 it throws `IndexOutOfBoundsException` [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m04/outputs/Q04_07.java
+// The fix: box explicitly, so overload resolution picks remove(Object).
+public static List<Integer> removeBlockedFixed(List<Integer> source, int blockedId) {
+    List<Integer> ids = new ArrayList<>(source);
+    ids.remove(Integer.valueOf(blockedId));
+    return ids;
+}
+```
+
+**Follow-ups an interviewer will ask.**
+- *Does the same call behave differently through a `Collection<Integer>` reference?* Yes. `Collection` has only `remove(Object)`, so the `int` is boxed and the value is removed; in the lab `removeThroughCollection([5, 1, 9], 0)` leaves the list unchanged [Lab: Q04OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/outputs/Q04OutputsTest.java). The static type, not the object, chose the overload.
+- *Which methods does `List` add to `Collection`?* Positional ones: `get`, `set`, `add(int, E)`, `remove(int)`, `indexOf`, `lastIndexOf`, `listIterator`, `subList`, plus `sort`, `replaceAll` and the sequenced methods [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java).
+- *How would you remove all occurrences of a value?* `ids.removeIf(id -> id == blockedId)` or `ids.removeAll(List.of(blockedId))`; `remove(Object)` removes only the first occurrence [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java).
+
+**Trap to avoid.** Believing `indexOf` "finds and removes" or returns `0` for a missing element. It returns `-1` and modifies nothing.
+
+</details>
 
 <a id="q04-08"></a>
 ### Q04.08 · Difference · `Vector`, `Stack` and `ArrayList`: what per-method synchronization buys, and what replaces them
+<!-- ledger: core-java-240-07-12, core-java-240-07-13, core-java-pdf-01-35 -->
+
+What is `Vector`, how does it differ from `ArrayList`, and what should new code use instead of `Vector` and `Stack`?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `Vector` is the Java 1.0 growable array, retrofitted to `List` in 1.2. Unlike `ArrayList` its methods are `synchronized`, and it doubles its capacity by default where `ArrayList` grows by half. Per-method locking makes each call atomic but not a sequence of calls, so it rarely makes code thread-safe. `Stack` extends `Vector`. Use `ArrayList` for lists, `ArrayDeque` for stacks, and the concurrent collections of module 12 when threads share data.
+
+**Full explanation.** "As of the Java 2 platform v1.2, this class was retrofitted to implement the `List` interface" [Src: JDK 25, java.util.Vector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Vector.java), which is what older material means by "Java 2". Its accessors and mutators, `get` and `add` among them, are `synchronized` methods, and the Javadoc recommends `ArrayList` "in place of `Vector`" when a thread-safe implementation is not needed [Src: JDK 25, java.util.Vector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Vector.java). Growth differs: `Vector` adds its `capacityIncrement` when one was given and otherwise doubles, and in the lab a default `Vector` goes from capacity 10 to 20 on the 11th element while one built with an increment of 5 goes to 15 [Lab: ListInternalsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s02/ListInternalsTest.java); `ArrayList` grows by half ([Q04.04](#q04-04)). `Vector` also keeps the pre-framework `elements()` method, which returns an `Enumeration` [Src: JDK 25, java.util.Vector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Vector.java). What the locking buys is narrow: one `add` or one `get` cannot interleave with another call on the same `Vector`, but "if absent, add" is two calls, and another thread can run between them; making a compound action atomic needs one lock around all of it, which is [12](12-concurrency-locks-atomics-collections.md)'s subject. `Stack` is `class Stack<E> extends Vector<E>`, so it inherits every `List` method, including inserting in the middle of a "stack", and its own Javadoc says the `Deque` interface "should be used in preference to this class" [Src: JDK 25, java.util.Stack](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Stack.java). The two disagree on iteration order: in the lab, after pushing 1, 2 and 3, a `Stack` iterates `[1, 2, 3]` and an `ArrayDeque` used as a stack iterates `[3, 2, 1]` [Lab: ListInternalsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s02/ListInternalsTest.java).
+
+| Need | Instead of | Use |
+|---|---|---|
+| a list, one thread | `Vector` | `ArrayList` |
+| a stack, one thread | `Stack` | `ArrayDeque` (`push`, `pop`, `peek`) |
+| a list shared by threads | `Vector` | `Collections.synchronizedList` with a lock around compound actions, or `CopyOnWriteArrayList` for read-mostly data ([12](12-concurrency-locks-atomics-collections.md)) |
+| a stack or queue shared by threads | `Stack` | the concurrent deques and blocking queues of [12](12-concurrency-locks-atomics-collections.md) |
+
+**Follow-ups an interviewer will ask.**
+- *Is `Vector` deprecated?* No. Neither `Vector` nor `Stack` carries `@Deprecated` in JDK 25; they are legacy classes kept for compatibility, and their Javadoc points to the replacements [Src: JDK 25, java.util.Vector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Vector.java) [Src: JDK 25, java.util.Stack](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Stack.java).
+- *Is iterating a `Vector` while another thread modifies it safe?* No. Its iterators are fail-fast like `ArrayList`'s, and the iteration as a whole is not one synchronized call ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot), [12](12-concurrency-locks-atomics-collections.md)).
+
+**Trap to avoid.** "`Vector` is thread-safe, so code using it is." Each method is; the sequence of calls your code makes is not.
+
+</details>
 
 <!-- /TASK: QB-M04-01 -->
 
