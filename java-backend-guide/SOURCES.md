@@ -522,6 +522,25 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://openjdk.org/jeps/371
 - https://openjdk.org/jeps/409
 - https://openjdk.org/jeps/484
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#count()
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#peek(java.util.function.Consumer)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#NonInterference
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Ordering
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#SideEffects
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Statelessness
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#StreamOps
+- https://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html
+- https://docs.oracle.com/javase/9/docs/api/java/util/stream/Stream.html
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/Flow.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractPipeline.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/DistinctOps.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReduceOps.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Sink.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/SortedOps.java
+- https://openjdk.org/jeps/107
 
 ## 17 spring-transactions
 
