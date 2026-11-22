@@ -584,12 +584,143 @@ Questions that drill this section: [Q05.09](#q05-09), [Q05.10](#q05-10), [Q05.11
 ## 5. Collectors: `toMap`, `groupingBy`, `teeing` and writing your own
 <!-- TASK: SEC-M05-05 -->
 ### The problem it solves
+
+An identity service built its user index at startup with `users.stream().collect(Collectors.toMap(User::email, Function.identity()))`. It ran for months. Then a data migration left two accounts with the same e-mail address, and the next deployment failed to start with `IllegalStateException: Duplicate key …`, whose message also printed both user records into the startup log. A week later a reporting endpoint grouped orders with `groupingBy(Order::region)`, and its output began to change order from one release to the next, because the code had been relying on an iteration order that `groupingBy` never promised. Collectors are where most real stream code does its work, and their contracts (what a duplicate key does, which map you get, what an empty group looks like) are exactly what these two teams had guessed.
+
 ### Mental model
+
+A `Collector` is a recipe for filling a container, written as four small functions: how to get an empty container (the *supplier*), how to put one element into it (the *accumulator*), how to pour one container into another (the *combiner*), and how to turn the full container into the result you hand back (the *finisher*). A sequential `collect` uses one container and never pours anything. A parallel `collect` gives each worker its own container for its chunk of the input, and at the end pours the containers together, two at a time. The `Collectors` class is a cookbook of ready recipes, and many of them take another recipe as an ingredient: `groupingBy` keeps one container per key and fills each with a *downstream* collector.
+
+```mermaid
+flowchart LR
+    S1["supplier: container A"] --> A1["accumulator: chunk 1 elements into A"]
+    S2["supplier: container B"] --> A2["accumulator: chunk 2 elements into B"]
+    A1 --> C["combiner: pour B into A"]
+    A2 --> C
+    C --> F["finisher: result, once"]
+```
+
+What to notice: only the parallel path needs the combiner. In the lab, a sequential `collect` over 2,000 elements calls the supplier once, the accumulator 2,000 times, the finisher once and the combiner never, which is why a wrong combiner can pass every sequential test [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java).
+
 ### How it actually works
+
+**`collect` is a mutable reduction.** A `Collector` is "a mutable reduction operation that accumulates input elements into a mutable result container, optionally transforming the accumulated result into a final representation after all input elements have been processed", specified by four functions: `supplier()`, `accumulator()`, `combiner()` and `finisher()`. "A sequential implementation of a reduction using a collector would create a single result container using the supplier function, and invoke the accumulator function once for each input element. A parallel implementation would partition the input, create a result container for each partition, accumulate the contents of each partition into a subresult for that partition, and then use the combiner function to merge the subresults into a combined result" [Doc: Java 25 API, Collector](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collector.html). How `collect` differs from `reduce`, which combines immutable values instead of filling a container, is [§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect); reading the `<R, A> R collect(Collector<? super T, A, R>)` signature, with its hidden accumulation type `A`, is [03 §8](03-java-generics.md#8-reading-generic-signatures-in-the-jdk).
+
+**Characteristics are promises, and the JDK acts on them.** `CONCURRENT` says the container accepts concurrent calls to the accumulator, `UNORDERED` that the collector "does not commit to preserving the encounter order", and `IDENTITY_FINISH` that "the finisher function is the identity function and can be elided" [Src: JDK 25, java.util.stream.Collector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collector.java). JDK 25's `ReferencePipeline.collect` acts on both: on a parallel stream, a `CONCURRENT` collector whose stream is unordered (or which is itself `UNORDERED`) gets one shared container filled with `forEach`; every other case goes through a per-chunk reduction; and with `IDENTITY_FINISH` the finisher is never called and the container is cast to the result [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java). In the lab, `Collectors.toSet()` reports `UNORDERED` and `IDENTITY_FINISH`, `Collectors.toList()` only `IDENTITY_FINISH`, and `Collector.of` without a finisher adds `IDENTITY_FINISH` by itself [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java).
+
+**The two constraints a collector must meet.** "To ensure that sequential and parallel executions produce equivalent results, the collector functions must satisfy an *identity* and an associativity constraints." Identity: combining a partial result with an empty container must give an equivalent result, `a` equivalent to `combiner.apply(a, supplier.get())`. Associativity: accumulating `t1` and `t2` into one container, and accumulating each into its own container and combining the two, must give equivalent results. For collectors without `UNORDERED`, equivalent means `finisher.apply(a1).equals(finisher.apply(a2))`; for unordered ones, differences in order are allowed. In return the library promises not to share a non-concurrent container between threads: results "must be serially thread-confined", so the collector needs no synchronization of its own [Doc: Java 25 API, Collector](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collector.html). A collector that breaks these rules still passes sequential tests, since the combiner is not called there [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java); [Exercise 05.2](#ex05-2) builds one that is correct in parallel.
+
+**Collection collectors.** `toList()`, `toSet()`, `toCollection(supplier)` and the `toUnmodifiableList/Set/Map` family differ in what they promise about the type, mutability and `null`s of the result [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html); that comparison, with `Stream.toList()`, is [04 §8](04-java-collections-internals.md#8-immutable-unmodifiable-and-fixed-size-lists) and [Q04.27](04-java-collections-internals.md#q04-27).
+
+**`toMap`: duplicates throw, `null` values throw.** The two-argument `toMap(keyMapper, valueMapper)` says: "If the mapped keys contain duplicates (according to `Object#equals(Object)`), an `IllegalStateException` is thrown when the collection operation is performed", and "there are no guarantees on the type, mutability, serializability, or thread-safety of the `Map` returned" [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html). In JDK 25 it starts from `HashMap::new`, and its accumulator calls `Objects.requireNonNull` on each value, then `putIfAbsent`, and throws `duplicateKeyException`, whose message is `"Duplicate key %s (attempted merging values %s and %s)"` with the key, the value already present and the new value [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). The overloads with a merge function, and with a map supplier as well, accumulate with `map.merge(key, value, mergeFunction)` instead [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java), and `HashMap.merge` throws `NullPointerException` if the value is `null` [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The lab shows each case: a second `"ann"` throws `IllegalStateException` with the message `Duplicate key ann (attempted merging values payments and search)`; a `null` team throws `NullPointerException` from both overloads; a `null` *key* is accepted, because `HashMap` allows one; and `(first, second) -> first` with `LinkedHashMap::new` keeps the first team per name in encounter order [Lab: ToMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/ToMapTest.java). The merge function is the only way to say what a duplicate means (keep the first, keep the last, add them, fail with a domain error), so the right overload is the one whose merge function states that rule.
+
+**`groupingBy`: a map of downstream collectors.** `groupingBy(classifier)` produces "a `Map<K, List<T>>` whose keys are the values resulting from applying the classification function", again with "no guarantees on the type, mutability, serializability, or thread-safety of the `Map` or `List` objects returned"; it is specified as `groupingBy(classifier, toList())` [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html). The two-argument form calls the three-argument one with `HashMap::new`, and the accumulator rejects a `null` key with `"element cannot be mapped to a null key"` [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). The *downstream* collector decides what each key's value is: `counting()`, `summingInt`, `mapping(f, downstream)`, `filtering(p, downstream)`, `flatMapping(f, downstream)`, `maxBy(comparator)` (an `Optional`, because a reduction over nothing has no maximum) and `collectingAndThen(downstream, finisher)` [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html). In the lab, `groupingBy(team, TreeMap::new, counting())` returns a `TreeMap` from team name to headcount in name order; `mapping(Employee::name, toList())` keeps only names, in encounter order within each team; `maxBy` yields `Optional<Employee>` per team and `collectingAndThen(…, top -> top.orElseThrow().name())` unwraps it, which is safe because `groupingBy` creates a key only when an element maps to it; without a factory the map is a `HashMap` on JDK 25, an implementation choice the Javadoc does not promise; and a `null` team throws `NullPointerException` with the message above [Lab: GroupingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/GroupingTest.java). `groupingByConcurrent` fills one `ConcurrentHashMap` from all threads and gives up order; when that pays off is [§8](#8-parallel-streams-and-the-common-forkjoinpool), and the map itself is [12](12-concurrency-locks-atomics-collections.md)'s.
+
+**`partitioningBy` always has two keys.** It splits by a predicate into a `Map<Boolean, …>`, and "the returned `Map` always contains mappings for both `false` and `true` keys"; "if a partition has no elements, its value in the result Map will be an empty List", or, with a downstream collector, the downstream's supplier followed by its finisher [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html). In the lab, an empty stream partitions into `{false=[], true=[]}`, with `counting()` into `{false=0, true=0}`, while `groupingBy` on a boolean classifier over the same empty stream returns an empty map [Lab: PartitionAndTeeingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/PartitionAndTeeingTest.java). That difference is why code can call `get(true)` on a partition without a `null` check, and not on a grouping.
+
+**`teeing`: two collectors in one pass.** `teeing(downstream1, downstream2, merger)` is "a composite of two downstream collectors. Every element passed to the resulting collector is processed by both downstream collectors, then their results are merged using the specified merge function"; its supplier, accumulator, combiner and finisher each call both downstreams' functions, and it is `@since 12` [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). In the lab, `teeing(counting(), summingLong(Employee::salary), Payroll::new)` builds `Payroll(2, 170)` from two employees in a single traversal [Lab: PartitionAndTeeingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/PartitionAndTeeingTest.java). `joining(delimiter, prefix, suffix)` is the other common terminal collector, building a `String` [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html).
+
+**Writing your own.** `Collector.of(supplier, accumulator, combiner, characteristics…)` builds a collector whose finisher is the identity, and `Collector.of(supplier, accumulator, combiner, finisher, characteristics…)` one with a finisher; the class Javadoc's own example accumulates into a `TreeSet` with `(left, right) -> { left.addAll(right); return left; }` as the combiner [Doc: Java 25 API, Collector](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collector.html). The lab's `FirstSeen.toSet()` keeps each element's first-seen order: a `LinkedHashSet` per chunk, `Set::add`, a combiner that appends the right chunk after the left one, and `Collections::unmodifiableSet` as the finisher, so it declares no characteristics. Over 2,000 words with 300 distinct values it returns the same 300 elements in the same order sequentially and on a parallel stream, and its result rejects `add` [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java).
+
 ### Code
+
+The approach: answer each everyday question with one collector, so the choice of overload is visible in a single line.
+
+1. `teamByName` uses the two-argument `toMap`, which fails on a duplicate name.
+2. `firstTeamByName` adds a merge function that keeps the first value, and `LinkedHashMap::new` to keep encounter order.
+3. `headcountByTeam` groups into a `TreeMap` with `counting()` as the downstream collector.
+4. `countAtOrAbove` partitions, so both keys exist even for an empty list; `payroll` uses `teeing` to count and sum in one pass.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s05/Directory.java
+    // Throws IllegalStateException on a duplicate name and NullPointerException on a null team.
+    public static Map<String, String> teamByName(List<Employee> staff) {
+        return staff.stream().collect(Collectors.toMap(Employee::name, Employee::team));
+    }
+
+    // Keeps the first team seen for each name, in encounter order.
+    public static Map<String, String> firstTeamByName(List<Employee> staff) {
+        return staff.stream()
+                .collect(
+                        Collectors.toMap(Employee::name, Employee::team, (first, second) -> first, LinkedHashMap::new));
+    }
+
+    // Teams in name order, each with its headcount.
+    public static Map<String, Long> headcountByTeam(List<Employee> staff) {
+        return staff.stream().collect(Collectors.groupingBy(Employee::team, TreeMap::new, Collectors.counting()));
+    }
+
+    // Always has both keys, true and false, even for an empty list.
+    public static Map<Boolean, Long> countAtOrAbove(int threshold, List<Employee> staff) {
+        return staff.stream().collect(Collectors.partitioningBy(e -> e.salary() >= threshold, Collectors.counting()));
+    }
+
+    // One pass, two collectors: teeing feeds every element to both and merges their results.
+    public static Payroll payroll(List<Employee> staff) {
+        return staff.stream()
+                .collect(Collectors.teeing(
+                        Collectors.counting(), Collectors.summingLong(Employee::salary), Payroll::new));
+    }
+```
+
+`ToMapTest`, `GroupingTest` and `PartitionAndTeeingTest` assert each result, including the exceptions and the exact duplicate-key message.
+
+A custom collector. The approach: keep the order in which each element first appears, and make the combiner respect it, so that the parallel result equals the sequential one.
+
+1. Supplier: a new `LinkedHashSet` for each chunk.
+2. Accumulator: `Set::add`, which ignores an element already present, so the first occurrence keeps its place.
+3. Combiner: `left.addAll(right)`, so the left chunk's elements (earlier in the input) come first and the right chunk adds only what the left has not seen.
+4. Finisher: wrap the set as unmodifiable, which is also why the collector must not claim `IDENTITY_FINISH`.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s05/FirstSeen.java
+    public static <T> Collector<T, ?, Set<T>> toSet() {
+        return Collector.of(
+                LinkedHashSet<T>::new, // supplier: one empty container per chunk of input
+                Set::add, // accumulator: adds one element to a container
+                FirstSeen::appendRight, // combiner: merges two chunks, left chunk first
+                Collections::unmodifiableSet); // finisher: runs once, on the final container
+    }
+
+    // Elements already in left keep their place; the rest of right goes after them.
+    private static <T> LinkedHashSet<T> appendRight(LinkedHashSet<T> left, LinkedHashSet<T> right) {
+        left.addAll(right);
+        return left;
+    }
+```
+
+`CustomCollectorTest` compares the sequential and parallel results element by element, and wraps the collector in `CountingCollector`, a Decorator that counts each function's calls, to show the sequential call counts quoted above.
+
 ### Failure modes and operations
+
+The typical `toMap` failure appears only on production data: the code is right for the test data, and the first duplicate key or `null` value in real data throws `IllegalStateException` or `NullPointerException` from inside `collect` [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html) [Lab: ToMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/ToMapTest.java). At startup it stops the deployment; per request it turns into a 500 for exactly the requests whose data has the duplicate. The stack trace names `Collectors.duplicateKeyException` or `Objects.requireNonNull` under `collect` [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java), which tells the two apart; the fix is a decision about the data (which value wins, or a domain error that names the key), not a `try`/`catch` around the stream.
+
+Under load, the cost of grouping is memory and merging. `groupingBy` holds one container per distinct key until the stream ends, so a high-cardinality key (a user ID, a timestamp) builds a map as large as the input on every call, multiplied by the number of concurrent requests; the bound is to group on a coarser key, or to aggregate in the database. On a parallel stream, `toMap` and `groupingBy` are not concurrent, and their combiners merge "the keys from one map into another, which can be an expensive operation"; the Javadoc points to `toConcurrentMap` and `groupingByConcurrent` when encounter order does not matter [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html) (measuring that trade-off belongs to [§8](#8-parallel-streams-and-the-common-forkjoinpool)). A custom collector with a broken combiner or a false characteristic fails only in parallel, often only for some inputs, because the sequential path never calls the combiner and never shares a container [Doc: Java 25 API, Collector](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collector.html) [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java); the defence is a test that runs the collector on a parallel stream and checks the combiner directly, as [Exercise 05.2](#ex05-2) does. Collectors have no configuration to tune.
+
+> [!NOTE]
+> **Version notes.** Java 8: `Collector`, `Collectors` with `toList`, `toSet`, `toMap`, `groupingBy`, `partitioningBy`, `counting`, `mapping`, `maxBy`, `collectingAndThen` and `joining` [Final since Java 8, JEP 107] [Doc: JEP 107](https://openjdk.org/jeps/107) [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). Java 9: `filtering` and `flatMapping` downstream collectors (`@since 9`). Java 10: `toUnmodifiableList`, `toUnmodifiableSet` and `toUnmodifiableMap` (`@since 10`). Java 12: `teeing` (`@since 12`) [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). Java 16: `Stream.toList()` as a shorter alternative to `collect(Collectors.toList())`, with different guarantees ([04 §8](04-java-collections-internals.md#8-immutable-unmodifiable-and-fixed-size-lists)). Java 25 (default): no change to the contracts above.
+
 ### Best practices and anti-patterns
+
+- Use the `toMap` overload with a merge function whenever the keys come from data you do not control, because the two-argument form throws on the first duplicate, and the merge function is where the rule for duplicates is written down.
+- Pass a map factory (`TreeMap::new`, `LinkedHashMap::new`, `() -> new EnumMap<>(Team.class)`) when the result's order or type matters, because `toMap` and `groupingBy` make no promise about the map they return.
+- Map `null` values to something explicit (`Optional`, a sentinel, a filter before `collect`) before `toMap`, because both `toMap` paths throw `NullPointerException` on a `null` value even though the map type would accept it.
+- Prefer a downstream collector (`counting`, `mapping`, `summingLong`) to grouping into lists and post-processing them, because it keeps one small value per key instead of every element.
+- Use `partitioningBy` for a two-way split, because both keys are always present, so callers need no `null` check.
+- Use `teeing` to compute two aggregates in one pass instead of streaming the source twice, because the source may be expensive or single-use.
+- Declare only the characteristics a custom collector really has, and leave out `IDENTITY_FINISH` when the finisher does work, because the JDK skips the finisher and shares containers on the strength of those declarations.
+- Test every custom collector on a parallel stream, because its combiner is never called sequentially.
+- **Security:** do not log or return the `IllegalStateException` from `toMap` as is when values hold personal data, because its message embeds the duplicate key and both values (`Duplicate key ann (attempted merging values payments and search)` in the lab); catch the condition with a merge function or a pre-check and report only the key.
+
 ### Misconceptions and traps
+
+- *"`toMap` keeps the last value for a duplicate key, like `put`."* The two-argument form throws `IllegalStateException`; keeping the last value requires the merge function `(first, second) -> second` [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html) [Lab: ToMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/ToMapTest.java). The belief comes from `Map.put`, which silently replaces, and from loop code that the stream replaced.
+- *"`toMap` allows `null` values because `HashMap` does."* Both `toMap` paths throw `NullPointerException` on a `null` value, while a `null` key is accepted [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java) [Lab: ToMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/ToMapTest.java). It looks inconsistent because the checks come from `requireNonNull` and `HashMap.merge`, not from the map's own `put`.
+- *"`groupingBy` returns a sorted map" or "keeps insertion order".* It returns a map of unspecified type, a `HashMap` on JDK 25; order needs a `TreeMap::new` or `LinkedHashMap::new` factory [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html) [Lab: GroupingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/GroupingTest.java). The myth survives because small `HashMap`s of short string keys often happen to print in a pleasing order, until the keys change.
+- *"`partitioningBy` is `groupingBy` with a boolean classifier."* A partition always has both `true` and `false`; a grouping has only the keys it saw, and none for an empty stream [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html) [Lab: PartitionAndTeeingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/PartitionAndTeeingTest.java). The two give the same map whenever both outcomes occur, which is the case most examples show.
+- *"The combiner runs in every `collect`."* A sequential `collect` uses one container and never calls it [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java). The assumption comes from the four-function signature, which suggests all four always run; it is why a wrong combiner goes unnoticed.
+
+Questions that drill this section: [Q05.14](#q05-14), [Q05.15](#q05-15), [Q05.16](#q05-16); exercises [Exercise 05.1](#ex05-1), [Exercise 05.2](#ex05-2).
 <!-- /TASK: SEC-M05-05 -->
 
 ## 6. Primitive streams, `flatMap`, `mapMulti` and `reduce` vs `collect`

@@ -541,6 +541,11 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Sink.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/SortedOps.java
 - https://openjdk.org/jeps/107
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collector.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collector.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java
 
 ## 17 spring-transactions
 
