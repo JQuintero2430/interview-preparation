@@ -1185,3 +1185,4 @@ Each session entry (RUN.md §11): Session, Harness, Model, capabilities, U at st
 - Open questions for Jorge (unattended run): none blocking. FYI: the Ex04.2 and Ex04.3 criteria were made more precise than the M04 §6 wording (listed in the two task lines above); Ex04.3 criterion (2) also covers the silent second-to-last removal shared with `ArrayList`. REVIEW-M04 can judge both.
 - Session end: S20261121-2101-claudecode-cloud; E ≈ 0 + 6.23 × 2 ≈ 12% (estimate). Open UNVERIFIED=0. G1, G2 and T1 ticked.
 - Next session should: read STATE.
+- Follow-up (same session, live): Jorge approved the Ex04.2 and Ex04.3 acceptance criteria as written. Recorded in `_meta/modules/M04.md` §6 (note under the exercise table) and STATE standing notes. Files: `_meta/modules/M04.md`, `_meta/STATE.md`, `_meta/LOG.md`.
