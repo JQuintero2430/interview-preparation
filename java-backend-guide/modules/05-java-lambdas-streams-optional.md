@@ -726,12 +726,172 @@ Questions that drill this section: [Q05.14](#q05-14), [Q05.15](#q05-15), [Q05.16
 ## 6. Primitive streams, `flatMap`, `mapMulti` and `reduce` vs `collect`
 <!-- TASK: SEC-M05-06 -->
 ### The problem it solves
+
+A billing job summed invoice lines with `lines.stream().map(Line::amountCents).reduce(0, Integer::sum)`. It was correct, and in a profile it allocated an `Integer` for nearly every line, because most amounts fall outside the small range of values Java keeps boxed in advance. A later change made it `parallelStream()` and, to apply a fixed fee, changed the seed from `0` to the fee: the total came out a different, larger number on almost every run. A third developer gathered results with `reduce(new ArrayList<>(), …)` because `reduce` "is how you fold a stream", and the parallel version returned lists with duplicated elements. All three bugs come from the same gap: not knowing which reduction a stream offers, what each one requires of its arguments, and where the boxing happens.
+
 ### Mental model
+
+Think of three kinds of conveyor belts and two ways to total what is on them.
+
+- **The belts.** A `Stream<T>` carries objects. An `IntStream`, `LongStream` or `DoubleStream` carries bare numbers, and has the arithmetic built in (`sum`, `average`, `min`, `max`, `summaryStatistics`). `mapToInt` moves items onto a number belt, `boxed` moves numbers back onto an object belt, wrapping each one.
+- **Fanning out.** `map` turns one item into one item. `flatMap` turns one item into a whole small belt (a stream) that is spliced into the main one. `mapMulti` hands you the main belt's intake and lets you drop zero or more items onto it yourself, without building a belt per item.
+- **Totalling.** `reduce` folds *values*: it starts from an identity, and each step returns a new value (`a + b`), so nothing is ever modified. `collect` fills *containers*: each chunk of the input gets its own fresh container, and the containers are merged at the end ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)). On a parallel stream, both run the fold once per chunk, so whatever you pass as the starting point is used once per chunk, not once per stream.
+
 ### How it actually works
+
+**Primitive streams exist to avoid boxing.** `IntStream` is "the `int` primitive specialization of `Stream`", and `LongStream` and `DoubleStream` are the other two; there is no `CharStream`, `ShortStream` or `FloatStream` [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html) [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html), and `String.chars()` returns an `IntStream` of `char` values [Doc: Java 25 API, CharSequence](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/CharSequence.html). Their elements are `int`s, `long`s and `double`s, and their functional interfaces are the primitive ones from [§1](#1-functional-interfaces-and-lambda-expressions) (`IntPredicate`, `IntUnaryOperator`, `IntBinaryOperator`), so no wrapper object is created per element. A `Stream<Integer>` holds `Integer` objects: `boxed()` is implemented in JDK 25 as `mapToObj(Integer::valueOf)` [Src: JDK 25, java.util.stream.IntPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntPipeline.java), and `Integer.valueOf` "will always cache values in the range -128 to 127, inclusive", returning `new Integer(i)` outside the cache in JDK 25 with default settings [Src: JDK 25, java.lang.Integer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Integer.java). In the lab, boxing `127` twice yields the same object, and boxing `1000` twice yields two equal but distinct objects [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java). The cache and `==` on wrappers are [01 §13](01-java-oop-fundamentals.md#13-wrappers-autoboxing-and-the-integer-cache); what matters here is that each element outside the cache is one more short-lived object for the garbage collector.
+
+**Moving between the belts.** `mapToInt`, `mapToLong` and `mapToDouble` go from objects to numbers; `mapToObj` and `boxed` go back; `asLongStream` and `asDoubleStream` widen; `IntStream.range(a, b)` counts from `a` up to but excluding `b`, and `rangeClosed(a, b)` includes `b` [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html). The arithmetic lives only on the primitive streams: `Stream<Integer>` has no `sum()`, and `xs.stream().sum()` fails to compile with `compiler.err.cant.resolve.location.args` while `xs.stream().mapToInt(Integer::intValue).sum()` compiles [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java). `iterate`, `generate`, `takeWhile` and `dropWhile` exist on the primitive streams too; how they evaluate is [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)'s subject and is not repeated here.
+
+**What the built-in reductions return.** `IntStream.sum()` "is equivalent to `reduce(0, Integer::sum)`" [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html), so it returns an `int` and overflows silently. `average()` returns "an `OptionalDouble` … or an empty optional if this stream is empty", and `min()` and `max()` return `OptionalInt`, because an empty stream has no average or extreme [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html). In JDK 25, `average()` counts and sums into a `long[2]` and `summaryStatistics()` collects into an `IntSummaryStatistics` [Src: JDK 25, java.util.stream.IntPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntPipeline.java), whose `getSum()` is a `long`; an empty `IntSummaryStatistics` reports an average of zero, a minimum of `Integer.MAX_VALUE` and a maximum of `Integer.MIN_VALUE` [Doc: Java 25 API, IntSummaryStatistics](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/IntSummaryStatistics.html). The lab pins each of these: `IntStream.empty().average()` is empty and `getAsDouble()` on it throws `NoSuchElementException`, while the empty statistics object answers `0.0`; and `IntStream.of(Integer.MAX_VALUE, 1)` gives `sum() == Integer.MIN_VALUE`, but `average() == 1073741824.0`, `summaryStatistics().getSum() == 2147483648` and `asLongStream().sum() == 2147483648` [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java). Not every primitive operation avoids boxing: JDK 25's `IntPipeline.distinct()` is `boxed().distinct().mapToInt(i -> i)`, with a comment that it "is not very efficient" [Src: JDK 25, java.util.stream.IntPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntPipeline.java).
+
+**`flatMap`: one element to a stream of many.** `flatMap` replaces each element "with the contents of a mapped stream produced by applying the provided mapping function to each element. Each mapped stream is closed after its contents have been placed into this stream. (If a mapped stream is `null` an empty stream is used, instead.)" [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). JDK 25 opens each mapped stream in a try-with-resources block, and when the pipeline is short-circuiting it drains the mapped stream with `allMatch`, so it stops pulling from it as soon as the downstream says it has enough [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java). In the lab, two mapped streams with `onClose` hooks are both closed, in order, and `flatMap` into `IntStream.rangeClosed(1, 5)` followed by `findFirst()` generates only the element `1` [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java). The closing is what makes `lines.flatMap(…)` over `Files.lines` per file safe ([06](06-java-exceptions-strings-io.md) owns the I/O side).
+
+**`mapMulti`: push instead of return.** `mapMulti` (`@since 16`) replaces each element "with multiple elements, specifically zero or more elements", by calling a `BiConsumer` with the element and a `Consumer` that "accepts replacement elements"; using that consumer "outside the scope of its application to the mapping function" gives undefined results. The Javadoc names the two cases where it is "preferable to `flatMap`": "when replacing each stream element with a small (possibly zero) number of elements", which "avoids the overhead of creating a new Stream instance for every group of result elements", and "when it is easier to use an imperative approach for generating result elements than it is to return them in the form of a Stream". Because the element type cannot always be inferred from a lambda, the call often needs a type witness, `stream.<Integer>mapMulti(…)` [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). `Stream`'s default implementation buffers the pushed elements and delegates to `flatMap` [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java), but JDK 25's `ReferencePipeline` overrides it to pass the downstream stage itself as the consumer, so no buffer and no stream is created [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java). The consumer has no way to report that the downstream is done, and the lab shows the consequence: with `findFirst()`, a `mapMulti` mapper that loops from 1 to 5 still pushes all five elements, where `flatMap` generated one [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java); this is JDK 25's behavior, not a documented guarantee in either direction. For the same input, the two produce the same elements in the same order [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java).
+
+**`reduce`: folding values.** A reduction "takes a sequence of input elements and combines them into a single summary result by repeated application of a combining operation", and is "inherently parallelizable, so long as the function(s) used to process the elements are associative and stateless"; an operator is associative if `(a op b) op c == a op (b op c)`, which is what lets the library compute `(a op b)` and `(c op d)` in parallel and combine them [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Reduction). `Stream` has three forms [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html):
+- `reduce(identity, accumulator)`: "The `identity` value must be an identity for the accumulator function. This means that for all `t`, `accumulator.apply(identity, t)` is equal to `t`", and the accumulator must be associative.
+- `reduce(accumulator)`: no identity, so it returns an `Optional`, empty for an empty stream.
+- `reduce(identity, accumulator, combiner)`: for a result of a different type `U`; the identity must be an identity for the *combiner*, and the combiner must be compatible with the accumulator: `combiner.apply(u, accumulator.apply(identity, t)) == accumulator.apply(u, t)`.
+
+In a parallel reduction, the package summary explains, "the input is partitioned, a partial accumulation computed for each partition, and then the partial results are combined", and the identity is "both an initial seed value for the reduction and a default result if there are no input elements" [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Reduction). So a seed that is not an identity is added once per partition. In the lab, `IntStream.rangeClosed(1, 100).reduce(10, Integer::sum)` returns 5060 sequentially, and in parallel returns 5050 + 10 × *k*, where *k*, the number of leaf chunks, is at least 2 and at most 100; the test asserts that set, never a particular *k*, and with the true identity `0` both give 5050 [Lab: ReduceVsCollectTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/ReduceVsCollectTest.java). *k* is at least 2 because JDK 25 splits a stream into chunks of about *n* / (4 × common-pool parallelism) elements, and that parallelism is at least 1 [Src: JDK 25, java.util.stream.AbstractTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractTask.java) [Src: JDK 25, java.util.concurrent.ForkJoinPool](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ForkJoinPool.java); how many chunks there really are, and on which threads they run, is [§8](#8-parallel-streams-and-the-common-forkjoinpool)'s.
+
+**`collect`: filling containers.** "A mutable reduction is one in which the reduced value is a mutable result container, such as an `ArrayList`, and elements are incorporated by updating the state of the result rather than by replacing the result." The three-function `collect(supplier, accumulator, combiner)` mirrors `reduce`'s three arguments, but the supplier "may be called multiple times and must return a fresh value each time", and the combiner "must fold the elements from the second result container into the first" [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). That fresh container per chunk is the difference that matters. `reduce` has one identity *value*, shared by every chunk; if that value is a mutable list and the accumulator adds to it, every chunk writes into the same list, and the combiner then appends the list to itself. In the lab, `reduce` into a synchronized list returns the identity list itself, equal to the input sequentially, and in parallel holding every element with at least 2 × *n* entries; the same input through `collect(ArrayList::new, ArrayList::add, ArrayList::addAll)` equals the input, in order, sequentially and in parallel [Lab: ReduceVsCollectTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/ReduceVsCollectTest.java). The lab uses a synchronized list so that the test fails the same way every run; with a plain `ArrayList`, the concurrent `add` calls are also a data race on a class whose Javadoc says "this implementation is not synchronized" and must be synchronized externally when threads modify it concurrently [Doc: Java 25 API, ArrayList](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayList.html), so not even the wrong result is predictable. The package summary gives the cost side as well: `strings.reduce("", String::concat)` is correct, "and it would even work in parallel", but does "a great deal of string copying", *O(n²)* in the number of characters, which a `StringBuilder` container (or `Collectors.joining()`) avoids [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#MutableReduction); the lab checks only that the two give the same string [Lab: ReduceVsCollectTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/ReduceVsCollectTest.java).
+
 ### Code
+
+Primitive aggregates over orders. The approach: flatten orders into lines once, then drop onto a primitive stream before doing arithmetic, so no number is boxed and the right type (a `long`, an `OptionalDouble`) comes out.
+
+1. `revenueCents` multiplies in `long` (the price is a `long`) and sums a `LongStream`, so a large order cannot overflow `int`.
+2. `averageUnitPriceCents` returns the `OptionalDouble` as is, so "no lines" stays distinguishable from an average of zero.
+3. `quantityStatistics` computes count, minimum, maximum and sum in one pass.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s06/OrderStats.java
+    // long arithmetic before summing, so a large order cannot overflow int.
+    public static long revenueCents(List<Order> orders) {
+        return orders.stream()
+                .flatMap(order -> order.lines().stream())
+                .mapToLong(line -> line.quantity() * line.unitPriceCents())
+                .sum();
+    }
+
+    // Empty, not 0.0, when there is no line to average.
+    public static OptionalDouble averageUnitPriceCents(List<Order> orders) {
+        return orders.stream()
+                .flatMap(order -> order.lines().stream())
+                .mapToLong(Line::unitPriceCents)
+                .average();
+    }
+
+    // Count, min, max, sum and average in one pass.
+    public static IntSummaryStatistics quantityStatistics(List<Order> orders) {
+        return orders.stream()
+                .flatMap(order -> order.lines().stream())
+                .mapToInt(Line::quantity)
+                .summaryStatistics();
+    }
+```
+
+`OrderStatsTest` asserts the three results, including the empty average for an order with no lines.
+
+The same expansion with `flatMap` and with `mapMulti`. The approach: keep only lines with a positive quantity, once by returning a stream per order and once by pushing each kept line.
+
+1. `flatMap` version: for each order, build `order.lines().stream().filter(…)`; the pipeline splices it in and closes it.
+2. `mapMulti` version: loop over the lines and call `downstream.accept(line)` for each one kept; an order with no shippable line pushes nothing.
+3. The type witness `<Line>` tells the compiler what the consumer accepts.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s06/Expansions.java
+    // flatMap: return a stream for each order; the pipeline consumes and closes it.
+    public static List<Line> shippableLinesWithFlatMap(List<Order> orders) {
+        return orders.stream()
+                .flatMap(order -> order.lines().stream().filter(line -> line.quantity() > 0))
+                .toList();
+    }
+
+    // mapMulti: push each kept line to the consumer; no stream per order.
+    public static List<Line> shippableLinesWithMapMulti(List<Order> orders) {
+        return orders.stream()
+                .<Line>mapMulti((order, downstream) -> {
+                    for (Line line : order.lines()) {
+                        if (line.quantity() > 0) {
+                            downstream.accept(line);
+                        }
+                    }
+                })
+                .toList();
+    }
+```
+
+`FlatMapAndMapMultiTest` asserts that both return the same lines in the same order, and that `onlyIntegers`, the Javadoc's "keep one subtype" example, turns `[1, "two", 3L, 4]` into `[1, 4]`.
+
+`reduce` against `collect`. The approach: put the anti-pattern and the fix side by side, with the same accumulate-and-combine shape, so the only difference is who creates the container.
+
+1. `listByReduce` passes one list as the identity; every chunk's accumulator adds to it.
+2. `listByCollect` passes a supplier, `ArrayList::new`, so each chunk gets its own list, and `addAll` merges them in encounter order.
+3. `totalLength` is the legitimate three-argument `reduce`: an immutable `int` result, an accumulator that maps and adds, and `Integer::sum` as the combiner, for which `0` is an identity.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s06/Reductions.java
+    // Anti-pattern: the identity is one mutable list shared by every chunk.
+    public static <T> List<T> listByReduce(Stream<T> elements, List<T> identity) {
+        return elements.reduce(
+                identity,
+                (list, element) -> {
+                    list.add(element);
+                    return list;
+                },
+                (left, right) -> {
+                    left.addAll(right);
+                    return left;
+                });
+    }
+
+    // Mutable reduction: a fresh ArrayList per chunk, merged in encounter order.
+    public static <T> List<T> listByCollect(Stream<T> elements) {
+        return elements.collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+    }
+
+    // Three-argument reduce: the accumulator maps and adds, the combiner adds two partial sums.
+    public static int totalLength(Stream<String> words) {
+        return words.reduce(0, (sum, word) -> sum + word.length(), Integer::sum);
+    }
+```
+
+`ReduceVsCollectTest` runs each on a sequential and a parallel stream and asserts the permitted outcomes described above.
+
 ### Failure modes and operations
+
+Boxing in a hot pipeline shows up as allocation, not as a wrong answer: a `Stream<Integer>` or a `reduce(0, Integer::sum)` over values outside the `Integer` cache creates one wrapper per element [Src: JDK 25, java.lang.Integer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Integer.java) [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java). Under load that is extra young-generation garbage per request; whether it matters is a measurement, made with an allocation profiler ([10](10-jvm-performance-and-troubleshooting.md)), and the fix is a `mapToInt`/`mapToLong` before the arithmetic. The opposite mistake is a silent overflow: `IntStream.sum()` wraps around on an `int` total, as the lab's `Integer.MAX_VALUE + 1` shows, so totals of money or counters that can exceed about two billion belong in a `LongStream` or `summaryStatistics().getSum()` [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html) [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java).
+
+The reduction bugs share one trait: they pass every sequential test. A seed that is not an identity, or a mutable identity, only misbehaves once the stream is parallel, because only then is the identity used more than once [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Reduction) [Lab: ReduceVsCollectTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/ReduceVsCollectTest.java). The symptom of the wrong seed is a total that changes between runs and machines (*k* depends on the input size and the common pool's parallelism); the symptom of the mutable identity is duplicates, and with an unsynchronized list an unpredictable result, since `ArrayList` does not support concurrent modification [Doc: Java 25 API, ArrayList](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayList.html). Neither is fixed by making the stream sequential again: the fix is a true identity (add the fee after the `reduce`), or `collect`. [Q05.18](#q05-18) drills the first.
+
+The expansion operators fail on size. `flatMap` over a lazy inner stream feeds its elements downstream one at a time, but a `flatMap` whose function first builds a large list per element holds that whole expansion in memory at once; and a `mapMulti` loop over an unbounded source never ends, even under `findFirst()`, because its consumer cannot signal that the downstream is done [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java) [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java). Use `flatMap` with a lazy stream when one element can expand into many or infinitely many. None of these operations has a configuration to tune.
+
+> [!NOTE]
+> **Version notes.** Java 8: `IntStream`, `LongStream`, `DoubleStream`, `flatMap`, `reduce`, `collect`, `summaryStatistics` [Final since Java 8, JEP 107] [Doc: JEP 107](https://openjdk.org/jeps/107). Java 9: `takeWhile`, `dropWhile` and a three-argument `iterate` on the primitive streams too (`@since 9`; [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)). Java 16: `mapMulti`, plus `mapMultiToInt`, `mapMultiToLong` and `mapMultiToDouble` on `Stream`, and `mapMulti` on each primitive stream (`@since 16`) [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java) [Src: JDK 25, java.util.stream.IntStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntStream.java); code written before 16 uses `flatMap` with `Stream.of(x)` or `Stream.empty()` for the same job. Java 25 (default): no change to the contracts above.
+
 ### Best practices and anti-patterns
+
+- Switch to `mapToInt`, `mapToLong` or `mapToDouble` before arithmetic, because the primitive streams carry no wrapper per element and own `sum`, `average` and `summaryStatistics`.
+- Sum money and counters in a `LongStream` (or read `summaryStatistics().getSum()`), because `IntStream.sum()` returns an `int` and overflows without an error.
+- Handle the empty case of `average()`, `min()` and `max()` explicitly (`orElse`, `orElseThrow` with a message), because an empty stream gives an empty optional, while `IntSummaryStatistics` gives `0.0` and the extreme `int` values, which look like data.
+- Pass only a true identity to `reduce` (`0` for `+`, `1` for `*`, `""` for concatenation) and apply offsets, fees or defaults after the reduction, because the identity is used once per chunk in parallel.
+- Use `collect` (or a `Collector`) whenever the result is a container, because `collect` gives each chunk a fresh one; never `reduce` into an `ArrayList`, a `StringBuilder` or a `HashMap`.
+- Prefer `map` + `reduce` (or `map` + `sum`) to the three-argument `reduce` unless fusing the steps saves real work, because the package summary calls the explicit map-reduce form "more readable".
+- Use `mapMulti` when each element yields zero or a few elements, or when an imperative loop reads better, and `flatMap` when an element can yield many, or when the expansion is already a stream (a file's lines), because `flatMap` closes that stream and stops pulling from it early.
+- Give `mapMulti` a type witness (`stream.<Line>mapMulti(…)`), because a lambda often leaves its element type uninferable.
+
 ### Misconceptions and traps
+
+- *"`reduce` and `collect` are interchangeable."* `reduce` folds immutable values and shares one identity across chunks; `collect` fills a fresh container per chunk. `reduce` into a mutable list returns the input sequentially and a list with duplicates in parallel, while `collect` is right both ways [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html) [Lab: ReduceVsCollectTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/ReduceVsCollectTest.java). The belief comes from functional languages, where every fold is over immutable values, and from the matching three-argument shapes.
+- *"The identity of `reduce` is just a starting value."* It must be an identity for the accumulator (or the combiner), because in parallel it starts every chunk; `reduce(10, Integer::sum)` adds 10 once per chunk [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html) [Lab: ReduceVsCollectTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/ReduceVsCollectTest.java). It comes from the `for` loop that `reduce` replaces, where the initial value is used once.
+- *"`Stream<Integer>` has a `sum()`."* Only the primitive streams have one; on `Stream<Integer>` the call does not compile, and the choices are `mapToInt(Integer::intValue).sum()` or `reduce(0, Integer::sum)` [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java). The confusion comes from `Collectors.summingInt`, and from languages whose generic sequences can sum numbers.
+- *"`average()` of nothing is 0."* `IntStream.average()` is empty for an empty stream; only `IntSummaryStatistics.getAverage()` answers `0.0` [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html) [Doc: Java 25 API, IntSummaryStatistics](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/IntSummaryStatistics.html) [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java). Both are "the average", which is why the two get mixed up.
+- *"`mapMulti` is always faster than `flatMap`."* The Javadoc recommends it for small expansions and imperative generation only; it has no early stop, so under a short-circuiting terminal it can do more work than `flatMap` [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html) [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java). The myth comes from reading only the first of its two "preferable" cases.
+
+Questions that drill this section: [Q05.17](#q05-17), [Q05.18](#q05-18), [Q05.19](#q05-19), [Q05.20](#q05-20); exercise [Exercise 05.1](#ex05-1).
 <!-- /TASK: SEC-M05-06 -->
 
 ## 7. Stream gatherers
