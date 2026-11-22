@@ -3,17 +3,17 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 04 `java-collections-internals` (core, lab `java-language`), planned by PLAN-M04 (S20261120-1801-claudecode-cloud): [M04](modules/M04.md), skeleton `modules/04-java-collections-internals.md` (40 TASK markers), smoke test `m04/smoke/M04LabSmokeTest` (3 tests pass); SEC-M04-01 to -10, QB-M04-01 to -04 (Q04.01–Q04.32, the full question bank) EX-M04-01 to -03 (Ex04.1–Ex04.3, all exercises) written. Modules 17, 01, 02 and 03 closed, reviewed, fixed (REVIEW-M03 group G closed by FIX-M03-04/-05 this session).
-- **In progress:** none
-- **Last finished task:** EX-M04-03 (S20261121-2101-claudecode-cloud, claude-opus-5-5).
-- **Next task:** CLOSE-M04 (M), then REVIEW-M04 (L).
-- **Counts:** modules done 0/55 (17, 01, 02 and 03 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 5/55 (17, 01, 02, 03, 04); CLOSE 4/55 (17, 01, 02, 03); REVIEW 4/55 (17, 01, 02, 03).
+- **Current module:** 04 `java-collections-internals` (core, lab `java-language`), planned by PLAN-M04 (S20261120-1801-claudecode-cloud): [M04](modules/M04.md), skeleton `modules/04-java-collections-internals.md` (40 TASK markers), smoke test `m04/smoke/M04LabSmokeTest` (3 tests pass); SEC-M04-01 to -10, QB-M04-01 to -04 (Q04.01–Q04.32, the full question bank) EX-M04-01 to -03 (Ex04.1–Ex04.3, all exercises) written; CLOSE-M04 done (0 TASK markers, 44 primary ledger rows `written`). Modules 17, 01, 02 and 03 closed, reviewed, fixed (REVIEW-M03 group G closed by FIX-M03-04/-05 this session).
+- **In progress:** REVIEW-M04 (S20261122-0001-claudecode-cloud, 2026-11-22 00:06 America/Bogota)
+- **Last finished task:** CLOSE-M04 (S20261122-0001-claudecode-cloud, claude-opus-5-5).
+- **Next task:** REVIEW-M04 (L), then its FIX tasks.
+- **Counts:** modules done 0/55 (17, 01, 02 and 03 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 5/55 (17, 01, 02, 03, 04); CLOSE 5/55 (17, 01, 02, 03, 04); REVIEW 4/55 (17, 01, 02, 03).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
   - G1 "Syllabus and pilot approved": **ticked** (noticed S20261101-2100); `PLAN-Mxx` tasks are eligible.
   - G2 "Source deletion and cross-guide link rewrite approved": **ticked** (noticed S20261115-0846-claudecode); `DELETE-<src>` tasks become eligible once their ledger rows are `written` (Phase D).
   - T1 "Docker available" (informational): ticked; Docker probe, not the checkbox, decides eligibility for `VERIFY-06`, `HOUSE-01` and every docker-tagged test run.
-- **Last full verification (CLOSE-M03, 2026-11-20, S20261120-0602-claudecode-cloud):** row 8 full `verify -DexcludedGroups=docker` exit 0 (java-language 567 tests, spring-transactions 70, persistence 0 run; docker tests skipped, no daemon); `check-links --planned` exit 0; `module-stats` row 03 no flag. Previous: CLOSE-M02, 2026-11-15, S20261115-1722-claudecode, same results for its module. Earlier baseline (P5, 2026-10-25, S20261025-0048-claudecode):
+- **Last full verification (CLOSE-M04, 2026-11-22, S20261122-0001-claudecode-cloud):** row 8 full `verify -DexcludedGroups=docker` exit 0 (java-language 783 tests, spring-transactions 70, persistence 0 run; 0 failures, 0 skipped; docker tests excluded, no daemon); `check-links --planned` exit 0; `module-stats` row 04 no flag. Previous: CLOSE-M03, 2026-11-20, S20261120-0602-claudecode-cloud (java-language 567). Earlier: CLOSE-M02, 2026-11-15, S20261115-1722-claudecode, same results for its module. Earlier baseline (P5, 2026-10-25, S20261025-0048-claudecode):
   - Full `verify`: exit 0 (java-language: 1 test passed; persistence and spring-transactions smoke tests skipped, no Docker).
   - `verify -DexcludedGroups=docker`: exit 0. `spotless:apply` then `verify`: exit 0.
   - Node tool tests: 8 pass, 0 fail. `check-links.mjs --planned`: exit 0. `module-stats.mjs`: exit 0 ("0 module(s) of 55 planned").

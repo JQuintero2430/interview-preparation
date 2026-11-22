@@ -27,7 +27,6 @@
 - [Connections](#connections)
 
 ## 1. The Collections Framework: interfaces, contracts and sequenced collections
-<!-- TASK: SEC-M04-01 -->
 ### The problem it solves
 
 A reporting service shows "the latest event" from three teams' feeds. One team hands over a `List`, one a `Deque`, and one a `LinkedHashSet`, which drops duplicate events but keeps arrival order. Up to Java 20 no common type meant "ordered, with a first and a last element", so the helper had three versions: `list.get(list.size() - 1)`, `deque.getLast()`, and a loop over the whole `LinkedHashSet`. Then a fourth team passes a `HashSet`. A helper typed on `Collection` accepts it, and "the latest" becomes whatever the hash order puts last, an order the class does not promise to keep "constant over time" [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java). Both problems, the duplicated code and the silent wrong answer, come from not knowing exactly what each interface promises.
@@ -162,10 +161,8 @@ The interfaces have no run-time behavior of their own; their failures are contra
 - *"Every sequenced collection accepts `addFirst`."* Sorted sets and maps reject explicit positioning, always [Src: JDK 25, java.util.SortedSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/SortedSet.java) [Src: JDK 25, java.util.TreeMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/TreeMap.java). The trap exists because `TreeSet` does implement `SequencedSet`, so the call compiles.
 
 Questions that drill this section: [Q04.01](#q04-01), [Q04.02](#q04-02), [Q04.03](#q04-03).
-<!-- /TASK: SEC-M04-01 -->
 
 ## 2. Lists: `ArrayList`, `LinkedList` and the legacy `Vector` and `Stack`
-<!-- TASK: SEC-M04-02 -->
 ### The problem it solves
 
 A nightly export reads 200,000 rows into a `List` and writes every row with `for (int i = 0; i < rows.size(); i++) write(rows.get(i))`. It finishes in seconds. A refactor changes the loader to return a `LinkedList`, "because we append a lot", and the same loop now runs for hours, with no error and no change to the loop. The `List` interface hid the one fact that mattered: on an `ArrayList`, `get(i)` is constant time, and on a `LinkedList` it walks the chain from the nearer end, so the loop becomes quadratic ([Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) [Src: JDK 25, java.util.LinkedList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java) [Src: JDK 25, java.util.RandomAccess](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/RandomAccess.java)). Choosing a list means knowing what each implementation does inside.
@@ -314,10 +311,8 @@ Reading `modCount` from a subclass, which is how the lab observes structural cha
 - *"`ArrayList` grows by exactly 1.5×, so you can predict its capacity."* That is today's implementation, not the contract: the Javadoc specifies only amortized constant `add` [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). The habit comes from reading the source of one release.
 
 Questions that drill this section: [Q04.04](#q04-04), [Q04.05](#q04-05), [Q04.06](#q04-06), [Q04.07](#q04-07), [Q04.08](#q04-08), [Q04.32](#q04-32), [Exercise 04.3](#ex04-3).
-<!-- /TASK: SEC-M04-02 -->
 
 ## 3. `HashMap` internals
-<!-- TASK: SEC-M04-03 -->
 ### The problem it solves
 
 A billing service builds a `HashMap<String, BigDecimal>` of charges per account and writes it to a CSV file by iterating `map.entrySet()`. For months the columns come out in the order the code inserted them, and a test pins that order. Then a new charge type is added, the map's 13th entry pushes it past its resize threshold, the table doubles, entries move to new bins, and the CSV columns come out in a different order. Nothing in the code changed except one more `put`. The `HashMap` Javadoc never promised an order, "in particular, it does not guarantee that the order will remain constant over time" [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java), and a default map does resize when its 13th mapping arrives [Lab: HashMapTableTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s03/HashMapTableTest.java). The same blindness causes the expensive failures: a `HashMap` gives constant-time `get` and `put` only "assuming the hash function disperses the elements properly among the buckets" [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Knowing the table, the hash spreading, the resize and the tree bins is what lets you predict when a map stops being fast and stops looking ordered.
@@ -518,12 +513,9 @@ The probe is a diagnostic for learning, not production code: it depends on a pri
 - *"A resize rehashes every key."* It reuses the hash stored in each node and moves the node by one bit of it, keeping each bin's order [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The word "rehashed" in the Javadoc's own description of growth is where the idea comes from; the cost is real, but it is copying, not calling `hashCode`.
 - *"`get` returned `null`, so the key is not there."* A key can be mapped to `null`; only `containsKey` answers that question [Lab: HashMapBehaviorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s03/HashMapBehaviorTest.java). The habit comes from `Hashtable` and `ConcurrentHashMap`, where `null` values are impossible and `null` does mean absent.
 
-
 Questions that drill this section: [Q04.09](#q04-09), [Q04.10](#q04-10), [Q04.11](#q04-11), [Q04.12](#q04-12), [Q04.13](#q04-13), [Exercise 04.2](#ex04-2).
-<!-- /TASK: SEC-M04-03 -->
 
 ## 4. Ordered and special-purpose maps
-<!-- TASK: SEC-M04-04 -->
 ### The problem it solves
 
 Three tickets from one sprint. A pricing service stores tax bands in a `HashMap<BigDecimal, BigDecimal>` and finds "the band for 4,250.00" by looping over every key and keeping the largest bound below the amount, which is linear in the number of bands. Its fast path, `map.get(amount)` for amounts that sit exactly on a bound, misses the band written `1000` when asked for `1000.00`, because `BigDecimal.equals` is true only when "value and scale are equal" [Src: JDK 25, java.math.BigDecimal](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/math/BigDecimal.java). An in-memory cache of rendered pages grows until the heap is full, because nothing ever removes the page nobody has asked for in a week. A serializer that tracks "objects already written" in a `HashMap` writes one object twice and another not at all, because two distinct objects are `equals` [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java). Each is a `Map` with the wrong idea of order or of key equality, and the JDK ships a map for each idea: `TreeMap` for sorted keys and range lookups, `LinkedHashMap` for insertion or access order, `EnumMap` for enum keys, `IdentityHashMap` for reference equality and `WeakHashMap` for keys whose lifetime someone else controls.
@@ -664,10 +656,8 @@ Subclassing exposes every `Map` method of the cache to its callers; [Exercise 04
 - *"Every collection iterator is fail-fast."* `EnumMap`'s view iterators are weakly consistent and never throw `ConcurrentModificationException` [Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java). The rule of thumb is true of `HashMap`, `TreeMap` and `LinkedHashMap`, which are the maps people learn first.
 
 Questions that drill this section: [Q04.14](#q04-14), [Q04.15](#q04-15), [Q04.16](#q04-16), [Q04.17](#q04-17), [Q04.18](#q04-18), [Exercise 04.1](#ex04-1).
-<!-- /TASK: SEC-M04-04 -->
 
 ## 5. Sets: views of maps
-<!-- TASK: SEC-M04-05 -->
 ### The problem it solves
 
 A notification service deduplicates recipients with `new HashSet<>(recipients)`, and support reports that people receive emails in a different order from the list that the marketing team carefully ranked. The fix someone tries, `Set.of(recipients.toArray(String[]::new))`, crashes the job at startup the first time the list contains a duplicate, which is the one thing it was supposed to remove. A third team stores user permissions in an `int` of bit flags (`READ = 1, WRITE = 2, …`) and spends a release tracking down a check that tested the wrong bit. All three need a set, and each needs a different one: insertion order (`LinkedHashSet`), deduplication that tolerates duplicates (`Set.copyOf`, not `Set.of`), and a type-safe set of enum constants (`EnumSet`) ([Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java) [Src: JDK 25, java.util.Set](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Set.java) [Src: JDK 25, java.util.EnumSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumSet.java)). Knowing that most sets are maps in disguise tells you which one behaves how.
@@ -773,10 +763,8 @@ Sets fail the way their backing map fails, so the load behavior of `HashSet`, `L
 - *"`LinkedHashSet` can be access-ordered like `LinkedHashMap`."* Its constructors always build an insertion-ordered map [Src: JDK 25, java.util.HashSet](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashSet.java). The assumption comes from the parallel between the two classes, which holds for everything except that mode.
 
 Questions that drill this section: [Q04.19](#q04-19), [Q04.20](#q04-20).
-<!-- /TASK: SEC-M04-05 -->
 
 ## 6. Queues and deques: `ArrayDeque` and `PriorityQueue`
-<!-- TASK: SEC-M04-06 -->
 ### The problem it solves
 
 A dispatch service keeps its pending jobs in a `PriorityQueue` ordered by urgency, and its admin page prints the queue with `toString()`. Operators read the list from left to right, see an urgent job in fourth place, and file a bug saying the scheduler skips it; there is no bug, because the printed order was never the dispatch order. Next door, a parser keeps its open brackets on a `Stack`, the class most tutorials name for the job, and a reviewer asks why the code locks a monitor on every push in a single-threaded parser. A third team drains a `LinkedList` work queue with `while ((job = queue.poll()) != null)` and stops early the day someone enqueues a `null` placeholder. All three use a queue or a stack, and each trips over a rule of the `Queue` and `Deque` contracts or of the class behind them ([Doc: Java 25 API, java.util.PriorityQueue](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/PriorityQueue.html) [Src: JDK 25, java.util.Stack](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Stack.java) [Src: JDK 25, java.util.Queue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Queue.java)).
@@ -911,10 +899,8 @@ Older code uses `Stack` for LIFO work: `stack.push(x)`, `stack.pop()`, `stack.pe
 - *"`ArrayDeque` capacity is always a power of two."* Once true: through Java 8. Now: any length plus one spare slot [Changed in Java 9: see Version notes]. Older articles on `ArrayDeque` internals describe the Java 6 to 8 implementation.
 
 Questions that drill this section: [Q04.21](#q04-21), [Q04.22](#q04-22).
-<!-- /TASK: SEC-M04-06 -->
 
 ## 7. Iterators: fail-fast, weakly consistent and snapshot
-<!-- TASK: SEC-M04-07 -->
 ### The problem it solves
 
 A nightly job walks the list of open sessions and drops the idle ones with `sessions.remove(session)` inside a for-each loop. On most nights it dies with `ConcurrentModificationException`, and the on-call engineer hunts for a second thread that does not exist. On the nights it does not die, it is worse: when the only idle session is second to last, the loop ends quietly and never looks at the last session, so an idle session survives. The same team then swaps the list for a `CopyOnWriteArrayList` "because it is fail-safe", and the loop stops failing, while each removal now copies the whole array. All three outcomes follow from how Java iterators detect, or deliberately ignore, changes to the collection under them ([Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) [Src: JDK 25, java.util.ConcurrentModificationException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ConcurrentModificationException.java) [Src: JDK 25, java.util.concurrent.CopyOnWriteArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/CopyOnWriteArrayList.java)).
@@ -1057,10 +1043,8 @@ Before `Iterator` (Java 1.2), `Vector` and `Hashtable` were traversed with an `E
 - *"Any modification during iteration breaks the iterator."* Only structural ones do; `List.set` changes no size and no `modCount`, and a loop that calls it runs to the end [Lab: IteratorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s07/IteratorsTest.java). The belief comes from treating "modify" and "structurally modify" as the same word.
 
 Questions that drill this section: [Q04.23](#q04-23), [Q04.24](#q04-24), [Q04.25](#q04-25), [Q04.26](#q04-26).
-<!-- /TASK: SEC-M04-07 -->
 
 ## 8. Immutable, unmodifiable and fixed-size lists
-<!-- TASK: SEC-M04-08 -->
 ### The problem it solves
 
 A cleanup pull request replaces `.collect(Collectors.toList())` with `.toList()` across a codebase, because the IDE suggests it and the tests pass. A week later a report endpoint fails with `UnsupportedOperationException` from `Collections.sort`, in a class the pull request never touched: it sorted the list a service returned. In the same sprint, a validation helper calls `allowedCodes.contains(code)` on a `List.of(...)` constant, and the first request without a code fails with `NullPointerException` instead of being rejected. And a test fixture built with `Arrays.asList(expected)` changes the `expected` array when the code under test sorts its argument. All three lists are typed `List<String>`, and all three behave differently, because the JDK has three kinds of lists that refuse some of the operations the `List` interface declares ([Src: JDK 25, java.util.ImmutableCollections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ImmutableCollections.java) [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java)).
@@ -1195,10 +1179,8 @@ Before Java 9, the usual "constant list" was `Collections.unmodifiableList(Array
 - *"`contains` never throws."* `Collection.contains` may throw `NullPointerException` for a collection that does not permit `null`, and `List.of`, `Set.of` and `Map.of` do [Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java) [Lab: ImmutableListsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s08/ImmutableListsTest.java). The belief comes from `ArrayList` and `HashSet`, which accept `null` and answer with a boolean.
 
 Questions that drill this section: [Q04.27](#q04-27), [Q04.28](#q04-28).
-<!-- /TASK: SEC-M04-08 -->
 
 ## 9. Utilities, sorting and collection equality
-<!-- TASK: SEC-M04-09 -->
 ### The problem it solves
 
 A leaderboard sorts players by points and is expected to show earlier submitters first among ties; a reviewer asks whether `List.sort` might shuffle the ties, and nobody on the team knows. A pricing service looks up a band with `Collections.binarySearch` on a list that someone later started filling from an unsorted query, and a customer who should get the "gold" discount gets none, with no exception anywhere. A deduplication check compares an `ArrayList` with a `LinkedList`, a test compares a `HashSet` with a `TreeSet`, and an audit compares two `byte[]` checksums with `equals`; the first two are equal, the third is `false` for identical bytes. All of this is in the `Collections` and `Arrays` utility classes and in the `equals` contracts of the collection interfaces, and each answer is a documented guarantee or a documented absence of one ([Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java) [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java) [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java)).
@@ -1324,10 +1306,8 @@ Before Java 8, `Collections.sort(list)` was the only list sort; it now delegates
 - *"`Arrays.sort(int[])` is unstable, so it may scramble equal values."* Stability is not observable for primitives: equal `int`s are indistinguishable, and the Javadoc makes no stability statement for those overloads [Src: JDK 25, java.util.Arrays](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java). The myth comes from the true statement that quicksort is not stable, applied where it cannot matter.
 
 Questions that drill this section: [Q04.29](#q04-29), [Q04.30](#q04-30); `Comparable` vs `Comparator` itself is [Q02.11](02-java-equality-immutability-records.md#q02-11).
-<!-- /TASK: SEC-M04-09 -->
 
 ## 10. Choosing a collection: complexity, memory and workload
-<!-- TASK: SEC-M04-10 -->
 ### The problem it solves
 
 A notification job keeps the ids it has already sent in an `ArrayList` and calls `sent.contains(id)` before each send. With a few thousand recipients a day nobody notices. After a campaign to a few million recipients, each check scans the whole list, the total work grows with the square of the list size, and the job runs past its window. A colleague "fixes" it by switching to a `LinkedList`, because "linked lists are fast at inserts", and the job gets slower still. Next door, a pricing cache declared as `Map<Long, Double>` holds a few million entries, and a heap histogram shows that most of the memory is not the prices but the objects around them: one map entry object, one boxed `Long` and one boxed `Double` per price. Neither failure is a bug in the JDK; both come from choosing a class by name instead of by the operations the workload performs, and both could have been read off the class Javadoc beforehand ([Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java) [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java)).
@@ -1511,15 +1491,16 @@ public final class ShipmentTracker {
 - *"A `List<Integer>` stores `int`s."* It stores references to `Integer` objects, cached only for -128 to 127 [Src: JDK 25, java.lang.Integer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Integer.java) [Lab: CollectionFootprintTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/s10/CollectionFootprintTest.java). The myth exists because autoboxing makes `list.add(5)` look like it stores the number ([01 §13](01-java-oop-fundamentals.md#13-wrappers-autoboxing-and-the-integer-cache)).
 
 Questions that drill this section: [Q04.31](#q04-31), [Q04.32](#q04-32); the `ArrayList`-vs-`LinkedList` case itself is [Q04.06](#q04-06).
-<!-- /TASK: SEC-M04-10 -->
 
 ## Summary
-<!-- TASK: CLOSE-M04 -->
-<!-- /TASK: CLOSE-M04 -->
+The framework is a set of interfaces with classes hired to fill them: `Collection` promises neither order nor uniqueness, `List`, `Set`, `Queue` and `Deque` add those jobs, the sequenced interfaces (Java 21) add a first and a last element and a reversed view, and `Map` belongs to the framework without being a `Collection`. Mutators are optional, so a `Collection` that throws `UnsupportedOperationException` keeps its contract, and a sorted set rejects `addFirst` although the call compiles ([§1](#1-the-collections-framework-interfaces-contracts-and-sequenced-collections)). An `ArrayList` is an `Object[]` with spare capacity, constant-time by index and shifting its tail on a middle insert; a `LinkedList` inserts in constant time only once the node is found, and finding it by index is a walk. `new ArrayList<>(100)` has size 0, `remove(1)` on a `List<Integer>` removes by index, and `Vector` makes each call atomic but not a sequence of calls ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)). A `HashMap` spreads the key's hash, masks it to a power-of-two table, walks the bin comparing the stored hash before `equals`, resizes past three quarters full by moving each node on one bit of its stored hash, and turns a bin of more than 8 nodes into a tree only in a table of at least 64 buckets. Its order is unspecified, `new HashMap<>(n)` takes a capacity where `HashMap.newHashMap(n)` takes an expected size, and a `null` from `get` does not mean the key is absent ([§3](#3-hashmap-internals)).
+
+The other maps change either the order or the meaning of "same key": `LinkedHashMap` keeps insertion or access order, and in access order a `get` is a structural modification, which is what `removeEldestEntry` turns into an LRU cache; `TreeMap` sorts and finds keys with `compareTo` alone; `EnumMap` is an array indexed by ordinal, `IdentityHashMap` compares with `==`, and `WeakHashMap` drops an entry when its key becomes weakly reachable, never while its own value still refers to the key ([§4](#4-ordered-and-special-purpose-maps)). Sets are maps that keep only keys: `HashSet` is a `HashMap` with a dummy value, `TreeSet` decides duplicates with its comparator, `EnumSet` is a bit vector, and `Set.of` rejects duplicates instead of collapsing them ([§5](#5-sets-views-of-maps)). `ArrayDeque` is a circular array and the documented replacement for `Stack`; a `PriorityQueue` is a binary min-heap whose head is the least element, so its iteration and `toString` show the heap array, not priority order, and equal priorities come out in no promised order ([§6](#6-queues-and-deques-arraydeque-and-priorityqueue)).
+
+A for-each loop is an `Iterator` loop, and a fail-fast iterator compares `modCount` on `next()`: removing inside the loop throws on one thread, except for the second-to-last element, which ends the loop silently; the check is best-effort, weakly consistent iterators walk the live structure, and only snapshot iterators copy ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)). `List.of` and `Stream.toList()` are unmodifiable but differ on `null`, `Collections.unmodifiableList` is a read-only view of a list that can still change, and `Arrays.asList` is a fixed-size view that writes through to the array and turns an `int[]` into a single element ([§8](#8-immutable-unmodifiable-and-fixed-size-lists)). Object sorts are a stable TimSort, primitive sorts a dual-pivot quicksort, `binarySearch` on unsorted data returns an undefined result, and lists equal lists and sets equal sets across implementations while arrays compare by identity ([§9](#9-utilities-sorting-and-collection-equality)). Choosing a collection starts from the question the code asks all day, by position, by key, in order, or by priority, then weighs constant factors, memory per element and sharing between threads; big-O alone does not decide ([§10](#10-choosing-a-collection-complexity-memory-and-workload)).
 
 ## Question bank
 
-<!-- TASK: QB-M04-01 -->
 <a id="q04-01"></a>
 ### Q04.01 · Concept · collection, `Collection` and `Collections`: what the framework's root interface promises, and why `Map` is not a `Collection`
 <!-- ledger: core-java-240-07-02, core-java-240-07-03, core-java-240-07-04, core-java-240-07-05, core-java-240-07-06, core-java-240-08-02, core-java-pdf-01-18, core-java-pdf-01-31, core-java-pdf-02-48, core-java-pdf-02-62 -->
@@ -1797,9 +1778,6 @@ What is `Vector`, how does it differ from `ArrayList`, and what should new code 
 
 </details>
 
-<!-- /TASK: QB-M04-01 -->
-
-<!-- TASK: QB-M04-02 -->
 <a id="q04-09"></a>
 ### Q04.09 · Concept · How `HashMap.put` and `get` find a bin: spreading, the index mask and the walk
 <!-- ledger: honeywell-optum-md-01-18 -->
@@ -2113,9 +2091,6 @@ What is a `SortedMap`, and what does `TreeMap` add through `NavigableMap`? What 
 
 </details>
 
-<!-- /TASK: QB-M04-02 -->
-
-<!-- TASK: QB-M04-03 -->
 <a id="q04-17"></a>
 ### Q04.17 · Difference · `EnumMap`, `IdentityHashMap` and `WeakHashMap`: what each compares and when to use it
 <!-- ledger: honeywell-optum-md-01-22 -->
@@ -2434,9 +2409,6 @@ On a `LinkedList`, each `add` through the iterator relinks two neighbours in con
 
 </details>
 
-<!-- /TASK: QB-M04-03 -->
-
-<!-- TASK: QB-M04-04 -->
 <a id="q04-25"></a>
 ### Q04.25 · Difference · Fail-fast vs weakly consistent vs snapshot iterators, and why "fail-safe" misleads
 <!-- ledger: core-java-240-08-12, core-java-240-08-13 -->
@@ -2826,11 +2798,9 @@ Lists are equal when they hold equal elements in the same order, whatever their 
 **Trap to avoid.** Measuring with a small test file, seeing no difference, and blaming the database or the disk. A quadratic cost only shows at volume; check the growth rate and the samples before anything else.
 
 </details>
-<!-- /TASK: QB-M04-04 -->
 
 ## Hands-on exercises
 
-<!-- TASK: EX-M04-01 -->
 <a id="ex04-1"></a>
 ### Exercise 04.1 · A bounded LRU cache on `LinkedHashMap`
 
@@ -2969,9 +2939,7 @@ public final class LruCache<K, V> {
 **Tests:** [LruCacheTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex1/LruCacheTest.java).
 
 </details>
-<!-- /TASK: EX-M04-01 -->
 
-<!-- TASK: EX-M04-02 -->
 <a id="ex04-2"></a>
 ### Exercise 04.2 · A minimal hash map: buckets, spreading and resize
 
@@ -3223,9 +3191,7 @@ public final class SimpleHashMap<K, V> {
 **Tests:** [SimpleHashMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex2/SimpleHashMapTest.java).
 
 </details>
-<!-- /TASK: EX-M04-02 -->
 
-<!-- TASK: EX-M04-03 -->
 <a id="ex04-3"></a>
 ### Exercise 04.3 · A fail-fast iterator for a growable array list
 
@@ -3415,12 +3381,80 @@ A counter, not the size, is what makes the check reliable on one thread: an `add
 **Tests:** [GrowableListTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex3/GrowableListTest.java).
 
 </details>
-<!-- /TASK: EX-M04-03 -->
 
 ## Check your understanding
-<!-- TASK: CLOSE-M04 -->
-<!-- /TASK: CLOSE-M04 -->
+**Explain it back.**
+1. To a teammate who wants a `LinkedList` "because the service inserts a lot": what an insert costs in each list once you count finding the position, and the one access pattern where `LinkedList` does win.
+2. To a reviewer who asks why `HashMap` capacities are powers of two: what the spreading step and the index mask do, what a resize moves and what it never recomputes, and when a crowded bin becomes a tree.
+3. To a colleague building a cache: why an access-order `LinkedHashMap` with `removeEldestEntry` evicts the least recently used key, why its `get` is a structural modification, and why `WeakHashMap` is not a memory-sensitive cache.
+4. To a new hire whose single-threaded job throws `ConcurrentModificationException`: where `modCount` is checked, why removing the second-to-last element throws nothing, and the two safe ways to remove while iterating.
+5. To a developer who replaced `collect(Collectors.toList())` with `toList()` and broke a caller: what each returns, and how `List.of`, `Collections.unmodifiableList` and `Arrays.asList` differ on writes and on `null`.
+6. To an interviewer who asks for a scheduler's queue: why a `PriorityQueue`'s `toString` is not sorted, what the heap guarantees, and which order equal priorities come out in.
+
+**Flashcards.**
+
+<details><summary>Is a <code>Map</code> a <code>Collection</code>?</summary>
+
+No: it belongs to the framework but extends no collection interface; it offers `keySet`, `values` and `entrySet` as collection views ([Q04.01](#q04-01)).
+
+</details>
+
+<details><summary>What does <code>list.remove(1)</code> remove from a <code>List&lt;Integer&gt;</code> holding <code>[1, 2, 3]</code>?</summary>
+
+The element at index 1, the `2`: an `int` argument picks `remove(int index)` ([Q04.07](#q04-07)).
+
+</details>
+
+<details><summary>How many buckets does <code>new HashMap&lt;&gt;(13)</code> allocate, and when?</summary>
+
+16, at the first `put`, and it resizes on the 13th; `HashMap.newHashMap(13)` gets 32 ([Q04.10](#q04-10)).
+
+</details>
+
+<details><summary>When does a <code>HashMap</code> bin become a tree?</summary>
+
+When a key is added to a bin that already holds 8 nodes and the table has at least 64 buckets; below 64 the map resizes instead ([Q04.11](#q04-11)).
+
+</details>
+
+<details><summary>An access-order <code>LinkedHashMap</code> of capacity 2 holds <code>a</code>, <code>b</code>. After <code>get("a")</code> and <code>put("c")</code>, which key is gone?</summary>
+
+`b`: the `get` moved `a` behind it, so `b` was the eldest ([Q04.15](#q04-15)).
+
+</details>
+
+<details><summary>What does a <code>TreeSet</code> with <code>CASE_INSENSITIVE_ORDER</code> do with <code>"A"</code> after <code>"a"</code>?</summary>
+
+Rejects it as a duplicate: a sorted set decides duplicates with its comparator, not `equals` ([§5](#5-sets-views-of-maps)).
+
+</details>
+
+<details><summary>What does <code>toString()</code> print for a <code>PriorityQueue</code> fed 5, 1, 4, 2, 3?</summary>
+
+`[1, 2, 4, 5, 3]`, the heap array; only repeated `poll()` gives `1 2 3 4 5` ([Q04.21](#q04-21)).
+
+</details>
+
+<details><summary>Which removal inside a for-each loop over an <code>ArrayList</code> does not throw?</summary>
+
+Removing the second-to-last element: `hasNext()` turns false, the loop ends, and the last element is never visited ([Q04.23](#q04-23)).
+
+</details>
+
+<details><summary>Why is <code>Arrays.asList(new int[] {1, 2, 3}).contains(1)</code> false?</summary>
+
+The list is a `List<int[]>` with one element, the array, and an `Integer` never equals an `int[]` ([Q04.28](#q04-28)).
+
+</details>
+
+<details><summary>Are an <code>ArrayList</code> and a <code>LinkedList</code> with the same elements equal? Two <code>int[]</code> with the same contents?</summary>
+
+The lists are, with equal hash codes; the arrays are not, because arrays keep identity `equals` ([Q04.30](#q04-30)).
+
+</details>
 
 ## Connections
-<!-- TASK: CLOSE-M04 -->
-<!-- /TASK: CLOSE-M04 -->
+- **Builds on:** [02. Equality, immutability and records § 2. `hashCode` and hash-based collections](02-java-equality-immutability-records.md#2-hashcode-and-hash-based-collections), because the bin walk of [§3](#3-hashmap-internals) and every hash-based set and map run on the `equals`/`hashCode` contract, and a mutated key is lost for the reasons of [Q02.06](02-java-equality-immutability-records.md#q02-06); [§ 4. Ordering: `Comparable` and `Comparator`](02-java-equality-immutability-records.md#4-ordering-comparable-and-comparator), because `TreeMap`, `TreeSet`, `PriorityQueue` and the stable sorts of [§9](#9-utilities-sorting-and-collection-equality) take their order from it; [§ 5. Immutability](02-java-equality-immutability-records.md#5-immutability), because the view-versus-copy distinction of [§8](#8-immutable-unmodifiable-and-fixed-size-lists) starts there; [03. Generics and type erasure § 4. Wildcards, PECS and variance](03-java-generics.md#4-wildcards-pecs-and-variance), because collection signatures are read with it, and [§ 6](03-java-generics.md#6-reifiable-types-generic-arrays-and-heap-pollution), because `ArrayList` stores its elements in an `Object[]`; [01 § 13. Wrappers, autoboxing and the `Integer` cache](01-java-oop-fundamentals.md#13-wrappers-autoboxing-and-the-integer-cache), because a `List<Integer>` holds boxed objects and the `remove` overload trap of [Q04.07](#q04-07) is a boxing rule.
+- **Read next:** [05. Lambdas, streams and `Optional`](05-java-lambdas-streams-optional.md), because streams are built from collections and collected back into them, and the `toList()` versus `Collectors.toList()` difference of [§8](#8-immutable-unmodifiable-and-fixed-size-lists) is completed there; [12. Locks, atomics and concurrent collections](12-concurrency-locks-atomics-collections.md), because it owns `ConcurrentHashMap`, `CopyOnWriteArrayList` and the blocking queues that [§3](#3-hashmap-internals), [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot) and [Exercise 04.1](#ex04-1) point to whenever a collection is shared between threads.
+- **Uses these ideas later:** [11. Threads and the JMM](11-concurrency-threads-and-jmm.md) (why an unsynchronized `HashMap` or `modCount` shared between threads is a data race, not a reliable error); [08. JVM memory and class loading](08-jvm-memory-and-class-loading.md) (weak and soft references behind `WeakHashMap`, and the object layout this module counts only as objects and references); [09. Garbage collection](09-jvm-garbage-collection.md) and [10. JVM performance and troubleshooting](10-jvm-performance-and-troubleshooting.md) (the heap histograms, GC logs and JFR recordings that reveal the boxed maps and the quadratic `LinkedList` loop of [Q04.32](#q04-32)); [42. Resilience patterns](42-resilience-patterns.md) (the circuit breaker and the bounded retries that §6's retry-queue scenario calls for); [51. Design principles and patterns](51-design-principles-and-patterns.md) (the `Iterator` pattern that for-each desugars to in [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+- **Comparisons:** [Angular guide, 05. Modules, memory and modern features § 5. Weak references](../../angular-fullstack-guide/modules/05-js-modules-memory-modern-features.md#5-weak-references-weakmap-weakset-weakref-and-finalizationregistry), for a `WeakMap` whose entries are ephemerons, collected even when the value refers to the key, against the `WeakHashMap` of [§4](#4-ordered-and-special-purpose-maps), which keeps such an entry forever; [Angular guide, 03. Objects, prototypes and classes § 8. Iteration protocols and generators](../../angular-fullstack-guide/modules/03-js-objects-prototypes-classes.md#8-iteration-protocols-and-generators), for JavaScript's iterator protocol next to the `Iterator` that a Java for-each loop calls in [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot); [02 Q02.16](02-java-equality-immutability-records.md#q02-16), for the unmodifiable view versus copy question that [Q04.27](#q04-27) extends to every list factory.
