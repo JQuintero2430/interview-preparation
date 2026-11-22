@@ -555,6 +555,14 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractTask.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntPipeline.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntStream.java
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherer.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherer.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/GathererOp.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java
+- https://openjdk.org/jeps/461
+- https://openjdk.org/jeps/473
+- https://openjdk.org/jeps/485
 
 ## 17 spring-transactions
 

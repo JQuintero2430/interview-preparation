@@ -126,6 +126,14 @@ Latest = newest GA found on 2026-10-25. "Managed by Boot 4.1.2" = value in `spri
 
 Sources: https://openjdk.org/jeps/444 , https://openjdk.org/jeps/491 , https://openjdk.org/jeps/506 , https://openjdk.org/jeps/533 , https://openjdk.org/projects/jdk/25/ , https://openjdk.org/projects/jdk/26/ , https://openjdk.org/projects/jdk/27/ . JEP 533 (JDK 27) changes: `Joiner` gains an exception type parameter, `open(UnaryOperator)` added, `awaitAll()` removed, `onTimeout()` replaced by `timeout()`. Cells marked "not re-read" for JDK 21 were not fetched from the JEP page this session.
 
+### Java library JEPs (from openjdk.org JEP pages, checked 2026-11-22)
+
+| Feature | JEP | JDK 21 | JDK 22 | JDK 23 | JDK 24 | JDK 25 (latest LTS) |
+|---|---|---|---|---|---|---|
+| Stream gatherers (`Stream.gather`, `Gatherer`, `Gatherers`) | 461 (Preview, Closed/Delivered, release 22) -> 473 (Second Preview, Closed/Delivered, release 23, "without change") -> 485 (Closed/Delivered, release 24, finalized "without change") | n/a | preview | preview | final | final (`@since 24` in JDK 25.0.5.1 `src.zip`) |
+
+Sources: https://openjdk.org/jeps/461 , https://openjdk.org/jeps/473 , https://openjdk.org/jeps/485 .
+
 ### Value-based classes and value objects (from openjdk.org JEP and release pages, checked 2026-11-08)
 
 | Feature | JEP / issue | JDK 21 | JDK 25 (latest LTS) | JDK 27 (latest release) | JDK 28 (in development) |
