@@ -487,6 +487,29 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.5.1
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.2.4
 
+## 05 java-lambdas-streams-optional
+
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/package-summary.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.8
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/FunctionalInterface.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Iterable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runnable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Comparator.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Map.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Optional.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/Callable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Function.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Predicate.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java
+- https://openjdk.org/jeps/126
+- https://openjdk.org/jeps/409
+
 ## 17 spring-transactions
 
 - https://github.com/spring-projects/spring-boot/blob/v4.1.2/module/spring-boot-jdbc/src/main/java/org/springframework/boot/jdbc/autoconfigure/DataSourceTransactionManagerAutoConfiguration.java
