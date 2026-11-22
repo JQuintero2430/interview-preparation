@@ -4,10 +4,10 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
 - **Current module:** 04 `java-collections-internals` (core, lab `java-language`), planned by PLAN-M04 (S20261120-1801-claudecode-cloud): [M04](modules/M04.md), skeleton `modules/04-java-collections-internals.md` (40 TASK markers), smoke test `m04/smoke/M04LabSmokeTest` (3 tests pass); SEC-M04-01 to -10, QB-M04-01 to -04 (Q04.01–Q04.32, the full question bank) EX-M04-01 to -03 (Ex04.1–Ex04.3, all exercises) written; CLOSE-M04 done (0 TASK markers, 44 primary ledger rows `written`). Modules 17, 01, 02 and 03 closed, reviewed, fixed (REVIEW-M03 group G closed by FIX-M03-04/-05 this session).
-- **In progress:** REVIEW-M04 (S20261122-0001-claudecode-cloud, 2026-11-22 00:06 America/Bogota)
-- **Last finished task:** CLOSE-M04 (S20261122-0001-claudecode-cloud, claude-opus-5-5).
-- **Next task:** REVIEW-M04 (L), then its FIX tasks.
-- **Counts:** modules done 0/55 (17, 01, 02 and 03 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 5/55 (17, 01, 02, 03, 04); CLOSE 5/55 (17, 01, 02, 03, 04); REVIEW 4/55 (17, 01, 02, 03).
+- **In progress:** none
+- **Last finished task:** REVIEW-M04 (S20261122-0001-claudecode-cloud, sonnet subagent; [REVIEW-M04](reviews/REVIEW-M04.md): CHANGES_REQUIRED, 0 BLOCKER · 0 MAJOR · 8 MINOR · 7 NIT).
+- **Next task:** FIX-M04-01 (S), then FIX-M04-02 (S), FIX-M04-04 (S), FIX-M04-03 (M); then PLAN-M05 (ROADMAP).
+- **Counts:** modules done 0/55 (17, 01, 02 and 03 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 5/55 (17, 01, 02, 03, 04); CLOSE 5/55 (17, 01, 02, 03, 04); REVIEW 5/55 (17, 01, 02, 03, 04).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
   - G1 "Syllabus and pilot approved": **ticked** (noticed S20261101-2100); `PLAN-Mxx` tasks are eligible.
