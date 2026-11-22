@@ -37,12 +37,7 @@ public final class SimpleHashMap<K, V> {
             }
             last = node;
         }
-        Node<K, V> added = new Node<>(hash, key, value);
-        if (last == null) {
-            table[index] = added;
-        } else {
-            last.next = added;
-        }
+        appendToBin(index, last, new Node<>(hash, key, value));
         if (++size > threshold) {
             resize();
         }
@@ -104,6 +99,15 @@ public final class SimpleHashMap<K, V> {
             }
         }
         return null;
+    }
+
+    // Tail append keeps the bin in insertion order; last is null when the bin was empty.
+    private void appendToBin(int index, Node<K, V> last, Node<K, V> added) {
+        if (last == null) {
+            table[index] = added;
+        } else {
+            last.next = added;
+        }
     }
 
     private void unlink(int index, Node<K, V> previous, Node<K, V> node) {

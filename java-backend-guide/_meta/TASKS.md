@@ -1370,17 +1370,17 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
 - Done by: S20261122-0001-claudecode-cloud (a fresh read-only general-purpose subagent on sonnet, a model that wrote none of M04; the main session transcribed its verdict into [REVIEW-M04](reviews/REVIEW-M04.md): CHANGES_REQUIRED, 0 BLOCKER · 0 MAJOR · 8 MINOR · 7 NIT → FIX-M04-01..04)
 
 ### FIX-M04-01 · S · Factual accuracy and wording
-- Status: `todo` · Deps: REVIEW-M04 · needs: none · Source: REVIEW-M04 Group A, findings 1–7
+- Status: `done` · Deps: REVIEW-M04 · needs: none · Source: REVIEW-M04 Group A, findings 1–7
 - Files touched: `modules/04-java-collections-internals.md`, `_meta/reviews/REVIEW-M04.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M04](reviews/REVIEW-M04.md) (the findings named, and its main-session notes), the module file, STYLE-GUIDE. Line numbers are not used: locate each finding by its quoted text.
 - Acceptance:
   - Findings 1–7 are fixed, each checked against src.zip or the Javadoc first: the `SequencedCollection` and `Deque` supertypes, the `List.of(E)` overload choice, `Deque.getFirst` `@since`, and the `null` key rules.
   - A finding that the source contradicts is rejected in Resolutions, and its text is left unchanged.
   - Standard checks rows 5 and 6 pass, and row 6 shows no flag for 04.
-- Done by:
+- Done by: S20261122-0301-claudecode-cloud (claude-opus-5-5)
 
 ### FIX-M04-02 · S · Unconfirmed quotes and plan references
-- Status: `todo` · Deps: REVIEW-M04 · needs: none · Source: REVIEW-M04 findings 8, 9, 11
+- Status: `done` · Deps: REVIEW-M04 · needs: none · Source: REVIEW-M04 findings 8, 9, 11
 - Files touched: `modules/04-java-collections-internals.md`, `SOURCES.md` (only if a URL changes), `_meta/reviews/REVIEW-M04.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M04](reviews/REVIEW-M04.md) (the findings named, and its main-session notes), the module file, STYLE-GUIDE. Line numbers are not used: locate each finding by its quoted text.
 - Acceptance:
@@ -1391,10 +1391,10 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
   - Finding 9: the two references to the plan are reworded.
   - Finding 11: markers are added at first mention, or the Version-notes placement is accepted in Resolutions with the reason.
   - Rows 5 and 6 pass.
-- Done by:
+- Done by: S20261122-0301-claudecode-cloud (claude-opus-5-5)
 
 ### FIX-M04-03 · M · Citation density (readability)
-- Status: `todo` · Deps: FIX-M04-01, FIX-M04-02 · needs: none · Source: REVIEW-M04 finding 13
+- Status: `done` · Deps: FIX-M04-01, FIX-M04-02 · needs: none · Source: REVIEW-M04 finding 13
 - Files touched: `modules/04-java-collections-internals.md`, `_meta/reviews/REVIEW-M04.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M04](reviews/REVIEW-M04.md) (the findings named, and its main-session notes), the module file, STYLE-GUIDE. Line numbers are not used: locate each finding by its quoted text.
 - Acceptance:
@@ -1406,10 +1406,10 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
   - No claim loses its basis.
   - Before/after tag counts are logged.
   - Rows 5 and 6 pass.
-- Done by:
+- Done by: S20261122-0301-claudecode-cloud (claude-opus-5-5)
 
 ### FIX-M04-04 · S · Nits: §4 security item, Excerpt indentation, `put` length, glosses
-- Status: `todo` · Deps: REVIEW-M04 · needs: none · Source: REVIEW-M04 findings 10, 12, 14, 15
+- Status: `done` · Deps: REVIEW-M04 · needs: none · Source: REVIEW-M04 findings 10, 12, 14, 15
 - Files touched: `modules/04-java-collections-internals.md`, `labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex2/SimpleHashMap.java` (finding 14), `_meta/reviews/REVIEW-M04.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M04](reviews/REVIEW-M04.md) (the findings named, and its main-session notes), the module file, STYLE-GUIDE. Line numbers are not used: locate each finding by its quoted text.
 - Acceptance:
@@ -1418,7 +1418,7 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
   - Finding 14: `put` is at or under 20 lines, and the Ex04.2 Complete snippet stays byte-identical to the file.
   - Finding 15: one-line glosses for "amortized constant" and the Poisson table.
   - Rows 4 and 3 pass for `java-language` (SimpleHashMapTest 6/6); rows 5 and 6 pass.
-- Done by:
+- Done by: S20261122-0301-claudecode-cloud (claude-opus-5-5)
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
 

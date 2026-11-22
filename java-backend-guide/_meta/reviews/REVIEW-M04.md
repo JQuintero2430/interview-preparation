@@ -20,7 +20,25 @@
 
 ## Resolutions
 
-(none yet)
+- **FIX-M04-01** (S20261122-0301-claudecode-cloud). Findings 1–7 accepted, each checked in JDK 25 `src.zip` first:
+  - 1: `Stream.toList()` default is `Collections.unmodifiableList(new ArrayList<>(Arrays.asList(this.toArray())))`, null-tolerant; the §8 Reasoning clause now says neither collector rejects `null` and names `Collectors.toUnmodifiableList()`.
+  - 2: `EnumMap` and `EnumSet` Javadoc: "not synchronized"; the Q04.25 table cell now limits "yes" to `java.util.concurrent` and tags both classes.
+  - 3: Q04.12 Trap now reads "of these three, only `HashMap` accepts a `null` key" (`IdentityHashMap`/`WeakHashMap` allow one, §4 table).
+  - 4: `List.of(E e1)` exists (List.java), so one argument picks the fixed-arity overload; the Q04.28 follow-up says so.
+  - 5: `SequencedCollection extends Collection`, `Deque extends Queue, SequencedCollection`, `SequencedSet extends SequencedCollection, Set`; Q04.01 follow-up lists `SequencedCollection` as direct, with two Src tags added.
+  - 6: §4 problem: the serializer now "skips an object, because an equal but distinct one was already written".
+  - 7: `Deque` is `@since 1.6` and `getFirst` has no own `@since`; only `Deque.reversed()` is `@since 21`. §1 Version notes reworded.
+- **FIX-M04-02** (S20261122-0301-claudecode-cloud).
+  - Finding 8 accepted as a check; every quote confirmed, none changed. `curl` → 200 for JEP 180, the Java 25 Collections Design FAQ and the Oracle compatibility page; `raw.githubusercontent.com` → 200 for `jdk-9%2B181/jdk/src/java.base/share/classes/java/util/ArrayDeque.java` and `jdk8u/master/jdk/src/share/classes/java/util/ArrayDeque.java`, so both cited `github.com/.../blob/...` paths exist. Found verbatim (tags stripped, whitespace collapsed): JEP 180 "will likely result in a change to the iteration order of the `HashMap` class", "some legacy code that uses it is known to depend upon iteration order", "from O(n) to O(log n)"; FAQ "the most controversial design decision", "twenty or so interfaces and five iterators", "a sound engineering compromise", "mappings are not collections and collections are not mappings", "You can't ask what value a given key maps to…"; compatibility page "may throw an `IllegalArgumentException` if it detects a `Comparable` that violates the `Comparable` contract" and "silently ignored"; JDK 8u ArrayDeque "always a power of two"; JDK 9 ArrayDeque "at least one null slot" and the `(oldCapacity < 64) ? (oldCapacity + 2) : (oldCapacity >> 1)` growth. One case fix: the §9 `useLegacyMergeSort` quote now reads "To be removed in a future release." as in JDK 25 `Arrays.java`.
+  - Finding 9 accepted: §4 now says "because the lab asserts nothing about when the collector runs", §10 "and the lab has no object-layout tool".
+  - Finding 11 accepted: `[Changed in Java 9: its array is no longer sized to a power of two]` added at the first prose mention of `ArrayDeque` (§2 "When `LinkedList` wins"), with the JDK 9 Src tag in the same paragraph (STYLE §4.2). `HashMap.newHashMap` is an addition, not a status or behavior change, and STYLE §4.2 has no marker form for it, so its first mention (§3) now says "(`@since 19`)" in plain text, backed by the paragraph's HashMap Src tag (`newHashMap` `@since 19` in src.zip).
+- **FIX-M04-04** (S20261122-0301-claudecode-cloud).
+  - Finding 10 accepted: the Excerpt check found four dedented blocks, not three (Q04_02 one, Q04_07 three: the output snippet, `removeBlockedBuggy` and `removeBlockedFixed`). Each was re-indented by its file offset (8, 8, 4, 4 spaces); a line-by-line check now finds every non-empty Excerpt line verbatim in its file.
+  - Finding 12 accepted: one `**Security:**` item in §4 Best practices (cap caches and maps keyed by outside input).
+  - Finding 14 accepted: the tail append moved from `SimpleHashMap.put` into `appendToBin` (put is now 15 lines); the Ex04.2 Complete snippet was replaced by the spotless-formatted file and is byte-identical; the helper sentence above it names `appendToBin`.
+  - Finding 15 accepted: §2 glosses "amortized constant" at its first use; §3 glosses the Poisson table from the `HashMap` implementation comment (parameter about 0.5 at the 0.75 threshold).
+- **FIX-M04-03** (S20261122-0301-claudecode-cloud). Finding 13 accepted, applied by a script with a conservative rule: in a prose paragraph or list item (not code, callouts, tables or HTML lines), a group of adjacent `[Src: …]`/`[Doc: …]` tags is removed when the next tag group in the same paragraph contains every one of its tags, so each claim keeps the same file's tag after it with no other file's tag in between, and attribution stays unambiguous. `[Lab: …]` tags, and tags of different files, were never removed. 45 paragraphs changed, 56 tag groups removed. Counts before → after: Src 676 → 624, Doc 89 → 85, Lab 222 → 222. No punctuation artifacts (no space before `.,;:)` and no double spaces in changed lines). The §1 "Sequenced collections" paragraph cites seven different files, so it keeps its tags.
+- Module 04 after FIX-M04-01..04: closed, reviewed, fixed.
 
 ## Review (verbatim from the subagent)
 
