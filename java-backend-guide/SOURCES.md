@@ -563,6 +563,20 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://openjdk.org/jeps/461
 - https://openjdk.org/jeps/473
 - https://openjdk.org/jeps/485
+- https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/concurrent/ForkJoinPool.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Collection.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Spliterator.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinTask.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Parallelism
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Reduction
+- https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Spliterators.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Streams.java
+
 
 ## 17 spring-transactions
 
