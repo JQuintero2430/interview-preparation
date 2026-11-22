@@ -2974,11 +2974,447 @@ public final class LruCache<K, V> {
 <!-- TASK: EX-M04-02 -->
 <a id="ex04-2"></a>
 ### Exercise 04.2 · A minimal hash map: buckets, spreading and resize
+
+**Problem.** In the interview, "explain how `HashMap` works" becomes "now write one". Write `SimpleHashMap<K, V>`, a separate-chaining hash map (each bucket holds a linked list of the entries that land in it) built the way `java.util.HashMap` builds its list bins ([§3](#3-hashmap-internals)): a table whose length is a power of two, the same hash spreading and index mask, a stored hash in every node, and a table that doubles past three quarters full. The test that judges it compares it with `HashMap` itself.
+
+**Constraints.** JDK only, and no `java.util` map inside: the table is an array of your own nodes. The default capacity is 16 and the load factor 0.75. No tree bins, no maximum capacity, no iteration and no views; one thread. `get` returns `null` for an absent key, as `HashMap.get` does, and `containsKey` tells an absent key from one mapped to `null`. The public methods are `put`, `get`, `containsKey`, `remove`, `size` and `capacity` (the current table length, so that the tests can watch the resize).
+
+**Acceptance criteria.**
+- [ ] (1) `put`, `get` and `remove` return what `java.util.HashMap` returns on a randomized sequence of 20,000 operations (fixed seed 42, keys drawn from 0–499 and `null`), and `size` agrees after every operation.
+- [ ] (2) A `null` key is supported: it has hash 0, lives in bin 0, and can be replaced, found and removed.
+- [ ] (3) The table doubles when `size` exceeds `capacity × 0.75` (on the 13th, 25th and 49th new key, never on a replacement), every entry is still found after each resize, and the resize moves nodes by their stored hash without calling `hashCode` again.
+- [ ] (4) Keys with equal hash codes (`"Aa"` and `"BB"`, both 2112) coexist in one bucket, are each found, and removing one leaves the other.
+- [ ] (5) `equals` is called only on a node whose stored hash equals the lookup hash, counted with a key that records its calls.
+
+<details><summary>Hint 1</summary>
+
+For a table of length `n`, a power of two, `(n - 1) & hash` keeps the low bits of the hash. Which bits of `hashCode` would then never influence the bin, and what does `HashMap.hash` do about them ([§3](#3-hashmap-internals), [Q04.09](#q04-09))?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+When the table doubles, the mask gains exactly one bit, the bit equal to the old length. A node in bin `j` can therefore go to only two places. Which ones, and what in the node decides?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Follow `HashMap`'s list-bin design step by step, keep each step in its own small method, and let the stored hash do the work that would otherwise need `hashCode` or `equals` calls.
+1. **Spread, then mask.** `spread` returns 0 for `null` and otherwise `h ^ (h >>> 16)`, the expression of `HashMap.hash`, and `indexFor` returns `(length - 1) & hash`, the index `putVal` and `getNode` compute [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). The XOR folds the upper 16 bits of the hash code into the 16 the mask keeps, so keys that differ only in high bits do not all collide ([§3](#3-hashmap-internals)). A `null` key needs no special path anywhere else: hash 0 puts it in bin 0.
+2. **Store the hash in each node and match on it first.** A node holds the spread hash in a `final` field, its key, its value and a `next` link. `matches` compares the `int` hashes first, then the references, and only then calls `key.equals(this.key)`, the same order as `HashMap`'s `((k = p.key) == key || (key != null && key.equals(k)))` after its `p.hash == hash` test [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Nodes that merely share a bin, because their hashes agree in the masked bits, are skipped without an `equals` call.
+3. **`put` walks the bin once.** It either finds a matching node and replaces its value, returning the old one and leaving `size` alone, or reaches the end and appends a new node at the tail, as `putVal` does for a list bin ([§3](#3-hashmap-internals) diagram). Only a new node increments `size`, and `++size > threshold` triggers the resize, so a replacement never resizes. `remove` walks the same way, remembering the previous node so it can unlink the match.
+4. **Resize by splitting each bin in two.** The new table is twice as long and its threshold is again 0.75 times its length. For each old bin `j`, every node goes to a "lo" chain if `(hash & oldCapacity) == 0` and to a "hi" chain otherwise; lo becomes bin `j` and hi becomes bin `j + oldCapacity`. This is `HashMap.resize`'s split ("preserve order", `(e.hash & oldCap) == 0`) [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). Appending at the tail of each chain keeps the nodes' relative order, and because the decision reads the stored hash, no key's `hashCode` runs during the resize.
+
+The class uses two small private helpers instead of one long method: `Node` owns the matching rule and the replacement, and `Chain` owns tail appending during a split.
+
+```java
+package dev.interview.javalanguage.m04.ex2;
+
+/**
+ * Module 04 Ex04.2: a minimal separate-chaining hash map built the way {@link java.util.HashMap} builds its list bins:
+ * a power-of-two table, the {@code h ^ (h >>> 16)} spread, the {@code (n - 1) & hash} index, a hash stored in each node,
+ * and a doubling resize that splits every bin into a "lo" and a "hi" list.
+ *
+ * <p>No tree bins, no maximum capacity, no views and no iteration. Not thread-safe.
+ */
+public final class SimpleHashMap<K, V> {
+
+    static final int DEFAULT_CAPACITY = 16;
+    static final float LOAD_FACTOR = 0.75f;
+
+    private Node<K, V>[] table = newTable(DEFAULT_CAPACITY);
+    private int threshold = thresholdFor(DEFAULT_CAPACITY);
+    private int size;
+
+    /** The value mapped to {@code key}, or {@code null} if absent or mapped to {@code null}. */
+    public V get(Object key) {
+        Node<K, V> node = find(key);
+        return node == null ? null : node.value;
+    }
+
+    public boolean containsKey(Object key) {
+        return find(key) != null;
+    }
+
+    /** Maps {@code key} to {@code value} and returns the previous value, or {@code null} for a new key. */
+    public V put(K key, V value) {
+        int hash = spread(key);
+        int index = indexFor(hash, table.length);
+        Node<K, V> last = null;
+        for (Node<K, V> node = table[index]; node != null; node = node.next) {
+            if (node.matches(hash, key)) {
+                return node.replace(value);
+            }
+            last = node;
+        }
+        Node<K, V> added = new Node<>(hash, key, value);
+        if (last == null) {
+            table[index] = added;
+        } else {
+            last.next = added;
+        }
+        if (++size > threshold) {
+            resize();
+        }
+        return null;
+    }
+
+    /** Removes the mapping for {@code key} and returns its value, or {@code null} if there was none. */
+    public V remove(Object key) {
+        int hash = spread(key);
+        int index = indexFor(hash, table.length);
+        Node<K, V> previous = null;
+        for (Node<K, V> node = table[index]; node != null; previous = node, node = node.next) {
+            if (node.matches(hash, key)) {
+                unlink(index, previous, node);
+                size--;
+                return node.value;
+            }
+        }
+        return null;
+    }
+
+    public int size() {
+        return size;
+    }
+
+    /** The current table length: always a power of two. */
+    public int capacity() {
+        return table.length;
+    }
+
+    /** The same spread as {@code HashMap.hash}: 0 for {@code null}, the upper 16 bits folded into the lower 16. */
+    static int spread(Object key) {
+        if (key == null) {
+            return 0;
+        }
+        int h = key.hashCode();
+        return h ^ (h >>> 16);
+    }
+
+    /** The bin for {@code hash} in a table of {@code length} slots, a power of two: the remainder without a division. */
+    static int indexFor(int hash, int length) {
+        return (length - 1) & hash;
+    }
+
+    /** How many nodes the bin at {@code index} holds (for the tests). */
+    int nodesInBin(int index) {
+        int count = 0;
+        for (Node<K, V> node = table[index]; node != null; node = node.next) {
+            count++;
+        }
+        return count;
+    }
+
+    private Node<K, V> find(Object key) {
+        int hash = spread(key);
+        for (Node<K, V> node = table[indexFor(hash, table.length)]; node != null; node = node.next) {
+            if (node.matches(hash, key)) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private void unlink(int index, Node<K, V> previous, Node<K, V> node) {
+        if (previous == null) {
+            table[index] = node.next;
+        } else {
+            previous.next = node.next;
+        }
+    }
+
+    // Doubling adds one bit to the mask: a node in bin j stays at j or moves to j + oldCapacity, decided by
+    // (hash & oldCapacity). The stored hash decides, so no key's hashCode is called again.
+    private void resize() {
+        Node<K, V>[] old = table;
+        table = newTable(old.length << 1);
+        threshold = thresholdFor(table.length);
+        for (int j = 0; j < old.length; j++) {
+            split(old[j], j, old.length);
+        }
+    }
+
+    private void split(Node<K, V> head, int index, int oldCapacity) {
+        Chain<K, V> lo = new Chain<>();
+        Chain<K, V> hi = new Chain<>();
+        Node<K, V> node = head;
+        while (node != null) {
+            Node<K, V> next = node.next;
+            ((node.hash & oldCapacity) == 0 ? lo : hi).append(node);
+            node = next;
+        }
+        table[index] = lo.head;
+        table[index + oldCapacity] = hi.head;
+    }
+
+    private static int thresholdFor(int capacity) {
+        return (int) (capacity * LOAD_FACTOR);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <K, V> Node<K, V>[] newTable(int length) {
+        return (Node<K, V>[]) new Node<?, ?>[length];
+    }
+
+    private static final class Node<K, V> {
+
+        private final int hash;
+        private final K key;
+        private V value;
+        private Node<K, V> next;
+
+        Node(int hash, K key, V value) {
+            this.hash = hash;
+            this.key = key;
+            this.value = value;
+        }
+
+        // The int comparison filters out almost every non-matching node before equals runs, as in HashMap.getNode.
+        boolean matches(int hash, Object key) {
+            return this.hash == hash && (this.key == key || (key != null && key.equals(this.key)));
+        }
+
+        V replace(V newValue) {
+            V old = value;
+            value = newValue;
+            return old;
+        }
+    }
+
+    // A list being rebuilt during a split, appended at the tail so each half keeps the bin's order.
+    private static final class Chain<K, V> {
+
+        private Node<K, V> head;
+        private Node<K, V> tail;
+
+        void append(Node<K, V> node) {
+            node.next = null;
+            if (tail == null) {
+                head = node;
+            } else {
+                tail.next = node;
+            }
+            tail = node;
+        }
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex2/SimpleHashMap.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex2/SimpleHashMap.java)</sub>
+
+`spread`, `indexFor` and `nodesInBin` are package-private: the tests use them to name the bin a key lands in and to count its nodes, and they are not part of the map's API.
+
+**How each criterion is met** [Lab: SimpleHashMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex2/SimpleHashMapTest.java):
+- (1) `Ex04.2 · (1) put, get and remove agree with java.util.HashMap on 20,000 random operations (seed 42)`: each step draws a key (500 stands for `null`) and an operation, asserts that both maps return the same value and have the same size, and at the end `containsKey` and `get` agree for all 501 keys.
+- (2) `Ex04.2 · (2) a null key is supported, has hash 0 and lives in bin 0`: `spread(null)` is 0, bin 0 holds one node, a second `put(null, …)` returns the first value, and `get`, `containsKey` and `remove` behave as for any key.
+- (3) `Ex04.2 · (3) the table doubles on the 13th, 25th and 49th new key, and every entry is still found`: the capacity reads 16 after 12 keys and a replacement, then 32, 64 and 128 at the 13th, 25th and 49th key; all 49 values are found, the replaced one included. `Ex04.2 · (3) a resize moves keys by the stored hash: hashCode is never called during it`: 13 counting keys cause a resize to 32 slots and exactly 13 `hashCode` calls, one per `put`.
+- (4) `Ex04.2 · (4) "Aa" and "BB" share a hash code, coexist in one bucket and are removed independently`: the test first asserts that both hash codes are 2112, then that their bin holds two nodes, that each key returns its own value, and that after `remove("Aa")` the bin holds one node and `"BB"` is still found.
+- (5) `Ex04.2 · (5) equals runs only on a node whose stored hash matches the lookup hash`: keys with hash codes 1, 17 and 33 share bin 1 of 16 and cause no `equals` call while they are added; looking up an equal copy of the third causes exactly one, and a lookup with hash code 49 (bin 1 again, no matching hash) causes none.
+
+**Alternative approach:** open addressing. Store keys and values in arrays and, on a collision, probe the following slots until a free one turns up (linear probing). The JDK has one: `IdentityHashMap` "is a simple *linear-probe* hash table", and its `remove` closes the gap left by a deleted entry by moving later entries back, "adapted from Knuth Section 6.4 Algorithm R" [Src: JDK 25, java.util.IdentityHashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/IdentityHashMap.java) ([§4](#4-ordered-and-special-purpose-maps)). **Trade-offs:** no node object per entry and neighbouring slots read together, but a crowded region slows every key that probes through it, deletion is the hard part (that gap-closing step, or markers left in deleted slots), and nothing like a tree bin can bound the cost of many keys with one hash code. Separate chaining, the solution above, keeps each bucket's problems in that bucket and is what lets `HashMap` turn one crowded bin into a tree ([Q04.11](#q04-11)).
+
+**Interviewer follow-ups.**
+- *Why a power-of-two capacity, and not a prime with `%`?* The mask is a remainder without a division, and doubling then moves each node to one of two known bins, decided by one bit. The price is that only the low bits choose the bin, which is why the spread exists. `Hashtable` takes the other route: a default capacity of 11, `(hash & 0x7FFFFFFF) % tab.length` and growth to `2n + 1` ([§3](#3-hashmap-internals), [Q04.12](#q04-12)).
+- *Add tree bins.* A bin that already holds 8 nodes becomes a red-black tree when a ninth arrives, and only once the table has at least 64 slots, resizing instead below that; a resize turns a tree half with 6 or fewer nodes back into a list ([§3](#3-hashmap-internals)). The tree orders nodes by hash and then by `compareTo`, so it helps colliding keys only if they are `Comparable` ([Q04.11](#q04-11)).
+- *What happens if a key's `hashCode` changes after `put`?* The node keeps the old hash and sits in the bin chosen by it, so a lookup computes the new hash, usually searches another bin, and even in the same bin fails the stored-hash test: the entry is still in the map but cannot be found. Keys must be immutable in the fields `hashCode` reads ([02 §2](02-java-equality-immutability-records.md#2-hashcode-and-hash-based-collections), [Q02.06](02-java-equality-immutability-records.md#q02-06)).
+- *Should it shrink after many removals?* `HashMap` never does: `resize` only "initializes or doubles table size" [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java). A shrinking variant would halve the table when `size` falls well below the threshold, for example under a quarter of the capacity, leaving a gap between the grow and shrink points so that a map whose size hovers near one boundary does not resize back and forth. Without it, copy a map that has shrunk into a new one ([§3](#3-hashmap-internals) failure modes).
+
+**Tests:** [SimpleHashMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex2/SimpleHashMapTest.java).
+
+</details>
 <!-- /TASK: EX-M04-02 -->
 
 <!-- TASK: EX-M04-03 -->
 <a id="ex04-3"></a>
 ### Exercise 04.3 · A fail-fast iterator for a growable array list
+
+**Problem.** A code review flags a hand-rolled list in a legacy library: its iterator reads the array directly, so a caller that adds to the list inside a loop sometimes skips elements and sometimes visits one twice, and nothing ever fails. Write `GrowableList<E>`, a growable array list whose iterator fails fast the way `ArrayList`'s does ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack), [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)): a structural change made behind the iterator's back is reported on the iterator's next step, the iterator's own `remove` is allowed, and replacing an element is not treated as a change of structure.
+
+**Constraints.** JDK only, no `java.util` list inside: a backing `Object[]`, with a default capacity of 10 and growth by half (by at least one slot) when it is full. The class implements `Iterable<E>`, so for-each loops work, and its other public methods are `add`, `get`, `set`, `remove(int)`, `size` and `capacity`. One thread.
+
+**Acceptance criteria.**
+- [ ] (1) `add` beyond the capacity grows the backing array by half (4 → 6 → 9, the default 10 → 15, and 1 → 2, by at least one slot) and keeps the elements in order.
+- [ ] (2) A structural change during iteration (an `add`, a `remove`, or an `add` followed by a `remove` that restores the size) makes the next `next()` throw `ConcurrentModificationException`. As with `ArrayList`, `hasNext` compares only the cursor with the size, so a loop that removes the second-to-last element ends without another `next()` and without an exception.
+- [ ] (3) `Iterator.remove` removes the last returned element and does not throw, and the iteration goes on with the next element.
+- [ ] (4) `remove` before any `next`, or a second `remove` without a `next` in between, throws `IllegalStateException`; `next` past the end throws `NoSuchElementException`.
+- [ ] (5) `set` (non-structural) during iteration does not throw, and the loop sees a value replaced ahead of the cursor.
+
+<details><summary>Hint 1</summary>
+
+The iterator cannot watch the list, but the list can count. What should the list increment, on which operations, and what should the iterator remember when it is created ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack))?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+After `Iterator.remove`, the list's counter has moved on. What must the iterator update so that its own removal does not trip its own check, and where must its cursor point now that the tail has shifted left?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Count structural changes in the list, let the iterator remember the count it started with, and compare the two on every step that reads or removes. This is the scheme `AbstractList` documents for `modCount`: "if a subclass wishes to provide fail-fast iterators (and list iterators), then it merely has to increment this field in its `add(int, E)` and `remove(int)` methods", and "a single call to `add(int, E)` or `remove(int)` must add no more than one to this field" [Src: JDK 25, java.util.AbstractList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/AbstractList.java).
+1. **Grow by half.** When `size == elements.length`, `add` copies the elements into an array of `oldCapacity + Math.max(1, oldCapacity >> 1)` slots. `oldCapacity >> 1` is `ArrayList`'s "preferred growth"; `ArrayList` also asks `ArraysSupport.newLength` for at least the minimum growth needed ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)) [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java), which here is the `Math.max(1, …)`: without it, a capacity of 1 would "grow" to 1.
+2. **Count structural changes, and only those.** `add` and `remove(int)` increment `modCount` by one; `set` replaces a slot and leaves it alone, as `ArrayList.set` does ([§2](#2-lists-arraylist-linkedlist-and-the-legacy-vector-and-stack)).
+3. **The iterator remembers the count.** The iterator is an inner class, as `ArrayList.Itr` is, with a `cursor` (the next index), `lastReturned` (-1 when there is nothing to remove) and `expectedModCount`, initialized from `modCount` when it is created [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java). `next()` first compares the counters and throws `ConcurrentModificationException` if they differ, then throws `NoSuchElementException` past the end, then returns the element and advances. `hasNext()` is `cursor != size`, the same test as `ArrayList.Itr` ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+4. **The iterator's own `remove` resynchronizes.** It refuses to run without a `lastReturned` (`IllegalStateException`, as the `Iterator` contract requires, [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)), checks the counters, removes through the list, moves the cursor back to the removed index (the tail has shifted left into it), clears `lastReturned`, and copies the new `modCount` into `expectedModCount`. That last step is what makes it "the one removal that does not break the loop" in `ArrayList` ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+
+```java
+package dev.interview.javalanguage.m04.ex3;
+
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+/**
+ * Module 04 Ex04.3: a growable array list whose iterator is fail-fast, built the way {@link java.util.ArrayList} builds
+ * its own: a backing {@code Object[]} that grows by half, a {@code modCount} incremented by every structural change,
+ * and an iterator that compares it with the value it expects.
+ *
+ * <p>Not thread-safe. The fail-fast check detects bugs on one thread; across threads it is best effort only.
+ */
+public final class GrowableList<E> implements Iterable<E> {
+
+    static final int DEFAULT_CAPACITY = 10;
+
+    private Object[] elements;
+    private int size;
+    private int modCount;
+
+    public GrowableList() {
+        this(DEFAULT_CAPACITY);
+    }
+
+    public GrowableList(int initialCapacity) {
+        if (initialCapacity < 0) {
+            throw new IllegalArgumentException("initial capacity must not be negative: " + initialCapacity);
+        }
+        this.elements = new Object[initialCapacity];
+    }
+
+    /** Appends {@code element}, growing the backing array by half when it is full. A structural change. */
+    public void add(E element) {
+        if (size == elements.length) {
+            grow();
+        }
+        elements[size++] = element;
+        modCount++;
+    }
+
+    public E get(int index) {
+        return elementAt(Objects.checkIndex(index, size));
+    }
+
+    /** Replaces the element at {@code index} and returns the old one. Not a structural change. */
+    public E set(int index, E element) {
+        E old = elementAt(Objects.checkIndex(index, size));
+        elements[index] = element;
+        return old;
+    }
+
+    /** Removes the element at {@code index}, shifting the tail left by one. A structural change. */
+    public E remove(int index) {
+        E old = elementAt(Objects.checkIndex(index, size));
+        int tail = size - index - 1;
+        System.arraycopy(elements, index + 1, elements, index, tail);
+        elements[--size] = null;
+        modCount++;
+        return old;
+    }
+
+    public int size() {
+        return size;
+    }
+
+    /** The length of the backing array. */
+    public int capacity() {
+        return elements.length;
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return new FailFastIterator();
+    }
+
+    // As ArraysSupport.newLength does for ArrayList: grow by half, but by at least one slot.
+    private void grow() {
+        int oldCapacity = elements.length;
+        Object[] grown = new Object[oldCapacity + Math.max(1, oldCapacity >> 1)];
+        System.arraycopy(elements, 0, grown, 0, size);
+        elements = grown;
+    }
+
+    @SuppressWarnings("unchecked")
+    private E elementAt(int index) {
+        return (E) elements[index];
+    }
+
+    // An inner class, so it reads the list's size, elements and modCount directly, as ArrayList.Itr does.
+    private final class FailFastIterator implements Iterator<E> {
+
+        private int cursor;
+        private int lastReturned = -1;
+        private int expectedModCount = modCount;
+
+        @Override
+        public boolean hasNext() {
+            return cursor != size;
+        }
+
+        @Override
+        public E next() {
+            checkForComodification();
+            if (cursor >= size) {
+                throw new NoSuchElementException();
+            }
+            lastReturned = cursor++;
+            return elementAt(lastReturned);
+        }
+
+        @Override
+        public void remove() {
+            if (lastReturned < 0) {
+                throw new IllegalStateException("remove() needs a next() since the last remove()");
+            }
+            checkForComodification();
+            GrowableList.this.remove(lastReturned);
+            cursor = lastReturned;
+            lastReturned = -1;
+            expectedModCount = modCount;
+        }
+
+        private void checkForComodification() {
+            if (modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }
+        }
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex3/GrowableList.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m04/ex3/GrowableList.java)</sub>
+
+A counter, not the size, is what makes the check reliable on one thread: an `add` followed by a `remove` restores the size but moves the counter twice, so the iterator still notices.
+
+**How each criterion is met** [Lab: GrowableListTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex3/GrowableListTest.java):
+- (1) `Ex04.3 · (1) add beyond capacity grows the array by half (4 → 6 → 9, 10 → 15, 1 → 2) and keeps order`: a list created with capacity 4 reads 4 after four adds, 6 after the fifth and 9 after the seventh, and `get(0)` to `get(6)` return 0 to 6; a default list reads 15 after its 11th add; a list of capacity 1 reads 2 after its second add and iterates as `a, b`.
+- (2) `Ex04.3 · (2) add or remove during iteration makes the next next() throw CME, even if the size is back`: after one `next()`, an `add` makes the following `next()` throw; so does a `remove(0)`, although `hasNext()` still returns `true`; so does an `add` followed by a `remove` that leaves the size unchanged. `Ex04.3 · (2) a for-each loop that removes the second-to-last element ends silently, as with ArrayList`: removing `b` from `[a, b, c]` inside the loop visits only `a` and `b`, throws nothing and leaves `[a, c]`, the middle row of [§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)'s table.
+- (3) `Ex04.3 · (3) Iterator.remove removes the last returned element, and iteration goes on without CME`: removing `b` and then `c` through the iterator still visits all four elements and leaves `[a, d]` with size 2.
+- (4) `Ex04.3 · (4) remove without a preceding next throws ISE; next past the end throws NoSuchElementException`: `remove()` before `next()` and a second `remove()` after one `next()` both throw `IllegalStateException`, the list is then `[b]`, and after the last `next()` another `next()` throws `NoSuchElementException`.
+- (5) `Ex04.3 · (5) set during iteration is not structural: no CME, and the loop sees the new value`: replacing index 0 and index 2 while the loop is at `a` throws nothing, the loop visits `a, b, C`, and the list ends as `[A, b, C]`.
+
+**Alternative approach:** a snapshot iterator that copies the array when it is created and walks the copy. **Trade-offs:** it never throws and a loop can modify the list freely, but each iterator costs a copy of the whole array, the loop does not see changes made after it started, and its `remove` cannot be supported in any useful sense, since it would have to map positions in the copy back to a list that has since changed. `CopyOnWriteArrayList` takes the opposite side of the same idea: it copies on each *write*, so its iterators share an array that never changes, and their `remove`, `set` and `add` throw `UnsupportedOperationException` ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)). Fail-fast is the right default for a single-threaded list because a modification during a loop is almost always a bug, and the exception points at the loop that has it.
+
+**Interviewer follow-ups.**
+- *Why does removing the second-to-last element not throw?* After `list.remove(1)` on `[a, b, c]`, the cursor is 2 and the size is 2, so `hasNext()` returns `false` and `next()`, the only method that checks, is never called; `c` is silently skipped. `ArrayList` behaves the same way because its `hasNext()` is also `cursor != size` ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot), [Q04.23](#q04-23)). Checking the counter in `hasNext()` too would catch this case; the JDK does not, and the `ConcurrentModificationException` Javadoc only promises fail-fast behavior "on a best-effort basis" ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+- *Turn it into a real `java.util.List`.* Extend `AbstractList`, implement `get`, `set`, `size`, `add(int, E)` and `remove(int)`, and increment the inherited `modCount` in the structural ones: `AbstractList`'s own iterator then performs the same check [Src: JDK 25, java.util.AbstractList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/AbstractList.java). The "no more than one" rule quoted above matters there: a call that adds more, the Javadoc warns, makes "the iterators (and list iterators) … throw bogus `ConcurrentModificationExceptions`" [Src: JDK 25, java.util.AbstractList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/AbstractList.java).
+- *Two threads use the list; will the check catch it?* Not reliably. `modCount` is a plain field read without synchronization, so another thread's increment may not be visible to the iterator, and the array and the size are shared without synchronization, a data race ([11](11-concurrency-threads-and-jmm.md)); this is the "best-effort" wording of the exception's Javadoc ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)). The fix is a lock or a concurrent collection, not the iterator ([12](12-concurrency-locks-atomics-collections.md)).
+- *Add `ListIterator.add` and `set`.* `add` inserts at the cursor, advances the cursor past the new element, sets `lastReturned` to -1 and resynchronizes `expectedModCount`; `set` needs a `lastReturned` and does not touch `modCount`. That is what `ArrayList.ListItr` does ([§7](#7-iterators-fail-fast-weakly-consistent-and-snapshot)).
+
+**Tests:** [GrowableListTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m04/ex3/GrowableListTest.java).
+
+</details>
 <!-- /TASK: EX-M04-03 -->
 
 ## Check your understanding

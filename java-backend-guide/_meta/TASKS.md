@@ -1342,18 +1342,18 @@ Appended by PLAN-M04 (S20261120-1801-claudecode-cloud). Plan: [M04](modules/M04.
 - Done by: S20261121-1801-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M04-02 · M · Ex04.2 · A minimal hash map: buckets, spreading and resize
-- Status: `todo` · Deps: SEC-M04-03 · needs: none
+- Status: `done` · Deps: SEC-M04-03 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `EX-M04-02`), lab `m04/ex2/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M04](modules/M04.md) §6 row Ex04.2; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M04 §6 criterion has a test `@DisplayName("Ex04.2 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-2101-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M04-03 · M · Ex04.3 · A fail-fast iterator for a growable array list
-- Status: `todo` · Deps: SEC-M04-02, SEC-M04-07 · needs: none
+- Status: `done` · Deps: SEC-M04-02, SEC-M04-07 · needs: none
 - Files touched: `modules/04-java-collections-internals.md` (region `EX-M04-03`), lab `m04/ex3/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M04](modules/M04.md) §6 row Ex04.3; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M04 §6 criterion has a test `@DisplayName("Ex04.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by:
+- Done by: S20261121-2101-claudecode-cloud (claude-opus-5-5)
 
 ### CLOSE-M04 · M
 - Status: `todo` · Deps: every SEC, QB and EX task of M04 · needs: none
