@@ -3,10 +3,10 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 05 `java-lambdas-streams-optional` (core, lab `java-language`), planned by PLAN-M05 (S20261122-0601-claudecode-cloud): [M05](modules/M05.md), skeleton `modules/05-java-lambdas-streams-optional.md` (42 TASK markers: 10 SEC, 4 QB, 4 EX, CLOSE), smoke test `m05/smoke/M05LabSmokeTest` (3 tests pass); SEC-M05-01 written. Modules 17, 01, 02, 03 and 04 closed, reviewed, fixed.
+- **Current module:** 05 `java-lambdas-streams-optional` (core, lab `java-language`), planned by PLAN-M05 (S20261122-0601-claudecode-cloud): [M05](modules/M05.md), skeleton `modules/05-java-lambdas-streams-optional.md` (42 TASK markers: 10 SEC, 4 QB, 4 EX, CLOSE), smoke test `m05/smoke/M05LabSmokeTest` (3 tests pass); SEC-M05-01 and SEC-M05-02 written (R3 route settled: Class-File API over `InMemoryCompiler` bytes, test helper `m05/support/ClassFileView`). Modules 17, 01, 02, 03 and 04 closed, reviewed, fixed.
 - **In progress:** none
-- **Last finished task:** SEC-M05-01 (S20261122-0601-claudecode-cloud, claude-opus-5-5; PLAN-M05 also done this session).
-- **Next task:** SEC-M05-02 (M, §2 `invokedynamic` and capture; settles the R3 route of M05 §1), then SEC-M05-03..10, QB-M05-01..04, EX-M05-01..04, CLOSE-M05, REVIEW-M05.
+- **Last finished task:** SEC-M05-02 (S20261122-0902-claudecode-cloud, claude-opus-5-5).
+- **Next task:** SEC-M05-03 (M, §3 method references), then SEC-M05-04..10, QB-M05-01..04, EX-M05-01..04, CLOSE-M05, REVIEW-M05.
 - **Counts:** modules done 0/55 (17, 01, 02, 03 and 04 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 6/55 (17, 01, 02, 03, 04, 05); CLOSE 5/55 (17, 01, 02, 03, 04); REVIEW 5/55 (17, 01, 02, 03, 04).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**

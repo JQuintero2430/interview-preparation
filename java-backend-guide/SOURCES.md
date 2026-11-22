@@ -490,14 +490,22 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 ## 05 java-lambdas-streams-optional
 
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/package-summary.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.1
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.2
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.4
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.4
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.8
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-6.html#jvms-6.5.invokedynamic
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Class.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/FunctionalInterface.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Iterable.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runnable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/InnerClassLambdaMetafactory.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/LambdaMetafactory.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/SerializedLambda.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Comparator.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java
@@ -508,7 +516,9 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Predicate.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java
 - https://openjdk.org/jeps/126
+- https://openjdk.org/jeps/371
 - https://openjdk.org/jeps/409
+- https://openjdk.org/jeps/484
 
 ## 17 spring-transactions
 
