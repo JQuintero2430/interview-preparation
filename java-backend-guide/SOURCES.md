@@ -491,6 +491,9 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/package-summary.html
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-13.html#jls-13.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.3
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.2
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.3
