@@ -15,10 +15,15 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Gatherers;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 // The printed lines and diagnostic keys are the claims the guide makes, so the expected values stay literal.
@@ -50,6 +55,15 @@ class Q05OutputsTest {
                 Runnable ignoresOuter() { return new Runnable() { public void run() {} }; }
                 Runnable readsOuter() { return new Runnable() { public void run() { count++; } }; }
             }
+            """;
+    private static final String CANNOT_APPLY = "compiler.err.cant.apply.symbol";
+    private static final String INT_STREAM_COLLECTOR = """
+            import java.util.stream.*;
+            class Probe { Object run() { return IntStream.range(0, 3).collect(Collectors.toList()); } }
+            """;
+    private static final String BOXED_COLLECTOR = """
+            import java.util.stream.*;
+            class Probe { Object run() { return IntStream.range(0, 3).boxed().collect(Collectors.toList()); } }
             """;
     private static final String ABSTRACT_CLASS_TARGET = """
             abstract class Job { abstract void run(); }
@@ -282,6 +296,139 @@ class Q05OutputsTest {
 
         assertThat(source.parallelStream().collect(Q05_16.toReadOnlyList())).isEqualTo(source);
         assertThat(source.stream().collect(Q05_16.toReadOnlyList())).isEqualTo(source);
+    }
+
+    @RepeatedTest(10)
+    @DisplayName("Q05.17 · an immutable reduce into a list is correct in parallel; collect is too")
+    void q05_17_immutableReduceAndCollectAgree() {
+        List<Integer> source = IntStream.range(0, 1_000).boxed().toList();
+
+        assertThat(Q05_17.listByImmutableReduce(source.parallelStream())).isEqualTo(source);
+        assertThat(Q05_17.listByImmutableReduce(source.stream())).isEqualTo(source);
+        assertThat(Q05_17.listByCollect(source.parallelStream())).isEqualTo(source);
+    }
+
+    @Test
+    @DisplayName("Q05.17 · reduce without an identity returns an Optional, empty for an empty stream")
+    void q05_17_reduceWithoutIdentityIsOptional() {
+        assertThat(Stream.of(3, 4).reduce(Integer::sum)).contains(7);
+        assertThat(Stream.<Integer>empty().reduce(Integer::sum)).isEmpty();
+    }
+
+    @RepeatedTest(20)
+    @DisplayName("Q05.18 · the fee as identity is added k times in parallel, 2 <= k <= 100; the fix adds it once")
+    void q05_18_feeAddedOncePerChunk() {
+        List<Integer> amounts =
+                new ArrayList<>(IntStream.rangeClosed(1, 100).boxed().toList());
+        int fee = 10;
+
+        int buggy = Q05_18.totalWithFeeBuggy(amounts, fee);
+        int extra = buggy - 5050;
+
+        assertThat(extra % fee).isZero();
+        assertThat(extra / fee).isBetween(2, 100);
+        assertThat(Q05_18.totalWithFee(amounts, fee)).isEqualTo(5060);
+        assertThat(amounts.stream().reduce(fee, Integer::sum)).isEqualTo(5060);
+    }
+
+    @Test
+    @DisplayName("Q05.19 · summingInt overflows like IntStream.sum; averagingInt of nothing is 0.0, average() is empty")
+    void q05_19_collectorArithmetic() {
+        List<Integer> values = List.of(Integer.MAX_VALUE, 1);
+
+        assertThat(values.stream().collect(Collectors.summingInt(Integer::intValue)))
+                .isEqualTo(Integer.MIN_VALUE);
+        assertThat(values.stream().collect(Collectors.summingLong(Integer::longValue)))
+                .isEqualTo(2_147_483_648L);
+        assertThat(Stream.<Integer>empty().collect(Collectors.averagingInt(Integer::intValue)))
+                .isEqualTo(0.0);
+        assertThat(IntStream.empty().average()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Q05.19 · IntStream has no collect(Collector): it needs boxed() first")
+    void q05_19_intStreamNeedsBoxedForCollectors() {
+        var withoutBoxed = InMemoryCompiler.compile(Map.of(SOURCE_NAME, INT_STREAM_COLLECTOR));
+        var withBoxed = InMemoryCompiler.compile(Map.of(SOURCE_NAME, BOXED_COLLECTOR));
+
+        assertThat(withoutBoxed.success()).isFalse();
+        assertThat(withoutBoxed.errorCodes()).contains(CANNOT_APPLY);
+        assertThat(withBoxed.success()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Q05.20 · flatMap(Optional::stream) keeps the present values; a null mapped stream counts as empty")
+    void q05_20_flatMapOptionalsAndNull() {
+        List<Integer> present = Stream.of(Optional.of(1), Optional.<Integer>empty(), Optional.of(3))
+                .flatMap(Optional::stream)
+                .toList();
+        List<String> withNull = Stream.of("a", "b")
+                .flatMap(s -> s.equals("a") ? null : Stream.of(s))
+                .toList();
+
+        assertThat(present).containsExactly(1, 3);
+        assertThat(withNull).containsExactly("b");
+    }
+
+    @Test
+    @DisplayName("Q05.22 · windowFixed(2), windowSliding(2) and scan over 1..5")
+    void q05_22_printsWindowsAndScan() {
+        List<String> lines = OutputCapture.linesOf(() -> Q05_22.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly("[[1, 2], [3, 4], [5]]", "[[1, 2], [2, 3], [3, 4], [4, 5]]", "[1, 3, 6, 10, 15]");
+    }
+
+    @Test
+    @DisplayName("Q05.22 · fold gives one element; a sliding window longer than the stream gives one short window")
+    void q05_22_foldAndLongSlidingWindow() {
+        List<Integer> source = List.of(1, 2, 3, 4, 5);
+
+        assertThat(source.stream().gather(Gatherers.fold(() -> 0, Integer::sum)).toList())
+                .containsExactly(15);
+        assertThat(source.stream().gather(Gatherers.windowSliding(6)).toList()).containsExactly(List.of(1, 2, 3, 4, 5));
+    }
+
+    @RepeatedTest(5)
+    @DisplayName("Q05.23 · a spliterator that never splits runs a parallel stream on the calling thread only")
+    void q05_23_nonSplittingSourceStaysOnCaller() {
+        List<Integer> source = IntStream.range(0, 10_000).boxed().toList();
+
+        Set<Thread> threads = Q05_23.threadsUsed(Q05_23.nonSplitting(source));
+
+        assertThat(threads).containsExactly(Thread.currentThread());
+    }
+
+    @RepeatedTest(5)
+    @DisplayName("Q05.23 · the same source with its own spliterator includes the calling thread among the workers")
+    void q05_23_splittingSourceIncludesCaller() {
+        List<Integer> source =
+                new ArrayList<>(IntStream.range(0, 10_000).boxed().toList());
+
+        Set<Thread> threads = Q05_23.threadsUsed(source.spliterator());
+
+        assertThat(threads).contains(Thread.currentThread());
+    }
+
+    @RepeatedTest(10)
+    @DisplayName("Q05.24 · ordered parallel limit keeps the first n; unordered limit gives some n distinct elements")
+    void q05_24_limitWithAndWithoutOrder() {
+        int[] ordered = IntStream.range(0, 100_000).parallel().limit(5).toArray();
+        int[] unordered =
+                IntStream.range(0, 100_000).parallel().unordered().limit(5).toArray();
+
+        assertThat(ordered).containsExactly(0, 1, 2, 3, 4);
+        assertThat(unordered).hasSize(5).doesNotHaveDuplicates();
+        assertThat(IntStream.of(unordered).allMatch(n -> n >= 0 && n < 100_000)).isTrue();
+    }
+
+    @RepeatedTest(5)
+    @DisplayName("Q05.24 · no thread that runs a parallel stream's lambda is a virtual thread")
+    void q05_24_parallelStreamThreadsAreNotVirtual() {
+        Set<Thread> threads = Q05_23.threadsUsed(
+                new ArrayList<>(IntStream.range(0, 10_000).boxed().toList()).spliterator());
+
+        assertThat(threads).isNotEmpty().noneMatch(Thread::isVirtual);
     }
 
     private static List<String> enclosingInstanceFields(Class<?> type) {

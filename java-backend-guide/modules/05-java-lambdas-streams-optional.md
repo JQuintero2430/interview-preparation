@@ -1999,26 +1999,265 @@ Explain the four functions of a `Collector` and its characteristics. What goes w
 <a id="q05-17"></a>
 ### Q05.17 · Difference · `reduce` vs `collect`: immutable vs mutable reduction, identity and associativity
 
+Both `reduce` and `collect` turn a stream into one result, and their three-argument forms even have the same shape. What is the difference, what does each require of the functions you pass, and how do you pick one?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `reduce` is an *immutable* reduction: it folds values, each step returns a new value, and one identity value seeds every chunk of a parallel run, so the identity must really be an identity and the operator must be associative. `collect` is a *mutable* reduction: a supplier creates a fresh container for each chunk, the accumulator modifies it in place, and the combiner merges two containers. Use `reduce` when the result is a value (a number, an immutable object), and `collect` (or a `Collector`) when the result is a container (a list, a map, a `StringBuilder`).
+
+**Full explanation.** The package summary defines a reduction as combining elements "by repeated application of a combining operation", parallelizable "so long as the function(s) used to process the elements are associative and stateless" [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Reduction), and a mutable reduction as one that incorporates elements "by updating the state of the result rather than by replacing the result" [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#MutableReduction). The contracts follow from that. `reduce(identity, accumulator)` needs `accumulator.apply(identity, t)` equal to `t` for every `t`, and the three-argument form adds that the combiner must be compatible with the accumulator; `collect(supplier, accumulator, combiner)` needs a supplier that "must return a fresh value each time" [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). The difference that bites is the identity: `reduce` has one *value*, shared by every chunk, while `collect` calls the supplier once per chunk. That is why `reduce` into a mutable list duplicates elements in parallel while `collect` does not [Lab: ReduceVsCollectTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/ReduceVsCollectTest.java); [§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect) walks through both. `reduce` *can* build a list if every step copies instead of mutating: the lab's `listByImmutableReduce` is correct sequentially and in parallel, at the cost of copying the partial list on every element [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java), the same *O(n²)* copying the package summary describes for `reduce("", String::concat)` [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#MutableReduction).
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_17.java
+    // Immutable reduction: every step returns a new list, so sharing the identity is safe, but copying is O(n²).
+    public static <T> List<T> listByImmutableReduce(Stream<T> elements) {
+        return elements.reduce(List.of(), Q05_17::append, Q05_17::concat);
+    }
+
+    // Mutable reduction: one fresh ArrayList per chunk, merged in encounter order.
+    public static <T> List<T> listByCollect(Stream<T> elements) {
+        return elements.collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+    }
+```
+
+Both return the input, in order, for a parallel stream of 1,000 elements on every repetition [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). Only the second is a design you would ship.
+
+**Follow-ups an interviewer will ask.**
+- *Why does `reduce(Integer::sum)` return an `Optional` and `reduce(0, Integer::sum)` an `Integer`?* Without an identity there is nothing to return for an empty stream, so the one-argument form returns an empty `Optional` there [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html); in the lab, `Stream.of(3, 4).reduce(Integer::sum)` contains 7 and the same call on an empty stream is empty [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). With an identity, the identity is "a default result if there are no input elements" [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Reduction).
+- *Where does `Collector` fit?* It packages `collect`'s functions (plus a finisher and characteristics) into one reusable object, so `collect(Collectors.toList())` and the three-function `collect` are the same kind of reduction; [Q05.16](#q05-16) covers writing one.
+- *Is subtraction a valid `reduce` operator?* No: `(a − b) − c` is not `a − (b − c)`, so it is not associative and a parallel run is free to group the operands differently and give another answer. The associativity requirement is stated on every `reduce` overload [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html).
+
+**Trap to avoid.** Saying "`collect` is for parallel, `reduce` is for sequential". Both are correct in parallel when their contracts hold; the choice depends on whether the result is a value or a container.
+
+</details>
+
 <a id="q05-18"></a>
 ### Q05.18 · Bug hunt · `reduce(10, Integer::sum)` gives a different total once the stream is parallel: why, and what the identity must be
+
+An invoice total adds a fixed fee of 10 to the sum of the line amounts. Its unit test, with amounts 1 to 100, expected 5060 and passed while the code used `stream()`. After the switch to `parallelStream()` the total comes out larger, and not always the same number. Find the bug.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_18.java
+    // Bug: the fee is used as the identity, so a parallel stream adds it once per chunk.
+    public static int totalWithFeeBuggy(List<Integer> amounts, int fee) {
+        return amounts.parallelStream().reduce(fee, Integer::sum);
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The first argument of `reduce` is not a starting value, it is the *identity* of the operator, and a parallel stream uses it to seed every chunk. `fee` is not an identity for `+` (`10 + t` is not `t`), so the fee is added once per chunk: the result is 5050 + 10 × *k*, where *k* is the number of chunks the library chose. Sequentially there is one chunk, so the bug hides. The identity of `+` is `0`; reduce with `0` and add the fee once, after the reduction.
+
+**Full explanation.** The `reduce` contract says "the `identity` value must be an identity for the accumulator function", that is, `accumulator.apply(identity, t)` equals `t` for all `t` [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html), because in a parallel reduction "a partial accumulation [is] computed for each partition" and each one starts from the identity [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Reduction). The code breaks the contract, so the result is whatever the partitioning makes it. In the lab, over a 100-element `ArrayList`, the buggy method returns 5050 plus a multiple of 10 between 2 × 10 and 100 × 10 on each of 20 repetitions; the test asserts that set, never one value, because the number of chunks depends on the common pool's parallelism and on how the source splits ([§8](#8-parallel-streams-and-the-common-forkjoinpool)) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). The same test shows why it passed before: `amounts.stream().reduce(10, Integer::sum)` is exactly 5060, since a sequential stream uses the identity once. [§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect) shows the same effect on `IntStream.rangeClosed`. The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_18.java
+    // Fix: reduce with the true identity of +, then apply the fee once.
+    public static int totalWithFee(List<Integer> amounts, int fee) {
+        return amounts.parallelStream().reduce(0, Integer::sum) + fee;
+    }
+```
+
+It returns 5060 on every parallel repetition [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). On real amounts, `mapToLong(Integer::longValue).sum() + fee` also removes the boxing and the `int` overflow ([Q05.19](#q05-19)).
+
+**Follow-ups an interviewer will ask.**
+- *What are the identities for other common operators?* `0` for addition, `1` for multiplication, `""` for string concatenation, `Integer.MIN_VALUE` for `Math::max` and `Integer.MAX_VALUE` for `Math::min` on `int`: in each case `op(identity, t)` returns `t`, which is the definition the `reduce` Javadoc gives [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). For `max` and `min`, the identity-free `reduce(Math::max)` or `max()` is clearer, because it returns an empty optional instead of an extreme value on an empty stream.
+- *How would you catch this bug in a test?* Run the reduction on a parallel stream of a few hundred elements and compare it with the sequential result, repeated; and in review, check that the first argument of every `reduce` satisfies `op(identity, t) == t`. A sequential-only test cannot catch it, since one chunk uses the identity once.
+- *Is `reduce(0, (a, b) -> a + b * b)` (sum of squares) correct in parallel?* It is not: that accumulator is not associative, and when the library combines two partial sums with it, the second partial sum gets squared. Use `map(x -> x * x).reduce(0, Integer::sum)`, or the three-argument `reduce(0, (sum, x) -> sum + x * x, Integer::sum)`, whose combiner just adds [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html).
+
+**Trap to avoid.** "Fixing" it by removing `parallelStream()`. The contract is still broken; the code is now correct only by accident, until someone parallelizes it again or reuses the lambda in a `Collector`.
+
+</details>
 
 <a id="q05-19"></a>
 ### Q05.19 · Trade-off · `Stream<Integer>` vs `IntStream`: boxing, `sum` and `average`, and when converting is worth it
 
+A code review flags `orders.stream().map(Order::quantity).reduce(0, Integer::sum)` and asks for `mapToInt(Order::quantity).sum()`. Another reviewer says the change is cosmetic. Who is right, and when does the choice between `Stream<Integer>` and `IntStream` matter?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The results are the same, so for correctness it is cosmetic; the cost and the API are not. `Stream<Integer>` carries one `Integer` object per element, created by boxing (cached only for -128 to 127), while `IntStream` carries bare `int`s and has `sum`, `average`, `min`, `max` and `summaryStatistics` built in, with `Optional` results for the empty case. Convert with `mapToInt` before arithmetic on large or hot pipelines, and stay on `Stream<Integer>` when the elements are going into a collection or a collector anyway. In both cases, an `int` total can overflow: money and counters belong in a `LongStream`.
+
+**Full explanation.** Two things differ: allocation and API. On allocation, `boxed()` is `mapToObj(Integer::valueOf)` and `Integer.valueOf` caches only -128 to 127 in JDK 25 by default, so most real quantities and amounts become a new object per element [Src: JDK 25, java.util.stream.IntPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntPipeline.java) [Src: JDK 25, java.lang.Integer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Integer.java); whether that matters is a profiler question ([10](10-jvm-performance-and-troubleshooting.md)), and the guide gives no timing because none is verified. On API, `Stream<Integer>` has no `sum()` at all, and the arithmetic of the primitive streams has specified empty-stream behavior: `average()` is an `OptionalDouble`, empty for no elements [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html) [Lab: PrimitiveStreamsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/PrimitiveStreamsTest.java). The collector equivalents on `Stream<Integer>` behave differently in that case: `Collectors.averagingInt` returns `0.0` when no elements are present, and `summingInt` sums into an `int[1]` and so overflows exactly like `IntStream.sum()` [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java); the lab shows `summingInt` over `Integer.MAX_VALUE` and `1` returning `Integer.MIN_VALUE` while `summingLong` gives 2147483648 [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). The other direction has a cost too: an `IntStream` has no `collect(Collector)`, so `IntStream.range(0, 3).collect(Collectors.toList())` fails to compile (`compiler.err.cant.apply.symbol`) and needs `boxed()` first [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). [§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect) has the full set of conversions.
+
+So the trade-off reads:
+- **Choose `IntStream` (or `LongStream`)** when the pipeline ends in arithmetic, when it runs per request or over large inputs, or when you want the empty case as an `Optional` rather than a `0` that looks like data.
+- **Stay on `Stream<Integer>`** when the elements end up as objects anyway (a `List<Integer>`, a `groupingBy` key), because `mapToInt(...).boxed()` would unbox and box again; and when the pipeline is small and cold, where readability wins.
+
+**Follow-ups an interviewer will ask.**
+- *Does `IntStream` avoid boxing in every operation?* No. JDK 25's `IntPipeline.distinct()` is `boxed().distinct().mapToInt(i -> i)`, with a comment that it "is not very efficient" [Src: JDK 25, java.util.stream.IntPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/IntPipeline.java).
+- *Why is there no `CharStream` or `FloatStream`?* Only `int`, `long` and `double` have specializations [Doc: Java 25 API, java.util.stream package summary](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html); `String.chars()` returns an `IntStream` of `char` values, and `float` values go through `mapToDouble` [Doc: Java 25 API, CharSequence](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/CharSequence.html).
+- *How do you get the count, sum and average in one pass?* `summaryStatistics()` on the primitive stream; its `getSum()` is a `long`, but an empty one reports an average of `0.0` and the extreme `int` values as min and max, so check `getCount()` first [Doc: Java 25 API, IntSummaryStatistics](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/IntSummaryStatistics.html).
+
+**Trap to avoid.** Claiming a speed-up figure ("`IntStream` is five times faster"). The difference is allocation per element, its effect depends on the JIT, the collector and the load, and the honest answer is to measure it with a benchmark or an allocation profile.
+
+</details>
+
 <a id="q05-20"></a>
 ### Q05.20 · Difference · `map`, `flatMap` and `mapMulti`: one to one, one to many, and when `mapMulti` is the better fit
+
+You have a list of orders, each with a list of lines, and you need a stream of the lines with a positive quantity. What do `map`, `flatMap` and `mapMulti` each do here, and when would you pick `mapMulti` over `flatMap`?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `map` turns each element into exactly one element, so `map(Order::lines)` gives a `Stream<List<Line>>`, not lines. `flatMap` turns each element into a *stream* of zero or more elements and splices those streams into one: `flatMap(o -> o.lines().stream().filter(...))`. `mapMulti` (Java 16) does the same expansion by pushing: you get the element and a consumer, and call `accept` for each output, with no stream per element. Pick `mapMulti` when each element yields zero or a few outputs, or when a loop with `if`s reads better; pick `flatMap` when the expansion is already a stream, can be large or infinite, or must be closed.
+
+**Full explanation.** The `Stream` Javadoc describes `flatMap` as replacing each element "with the contents of a mapped stream", closing each mapped stream after use and treating a `null` mapped stream as empty, and `mapMulti` as replacing each element "with multiple elements, specifically zero or more elements", through a consumer that must not be used outside the call; it names `mapMulti` "preferable to `flatMap`" for small expansions, where it "avoids the overhead of creating a new Stream instance for every group of result elements", and for imperative generation [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). For the question's input both give the same lines in the same order [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java). What differs is laziness inside one element: JDK 25's `flatMap` stops pulling from a mapped stream once a short-circuiting downstream has enough, while `mapMulti` has no way to learn that, so under `findFirst()` the lab's `mapMulti` loop still pushed all five elements where `flatMap` generated one [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java) [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java). [§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect) has both versions of the order example and the mechanism.
+
+| | `map` | `flatMap` | `mapMulti` |
+|---|---|---|---|
+| Outputs per element | exactly 1 | 0..n, as a `Stream` | 0..n, pushed to a consumer |
+| Per-element cost | none extra | a stream object per element | no stream (JDK 25 passes the downstream stage) |
+| Stops early inside one element | n/a | yes, under short-circuiting (JDK 25) | no |
+| Closes what it opened | n/a | yes, each mapped stream | nothing to close |
+| Since | Java 8 | Java 8 | Java 16 |
+
+Every row is from the `Stream` Javadoc and `ReferencePipeline` source cited above, and the early-stop row is also asserted in the lab [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *How do you drop the empty values from a `Stream<Optional<T>>`?* `flatMap(Optional::stream)`: `Optional.stream()` (`@since 9`) returns a one-element stream for a present value and an empty one otherwise [Src: JDK 25, java.util.Optional](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Optional.java); in the lab it turns `[Optional[1], Optional.empty, Optional[3]]` into `[1, 3]` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+- *What happens if the `flatMap` function returns `null`?* The element contributes nothing: "if a mapped stream is `null` an empty stream is used, instead" [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html), and in the lab `Stream.of("a", "b")` with `null` for `"a"` gives `[b]` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). Return `Stream.empty()` anyway: the `null` is legal but surprises readers.
+- *Why does `mapMulti` often need `stream.<Line>mapMulti(...)`?* The output type `R` appears only in the consumer parameter of the lambda, which the compiler often cannot infer, so the Javadoc's examples give a type witness [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html).
+
+**Trap to avoid.** Saying `mapMulti` is "the faster `flatMap`". The Javadoc recommends it for two specific cases only, and under a short-circuiting terminal it can do more work than `flatMap`, not less.
+
+</details>
 
 <a id="q05-21"></a>
 ### Q05.21 · Concept · Stream gatherers: what a `Gatherer` can do that `collect`, `flatMap` and `mapMulti` cannot
 
+Java 24 added `Stream.gather(Gatherer)`. What problem does it solve, what is a gatherer made of, and why could the same jobs not be done with a collector or with `flatMap`?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A gatherer is a user-defined *intermediate* operation. It combines three things no other extension point has together: state that lives across elements (a window, a running total, the previous element), the ability to emit zero or more elements as it goes, and the ability to stop the stream early, so it works on infinite input and can be followed by more stages. `map`, `flatMap` and `mapMulti` handle each element on its own, with no state. A `Collector` has state but is terminal: it ends the pipeline with one result and cannot stop the stream early. A gatherer is four functions: an initializer for the state, an integrator per element, an optional combiner for parallel runs, and an optional finisher at the end of input.
+
+**Full explanation.** JEP 485 names the gap: the stream API has a "fixed set of intermediate operations", `collect` is the only extensible point and it is terminal, and its fixed-window example shows the collector version cannot "signal to `collect` that it is finished" on an infinite stream [Doc: JEP 485](https://openjdk.org/jeps/485). The `Gatherer` Javadoc then specifies the four functions and the integrator's contract: it may push "any number of elements downstream" and returns `false` when no more input is wanted, which the stream treats as the end of input [Doc: Java 25 API, Gatherer](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherer.html). That gives each capability a concrete form in the lab: the windows of `windowFixed` (state and multi-element output), the `withinBudget` gatherer that ends an infinite `Stream.iterate` after five pulls (early stop), and one gatherer instance used by two pipelines without sharing state (state per run, created by the initializer) [Lab: BuiltInGatherersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s07/BuiltInGatherersTest.java) [Lab: CustomGathererTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s07/CustomGathererTest.java). [§7](#7-stream-gatherers) has the four functions, the `Budget` code and the five built-ins in `Gatherers`.
+
+**Follow-ups an interviewer will ask.**
+- *Can a gatherer run in parallel?* Yes, if it has a real combiner (`Gatherer.of(...)`): the library then gives each partition its own state and joins them. A gatherer built with `ofSequential` has the default combiner and is evaluated sequentially, in encounter order, even inside a parallel stream; in the lab `windowFixed(7)` gives the same windows on a parallel stream as on a sequential one [Src: JDK 25, java.util.stream.Gatherer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherer.java) [Lab: BuiltInGatherersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s07/BuiltInGatherersTest.java).
+- *What would you use on Java 21, where there are no gatherers?* A loop, a custom `Spliterator`, or a collector followed by a second stream, each with the limitation the JEP describes; gatherers were a preview in Java 22 and 23 and are final since Java 24 [Final since Java 24, JEP 485] [Doc: JEP 485](https://openjdk.org/jeps/485).
+- *Where must a gatherer's state live?* In the object the initializer returns, never in a field or a captured variable: the Javadoc forbids retaining the state beyond one call, and one gatherer instance may serve several pipelines and threads at once [Src: JDK 25, java.util.stream.Gatherer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherer.java). [Exercise 05.3](#ex05-3) builds two gatherers with this rule.
+
+**Trap to avoid.** Calling a gatherer "a collector you can put in the middle". The four functions look alike, but a gatherer emits elements to later stages and can short-circuit, which is exactly what a collector cannot do.
+
+</details>
+
 <a id="q05-22"></a>
 ### Q05.22 · Output · `windowFixed(2)`, `windowSliding(2)` and `scan` over `1..5`: which lists come out?
+
+What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_22.java
+        List<Integer> source = List.of(1, 2, 3, 4, 5);
+        System.out.println(source.stream().gather(Gatherers.windowFixed(2)).toList());
+        System.out.println(source.stream().gather(Gatherers.windowSliding(2)).toList());
+        System.out.println(
+                source.stream().gather(Gatherers.scan(() -> 0, Integer::sum)).toList());
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+[[1, 2], [3, 4], [5]]
+[[1, 2], [2, 3], [3, 4], [4, 5]]
+[1, 3, 6, 10, 15]
+```
+
+Fixed windows do not overlap, so five elements make two full windows and a short last one. Sliding windows move one element at a time, so there are 5 − 2 + 1 = 4 of them. `scan` emits every running total after each element, and does not emit the initial `0`.
+
+**Full explanation.** Each line follows from the `Gatherers` Javadoc [Doc: Java 25 API, Gatherers](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html). `windowFixed(n)` produces "encounter-ordered groups of elements" of size `n`, and "the last window may contain fewer elements", which is the `[5]`. `windowSliding(n)` builds each window by dropping the oldest element of the previous one and adding the next, so every interior element appears in two windows. `scan` is a "Prefix Scan": "starting with an initial value obtained from the `Supplier`, each subsequent value is obtained by applying the `BiFunction` to the current value and the next input element, after which the resulting value is produced downstream" [Src: JDK 25, java.util.stream.Gatherers](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java): the initial value is the starting state, not an output. The lab runs the snippet and asserts the three lines [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java); the outputs are deterministic, because all three built-ins are sequential gatherers over an ordered source ([§7](#7-stream-gatherers)).
+
+**Follow-ups an interviewer will ask.**
+- *What does `fold(() -> 0, Integer::sum)` print for the same source?* `[15]`: `fold` "only ever produces a single element", the last value `scan` would have emitted [Doc: Java 25 API, Gatherers](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+- *And `windowSliding(6)` on five elements?* One window, `[[1, 2, 3, 4, 5]]`: if the stream is shorter than the window size, "only one window will be produced, containing all elements in the stream" [Doc: Java 25 API, Gatherers](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). `windowFixed(6)` would give the same single short window.
+- *Can you add an element to one of the windows?* No: the windows are unmodifiable and `add` throws `UnsupportedOperationException` [Doc: Java 25 API, Gatherers](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html) [Lab: BuiltInGatherersTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s07/BuiltInGatherersTest.java).
+
+**Trap to avoid.** Answering `[0, 1, 3, 6, 10, 15]` for `scan` (the initial value is not emitted) or dropping the short `[5]` window (`windowFixed` keeps it).
+
+</details>
 
 <a id="q05-23"></a>
 ### Q05.23 · Concept · How a parallel stream splits and runs: spliterators, the common `ForkJoinPool` and its default parallelism
 
+Explain what happens, step by step, when `list.parallelStream().map(this::price).toList()` runs: who cuts the input, which threads run the lambda, how many of them there are, and how the result keeps the list's order.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The terminal operation wraps the pipeline in a fork/join task and invokes it from the calling thread. The task asks the source's `Spliterator` to `trySplit()` off a prefix, forks one part as a new task and keeps the other, and repeats until the parts are below a target size chosen to give about four leaf tasks per worker; each leaf is then traversed by whoever holds it. Forked tasks run in the common `ForkJoinPool`, one per JVM, whose default parallelism is the processor count minus one, because the calling thread works too. Order survives because an ordered spliterator always hands off a *prefix*, so partial results are combined left to right.
+
+**Full explanation.** Nothing here is configured per stream. Splitting is the spliterator's job: for an `ORDERED` source the split-off part "must cover a strict prefix of the elements", and `trySplit` returns `null` "if this spliterator cannot be split" [Doc: Java 25 API, Spliterator](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Spliterator.html). The task loop and its target size, "approximately four tasks per processor", are JDK 25's `AbstractTask` [Src: JDK 25, java.util.stream.AbstractTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractTask.java); forked tasks go to the current worker's pool, or to `ForkJoinPool.commonPool()` from an ordinary thread [Doc: Java 25 API, ForkJoinTask](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinTask.html); and the common pool's parallelism is `Math.max(1, availableProcessors() - 1)` unless the `java.util.concurrent.ForkJoinPool.common.parallelism` property says otherwise [Src: JDK 25, java.util.concurrent.ForkJoinPool](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ForkJoinPool.java). In the lab, a parallel pipeline's lambdas ran only on the calling thread and `ForkJoinPool.commonPool-worker-…` threads, with the calling thread always among them [Lab: CommonPoolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java), and the result of an ordered parallel pipeline equalled the sequential one [Lab: ParallelResultTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/ParallelResultTest.java). The splitting step is the one that decides everything else: the lab wraps a 10,000-element list in a spliterator whose `trySplit()` always returns `null`, and the "parallel" `forEach` then ran on the calling thread alone on every repetition, because JDK 25's `ForEachTask` processes the whole remaining part itself as soon as a split fails [Src: JDK 25, java.util.stream.ForEachOps](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ForEachOps.java) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). [§8](#8-parallel-streams-and-the-common-forkjoinpool) has how each common source splits (`ArrayList` in halves, `LinkedList` and `iterate` in growing batches) and the pool's other users.
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_23.java
+    // Records the threads that ran the lambda of a parallel stream over the given spliterator.
+    public static <T> Set<Thread> threadsUsed(Spliterator<T> source) {
+        Set<Thread> threads = ConcurrentHashMap.newKeySet();
+        StreamSupport.stream(source, true).forEach(element -> threads.add(Thread.currentThread()));
+        return threads;
+    }
+```
+
+`StreamSupport.stream(spliterator, true)` creates a parallel stream from any spliterator [Doc: Java 25 API, StreamSupport](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/StreamSupport.html); `Q05OutputsTest` passes it the non-splitting wrapper and the list's own spliterator, and asserts the calling thread alone for the first and the calling thread among the workers for the second.
+
+**Follow-ups an interviewer will ask.**
+- *How do you find the parallelism on a given machine?* `ForkJoinPool.getCommonPoolParallelism()`; it is computed when the pool is created, from the processor count the JVM sees, so read it at startup rather than assuming it [Doc: Java 25 API, ForkJoinPool](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html) [Lab: CommonPoolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java).
+- *Can one stage be parallel and the next sequential?* No: "the most recent sequential or parallel mode setting applies to the execution of the entire stream pipeline" [Doc: Java 25 API, java.util.stream, Parallelism](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Parallelism), and in the lab `parallel().map(…).sequential()` ran every element on the calling thread [Lab: CommonPoolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java).
+- *What is work stealing, and does a parallel stream depend on it?* An idle `ForkJoinPool` worker takes queued tasks from a busy one; it is why the target of about four tasks per worker helps when leaves are uneven [Src: JDK 25, java.util.stream.AbstractTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractTask.java). The pool's internals are [13](13-concurrency-executors-and-completablefuture.md)'s subject.
+
+**Trap to avoid.** Saying "each element runs on its own thread" or "the stream creates threads". The work is cut into a few chunks per worker, and it runs on the calling thread plus an existing, shared pool.
+
+</details>
+
 <a id="q05-24"></a>
 ### Q05.24 · Trade-off · When does a parallel stream help, and when does it hurt: size, source, ordering, blocking and shared state
+
+A teammate proposes adding `.parallel()` to every stream in a service "since the servers have 16 cores". How do you decide, case by case, whether a parallel stream will help, do nothing, or hurt?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A parallel stream pays for splitting, forking and combining, and it borrows workers from one pool shared by the whole JVM. It helps only when all of these hold: a large input, CPU-bound and independent work per element, a source that splits cheaply (`ArrayList`, arrays, `IntStream.range`), a cheap combine, and no ordering constraint that forces extra work. It hurts with small inputs or cheap per-element work, with sources that split badly (`LinkedList`, `Stream.iterate`, `BufferedReader.lines()`), with ordered `limit`, `findFirst` or `sorted`, with blocking calls in the lambda (they hold shared workers), and with shared mutable state (it becomes a race). The decision is a measurement on realistic data and load, never a default.
+
+**Full explanation.** The package summary promises the *same result* in parallel for non-interfering, stateless lambdas, and nothing about speed [Doc: Java 25 API, java.util.stream, Parallelism](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Parallelism); each factor below is a documented cost, so the answer is a checklist rather than a number. The guide gives no break-even size or speed-up figure, because none is verified and both depend on the machine and the load.
+
+| Factor | Helps when | Hurts when | Basis |
+|---|---|---|---|
+| Work per element | CPU-bound, independent | trivial (an addition) | splitting and combining are extra work [Doc: Java 25 API, Spliterator](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Spliterator.html) |
+| Source | `ArrayList`, arrays, `range`: split in halves without traversal | `LinkedList`, `iterate`, `lines()`: split by copying batches | [Lab: SplittingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/SplittingTest.java) |
+| Ordering | unordered result, `findAny`, `forEach` | ordered `limit`, `findFirst`, `sorted`, `forEachOrdered` | [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html) |
+| Blocking | never | HTTP, JDBC, file I/O in the lambda: holds common-pool workers | [Doc: Java 25 API, ForkJoinPool](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html) |
+| Shared state | none: results through `toList()`/`collect` | `forEach` into an `ArrayList`, a non-identity `reduce` seed | [Doc: Java 25 API, java.util.stream, Side-effects](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#SideEffects) |
+| Concurrent load | a batch job with idle cores | a request handler on a busy server: every request competes for the same cores and pool | [Doc: Java 25 API, ForkJoinPool](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html) |
+
+Two rows deserve a sentence each. Ordering costs work, not correctness: an ordered parallel `limit(5)` over `range(0, 100_000)` returned `[0, 1, 2, 3, 4]` on every repetition in the lab, and after `unordered()` it returned five distinct elements of the range, not necessarily those. The `limit` Javadoc explains the cost: on an ordered parallel pipeline it must return "not just any *n* elements, but the *first n* elements in the encounter order", and removing that constraint with `unordered()` "may result in significant speedups" [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). Blocking is the row that turns a local slowdown into a service-wide one, because the common pool also runs every `CompletableFuture` async call without an executor [Doc: Java 25 API, CompletableFuture](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html); [Q05.25](#q05-25) is that incident. [§8](#8-parallel-streams-and-the-common-forkjoinpool) has the mechanism behind each row.
+
+So to the teammate: keep streams sequential by default; make a nightly CPU-bound batch over an `ArrayList` parallel after a benchmark shows a gain; never make request-path or I/O-bound streams parallel; for blocking fan-out, use an explicit executor or `Gatherers.mapConcurrent` with a stated limit ([§7](#7-stream-gatherers)).
+
+**Follow-ups an interviewer will ask.**
+- *How would you measure it?* With a benchmark harness that warms up the JIT and runs both versions on production-sized data, and then under concurrent load, since a single-user speed-up shrinks as requests compete for the cores; benchmarking is [10](10-jvm-performance-and-troubleshooting.md)'s subject. A test that times one run proves nothing, which is why the lab asserts results, never durations.
+- *Would virtual threads make blocking parallel streams safe?* No. Parallel streams run on the calling thread and the common `ForkJoinPool`'s workers [Lab: CommonPoolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java), and in the lab none of those threads was virtual [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java), so a blocked lambda still holds a platform worker. For blocking fan-out with virtual threads, `Gatherers.mapConcurrent` runs each call on one [Lab: MapConcurrentTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s07/MapConcurrentTest.java); virtual threads are [14](14-concurrency-virtual-threads.md)'s subject.
+- *Why not give the stream its own pool with `customPool.submit(...)`?* In JDK 25 that does move the work to the custom pool, but no specification promises it, so it is undocumented behavior a JDK update could change [Lab: CommonPoolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java) ([§8](#8-parallel-streams-and-the-common-forkjoinpool)).
+
+**Trap to avoid.** Answering with a rule of thumb such as "parallel pays off above 10,000 elements". The break-even point depends on the work per element, the source, the cores and the load; say what you would measure instead.
+
+</details>
 
 <!-- /TASK: QB-M05-03 -->
 

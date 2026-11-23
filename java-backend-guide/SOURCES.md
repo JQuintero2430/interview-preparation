@@ -600,7 +600,9 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://openjdk.org/jeps/213
 - https://openjdk.org/jeps/358
 - https://www.oracle.com/java/technologies/javase/18-relnote-issues.html
-
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/StreamSupport.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#MutableReduction
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ForEachOps.java
 
 ## 17 spring-transactions
 
