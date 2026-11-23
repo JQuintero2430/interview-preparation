@@ -1129,12 +1129,139 @@ Questions that drill this section: [Q05.18](#q05-18), [Q05.23](#q05-23), [Q05.24
 ## 9. Checked exceptions and resources in lambdas and streams
 <!-- TASK: SEC-M05-09 -->
 ### The problem it solves
+
+A log-processing job reads every file in a directory and counts the lines that contain `ERROR`. The loop version compiles and works. Rewritten as a stream, `paths.stream().map(p -> Files.readString(p))` does not compile, because `readString` throws `IOException` and `Function.apply` declares nothing. The quick fixes that make the error go away each break something else: a `catch` that logs and returns an empty string hides missing files, a bare `RuntimeException` hides what kind of failure happened, and a helper that "sneaks" the exception past the compiler leaves callers unable to catch it. Then the job runs for a week and dies with "Too many open files", because the stream returned by `Files.lines` holds an open file until someone closes it. Checked exceptions and resources are where the stream API meets real I/O, and both need a deliberate choice, not the first thing that compiles.
+
 ### Mental model
+
+A functional interface's method is a contract that lists what the code behind it may throw, and `java.util.function.Function` lists no checked exceptions at all. A lambda is accepted only if its body keeps that contract, so a body that might throw `IOException` simply does not fit, the way a plug with an extra pin does not fit a socket. You can change the plug (catch the exception inside and turn it into an unchecked one or into a value), or bring your own socket (an interface whose method declares `throws IOException`), but the standard socket stays as it is.
+
+Resources follow a separate rule. Most streams are views over memory and need no cleanup, but a stream from `Files.lines`, `Files.list` or `Files.walk` is a tap on an open file or directory. Running a terminal operation drains it; only closing it turns the tap off.
+
 ### How it actually works
+
+**Why the lambda does not compile.** The JLS applies the same exception check to lambda bodies as to method bodies: "It is a compile-time error if a lambda body can throw some exception class E when E is a checked exception class and E is not a subclass of some class declared in the throws clause of the function type targeted by the lambda expression" [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3). `Function<T, R>.apply` has no throws clause, and neither does the method of any other interface in `java.util.function` [Doc: Java 25 API, java.util.function](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/package-summary.html) [Src: JDK 25, java.util.function](https://github.com/openjdk/jdk/tree/jdk-25-ga/src/java.base/share/classes/java/util/function). A method reference gets the equivalent rule: each checked exception in the referenced method's throws clause must be "mentioned in the throws clause of the function type", or it is a compile-time error [Doc: JLS 25 §15.13.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.2). In the lab, javac 25 rejects `p -> Files.readString(p)` as a `Function` with the diagnostic key `compiler.err.unreported.exception.need.to.catch.or.throw`, the same key it uses for an ordinary method, and rejects `map(Files::readString)` with a different key, `compiler.err.incompatible.thrown.types.in.mref`; the same lambda compiles once its target is a project interface whose method declares `throws IOException` [Lab: CheckedExceptionRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/CheckedExceptionRulesTest.java). Checked versus unchecked exceptions, and why Java has both, are [06](06-java-exceptions-strings-io.md)'s subject.
+
+**The workarounds, from best to worst.**
+
+1. *Catch inside and wrap, keeping the cause.* For I/O the JDK has a type made for this: `UncheckedIOException` "wraps an `IOException` with an unchecked exception", and its constructors take the `IOException` as the cause [Doc: Java 25 API, UncheckedIOException](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/UncheckedIOException.html). The exception now travels out of the terminal operation like any unchecked exception, and a caller that cares can catch `UncheckedIOException` and read `getCause()`. In the lab, a pipeline over one present and one missing file throws `UncheckedIOException` whose cause is the `NoSuchFileException` for the missing path, and the elements after the failing one are never read [Lab: WrappingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/WrappingTest.java).
+2. *A project functional interface plus an adapter.* Writing the `try`/`catch` in every lambda buries the logic, so projects define an interface such as `CheckedFunction<T, R>` whose method declares `throws Exception`, and one static adapter that turns it into a `Function` by doing the wrapping in one place. The lab's adapter rethrows unchecked exceptions unchanged, wraps `IOException` in `UncheckedIOException` and anything else in `IllegalStateException`, and re-sets the interrupt flag when the wrapped exception is an `InterruptedException`, because catching it clears that flag (thread interruption is [11](11-concurrency-threads-and-jmm.md)'s) [Lab: WrappingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/WrappingTest.java).
+3. *Return a result per element.* When one bad file must not stop the batch, the lambda catches the exception and returns it as data: a small sealed `Result` type with a `Success` record and a `Failure` record. The pipeline then finishes every element, and the code after it decides what failures mean (report them, retry them, fail the job if more than a threshold failed). In the lab, four paths with two missing files give two `Success` values with their line counts and two `Failure` values with the `NoSuchFileException` of each missing path, in input order [Lab: ResultPipelineTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/ResultPipelineTest.java).
+4. *"Sneaky throw".* A generic method `<E extends Throwable> RuntimeException sneakyThrow(Throwable t) throws E { throw (E) t; }` compiles at a call site with no `try`, because type inference resolves an inference variable that appears only in a throws clause to `RuntimeException` [Doc: JLS 25 §18.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-18.html#jls-18.4), and the cast to `E` is unchecked, so at run time the original `IOException` is thrown. The lab shows both halves: the lambda throws the very `IOException` object at run time, and a `catch (IOException e)` around the call is rejected with `compiler.err.except.never.thrown.in.try`, because the JLS forbids a catch clause for a checked exception the `try` block cannot throw, unless the caught type is `Exception` or a superclass of it [Lab: WrappingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/WrappingTest.java) [Lab: CheckedExceptionRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/CheckedExceptionRulesTest.java) [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3). So callers can catch it only as `Exception` or `Throwable`. The JDK uses the same trick internally (`ForkJoinTask` calls its own `uncheckedThrow` to relay a recorded exception) [Src: JDK 25, java.util.concurrent.ForkJoinTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ForkJoinTask.java), but in application code it removes the one thing checked exceptions are for, a caller that knows to handle the failure.
+
+The option that does not appear on the list is catching the exception, logging it and returning a default. It compiles and the job reports success while it silently skipped work: [Q05.27](#q05-27) is that incident.
+
+**Exceptions out of a parallel pipeline.** In a sequential pipeline, the exception thrown by the lambda is the one the caller catches, with the stream's frames in its stack trace. In a parallel pipeline the failing element may run on a common-pool worker ([§8](#8-parallel-streams-and-the-common-forkjoinpool)). The `ForkJoinTask` Javadoc says rethrown exceptions "behave in the same way as regular exceptions, but, when possible, contain stack traces ... of both the thread that initiated the computation as well as the thread actually encountering the exception; minimally only the latter" [Doc: Java 25 API, ForkJoinTask](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinTask.html). JDK 25 does this by creating, when the exception was thrown on another thread, a new exception of the same type with the original as its cause, using a public constructor that takes a `Throwable` (or a no-argument one plus `initCause`), and falling back to the original object if neither exists [Src: JDK 25, java.util.concurrent.ForkJoinTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ForkJoinTask.java). When several elements fail, nothing specifies which failure surfaces. The lab therefore asserts only the permitted outcomes: over ten failing elements in a parallel `IntStream`, the caller catches an `IllegalStateException` that is either one of the thrown exceptions or a copy whose cause is one of them [Lab: ParallelExceptionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/ParallelExceptionTest.java). Code that inspects exceptions from parallel streams should look at the cause chain, not compare identities.
+
+**Streams that hold resources.** `BaseStream` extends `AutoCloseable`, but the `Stream` Javadoc is explicit that most streams "do not need to be closed after use, as they are backed by collections, arrays, or generating functions", and that "generally, only streams whose source is an IO channel, such as those returned by `Files.lines(Path)`, will require closing"; such a stream "must be opened as a resource within a try-with-resources statement or similar control structure" [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). `Files.lines`, `Files.list` and `Files.walk` each carry an API note with that same requirement, because the returned stream holds an open file or directory [Doc: Java 25 API, Files](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html). A terminal operation does not close the stream; `close()` does, and it runs the stream's close handlers, which `onClose` registers: handlers run "in the order they were added", all of them run even if earlier ones throw, and the first exception is relayed with the rest added as suppressed exceptions [Doc: Java 25 API, BaseStream.onClose](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/BaseStream.html#onClose(java.lang.Runnable)). The lab confirms each part: a handler did not run after `count()` and ran when the try-with-resources block ended; of three handlers where the first two throw, all three ran and the first exception carried the second as suppressed [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java).
+
+**I/O errors after the stream is open.** `Files.lines` declares `IOException` only for opening the file. After that, "any subsequent I/O exception that occurs while reading from the file or when a malformed or unmappable byte sequence is read, is wrapped in an `UncheckedIOException` that will be thrown from the `Stream` method that caused the read to take place" [Doc: Java 25 API, Files.lines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)). In the lab, a file with an invalid UTF-8 byte sequence opened without error and then failed in `toList()` with an `UncheckedIOException` whose cause is a `MalformedInputException` [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java). So even a pipeline that wraps nothing itself can throw `UncheckedIOException` from its terminal operation.
+
+**`flatMap` closes for you, `map` does not.** `flatMap`'s contract includes cleanup: "Each mapped stream is closed after its contents have been placed into this stream" [Doc: Java 25 API, Stream.flatMap](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#flatMap(java.util.function.Function)). A `map` whose lambda opens a stream and runs a terminal operation on it gets no such help. In the lab, three inner streams with close handlers were all closed through `flatMap`, and none was closed when the same inner streams were counted inside `mapToLong`, although both pipelines gave the same total [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java). The outer stream is still yours to close: `flatMap` closes what it maps, not its own source.
+
 ### Code
+
+A scanner that counts matching lines across a directory's files, with every checked exception handled and every file closed. The approach: keep the `try`/`catch` in one adapter, let `flatMap` close the per-file streams, and close the directory stream with try-with-resources.
+
+1. `CheckedFunction` is the project interface: its `apply` declares `throws Exception`, so `Files::lines` fits it.
+2. `unchecked` turns it into a `Function`. Unchecked exceptions pass through; an `IOException` becomes an `UncheckedIOException` with the original as its cause; an `InterruptedException` re-sets the thread's interrupt flag before being wrapped.
+3. `countMatching` opens the directory listing in a try-with-resources block, so the directory is closed when the method returns or throws.
+4. `flatMap(unchecked(Files::lines))` opens one file at a time and closes each file's stream once its lines have passed through.
+5. When one bad file must not end the batch, `lineCounts` maps each path to a `Result` instead, so every file gets an outcome.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s09/CheckedFunction.java
+@FunctionalInterface
+public interface CheckedFunction<T, R> {
+
+    R apply(T t) throws Exception;
+
+    static <T, R> Function<T, R> unchecked(CheckedFunction<? super T, ? extends R> body) {
+        return t -> {
+            try {
+                return body.apply(t);
+            } catch (RuntimeException e) {
+                throw e;
+            } catch (Exception e) {
+                throw wrap(e);
+            }
+        };
+    }
+
+    private static RuntimeException wrap(Exception e) {
+        if (e instanceof IOException io) {
+            return new UncheckedIOException(io);
+        }
+        if (e instanceof InterruptedException) {
+            // Catching InterruptedException clears the thread's interrupt flag: set it again for the caller.
+            Thread.currentThread().interrupt();
+        }
+        return new IllegalStateException(e);
+    }
+}
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s09/LineScanner.java
+    // The outer try closes the directory stream; flatMap closes each file's Stream<String> after reading it.
+    public static long countMatching(Path dir, String needle) throws IOException {
+        try (Stream<Path> files = Files.list(dir)) {
+            return files.filter(Files::isRegularFile)
+                    .flatMap(unchecked(Files::lines))
+                    .filter(line -> line.contains(needle))
+                    .count();
+        }
+    }
+
+    // One Result per file: a missing or unreadable file becomes a Failure instead of ending the batch.
+    public static List<Result<Long>> lineCounts(List<Path> files) {
+        return files.stream().map(Result.attempt(LineScanner::countLines)).toList();
+    }
+
+    private static long countLines(Path file) throws IOException {
+        try (Stream<String> lines = Files.lines(file)) {
+            return lines.count();
+        }
+    }
+```
+
+`Result` is a sealed interface with two records, `Success<T>(T value)` and `Failure<T>(Exception error)`, and `Result.attempt` wraps a `CheckedFunction` so that it returns one or the other instead of throwing ([Result.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/s09/Result.java)); sealed types are [07](07-java-modern-language-features.md)'s and records [02](02-java-equality-immutability-records.md)'s. `StreamClosingTest` checks `countMatching` against two files and a subdirectory, and `ResultPipelineTest` checks that `lineCounts` keeps both failures of a four-file batch.
+
 ### Failure modes and operations
+
+The first failure is the one that hides: an exception caught and logged inside a lambda, with a default returned. Nothing propagates, the job's exit status and its metrics say success, and the only trace is a log line per failure that nobody reads. The evidence is a mismatch between what the job reports and what it should have produced (files in, records out). [Q05.27](#q05-27) works through it; the fix is to make the failure visible, either by letting it propagate (wrapped) or by returning a `Result` and counting the failures.
+
+The second is the opposite trade-off: wrapping and propagating makes the first bad element end the whole pipeline, and the work already done for earlier elements is lost unless it was written somewhere. In the lab, the element after a missing file is never read [Lab: WrappingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/WrappingTest.java). For a batch where partial progress matters, return a result per element and decide at the end; for a request where any failure means the whole answer is wrong, propagating is correct.
+
+The third is the descriptor leak in the callout below: a stream from `Files.lines`, `Files.list` or `Files.walk` that is never closed keeps its file or directory open, and the failure appears far from the cause, as an `IOException` on some unrelated `open` once the process reaches its limit. To observe it, count the process's open descriptors over time (`lsof -p <pid>` or `ls /proc/<pid>/fd | wc -l` on Linux) and see which files they point to; a count that only grows, with the same log files listed many times, points at an unclosed stream.
+
+The fourth is diagnosis across threads. An exception from a parallel pipeline may be a copy made on the calling thread whose cause is the exception from the worker, and which failing element surfaces is not specified [Doc: Java 25 API, ForkJoinTask](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinTask.html) [Lab: ParallelExceptionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/ParallelExceptionTest.java). Log the whole cause chain, and do not alert on the exception's identity or on its message containing a particular element.
+
+> [!IMPORTANT]
+> **Production scenario: a log-scanning job fails with "Too many open files" after a week.** *As the interviewer frames it:* "A scheduled job runs every five minutes and counts error lines in each file of the log directory: `files.stream().mapToLong(p -> countErrors(p)).sum()`, where `countErrors` returns `Files.lines(p).filter(l -> l.contains("ERROR")).count()` and wraps any `IOException` in an `UncheckedIOException`. It worked in every test. After about a week in production, the job and then the whole service start failing with `java.nio.file.FileSystemException: …: Too many open files`, including in code that has nothing to do with logs. A restart fixes it for another week."
+> **Reasoning.** "Too many open files" means the process has reached its limit on file descriptors, and the slow, steady growth that a restart resets points at a leak rather than at load. The ranked hypotheses: unclosed file streams, unclosed sockets or connections, or a limit set too low. The evidence that separates them is the list of the process's descriptors: `lsof -p <pid>` (or `/proc/<pid>/fd` on Linux) shows the same log files open hundreds of times, and the count rises by one per file per run. That matches the code: `Files.lines` returns a stream that holds an open file and "must be used within a try-with-resources statement or similar control structure", and `count()` drains it but does not close it [Doc: Java 25 API, Files.lines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)) [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java). Tests passed because a short test run never reaches the limit. The fix is a try-with-resources around `Files.lines` inside `countErrors`, or restructuring as `flatMap(unchecked(Files::lines))`, since `flatMap` closes each mapped stream after reading it [Doc: Java 25 API, Stream.flatMap](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#flatMap(java.util.function.Function)); the directory listing, if it comes from `Files.list`, needs its own try-with-resources too. Raising the descriptor limit only delays the next outage. Prevention: a review rule (and a static-analysis check where the team has one) that every `Files.lines`, `Files.list` and `Files.walk` result is opened in a try-with-resources or passed straight to `flatMap`, and an alert on the process's open-descriptor count, which turns a week-long leak into a warning on the first day.
+
 ### Best practices and anti-patterns
+
+- Wrap a checked exception with its cause (`new UncheckedIOException(e)` for I/O), never with `new RuntimeException(e.getMessage())`, because the cause carries the type and stack trace that the caller and the on-call engineer need.
+- Use `UncheckedIOException` for I/O failures rather than a generic `RuntimeException`, because callers can then catch the I/O case by type and read `getCause()`.
+- Put the wrapping in one adapter (`unchecked(...)`) instead of a `try`/`catch` in every lambda, because the pipeline then reads as its logic, and the wrapping policy can change in one place.
+- Return a `Result` per element when a batch must survive bad elements, and decide after the pipeline, because a propagating exception ends the batch at the first failure and logging inside the lambda hides it.
+- Never catch, log and return a default inside a lambda unless "missing" truly means the default, because the job then reports success for work it did not do ([Q05.27](#q05-27)).
+- Re-set the interrupt flag (`Thread.currentThread().interrupt()`) when wrapping an `InterruptedException`, because catching it clears the flag and the code that owns the thread can no longer see that it was asked to stop.
+- Avoid "sneaky throw" in application code, because it throws a checked exception that no signature declares, so the compiler rejects a `catch` for its real type and callers can catch it only as `Exception`.
+- Open every `Files.lines`, `Files.list` and `Files.walk` stream in a try-with-resources block, or hand it straight to `flatMap`, because the stream holds an open file or directory that a terminal operation does not release.
+- **Security:** keep secrets and whole input records out of the messages of exceptions you create when wrapping (a file's content, a request body, a token), because wrapped exceptions end up in logs and error responses; log identifiers and let the cause carry the technical detail ([44](44-observability-logging-metrics-slos.md)).
+
 ### Misconceptions and traps
+
+- *"Streams do not need closing."* Streams backed by collections, arrays or generators do not; streams whose source is an I/O channel, such as `Files.lines`, do, and the Javadoc requires a try-with-resources statement or similar for them [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). The myth exists because nearly every stream in everyday code is over a collection, and because a terminal operation feels like the end of the stream's life.
+- *"A terminal operation closes the stream."* It consumes the stream, which can then not be reused, but it does not run `close()`: in the lab, a close handler did not run after `count()` and ran only when the try-with-resources block ended [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java). The confusion comes from the `IllegalStateException` on reuse ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)), which looks like the stream was closed.
+- *"Wrapping in `RuntimeException` loses nothing."* It loses the type: a caller with `catch (IOException e)` (a retry, a fallback) no longer sees the failure, and wrapping with only `e.getMessage()` loses the stack trace too. Keep the cause, and use `UncheckedIOException` for I/O so the type is still recognizable [Doc: Java 25 API, UncheckedIOException](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/UncheckedIOException.html). The belief comes from thinking of exceptions as messages for a log, rather than as values that code upstream may branch on.
+- *"Checked exceptions cannot be thrown from a lambda."* They can, if the target interface declares them; only the standard `java.util.function` interfaces declare none [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3) [Lab: CheckedExceptionRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/CheckedExceptionRulesTest.java). The myth comes from the stream API, where every operation takes a `java.util.function` type, so the restriction is met so often that it looks like a language rule.
+- *"`Files.lines` only throws `IOException` when the file cannot be opened."* That is the only checked exception it declares; read errors and malformed input later surface as `UncheckedIOException` from whichever stream method caused the read [Doc: Java 25 API, Files.lines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)) [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java). The signature encourages the belief: a single `throws IOException` reads as the method's full list of failures.
+
+Questions that drill this section: [Q05.26](#q05-26), [Q05.27](#q05-27); exercise [Exercise 05.4](#ex05-4).
 <!-- /TASK: SEC-M05-09 -->
 
 ## 10. `Optional`: a return type for maybe-absent results

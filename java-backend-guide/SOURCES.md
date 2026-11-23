@@ -576,6 +576,16 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LinkedList.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Spliterators.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Streams.java
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/UncheckedIOException.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/BaseStream.html#onClose(java.lang.Runnable)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#flatMap(java.util.function.Function)
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-18.html#jls-18.4
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ForkJoinTask.java
+- https://github.com/openjdk/jdk/tree/jdk-25-ga/src/java.base/share/classes/java/util/function
 
 
 ## 17 spring-transactions
