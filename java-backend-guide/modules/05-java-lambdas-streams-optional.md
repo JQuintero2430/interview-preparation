@@ -1655,27 +1655,343 @@ The lambda only captures the value of `holder` (`null`) and dereferences it when
 <!-- TASK: QB-M05-02 -->
 <a id="q05-09"></a>
 ### Q05.09 · Concept · Anatomy of a stream pipeline: source, intermediate and terminal operations, and who pulls the elements
+<!-- ledger: honeywell-optum-md-01-09 -->
+
+Explain how `orders.stream().filter(Order::isPaid).map(Order::total).findFirst()` executes. What is a stream, what does each call do when it is made, and what makes elements move?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A stream is not a container: it is a single-use view that carries elements from a source through a pipeline of operations. `stream()` creates the source stage; `filter` and `map` are intermediate operations that only add stages and return a new stream; nothing is read yet. `findFirst()` is the terminal operation: it fuses the stages into one chain, pulls elements from the source one at a time, pushes each through `filter` and `map`, and stops as soon as it has a result. The terminal operation decides when traversal starts and when it ends.
+
+**Full explanation.** The package summary lists what makes a stream different from a collection: no storage, functional in nature, laziness-seeking, possibly unbounded, and consumable, "like an `Iterator`" [Doc: Java 25 API, java.util.stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html). Intermediate operations "are always *lazy*" and "traversal of the pipeline source does not begin until the terminal operation of the pipeline is executed" [Doc: Java 25 API, java.util.stream, Stream operations and pipelines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#StreamOps). In JDK 25 each intermediate call creates a linked `AbstractPipeline` stage; the terminal operation wraps the stages into a chain of `Sink`s and drives the source's `Spliterator` with `forEachRemaining`, or, when an operation can short-circuit, with a `tryAdvance` loop that checks `cancellationRequested()` before each element [Src: JDK 25, java.util.stream.AbstractPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractPipeline.java) [Src: JDK 25, java.util.stream.Sink](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Sink.java). So for the question's pipeline the source reads the first order, `filter` tests it, and only a paid order reaches `map`; the first total that arrives cancels the traversal. [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order) shows the stage objects, the sink chain and the recorded event order; [Q05.10](#q05-10) and [Q05.11](#q05-11) turn them into output puzzles.
+
+**Follow-ups an interviewer will ask.**
+- *What does the expression give you if you remove `findFirst()`?* A stream of totals that has done nothing. No `isPaid` or `total` call has run, and none will unless someone applies a terminal operation; in the lab a filter-and-map pipeline without one leaves its event list empty [Lab: LazinessTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s04/LazinessTest.java).
+- *Is there any terminal operation that does not traverse at once?* `iterator()` and `spliterator()`: they hand the traversal to the caller, who pulls elements one by one [Doc: Java 25 API, java.util.stream, Stream operations and pipelines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#StreamOps).
+- *How is this different from a reactive `Flux`?* A `java.util.stream` pipeline is pulled by its own terminal operation, on the calling thread, once. A reactive publisher pushes items to subscribers that regulate the flow with `request(n)` [Src: JDK 25, java.util.concurrent.Flow](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/Flow.java); that model is [19](19-spring-reactive-webflux.md)'s.
+
+**Trap to avoid.** Describing the pipeline as "filter all orders, then map all the paid ones, then take the first". That is how the same code would be written with loops, and it predicts the wrong number of calls: a stateless pipeline processes one element through every stage before reading the next.
+
+</details>
 
 <a id="q05-10"></a>
 ### Q05.10 · Output · Laziness and vertical execution: in what order do `filter`, `map` and `peek` record their calls, with and without a terminal operation?
 
+What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_10.java
+        Stream<String> pipeline = Stream.of("a", "bb", "ccc")
+                .peek(s -> System.out.println("peek " + s))
+                .filter(s -> {
+                    System.out.println("filter " + s);
+                    return s.length() > 1;
+                })
+                .map(s -> {
+                    System.out.println("map " + s);
+                    return s.toUpperCase();
+                });
+        System.out.println("built");
+        List<String> result = pipeline.toList();
+        System.out.println("result " + result);
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+built
+peek a
+filter a
+peek bb
+filter bb
+map bb
+peek ccc
+filter ccc
+map ccc
+result [BB, CCC]
+```
+
+Building the pipeline runs nothing, so `built` comes first. Once `toList()` starts the traversal, each element goes through `peek`, `filter` and, if it survives, `map`, before the next element is read; `a` is rejected by `filter` and never reaches `map`.
+
+**Full explanation.** Two rules produce this output. Laziness: intermediate operations only build stages, and traversal begins when the terminal operation executes [Doc: Java 25 API, java.util.stream, Stream operations and pipelines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#StreamOps), so the three lambdas have not run when `built` is printed. Vertical execution: in a sequential pipeline of stateless stages, JDK 25 pushes each element through the whole fused sink chain before asking the source for the next one [Src: JDK 25, java.util.stream.AbstractPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractPipeline.java), which gives the element-by-element interleaving. The lab runs the snippet and asserts the ten lines [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). Be precise about what is specified: laziness and the encounter order of the *result* are guaranteed, but "no guarantees are made as to the order in which the mapper function is applied to individual elements, or in what thread any behavioral parameter is executed" [Doc: Java 25 API, java.util.stream, Side-effects](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#SideEffects). The interleaving is what the sequential implementation does, which is why the printing lambdas make a good puzzle and a poor design. The mechanism is [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order).
+
+**Follow-ups an interviewer will ask.**
+- *What changes if the terminal operation is `findFirst()` instead of `toList()`?* The output stops after `map bb`: `findFirst` has its result and cancels the traversal, so `ccc` is never read. The lab records the same shape for `filter`, `map`, `findFirst` over `go, lambda, stream` [Lab: LazinessTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s04/LazinessTest.java).
+- *And if the stream were parallel?* The result is still `[BB, CCC]`, because `toList()` keeps encounter order, but the printed lines may interleave in any order and come from several threads, as the sentence quoted above allows [Doc: Java 25 API, java.util.stream, Side-effects](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#SideEffects); [§8](#8-parallel-streams-and-the-common-forkjoinpool) covers parallel execution.
+- *What if a `sorted()` sat between `peek` and `filter`?* All three `peek` lines would come first, because `sorted` must see every element before it can pass any on [Lab: StatefulOperationsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s04/StatefulOperationsTest.java) ([Q05.13](#q05-13)).
+
+**Trap to avoid.** Printing all the `peek` lines, then all the `filter` lines, then all the `map` lines. That is the stage-by-stage picture, and it is wrong for stateless stages.
+
+</details>
+
 <a id="q05-11"></a>
 ### Q05.11 · Output · Short-circuiting on an infinite `Stream.iterate`: how many elements do `findFirst`, `limit` and `takeWhile` evaluate?
+
+What does this print? `visited` records every element the source produces.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_11.java
+        List<Integer> visited = new ArrayList<>();
+        int first = Stream.iterate(1, n -> n + 1)
+                .peek(visited::add)
+                .filter(n -> n * n > 20)
+                .findFirst()
+                .orElseThrow();
+        System.out.println(first + " after " + visited.size());
+
+        visited.clear();
+        List<Integer> evens = Stream.iterate(1, n -> n + 1)
+                .peek(visited::add)
+                .filter(n -> n % 2 == 0)
+                .limit(3)
+                .toList();
+        System.out.println(evens + " after " + visited.size());
+
+        visited.clear();
+        List<Integer> small = Stream.iterate(1, n -> n * 2)
+                .peek(visited::add)
+                .takeWhile(n -> n < 50)
+                .toList();
+        System.out.println(small + " after " + visited.size());
+
+        visited.clear();
+        List<Integer> limitedFirst = Stream.iterate(1, n -> n + 1)
+                .peek(visited::add)
+                .limit(3)
+                .filter(n -> n % 2 == 0)
+                .toList();
+        System.out.println(limitedFirst + " after " + visited.size());
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+5 after 5
+[2, 4, 6] after 6
+[1, 2, 4, 8, 16, 32] after 7
+[2] after 3
+```
+
+Each short-circuiting operation stops the source as soon as it can: `findFirst` at the first match (5, since 4 × 4 = 16 is not above 20), `limit(3)` at the third element that reaches it (6), and `takeWhile` at the first element that fails its predicate (64, the seventh, read but not kept). In the last pipeline `limit(3)` stands before the filter, so only 1, 2 and 3 are ever read and one of them is even.
+
+**Full explanation.** Short-circuiting operations are the ones that, "when presented with infinite input", may produce a finite stream (`limit`, `takeWhile`) or terminate in finite time (`findFirst`, `anyMatch` and the other matchers) [Doc: Java 25 API, java.util.stream, Stream operations and pipelines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#StreamOps) [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). With one in the pipeline, JDK 25 checks `cancellationRequested()` before each `tryAdvance` on the source, so reading stops at the element that satisfied the operation [Src: JDK 25, java.util.stream.AbstractPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractPipeline.java). `takeWhile` must see the first failing element to know the prefix has ended, which is why it reads one more element than it returns. Position matters for `limit`: it bounds what reaches it, so `filter(…).limit(3)` reads until three matches arrive, while `limit(3).filter(…)` reads three elements and filters those. The lab runs the snippet and asserts the four lines [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java); [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order) has the mechanism and its own counts.
+
+**Follow-ups an interviewer will ask.**
+- *What happens if the filter in the first pipeline never matches, for example `n -> n < 0`?* The call never returns: `findFirst` keeps asking for one more element, and a filter does not end a stream. Short-circuiting is "a necessary, but not sufficient, condition" for termination [Doc: Java 25 API, java.util.stream, Stream operations and pipelines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#StreamOps); §4's paging job is this bug.
+- *How do you make an iterate stream finite without a short-circuiting operation?* Use the three-argument `Stream.iterate(seed, hasNext, next)` (`@since 9`), which ends when `hasNext` fails, like a `for` loop [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java).
+- *What if `sorted()` were added before `limit(3)` on the infinite source?* It would never return a result: `sorted` must read the whole input before passing anything on, and the input never ends, so the heap fills instead [Src: JDK 25, java.util.stream.SortedOps](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/SortedOps.java).
+
+**Trap to avoid.** Answering `6 after 6` for the `takeWhile` line or `3 after 3` for `filter(…).limit(3)`. Count what the source must produce for the operation to decide, not what ends up in the result.
+
+</details>
 
 <a id="q05-12"></a>
 ### Q05.12 · Bug hunt · "stream has already been operated upon or closed": reusing a stream, and what to hold instead
 
+A log summary method throws `IllegalStateException` on the line that looks for the first error. Find the bug.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_12.java
+    // Bug: count() consumes the stream, so findFirst() on the same object throws IllegalStateException.
+    public static String errorSummaryBuggy(List<String> lines) {
+        Stream<String> errors = lines.stream().filter(line -> line.startsWith("ERROR"));
+        long count = errors.count();
+        String first = errors.findFirst().orElse("none");
+        return count + " errors, first: " + first;
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A stream can be traversed once. `count()` is a terminal operation and consumes `errors`, so the second terminal operation, `findFirst()`, throws `IllegalStateException: stream has already been operated upon or closed`. The variable looks like a reusable "filtered view", but it is a one-shot pipeline. Hold something reusable instead: the collected result (a `List`), the source, or a `Supplier<Stream<String>>` that builds a fresh pipeline each time.
+
+**Full explanation.** The package summary says a stream is consumable: its elements "are only visited once during the life of a stream" [Doc: Java 25 API, java.util.stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html). In JDK 25 that rule is one flag: every stage has `linkedOrConsumed`, set when the next stage is linked to it or when a terminal operation runs on it, and checked first in both cases, which throws with the message above [Src: JDK 25, java.util.stream.AbstractPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractPipeline.java). In the lab, `errorSummaryBuggy` throws exactly that exception and message [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java), and §4 shows the same flag rejecting a second `map` attached to a stage that already has a `filter` [Lab: StreamRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s04/StreamRulesTest.java). The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_12.java
+    // Fix: collect once and ask the list both questions.
+    public static String errorSummary(List<String> lines) {
+        List<String> errors =
+                lines.stream().filter(line -> line.startsWith("ERROR")).toList();
+        String first = errors.isEmpty() ? "none" : errors.getFirst();
+        return errors.size() + " errors, first: " + first;
+    }
+```
+
+For three lines with two errors it returns `2 errors, first: ERROR disk full`, and `0 errors, first: none` when there are none [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *When is a `Supplier<Stream<T>>` better than collecting?* When the result would be large and each question needs only a pass, not storage, and the source is cheap to read twice. The lab's `errorSummaryFromSupplier` calls `get()` once per terminal operation and gives the same answer [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). For a source that is expensive or single-shot, such as `Files.lines` over a large file ([§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams)), collect once or compute both answers in one pass with `teeing` ([Q05.16](#q05-16)).
+- *Does `close()` make a stream reusable, or reset it?* No. `close()` also sets `linkedOrConsumed` and runs the close handlers, so any later operation throws the same exception [Src: JDK 25, java.util.stream.AbstractPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractPipeline.java).
+- *Why might the bug not show up in a test?* It always throws on the second terminal operation, but code that keeps a stream in a field or returns one from a getter fails only on the second caller, which a single-call unit test never is. Return a collection or a `Supplier` from such methods instead ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order) best practices).
+
+**Trap to avoid.** "Fixing" it by calling `lines.stream().filter(…)` twice inline and calling that equivalent. It works, but it duplicates the filter; say what you hold (the list or the `Supplier`) and why.
+
+</details>
+
 <a id="q05-13"></a>
 ### Q05.13 · Concept · Stateless vs stateful operations and encounter order: what `sorted`, `distinct` and `unordered` change in a pipeline
+
+Which intermediate operations are stateful, what do they cost, and how does encounter order interact with them? When would you call `unordered()`?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Stateless operations (`filter`, `map`, `peek`, `flatMap`) decide about each element on its own and pass it on at once. Stateful ones (`sorted`, `distinct`, `limit`, `skip`, `takeWhile`, `dropWhile`) carry state from earlier elements, a count or a set or a buffer: `sorted` is a barrier that reads its whole input before emitting anything, and `distinct` keeps a set of everything it has seen. Encounter order comes from the source (`List` and arrays are ordered, `HashSet` is not); most operations must respect it on an ordered stream, which is free sequentially and can be expensive in parallel. `unordered()` drops that constraint, which helps only parallel `distinct`, `groupingBy`-style collection and `limit`.
+
+**Full explanation.** The package summary defines the split: stateless operations "retain no state from previously seen element when processing a new element", stateful ones "may incorporate state from previously seen elements", and sorting cannot produce anything "until one has seen all elements of the stream" [Doc: Java 25 API, java.util.stream, Stream operations and pipelines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#StreamOps), and the `Stream` Javadoc labels each of the six operations above as stateful [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java). JDK 25's sequential `sorted` buffers into a list and sorts in `end()`, and is skipped entirely when the stream is already `SORTED` [Src: JDK 25, java.util.stream.SortedOps](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/SortedOps.java); sequential `distinct` passes each new element on at once but holds a `HashSet` of all of them [Src: JDK 25, java.util.stream.DistinctOps](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/DistinctOps.java). The lab measures the cost of position: on 1,000 descending elements, `sorted().limit(3)` reads all 1,000 while `limit(3).sorted()` reads 3 and returns a different answer [Lab: StatefulOperationsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s04/StatefulOperationsTest.java). For ordering, "for sequential streams, the presence or absence of an encounter order does not affect performance, only determinism", while in parallel, relaxing it can make `distinct`, `groupingBy` and `limit` more efficient [Doc: Java 25 API, java.util.stream, Ordering](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Ordering). In the lab a `List` stream reports `ORDERED`, a `HashSet` stream does not, and `unordered()` removes the flag [Lab: StreamRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s04/StreamRulesTest.java). [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order) has the full mechanism; the parallel cost is [§8](#8-parallel-streams-and-the-common-forkjoinpool).
+
+**Follow-ups an interviewer will ask.**
+- *Is `sorted(comparator)` stable?* On an ordered stream, yes: "for ordered streams, the sort is stable"; on an unordered one there is no guarantee [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java). In the lab, sorting `pear, fig, plum, kiwi` by length gives `fig, pear, plum, kiwi`: the three four-letter words keep their encounter order [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). `distinct` is stable in the same sense: the first occurrence of each duplicate is the one kept [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java).
+- *Does `forEach` respect encounter order?* Not by contract; it is one of the terminal operations that ignore it, and `forEachOrdered` is the one that keeps it [Doc: Java 25 API, java.util.stream, Ordering](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Ordering).
+- *Can a stateful lambda (not operation) cause bugs too?* Yes. A behavioral parameter whose result depends on state that changes during the pipeline makes results "nondeterministic or incorrect" [Doc: Java 25 API, java.util.stream, Stateless behaviors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#Statelessness); stateful *operations* are the library's job to get right, stateful *lambdas* are yours to avoid.
+
+**Trap to avoid.** Saying `distinct` or `sorted` makes a stream "slow". Sequentially, `distinct` costs memory, not delay; `sorted` costs memory and a full read; and both are cheap when a `filter` or `limit` that does not change the answer runs before them.
+
+</details>
 
 <a id="q05-14"></a>
 ### Q05.14 · Output · `Collectors.toMap` with a duplicate key, with a `null` value, and with a merge function: what is thrown or returned?
 
+What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_14.java
+        List<String> words = List.of("apple", "avocado", "banana");
+        try {
+            words.stream().collect(Collectors.toMap(w -> w.charAt(0), w -> w));
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+        }
+        Map<Character, Integer> counts =
+                words.stream().collect(Collectors.toMap(w -> w.charAt(0), w -> 1, Integer::sum, TreeMap::new));
+        System.out.println(counts);
+        Map<Character, String> lastWins = words.stream()
+                .collect(Collectors.toMap(w -> w.charAt(0), w -> w, (first, second) -> second, TreeMap::new));
+        System.out.println(lastWins);
+        try {
+            Stream.of("kiwi").collect(Collectors.toMap(w -> w, w -> (String) null));
+        } catch (NullPointerException e) {
+            System.out.println("toMap: " + e.getClass().getSimpleName());
+        }
+        try {
+            Stream.of("kiwi").collect(Collectors.toMap(w -> w, w -> (String) null, (first, second) -> first));
+        } catch (NullPointerException e) {
+            System.out.println("toMap with merge: " + e.getClass().getSimpleName());
+        }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+Duplicate key a (attempted merging values apple and avocado)
+{a=2, b=1}
+{a=avocado, b=banana}
+toMap: NullPointerException
+toMap with merge: NullPointerException
+```
+
+The two-argument `toMap` throws `IllegalStateException` on the second key `a`, and the message names the key and both values. With a merge function the duplicate is resolved by it: `Integer::sum` counts, `(first, second) -> second` keeps the last. A `null` value throws `NullPointerException` from both overloads, even though a `TreeMap` or `HashMap` could hold it.
+
+**Full explanation.** The two-argument form is documented to throw `IllegalStateException` "if the mapped keys contain duplicates (according to `Object#equals(Object)`)" [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html). In JDK 25 its accumulator calls `Objects.requireNonNull` on the value, then `putIfAbsent`, and on a clash throws `duplicateKeyException`, formatted as `"Duplicate key %s (attempted merging values %s and %s)"`: the key, the value already in the map, the new value. The merge-function overloads accumulate with `map.merge(key, value, mergeFunction)` instead [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java), and `HashMap.merge` rejects a `null` value [Src: JDK 25, java.util.HashMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java), which gives the last line. The `TreeMap::new` supplier makes the printed order of lines 2 and 3 deterministic; the two-argument form promises nothing about the map type [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html). The lab runs the snippet and asserts the five lines [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). The section with the same rules on an employee directory is [§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own).
+
+**Follow-ups an interviewer will ask.**
+- *Is a `null` key rejected too?* No. The checks are on values; with the default `HashMap`, one `null` key is accepted [Lab: ToMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/ToMapTest.java). (`groupingBy` is the opposite: it rejects a `null` key with "element cannot be mapped to a null key" [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java).)
+- *The duplicate only appears in production data. How do you see it coming, and what do you log?* The stack trace names `Collectors.duplicateKeyException` under `collect`, and the message holds both values, which may be personal data. Decide the rule in a merge function, or fail with a domain exception that names only the key ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own) failure modes and its **Security:** item).
+- *How do you keep the first occurrence and the input order?* `toMap(key, value, (first, second) -> first, LinkedHashMap::new)`; the lab's `firstTeamByName` does exactly this [Lab: ToMapTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/ToMapTest.java).
+
+**Trap to avoid.** Answering `{a=avocado, b=banana}` for the first call, as `Map.put` would. Without a merge function, `toMap` refuses to choose.
+
+</details>
+
 <a id="q05-15"></a>
 ### Q05.15 · Concept · `groupingBy` and `partitioningBy` with downstream collectors: counting, mapping, a sorted map factory, and the two keys of a partition
 
+From a list of employees, produce: the headcount per team in team-name order; the names per team; and, per team, how many earn at least 100, with teams that have none still listed. Which collectors do you use, and what do `groupingBy` and `partitioningBy` promise about their maps?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `groupingBy(Employee::team, TreeMap::new, counting())` for the ordered headcount; `groupingBy(Employee::team, mapping(Employee::name, toList()))` for the names; `groupingBy(Employee::team, TreeMap::new, filtering(e -> e.salary() >= 100, counting()))` for the high earners, because a filtering *downstream* keeps every team with a count of 0, whereas a `filter` before `groupingBy` drops the teams with no match. `groupingBy` promises nothing about the map's type or order unless you pass a factory, and creates a key only for elements it sees; `partitioningBy` always has both `true` and `false`.
+
+**Full explanation.** `groupingBy(classifier)` is `groupingBy(classifier, toList())`, with "no guarantees on the type, mutability, serializability, or thread-safety" of the result; the downstream collector decides each key's value, and the three-argument form takes the map factory [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html). [§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own) runs the `TreeMap` headcount, `mapping`, `maxBy` and `collectingAndThen` cases [Lab: GroupingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/GroupingTest.java). The third requirement is the one interviewers use to separate `filter` from `filtering`: the `filtering` Javadoc's own note says that with a filtering collector a department with no match maps to an empty result, while with a stream `filter()` "there would be no mapping for that department at all" [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). In the lab, with `ann` (search, 120), `bo` (search, 80) and `cy` (ops, 90), the filtering downstream gives `{ops=0, search=1}` and the filter-first version `{search=1}` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). `partitioningBy` is the other way to keep both sides: "the returned `Map` always contains mappings for both `false` and `true` keys" [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html), which the lab shows even for an empty stream [Lab: PartitionAndTeeingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/PartitionAndTeeingTest.java).
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_15.java
+    // Every team appears, with 0 where nobody earns at least the threshold.
+    public static Map<String, Long> highEarnersPerTeam(List<Employee> staff, int threshold) {
+        return staff.stream()
+                .collect(Collectors.groupingBy(
+                        Employee::team,
+                        TreeMap::new,
+                        Collectors.filtering(e -> e.salary() >= threshold, Collectors.counting())));
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *How do you group on two levels?* Nest the collectors: the downstream of `groupingBy` can itself be a `groupingBy` or a `partitioningBy`. In the lab, `groupingBy(team, TreeMap::new, partitioningBy(salary >= 100, mapping(name, toList())))` gives `ops` the bands `{false=[cy], true=[]}`, both keys present [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+- *Why does `maxBy` downstream give an `Optional`, and is `orElseThrow()` on it safe?* A maximum over nothing does not exist, so the collector's type has to allow it; inside `groupingBy` it is safe, because a key exists only when at least one element mapped to it [Lab: GroupingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/GroupingTest.java).
+- *What does `counting()` return, and how do you get an `int`?* A `Long` per key; wrap it as `collectingAndThen(counting(), Long::intValue)` if the API needs `Integer` [Doc: Java 25 API, Collectors](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html).
+
+**Trap to avoid.** Relying on the order of a `groupingBy` result without a factory. It is a `HashMap` on JDK 25, and the Javadoc does not even promise that; pass `TreeMap::new` or `LinkedHashMap::new` when order matters.
+
+</details>
+
 <a id="q05-16"></a>
 ### Q05.16 · Concept · Writing a `Collector`: supplier, accumulator, combiner, finisher, characteristics, and where `teeing` fits
+
+Explain the four functions of a `Collector` and its characteristics. What goes wrong if a custom collector declares a characteristic it does not have? When do you reach for `teeing` instead of writing one?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The supplier creates an empty container, the accumulator adds one element to it, the combiner merges two containers (only a parallel `collect` calls it), and the finisher turns the final container into the result. Characteristics are promises the JDK acts on: `IDENTITY_FINISH` makes `collect` skip the finisher and cast the container, `CONCURRENT` with `UNORDERED` lets a parallel `collect` share one container across threads. Declare one falsely and the result is wrong without an error. `teeing` composes two existing collectors over one pass and merges their results, which covers most "I need two aggregates" cases without a custom collector.
+
+**Full explanation.** A collector is "a mutable reduction operation" defined by `supplier()`, `accumulator()`, `combiner()` and `finisher()`, and to give equal sequential and parallel results it must meet an identity and an associativity constraint [Doc: Java 25 API, Collector](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collector.html). [§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own) explains both constraints and shows, by counting calls, that a sequential `collect` never calls the combiner [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java). The characteristics are not documentation: JDK 25's `ReferencePipeline.collect` ends with `IDENTITY_FINISH ? (R) container : finisher().apply(container)` [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java). In the lab, a collector meant to return an unmodifiable list (`ArrayList` container, `Collections::unmodifiableList` finisher) does so when honest, and returns the raw, modifiable `ArrayList` when it falsely declares `IDENTITY_FINISH`; the honest one also gives the same 2,000-element list sequentially and in parallel [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). `teeing(downstream1, downstream2, merger)` sends "every element" to both downstreams and merges their results; its own supplier, accumulator, combiner and finisher call both downstreams' functions, so it inherits their parallel correctness [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java).
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_16.java
+    // Honest: the finisher wraps the list, so the collector does not claim IDENTITY_FINISH.
+    public static <T> Collector<T, ?, List<T>> toReadOnlyList() {
+        return Collector.of(ArrayList<T>::new, List::add, Q05_16::appendRight, Collections::unmodifiableList);
+    }
+
+    // Wrong: claims IDENTITY_FINISH although the finisher does work, so collect() never calls it.
+    public static <T> Collector<T, ?, List<T>> toReadOnlyListFalselyIdentity() {
+        return Collector.of(
+                ArrayList<T>::new,
+                List::add,
+                Q05_16::appendRight,
+                Collections::unmodifiableList,
+                Collector.Characteristics.IDENTITY_FINISH);
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *When is a custom collector worth writing?* When no composition of the built-ins says what you mean, and the container and its merge are reusable: [§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)'s `FirstSeen.toSet()` (first-seen order, correct in parallel) is one, and [Exercise 05.2](#ex05-2) builds another. For one aggregate, `reduce` or a downstream collector is usually enough ([§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect) compares `reduce` and `collect`).
+- *What does `CONCURRENT` change?* On a parallel stream that is unordered, or with a collector that is also `UNORDERED`, `collect` creates one container and has all threads accumulate into it with `forEach`, so the container must be thread-safe [Src: JDK 25, java.util.stream.ReferencePipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReferencePipeline.java); `groupingByConcurrent` is the built-in example ([§8](#8-parallel-streams-and-the-common-forkjoinpool)).
+- *How do you test a custom collector?* Run it on a parallel stream large enough to be split and compare with the sequential result, and call the combiner directly on two partial containers, because sequential tests never reach it [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java).
+
+**Trap to avoid.** Treating characteristics as optimization hints that can only make things faster. `IDENTITY_FINISH` and `CONCURRENT` change what `collect` does, so a false one changes the result.
+
+</details>
 
 <!-- /TASK: QB-M05-02 -->
 

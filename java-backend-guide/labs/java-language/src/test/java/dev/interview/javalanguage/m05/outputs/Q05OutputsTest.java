@@ -1,20 +1,31 @@
 package dev.interview.javalanguage.m05.outputs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 
 import dev.interview.javalanguage.m01.support.InMemoryCompiler;
 import dev.interview.javalanguage.m01.support.OutputCapture;
+import dev.interview.javalanguage.m05.s05.Employee;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 // The printed lines and diagnostic keys are the claims the guide makes, so the expected values stay literal.
 class Q05OutputsTest {
+
+    private static final List<Employee> STAFF = List.of(
+            new Employee("ann", "search", 120), new Employee("bo", "search", 80), new Employee("cy", "ops", 90));
 
     private static final String SOURCE_NAME = "Probe";
     private static final String INCOMPATIBLE_TYPES = "compiler.err.prob.found.req";
@@ -158,6 +169,119 @@ class Q05OutputsTest {
 
         assertThat(unbound.apply(new Q05_08.Holder("ready"))).isEqualTo("ready");
         assertThatNullPointerException().isThrownBy(() -> unbound.apply(null));
+    }
+
+    @Test
+    @DisplayName(
+            "Q05.10 · nothing runs before toList; then each element goes through peek, filter and map before the next")
+    void q05_10_printsVerticalExecution() {
+        List<String> lines = OutputCapture.linesOf(() -> Q05_10.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly(
+                        "built",
+                        "peek a",
+                        "filter a",
+                        "peek bb",
+                        "filter bb",
+                        "map bb",
+                        "peek ccc",
+                        "filter ccc",
+                        "map ccc",
+                        "result [BB, CCC]");
+    }
+
+    @Test
+    @DisplayName("Q05.11 · findFirst reads 5, filter-then-limit reads 6, takeWhile reads 7, limit-then-filter reads 3")
+    void q05_11_printsHowMuchOfTheSourceIsRead() {
+        List<String> lines = OutputCapture.linesOf(() -> Q05_11.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly("5 after 5", "[2, 4, 6] after 6", "[1, 2, 4, 8, 16, 32] after 7", "[2] after 3");
+    }
+
+    @Test
+    @DisplayName("Q05.12 · the second terminal operation on one stream throws IllegalStateException")
+    void q05_12_reuseThrows() {
+        List<String> lines = List.of("INFO start", "ERROR disk full", "ERROR timeout");
+
+        assertThatIllegalStateException()
+                .isThrownBy(() -> Q05_12.errorSummaryBuggy(lines))
+                .withMessage("stream has already been operated upon or closed");
+    }
+
+    @Test
+    @DisplayName("Q05.12 · collecting once, or a Supplier of fresh streams, answers both questions")
+    void q05_12_fixesAnswerBothQuestions() {
+        List<String> lines = List.of("INFO start", "ERROR disk full", "ERROR timeout");
+
+        assertThat(Q05_12.errorSummary(lines)).isEqualTo("2 errors, first: ERROR disk full");
+        assertThat(Q05_12.errorSummaryFromSupplier(() -> lines.stream().filter(line -> line.startsWith("ERROR"))))
+                .isEqualTo("2 errors, first: ERROR disk full");
+        assertThat(Q05_12.errorSummary(List.of("INFO start"))).isEqualTo("0 errors, first: none");
+    }
+
+    @Test
+    @DisplayName("Q05.13 · sorted with a comparator is stable on an ordered stream: equal keys keep encounter order")
+    void q05_13_sortedIsStableOnOrderedStreams() {
+        List<String> sorted = Stream.of("pear", "fig", "plum", "kiwi")
+                .sorted(Comparator.comparingInt(String::length))
+                .toList();
+
+        assertThat(sorted).containsExactly("fig", "pear", "plum", "kiwi");
+    }
+
+    @Test
+    @DisplayName(
+            "Q05.14 · duplicate key message, merge by sum, keep last, and NullPointerException from both toMap paths")
+    void q05_14_printsToMapOutcomes() {
+        List<String> lines = OutputCapture.linesOf(() -> Q05_14.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly(
+                        "Duplicate key a (attempted merging values apple and avocado)",
+                        "{a=2, b=1}",
+                        "{a=avocado, b=banana}",
+                        "toMap: NullPointerException",
+                        "toMap with merge: NullPointerException");
+    }
+
+    @Test
+    @DisplayName("Q05.15 · a filtering downstream keeps a team with no match as 0; filtering first drops the team")
+    void q05_15_filteringVersusFilter() {
+        assertThat(Q05_15.highEarnersPerTeam(STAFF, 100)).containsExactly(entry("ops", 0L), entry("search", 1L));
+        assertThat(Q05_15.highEarnersPerTeamFilteredFirst(STAFF, 100)).containsExactly(entry("search", 1L));
+    }
+
+    @Test
+    @DisplayName("Q05.15 · groupingBy with a partitioningBy downstream gives every team both bands")
+    void q05_15_nestedGroupingHasBothBands() {
+        Map<String, Map<Boolean, List<String>>> bands = Q05_15.namesByTeamAndBand(STAFF, 100);
+
+        assertThat(bands.get("ops")).containsEntry(true, List.of()).containsEntry(false, List.of("cy"));
+        assertThat(bands.get("search")).containsEntry(true, List.of("ann")).containsEntry(false, List.of("bo"));
+    }
+
+    @Test
+    @DisplayName(
+            "Q05.16 · the honest collector's result rejects add; with a false IDENTITY_FINISH the finisher never runs")
+    void q05_16_falseIdentityFinishSkipsTheFinisher() {
+        List<String> honest = Stream.of("a", "b").collect(Q05_16.toReadOnlyList());
+        List<String> skipped = Stream.of("a", "b").collect(Q05_16.toReadOnlyListFalselyIdentity());
+
+        assertThatThrownBy(() -> honest.add("c")).isInstanceOf(UnsupportedOperationException.class);
+        assertThat(skipped).isInstanceOf(ArrayList.class);
+        skipped.add("c");
+        assertThat(skipped).containsExactly("a", "b", "c");
+    }
+
+    @Test
+    @DisplayName("Q05.16 · the honest collector gives the same result sequentially and in parallel")
+    void q05_16_honestCollectorIsParallelSafe() {
+        List<Integer> source = IntStream.range(0, 2_000).boxed().toList();
+
+        assertThat(source.parallelStream().collect(Q05_16.toReadOnlyList())).isEqualTo(source);
+        assertThat(source.stream().collect(Q05_16.toReadOnlyList())).isEqualTo(source);
     }
 
     private static List<String> enclosingInstanceFields(Class<?> type) {

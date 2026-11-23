@@ -1507,11 +1507,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261123-0602-claudecode-cloud (claude-opus-5-5)
 
 ### QB-M05-02 · M · Q05.09–Q05.16
-- Status: `todo` · Deps: SEC-M05-04, -05 · needs: none
+- Status: `done` · Deps: SEC-M05-04, -05 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md` (region `QB-M05-02`), lab `m05/outputs/**` (main `Q05_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M05](modules/M05.md) §5 rows Q05.09–Q05.16 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M05 §5 lists rows (and fixes the source errors M05 §3 lists), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID (nondeterministic outputs as a permitted set); Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by: —
+- Done by: S20261123-0602-claudecode-cloud (claude-opus-5-5)
 
 ### QB-M05-03 · M · Q05.17–Q05.24
 - Status: `todo` · Deps: SEC-M05-06, -07, -08 · needs: none
