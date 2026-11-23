@@ -3,10 +3,10 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 05 `java-lambdas-streams-optional` (core, lab `java-language`), planned by PLAN-M05 (S20261122-0601-claudecode-cloud): [M05](modules/M05.md), skeleton `modules/05-java-lambdas-streams-optional.md` (42 TASK markers: 10 SEC, 4 QB, 4 EX, CLOSE), smoke test `m05/smoke/M05LabSmokeTest` (3 tests pass); SEC-M05-01 to SEC-M05-10 written (all ten sections), QB-M05-01 to QB-M05-04 written (Q05.01–Q05.30, all 30) (R3 route settled: Class-File API over `InMemoryCompiler` bytes, test helper `m05/support/ClassFileView`). Modules 17, 01, 02, 03 and 04 closed, reviewed, fixed.
+- **Current module:** 05 `java-lambdas-streams-optional` (core, lab `java-language`), planned by PLAN-M05 (S20261122-0601-claudecode-cloud): [M05](modules/M05.md), skeleton `modules/05-java-lambdas-streams-optional.md` (42 TASK markers: 10 SEC, 4 QB, 4 EX, CLOSE), smoke test `m05/smoke/M05LabSmokeTest` (3 tests pass); SEC-M05-01 to SEC-M05-10 written (all ten sections), QB-M05-01 to QB-M05-04 written (Q05.01–Q05.30, all 30), EX-M05-01 written (Ex05.1) (R3 route settled: Class-File API over `InMemoryCompiler` bytes, test helper `m05/support/ClassFileView`). Modules 17, 01, 02, 03 and 04 closed, reviewed, fixed.
 - **In progress:** none
-- **Last finished task:** QB-M05-04 (S20261123-1201-claudecode-cloud, claude-opus-5-5): Q05.25–Q05.30 written (question bank complete, 30/30), `Q05OutputsTest` now 39 test methods (lab main `Q05_27`, `Q05_29`, `Q05_30`); before it QB-M05-03 (same session).
-- **Next task:** EX-M05-01 (M, Ex05.1 order report with collectors), then EX-M05-02..04, CLOSE-M05, REVIEW-M05.
+- **Last finished task:** EX-M05-01 (S20261123-1801-claudecode-cloud, claude-opus-5-5): Ex05.1 order report with collectors (`m05/ex1/OrderReport` + 3 records, `OrderReportTest` 12 tests); before it QB-M05-04 (S20261123-1201-claudecode-cloud).
+- **Next task:** EX-M05-02 (M, Ex05.2 a custom `Collector` correct in parallel), then EX-M05-03..04, CLOSE-M05, REVIEW-M05.
 - **Counts:** modules done 0/55 (17, 01, 02, 03 and 04 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 6/55 (17, 01, 02, 03, 04, 05); CLOSE 5/55 (17, 01, 02, 03, 04); REVIEW 5/55 (17, 01, 02, 03, 04).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**

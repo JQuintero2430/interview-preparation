@@ -2511,6 +2511,116 @@ In the lab, `seats("newco")` throws `PlanNotFoundException: no billing plan for 
 <!-- TASK: EX-M05-01 -->
 <a id="ex05-1"></a>
 ### Exercise 05.1 · An order report with collectors
+
+**Problem.** A shop's end-of-day job builds a sales report from the day's order lines, each an `Order(customer, category, amountCents)`. Today it is a 200-line method of nested loops and `HashMap`s filled by hand, and every new figure adds another loop. Rewrite it as `OrderReport`, one small query per figure, each answered by a collector ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)): the total per customer, the order count per category, the top customers, a large/small split, and the smallest and largest order.
+
+**Constraints.** JDK only. Every public method is one stream pipeline that ends in one `collect` ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)): no loops, no `forEach`, no fields other than `static final` constants, nothing mutated outside the container a collector fills. Amounts are whole cents in a `long`, summed with a primitive collector ([§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect)). Inputs and their fields are non-`null`; results need not be unmodifiable.
+
+**Acceptance criteria.**
+- [ ] (1) `totalByCustomer(orders)` returns the total per customer as a `TreeMap`, in customer-name order.
+- [ ] (2) `countByCategory(orders, knownCategories)` returns the order count per category, including every known category that has no orders (count 0), and any category not in the known list that has orders.
+- [ ] (3) `topCustomers(orders, 3)` returns the 3 customers with the largest totals, largest first, with equal totals broken by name in ascending order; with fewer customers, all of them.
+- [ ] (4) `partitionBySize(orders, threshold)` splits the orders into large (amount ≥ threshold, key `true`) and small (key `false`), and always has both keys.
+- [ ] (5) `range(orders)` returns the smallest and the largest order as one record, computed with `teeing` in a single pass over the input.
+- [ ] (6) Every method is one pipeline with no mutable state outside the collector, and an empty input gives empty results (an empty map or list, both partition keys with empty lists, an empty `Optional`), not exceptions.
+
+<details><summary>Hint 1</summary>
+
+`groupingBy` creates a key only when an element maps to it ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)), so a category with no orders never appears. What if each known category were itself an element of the stream, worth 0, and each order were worth 1? `Stream.concat` joins two streams, and `toMap` with a merge function adds the values that land on one key.
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+`collectingAndThen(downstream, finisher)` hands the result of one collector to a function, which can stream it again: totals first, then the ranking. For the ranking, `reversed()` reverses the whole comparator built so far, so its place in the chain decides whether the name tie-break is reversed too ([02 §4](02-java-equality-immutability-records.md#4-ordering-comparable-and-comparator)). For criterion (5), `minBy` and `maxBy` each return an `Optional`, and `teeing` feeds every element to both.
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Pick, for each figure, the collector whose contract already says what the figure needs (an order, a zero, two keys, two results from one pass), so the method is that collector and nothing else.
+1. **Totals.** `groupingBy(Order::customer, TreeMap::new, summingLong(Order::amountCents))`: the map factory fixes the type and the order, which plain `groupingBy` does not promise ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)), and `summingLong` sums into a primitive `long` and gives 0 for no elements [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java).
+2. **Counts with zeros.** Stream the known categories as `Map.entry(category, 0L)` and the orders as `Map.entry(order.category(), 1L)`, join them with `Stream.concat`, and collect with `toMap(getKey, getValue, Long::sum, TreeMap::new)`. A known category with no orders keeps its 0; every order adds 1; a category outside the known list starts at its first order. The merge function is the rule for duplicates, here addition ([Q05.14](#q05-14)).
+3. **Ranking.** `collectingAndThen(groupingBy(customer, summingLong(amount)), totals -> …)`: the finisher streams the totals as `CustomerTotal` records, sorts them with `comparingLong(totalCents).reversed().thenComparing(customer)`, keeps the first `limit` and returns a list. `reversed()` comes before `thenComparing`, so only the totals are reversed; `comparingLong(totalCents).thenComparing(customer).reversed()` would rank `dee` before `bob` on equal totals, because `reversed()` imposes the reverse ordering of the whole comparator it is called on [Src: JDK 25, java.util.Comparator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Comparator.java).
+4. **Large and small.** `partitioningBy(order -> order.amountCents() >= largeFromCents)`, because a partition always has both keys and gives an empty list for an empty side ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)); a `groupingBy` on the same predicate would lose a side that has no orders.
+5. **Range.** `teeing(minBy(BY_AMOUNT), maxBy(BY_AMOUNT), merger)`. Both downstream results are `Optional`s, empty together for an empty input, so the merger is `smallest.flatMap(low -> largest.map(high -> new OrderRange(low, high)))`, which needs no `get()` and returns an empty `Optional` for no orders ([§10](#10-optional-a-return-type-for-maybe-absent-results)). `minBy` and `maxBy` are `reducing(BinaryOperator.minBy(comparator))` and `reducing(BinaryOperator.maxBy(comparator))`, and the `BinaryOperator` Javadoc says only that they return "the lesser" and "the greater" of two elements; JDK 25 happens to keep the earlier element on a tie in both [Src: JDK 25, java.util.function.BinaryOperator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/BinaryOperator.java) [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). Rather than depend on that, `BY_AMOUNT` breaks ties by customer.
+
+The three records are one line each: [`Order`](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex1/Order.java), [`CustomerTotal`](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex1/CustomerTotal.java) and [`OrderRange`](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex1/OrderRange.java).
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex1/OrderReport.java
+    // Largest total first; equal totals in ascending customer name.
+    private static final Comparator<CustomerTotal> RANKING =
+            Comparator.comparingLong(CustomerTotal::totalCents).reversed().thenComparing(CustomerTotal::customer);
+
+    // By amount, then by customer, so that two orders of the same amount still have a defined order.
+    private static final Comparator<Order> BY_AMOUNT =
+            Comparator.comparingLong(Order::amountCents).thenComparing(Order::customer);
+
+    private OrderReport() {}
+
+    // (1) Customers in name order, each with the sum of their orders.
+    public static SortedMap<String, Long> totalByCustomer(List<Order> orders) {
+        return orders.stream()
+                .collect(Collectors.groupingBy(
+                        Order::customer, TreeMap::new, Collectors.summingLong(Order::amountCents)));
+    }
+
+    // (2) Every known category starts at 0; each order adds 1 to its category, known or not.
+    public static SortedMap<String, Long> countByCategory(List<Order> orders, Collection<String> knownCategories) {
+        return Stream.concat(
+                        knownCategories.stream().map(category -> Map.entry(category, 0L)),
+                        orders.stream().map(order -> Map.entry(order.category(), 1L)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Long::sum, TreeMap::new));
+    }
+
+    // (3) Totals per customer, then the first `limit` rows of the ranking.
+    public static List<CustomerTotal> topCustomers(List<Order> orders, int limit) {
+        return orders.stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.groupingBy(Order::customer, Collectors.summingLong(Order::amountCents)),
+                        totals -> totals.entrySet().stream()
+                                .map(total -> new CustomerTotal(total.getKey(), total.getValue()))
+                                .sorted(RANKING)
+                                .limit(limit)
+                                .toList()));
+    }
+
+    // (4) true: at or above the threshold (large); false: below it (small). Both keys are always present.
+    public static Map<Boolean, List<Order>> partitionBySize(List<Order> orders, long largeFromCents) {
+        return orders.stream().collect(Collectors.partitioningBy(order -> order.amountCents() >= largeFromCents));
+    }
+
+    // (5) Minimum and maximum in one pass; empty when there are no orders.
+    public static Optional<OrderRange> range(List<Order> orders) {
+        return orders.stream()
+                .collect(Collectors.teeing(
+                        Collectors.minBy(BY_AMOUNT),
+                        Collectors.maxBy(BY_AMOUNT),
+                        (smallest, largest) ->
+                                smallest.flatMap(low -> largest.map(high -> new OrderRange(low, high)))));
+    }
+```
+
+**How each criterion is met** [Lab: OrderReportTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex1/OrderReportTest.java). The test data are six orders whose totals are ann 1,500, bob 2,500, cid 300, dee 2,500 and eve 1,500 cents.
+- (1) `Ex05.1 · (1) the total per customer is a TreeMap in customer-name order`: the result is a `TreeMap` with exactly `ann=1500, bob=2500, cid=300, dee=2500, eve=1500`, in that order.
+- (2) `Ex05.1 · (2) the count per category includes known categories with no orders, as 0`: with known categories `books`, `games` and `music`, the result is `books=2, games=3, music=0, toys=1`: `music` has no orders and `toys` is not in the known list.
+- (3) `Ex05.1 · (3) the top 3 customers by total, with ties broken by name in ascending order`: `[bob 2500, dee 2500, ann 1500]`; the tie-break decides both the order of `bob` and `dee` and that `ann` beats `eve` for third place. `Ex05.1 · (3) fewer customers than the limit returns all of them, ranked`: two customers give a list of two.
+- (4) `Ex05.1 · (4) the partition puts orders at or above the threshold under true (large)`: with a threshold of 1,000, the 1,000-cent order is large. `Ex05.1 · (4) the partition always has both keys, even when every order is small`: both keys exist and `get(true)` is an empty list, not `null`.
+- (5) `Ex05.1 · (5) teeing returns the smallest and largest order as one record, ties broken by customer`: `OrderRange(cid 300, dee 2500)`; `dee` beats `bob` at 2,500 because `"dee"` sorts after `"bob"`. `Ex05.1 · (5) the minimum and maximum come from one pass over the input`: the input is a `RandomAccess` list that counts its `get` calls, and a `List`'s default spliterator on a `RandomAccess` list traverses by calling `get` [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java); six orders cost exactly six calls.
+- (6) `Ex05.1 · (6) an empty input gives empty results, not exceptions`: every method on `List.of()` returns the empty result listed in the criterion, and `countByCategory` with one known category returns `books=0`. `Ex05.1 · (6) the report keeps no mutable state: no instance fields, only static final constants` checks the class by reflection, and its constructor is private. `Ex05.1 · (6) calling a method twice on an unmodifiable input gives equal results`: the inputs are `List.of` lists, so any attempt to modify them would throw. `Ex05.1 · (6) with no state outside the collectors, a parallel stream gives the same report`: see the first follow-up.
+
+**Alternative approach:** for criterion (2), count first and fill the gaps in a finisher: `collectingAndThen(groupingBy(Order::category, TreeMap::new, counting()), counts -> { knownCategories.forEach(c -> counts.putIfAbsent(c, 0L)); return counts; })`. **Trade-offs:** it reads as "count, then add the missing zeros", and the mutation stays inside the collector's own result, which only the finisher sees; but it is two steps where `concat` is one data flow, and a reader must check that the finisher touches nothing else. The `concat` version allocates one `Map.Entry` per order, which is the price of keeping every input in one stream. For criterion (5), `orders.stream().min(BY_AMOUNT)` and `orders.stream().max(BY_AMOUNT)` are simpler, but traverse the source twice, and a source that can be traversed only once (a `Files.lines` stream, a stream returned by another service) cannot serve both ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)); `LongSummaryStatistics` gives the minimum and maximum amounts in one pass, but not the orders that carry them.
+
+**Interviewer follow-ups.**
+- *Is the report still correct on a parallel stream?* Yes, because every method uses JDK collectors and shares nothing outside them, so the identity and associativity constraints of [§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own) hold. The sorted maps do not depend on which chunk finished first, and the partition lists keep encounter order, because a collector that is not `UNORDERED` must give results equal to the sequential ones [Doc: Java 25 API, Collector](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collector.html). In the lab, a list whose `stream()` returns a parallel stream gives, on 10,000 generated orders, results equal to the sequential ones for all five methods [Lab: OrderReportTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex1/OrderReportTest.java). Whether parallel is worth it for a report of this size is [Q05.24](#q05-24).
+- *The categories become an enum.* Pass `Arrays.asList(Category.values())` as the known categories and `() -> new EnumMap<>(Category.class)` as the map factory, and return a `Map` (an `EnumMap` is not a `SortedMap`); "enum maps are maintained in the natural order of their keys (the order in which the enum constants are declared)", and every category is present by construction [Src: JDK 25, java.util.EnumMap](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java). The known-category parameter then disappears, because `values()` is the known list.
+- *Ten million orders and a million customers.* `groupingBy` keeps one entry per customer until the stream ends, and `topCustomers` sorts every customer to keep three. A bounded min-heap of size 3 inside a custom collector would avoid the sort, but the larger cost is moving ten million rows into the JVM to compute a few aggregates: at that size the report is a `GROUP BY` with `ORDER BY … LIMIT 3` in the database, and only the results cross the network.
+- *An order with a `null` category arrives.* `countByCategory` fails with `NullPointerException` at `Map.entry`, which rejects a `null` key or value [Src: JDK 25, java.util.Map](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Map.java), and `totalByCustomer` fails the same way on a `null` customer, from `groupingBy`'s "element cannot be mapped to a null key" ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)). The fix is a decision at the boundary, not inside the report: reject it in `Order`'s compact constructor with `Objects.requireNonNull`, or map it to an explicit `"uncategorized"` category before it reaches the report.
+
+**Tests:** [OrderReportTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex1/OrderReportTest.java).
+
+</details>
 <!-- /TASK: EX-M05-01 -->
 
 <!-- TASK: EX-M05-02 -->

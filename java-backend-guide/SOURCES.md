@@ -603,6 +603,8 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/StreamSupport.html
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html#MutableReduction
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ForEachOps.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/BinaryOperator.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/EnumMap.java
 
 ## 17 spring-transactions
 
