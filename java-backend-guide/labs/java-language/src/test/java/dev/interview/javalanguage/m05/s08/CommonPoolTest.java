@@ -45,7 +45,17 @@ class CommonPoolTest {
                 .filteredOn(t -> t != caller)
                 .allSatisfy(
                         t -> assertThat(((ForkJoinWorkerThread) t).getPool()).isSameAs(ForkJoinPool.commonPool()));
-        // JDK 25's AbstractTask.compute ends with the invoking thread processing one leaf itself.
+    }
+
+    @RepeatedTest(5)
+    @DisplayName("M05 §8 · in JDK 25 the calling thread runs part of the work")
+    void inJdk25_callingThreadRunsPartOfTheWork() {
+        Thread caller = Thread.currentThread();
+
+        Set<Thread> threads = threadsUsedBy(IntStream::parallel);
+
+        // Implementation behavior, not a specification: JDK 25's AbstractTask.compute ends with the
+        // invoking thread processing one leaf itself.
         assertThat(threads).contains(caller);
     }
 

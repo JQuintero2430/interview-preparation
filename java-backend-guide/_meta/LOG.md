@@ -1280,3 +1280,11 @@ Each session entry (RUN.md §11): Session, Harness, Model, capabilities, U at st
 - Open questions for Jorge (unattended run): none blocking. FYI for REVIEW-M05: §8 states two JDK 25 implementation behaviors as observations with their tests (the calling thread runs part of the work; a parallel stream started inside a custom `ForkJoinPool` uses that pool, called undocumented), and adds one **Security:** item (client-sized input to a parallel stream) although M05 §4 expected none.
 - Session end: S20261122-1801-claudecode-cloud. E ≈ 0 + 6.23 ≈ 6% (estimate). Open UNVERIFIED = 0. G1, G2 and T1 ticked.
 - Next session should: read STATE.
+
+## Session S20261123-interactive-claudecode-cloud
+
+- Harness: Claude Code (cloud, interactive follow-up to S20261122-1801 in the same container). Model: claude-opus-5-5. Jorge accepted the proposals for the open questions of S20261122-1801 and asked for the changes and a push to `main`. JEP 107 and JEP 155 read on openjdk.org (`curl`): JEP 107 says parallel operations build on Fork/Join and serial ones run "on the calling thread"; neither JEP mentions the common pool, caller participation in parallel runs or custom pools, so §8 text is unchanged.
+- HOUSE-10 (S) · Split the caller check of `CommonPoolTest` into "M05 §8 · in JDK 25 the calling thread runs part of the work" (`@RepeatedTest(5)`); the plan-named test keeps only the permitted-set assertions. STATE standing note records Jorge's approval of the §8 implementation-behavior observations and the **Security:** item. Files: `labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java`, `_meta/TASKS.md` (pool row), `_meta/STATE.md`, `_meta/LOG.md`. Checks: row 4 `spotless:apply` → exit 0; row 3 `verify -DexcludedGroups=docker` (java-language) → exit 0 (936 tests, 0 failures, 0 errors, 0 skipped); row 5 → exit 0, all links resolve.
+- Outside-the-guide check: `git status --porcelain -- . ':(exclude)java-backend-guide'` → empty.
+- Session end: S20261123-interactive-claudecode-cloud. Open UNVERIFIED = 0.
+- Next session should: read STATE.
