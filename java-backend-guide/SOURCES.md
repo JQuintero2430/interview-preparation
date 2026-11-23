@@ -594,6 +594,12 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/javase/9/docs/api/java/util/Optional.html
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.4.2
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/OptionalInt.java
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.4.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.2
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/BiFunction.java
+- https://openjdk.org/jeps/213
+- https://openjdk.org/jeps/358
+- https://www.oracle.com/java/technologies/javase/18-relnote-issues.html
 
 
 ## 17 spring-transactions

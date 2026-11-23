@@ -1388,27 +1388,267 @@ Questions that drill this section: [Q05.28](#q05-28), [Q05.29](#q05-29), [Q05.30
 <!-- TASK: QB-M05-01 -->
 <a id="q05-01"></a>
 ### Q05.01 · Concept · What makes an interface functional: one abstract method, and why default, static and `Object` methods do not count
+<!-- ledger: honeywell-optum-md-01-09 -->
+
+An interviewer says: "A functional interface is an interface with only one method." Is that right? `Comparator` declares `compare`, `equals`, a dozen default methods and several static ones, yet `(a, b) -> a.length() - b.length()` is a `Comparator`. Explain.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Not quite. A functional interface is an interface, not declared `sealed`, with exactly one *abstract* method, not counting abstract methods that match a public method of `Object`. Default methods have a body, static methods are not instance methods, and a redeclared `equals(Object)` is already implemented by every class, so none of them is a second method a lambda would have to supply. `Comparator` therefore has one method to implement, `compare`, and any number of others.
+
+**Full explanation.** JLS §9.8 defines a functional interface as "an interface that is not declared `sealed` and has just one abstract method (aside from the methods of `Object`)" [Doc: JLS 25 §9.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.8). The count is about what a lambda must provide: a lambda is the body of one method, so the interface may have only one method without a body. [§1](#1-functional-interfaces-and-lambda-expressions) walks through each exemption with its lab test. Three details are what an interviewer probes next. The `Object` exemption covers only *public* methods: an interface that declares `Object clone()` has two abstract methods, because `Object.clone` is protected and no class is guaranteed to implement it publicly. A `sealed` interface is never functional, even with one abstract method, because a lambda's class could not be one of its permitted subclasses. And the method may be inherited: JLS Example 9.8-2 shows `interface Z extends X, Y {}`, where `X` and `Y` each declare `int m(Iterable<String> arg)`, as functional, because the two inherited methods have the same signature and "logically represent a single method" [Doc: JLS 25 §9.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.8). In the lab, that `Z` and an empty `interface Task extends Runnable {}` both accept lambdas [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java), and the `clone` and `sealed` cases fail with `compiler.err.prob.found.req` [Lab: FunctionalInterfaceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/FunctionalInterfaceRulesTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Is `@FunctionalInterface` required for an interface to accept lambdas?* No. The compiler treats any interface that meets the definition as functional; the annotation only makes it check the definition at the interface, so a later second abstract method fails there instead of at every lambda [Src: JDK 25, java.lang.FunctionalInterface](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/FunctionalInterface.java) [Lab: FunctionalInterfaceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/FunctionalInterfaceRulesTest.java).
+- *Why does `Comparator` redeclare `equals` at all?* To document its contract: the Javadoc of `Comparator.equals` explains what it means for two comparators to be equal. Redeclaring it adds no abstract method a lambda must provide, which is the case JLS §9.8 cites as its first example [Src: JDK 25, java.util.Comparator](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Comparator.java) [Doc: JLS 25 §9.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.8).
+- *Can a functional interface extend another interface?* Yes, as long as the result still has one abstract method: `Task extends Runnable` adds nothing and is functional, while adding a second abstract method in the child would make it non-functional [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+
+**Trap to avoid.** Repeating "only one method". Say "one abstract method", and name the three exemptions (defaults, statics, public `Object` methods); interviewers use `Comparator` precisely to catch the short version.
+
+</details>
 
 <a id="q05-02"></a>
 ### Q05.02 · Concept · Target typing: why a lambda has no type of its own, and why `var f = x -> x` does not compile
 
+`Supplier<String> s = () -> "ready";` and `Callable<String> c = () -> "ready";` both compile. `var f = x -> x;` does not. What is the type of `() -> "ready"`, and what is `var` missing?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A lambda has no type by itself; it takes the type its context asks for, the *target type*, which must be a functional interface. The same text can therefore be a `Supplier` in one place and a `Callable` in another. `var` works the other way round: it asks the initializer for its type. With a lambda on the right, each side waits for the other, so javac reports `compiler.err.cant.infer.local.var.type` ("lambda expression needs an explicit target-type").
+
+**Full explanation.** "Lambda expressions are always poly expressions", and a lambda may appear only in an assignment, invocation or casting context [Doc: JLS 25 §15.27](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27). It is compatible with a target type `T` "if `T` is a functional interface type … and the expression is congruent with the function type" of `T` [Doc: JLS 25 §15.27.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.3). Both `Supplier<String>` and `Callable<String>` have a function type of "no arguments, returns `String`", so the same lambda fits both [Lab: FunctionalInterfaceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/FunctionalInterfaceRulesTest.java). For `var`, JLS §14.4.1 says the initializer "is treated as if it did not appear in an assignment context", so "an error occurs if it is a lambda expression … or a method reference expression" [Doc: JLS 25 §14.4.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.4.1). In the lab, `var f = x -> x;` fails with `compiler.err.cant.infer.local.var.type` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java), and so does the explicitly typed `var same = (String s) -> s` [Lab: FunctionalInterfaceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/FunctionalInterfaceRulesTest.java): naming the parameter types still does not say which interface to implement. The rule and its lab cases are [§1](#1-functional-interfaces-and-lambda-expressions) ("Target typing"); how inference picks type arguments for generic targets is [03 §2](03-java-generics.md#2-generic-types-generic-methods-and-type-inference).
+
+**Follow-ups an interviewer will ask.**
+- *How do you give a lambda a type where the context gives none?* With a cast, which is a casting context: `Object task = () -> {};` fails with `compiler.err.prob.found.req` because `Object` is not a functional interface [Lab: FunctionalInterfaceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/FunctionalInterfaceRulesTest.java), while `Object task = (Runnable) () -> {};` compiles [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). In practice, declare the variable with the interface type instead.
+- *Where else does a lambda get its target type?* From a method parameter (invocation context, the common case: `list.removeIf(s -> s.isBlank())` takes `Predicate<? super E>`), from a `return` statement (the method's return type), and from a cast [Doc: JLS 25 §15.27](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27) [Src: JDK 25, java.util.Collection](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collection.java).
+- *Does a method reference behave the same way?* Yes. It is also a poly expression, needs a target type, and is rejected as a `var` initializer by the same JLS sentence [Doc: JLS 25 §14.4.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.4.1).
+
+**Trap to avoid.** Saying that `var` fails because the parameter `x` has no type. Typing the parameter does not help; what is missing is the functional interface, which only the target can supply.
+
+</details>
+
 <a id="q05-03"></a>
 ### Q05.03 · Difference · Lambda vs anonymous class: `this`, scope, state, and what each compiles to
+
+A reviewer asks you to replace every anonymous class in a module with a lambda, "since they are the same thing". Where are they different, and when must the anonymous class stay?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** They differ in four ways. Inside a lambda, `this` and every name mean what they mean in the enclosing code; inside an anonymous class, `this` is the anonymous object and the body is a new scope. A lambda has no state of its own and can implement only a functional interface; an anonymous class can have fields, extend a class and implement several methods. A lambda captures `this` only if its body uses it; an anonymous class created in an instance method always *has* an enclosing instance, and holds a reference to it whenever its body uses it. And javac writes a class file for an anonymous class, but none for a lambda, whose class is spun at run time. Keep the anonymous class when the body uses `this` to mean itself, keeps state, or the target is an abstract class or has more than one abstract method.
+
+**Full explanation.** The differences, with the section that proves each:
+
+| Aspect | Lambda | Anonymous class |
+|---|---|---|
+| `this`, `super`, names | Those of the enclosing code | The anonymous object's own; the body is a class body |
+| Redeclaring an enclosing local | Compile error (`compiler.err.already.defined`) | Allowed (shadowing) |
+| State and reach | No fields; one functional interface only | Fields, any class or interface, several methods |
+| Enclosing instance | Captured only if the body uses `this` or a field | Always has one in an instance method; javac 18 and later store it only if the body uses it |
+| Compiled form | A private `lambda$…` method plus an `invokedynamic`; a hidden class at run time | Its own class file, `Outer$1` |
+
+The first three rows are JLS §15.27.2 ("the meaning of names and the `this` and `super` keywords appearing in a lambda body … are the same as in the surrounding context") [Doc: JLS 25 §15.27.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.2), shown in the lab with a `Greeter` whose lambda's `this.toString()` returns the greeter's text and whose anonymous class returns its own, and an anonymous `Supplier` whose `calls` field counts 1, 2, 3 [Lab: LambdaVsAnonymousTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/LambdaVsAnonymousTest.java) [Lab: FunctionalInterfaceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/FunctionalInterfaceRulesTest.java); [§1](#1-functional-interfaces-and-lambda-expressions) has the code. The last two rows are [§2](#2-how-lambdas-compile-and-capture-invokedynamic-and-effectively-final): the lab reads the call-site types (a lambda reading a field takes the enclosing object, one reading nothing takes no argument) and the class files (`Shapes` alone for the lambda, `Shapes` and `Shapes$1` for the anonymous class) [Lab: CompiledFormTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CompiledFormTest.java). An anonymous class declared in an instance method has `this` as its enclosing instance [Doc: JLS 25 §15.9.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.2). Since JDK 18, javac stores it in a synthetic `this$0` field only when the class uses it (except for `Serializable` classes) [Doc: JDK 18 release notes, "Enclosing Instance Fields Omitted from Inner Classes That Don't Use Them"](https://www.oracle.com/java/technologies/javase/18-relnote-issues.html). In the lab, an anonymous `Runnable` with an empty body gets no `this$` field and one that increments a field of the outer class gets one [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). So on current JDKs both forms keep their owner reachable exactly when they use it; the anonymous listener is still the classic leak, because listener bodies usually call back into their owner ([01 §11](01-java-oop-fundamentals.md#11-nested-types), [Q01.26](01-java-oop-fundamentals.md#q01-26)).
+
+**Follow-ups an interviewer will ask.**
+- *Can a lambda implement an abstract class that has a single abstract method?* No. The target must be a functional *interface*; in the lab, `Job job = () -> {};` with `abstract class Job { abstract void run(); }` fails with `compiler.err.prob.found.req` [Doc: JLS 25 §15.27.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.3) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). Use an anonymous subclass, or add a static factory that takes a lambda.
+- *Can an anonymous class use the diamond, `new Supplier<>() { … }`?* Yes, since Java 9, when the inferred type argument is denotable [Doc: JEP 213](https://openjdk.org/jeps/213); the lab's `Greeter.anonymousThis()` is written that way [Lab: LambdaVsAnonymousTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/LambdaVsAnonymousTest.java).
+- *Is a lambda cheaper than an anonymous class?* There is no class file to load, and on JDK 25 a non-capturing lambda site returns one shared instance, but both are implementation behavior; the first execution of each lambda site pays for linkage instead [Src: JDK 25, java.lang.invoke.InnerClassLambdaMetafactory](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/InnerClassLambdaMetafactory.java) [Lab: LambdaRuntimeTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/LambdaRuntimeTest.java). Choose by meaning, not by cost ([Q05.05](#q05-05)).
+
+**Trap to avoid.** Converting an anonymous class whose body calls `this.something()` meaning itself. The lambda compiles whenever the enclosing class has a matching method, and silently calls the enclosing object instead.
+
+</details>
 
 <a id="q05-04"></a>
 ### Q05.04 · Output · Composing functions: what do `andThen`, `compose`, `negate` and `Predicate.not` produce for the same input?
 
+What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_04.java
+        Function<Integer, Integer> plusOne = x -> x + 1;
+        Function<Integer, Integer> twice = x -> x * 2;
+        System.out.println(plusOne.andThen(twice).apply(5));
+        System.out.println(plusOne.compose(twice).apply(5));
+        System.out.println(plusOne.andThen(twice).compose(twice).apply(5));
+
+        Predicate<String> isEmpty = String::isEmpty;
+        System.out.println(isEmpty.negate().test(""));
+        System.out.println(Predicate.not(String::isBlank).test(" a "));
+        System.out.println(
+                isEmpty.or(s -> s.startsWith("#")).and(s -> s.length() < 3).test("#ab"));
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+12
+11
+22
+false
+true
+false
+```
+
+`andThen` runs the receiver first (6, then 12); `compose` runs its argument first (10, then 11). The chained call is `twice`, then `plusOne`, then `twice` (10, 11, 22). The last line is `(isEmpty or startsWith("#")) and length < 3`, because each default method wraps the predicate built so far: `"#ab"` passes the `or` and fails the `and`.
+
+**Full explanation.** `f.andThen(g)` returns a function that "first applies this function to its input, and then applies the `after` function to the result", and `f.compose(g)` one that "first applies the `before` function to its input, and then applies this function" [Src: JDK 25, java.util.function.Function](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Function.java). Line 3 reads left to right as construction, not as execution: `plusOne.andThen(twice)` is "plus one, then double", and `.compose(twice)` puts another doubling in front of the whole thing. `negate()` inverts `isEmpty`, and `""` is empty, so `false`. `Predicate.not(String::isBlank)` is true for any string with a non-whitespace character [Src: JDK 25, java.util.function.Predicate](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Predicate.java). On the last line there is no operator precedence at all: `a.or(b)` is evaluated first and returns a new predicate, and `.and(c)` wraps that one, so the result is `(a || b) && c`, not the `a || (b && c)` that `&&` binding tighter than `||` would give in an `if`. The lab runs the snippet and asserts the six lines [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). Composition is introduced in [§1](#1-functional-interfaces-and-lambda-expressions).
+
+**Follow-ups an interviewer will ask.**
+- *What happens with `plusOne.andThen(null)`?* It throws `NullPointerException` immediately, when the composite is built, because `andThen` starts with `Objects.requireNonNull(after)`; it does not wait for `apply` [Src: JDK 25, java.util.function.Function](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Function.java) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). `Predicate.and`, `or` and `not` check their argument the same way [Src: JDK 25, java.util.function.Predicate](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Predicate.java).
+- *Does `BiFunction` have `compose`?* No, only `andThen(Function)`: a function placed in front would have to produce two values, and a `Function` returns one [Src: JDK 25, java.util.function.BiFunction](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/BiFunction.java).
+- *Does `isEmpty.or(other)` call `other` when `isEmpty` is already true?* No. The composed predicates short-circuit like `||` and `&&`; the lab records only the first call [Src: JDK 25, java.util.function.Predicate](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/function/Predicate.java) [Lab: TextRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s01/TextRulesTest.java). Order cheap checks first.
+
+**Trap to avoid.** Answering `true` for the last line by applying `&&`-before-`||` precedence. Chained default methods have no precedence; they nest in the order they are called.
+
+</details>
+
 <a id="q05-05"></a>
 ### Q05.05 · Concept · How a lambda runs: the synthetic method, `invokedynamic` and `LambdaMetafactory`
+
+Walk through what happens to `Supplier<String> s = () -> "ready";` from javac to the first and the second time that line runs. Why did Java 8 not simply compile lambdas to inner classes?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** javac moves the body into a private synthetic method of the enclosing class (named `lambda$…` by javac convention) and replaces the expression with an `invokedynamic` instruction whose bootstrap method is `LambdaMetafactory.metafactory`. The first time the instruction runs, the JVM calls the bootstrap, which defines a hidden class implementing `Supplier` and returns a `CallSite` bound to that instruction. Every evaluation after that only invokes the bound call site to get an instance, and `s.get()` calls the synthetic method. No class file is written for the lambda, so the JDK, not the compiled code, decides how lambda objects are built.
+
+**Full explanation.** [§2](#2-how-lambdas-compile-and-capture-invokedynamic-and-effectively-final) shows each step in the lab; the answer in an interview follows `LambdaMetafactory`'s own three phases [Src: JDK 25, java.lang.invoke.LambdaMetafactory](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/LambdaMetafactory.java):
+- **Linkage**, once per call site, the first time it runs: the JVM resolves the `invokedynamic` by running its bootstrap and binds the returned `CallSite` to that instruction [Doc: JVMS 25 §6.5 invokedynamic](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-6.html#jvms-6.5.invokedynamic). In JDK 25, `InnerClassLambdaMetafactory` generates a class named after the caller plus `$$Lambda` and defines it as a hidden nestmate, so it may call the private `lambda$` method [Src: JDK 25, java.lang.invoke.InnerClassLambdaMetafactory](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/InnerClassLambdaMetafactory.java).
+- **Capture**, at each evaluation of the expression: the call site's arguments are the captured values (none here), stored in the hidden class's fields. For a lambda that captures nothing, JDK 25 pre-computes one instance at linkage and returns it every time, an implementation behavior that JLS §15.27.4 allows but does not require [Doc: JLS 25 §15.27.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.4) [Lab: LambdaRuntimeTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/LambdaRuntimeTest.java).
+- **Invocation**, at each `s.get()`: the hidden class's `get` calls the synthetic method.
+
+The lab confirms the compiled form by reading javac's output with the Class-File API: one class file, a private static synthetic `lambda$` method, and one `invokedynamic` bootstrapped by `LambdaMetafactory.metafactory` [Lab: CompiledFormTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CompiledFormTest.java). As for the "why": the class file names only the bootstrap method, so how a lambda object is produced is left to the JDK at run time; JEP 371 describes exactly this ("javac does not translate a lambda expression into a dedicated class file at compile time but, rather, emits bytecode that dynamically generates and instantiates a class … when needed") and used that freedom to move `LambdaMetafactory` from `Unsafe::defineAnonymousClass` to hidden classes in Java 15 [Doc: JEP 371](https://openjdk.org/jeps/371). Inner classes would have fixed one class file per lambda into every compiled program.
+
+**Follow-ups an interviewer will ask.**
+- *Does a method reference go through the same machinery?* Yes, the same `metafactory` call site, but for `String::length` the implementation method handle points straight at `String.length` and javac generates no `lambda$` method [Lab: MethodReferenceCompiledFormTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s03/MethodReferenceCompiledFormTest.java).
+- *Why does a stack trace show `lambda$…` frames but no `$$Lambda` frame?* Hidden-class methods are omitted from stack traces unless the JVM runs with `-XX:+UnlockDiagnosticVMOptions -XX:+ShowHiddenFrames` [Doc: JEP 371](https://openjdk.org/jeps/371); in the lab the first frame is the `lambda$` method and no `$$Lambda` frame appears [Lab: LambdaRuntimeTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/LambdaRuntimeTest.java).
+- *What changes for a serializable lambda?* The bootstrap becomes `LambdaMetafactory.altMetafactory`, and javac adds a `$deserializeLambda$` method to the capturing class to rebuild the lambda from its `SerializedLambda` form [Lab: CompiledFormTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CompiledFormTest.java) [Src: JDK 25, java.lang.invoke.SerializedLambda](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/SerializedLambda.java).
+
+**Trap to avoid.** Saying "the bootstrap spins a new class every time the lambda is evaluated". Linkage happens once per call site; evaluation is capture, which at most allocates an instance of the class already defined.
+
+</details>
 
 <a id="q05-06"></a>
 ### Q05.06 · Bug hunt · "Local variables referenced from a lambda must be final or effectively final": why the rule exists, and why the one-element-array workaround is a trap
 
+A crawler builds one loader per page and hands the list to a worker that runs them later. The loop index could not be captured, so the author used a one-element array. Every loader fetches page 3. Find the bug.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_06.java
+    // Bug: every supplier reads the same array slot, so all of them see its last value.
+    public static List<Supplier<Integer>> pageLoadersBuggy(int pages) {
+        List<Supplier<Integer>> loaders = new ArrayList<>();
+        int[] page = {0};
+        for (; page[0] < pages; page[0]++) {
+            loaders.add(() -> page[0]);
+        }
+        return loaders;
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Every lambda captures the same thing: the reference to one array. None of them copies the page number; each reads `page[0]` when it runs, and by then the loop has left it at 3. That is exactly the situation the effectively final rule prevents: a lambda that runs later seeing a variable that kept changing after it was created. The fix is a fresh effectively final local per iteration, which each lambda copies by value.
+
+**Full explanation.** A lambda may use an enclosing local only if it is final or effectively final [Doc: JLS 25 §15.27.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.2), because the lambda receives a *copy* of the value at the moment it is evaluated and may run after the variable has changed, or after its method has returned ([§2](#2-how-lambdas-compile-and-capture-invokedynamic-and-effectively-final), "Why the rule exists"). The JLS states the purpose: the rule "prohibits access to dynamically-changing local variables, whose capture would likely introduce concurrency problems" [Doc: JLS 25 §15.27.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.2). Here the classic `for` index could not be captured, since `i++` assigns it [Lab: CaptureRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CaptureRulesTest.java), so the author moved the counter into an array. The variable `page` is now effectively final, so javac is satisfied, but the value that changes lives in the array, and all three lambdas share it. The rule was protecting the program, and the workaround kept the compile error away while bringing back the shared, changing state it was there to stop. In the lab, the buggy loaders return `[3, 3, 3]` and the fixed ones `[0, 1, 2]` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). The same holder in a parallel `forEach` adds a data race on top: [§2](#2-how-lambdas-compile-and-capture-invokedynamic-and-effectively-final)'s counting job can only be asserted to land between 1 and 20 000 [Lab: CaptureBehaviorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CaptureBehaviorTest.java). The fix:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_06.java
+    // Fix: a fresh effectively final local per iteration, captured by value.
+    public static List<Supplier<Integer>> pageLoadersFixed(int pages) {
+        List<Supplier<Integer>> loaders = new ArrayList<>();
+        for (int i = 0; i < pages; i++) {
+            int page = i;
+            loaders.add(() -> page);
+        }
+        return loaders;
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Would an `AtomicInteger` instead of the array fix it?* No. It is still one shared counter; atomicity protects concurrent updates, not a value that should have been copied. In the lab, the `AtomicInteger` loaders also return `[3, 3, 3]` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+- *Why can a lambda capture the variable of an enhanced `for` loop but not the index of a classic one?* The enhanced `for` declares a fresh variable for each iteration, which is never reassigned, while the classic index is one variable assigned by `i++` [Doc: JLS 25 §15.27.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.27.2) [Lab: CaptureRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CaptureRulesTest.java). `for (int p : List.of(0, 1, 2)) loaders.add(() -> p);` works directly.
+- *When is mutable captured state legitimate?* When it is deliberately shared and thread-safe, such as a metric counter updated from several tasks, made thread-safe on purpose and documented as such; to compute a result, let the stream compute it (`count`, `sum`, `collect`) instead ([§2](#2-how-lambdas-compile-and-capture-invokedynamic-and-effectively-final) best practices; atomics are [12](12-concurrency-locks-atomics-collections.md)).
+
+**Trap to avoid.** Calling the array trick "the standard workaround". It compiles, and that is all it does: the error message was pointing at shared mutable state, and the array keeps the state while hiding the message.
+
+</details>
+
 <a id="q05-07"></a>
 ### Q05.07 · Concept · The four kinds of method references, and which functional-interface shapes each one fits
 
+Name the four kinds of method reference and, for each, the functional interface it fits. Why does `String::compareToIgnoreCase`, a method with one parameter, fit `Comparator<String>`, whose method takes two?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Static (`Integer::parseInt`, fits `Function<String, Integer>`: the function's arguments become the method's arguments). Bound instance (`prefix::concat`, fits `Function<String, String>`: the receiver is fixed when the reference is evaluated). Unbound instance (`String::length`, fits `ToIntFunction<String>`: the first argument becomes the receiver). Constructor (`ArrayList::new` fits `Supplier<List<String>>`; `int[]::new` fits `IntFunction<int[]>`). `String::compareToIgnoreCase` is unbound, so `compare(a, b)` becomes `a.compareToIgnoreCase(b)`: the receiver uses up the first parameter.
+
+**Full explanation.** The kinds differ only in who supplies the receiver, which decides how many parameters the target must have; [§3](#3-method-references) has the table of syntax, equivalent lambda and target, each row tested against its lambda [Lab: MethodReferenceKindsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s03/MethodReferenceKindsTest.java). For a type before `::`, the compiler makes two searches with the target's parameter types: one for a method taking all of them (static), and one, when the first parameter type fits the type before `::`, for an instance method taking the rest. The reference compiles only if exactly one kind of search produces the method [Doc: JLS 25 §15.13.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.1). For `Comparator<String>` the target's parameters are `(String, String)`; the second search treats the first `String` as the receiver and finds `compareToIgnoreCase(String)`. A bound reference has an expression before `::`, so its receiver is already there and the target's parameters all go to the method [Doc: JLS 25 §15.13](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13). The JDK takes array constructor references in `Stream.toArray(IntFunction<A[]> generator)`, which is why `stream.toArray(String[]::new)` returns a `String[]` instead of an `Object[]` [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java).
+
+**Follow-ups an interviewer will ask.**
+- *Why does `Integer::toString` not compile as a `Function<Integer, String>`?* Both searches succeed: the static `Integer.toString(int)` and the instance `toString()` on an `Integer` receiver. Neither may win, and the lab gets `compiler.err.prob.found.req`; write the lambda that says which one you mean [Lab: MethodReferenceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s03/MethodReferenceRulesTest.java).
+- *Are `this::name` and `MyClass::name` interchangeable?* No. `this::name` is bound and fits `Supplier<String>`; `MyClass::name` is unbound and fits `Function<MyClass, String>`. Each fails to compile where the other fits [Lab: MethodReferenceRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s03/MethodReferenceRulesTest.java).
+- *Is a bound reference always equivalent to the lambda `x -> receiver.method(x)`?* No: the receiver is evaluated once, when the reference is created, and a `null` receiver throws then ([Q05.08](#q05-08)) [Doc: JLS 25 §15.13.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.3).
+
+**Trap to avoid.** Matching a method reference to a target by counting the method's declared parameters. For an unbound reference, count the receiver as one more.
+
+</details>
+
 <a id="q05-08"></a>
 ### Q05.08 · Output · `holder::get` vs `() -> holder.get()` when `holder` is `null`: which line throws, and when?
+
+What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_08.java
+        Holder holder = null;
+        Supplier<String> lambda = () -> holder.get();
+        System.out.println("1: lambda created");
+        try {
+            lambda.get();
+        } catch (NullPointerException e) {
+            System.out.println("2: lambda call threw");
+        }
+        try {
+            Supplier<String> reference = holder::get;
+            System.out.println("3: reference created");
+        } catch (NullPointerException e) {
+            System.out.println("3: reference creation threw");
+        }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+1: lambda created
+2: lambda call threw
+3: reference creation threw
+```
+
+The lambda only captures the value of `holder` (`null`) and dereferences it when called, so creating it succeeds and calling it throws. The bound method reference evaluates `holder` when the reference itself is evaluated, and the JLS requires a `NullPointerException` right there, so the line that creates `reference` throws and `"3: reference created"` is never printed.
+
+**Full explanation.** JLS §15.13.3: when a method reference begins with an expression, "this subexpression is evaluated. If the subexpression evaluates to `null`, a `NullPointerException` is raised, and the method reference expression completes abruptly" [Doc: JLS 25 §15.13.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.3). A lambda's body runs only when its interface method is called, so `holder.get()` fails at `lambda.get()`. The lab runs the snippet and asserts the three lines [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). The two exceptions also look different, which helps when one arrives in a log. In the lab, the reference's exception has `java.util.Objects.requireNonNull` as its first frame, the method that created the reference as its second, and no message; the lambda's is raised in the `lambda$` method and its message is `Cannot invoke "…Holder.get()" because "holder" is null` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). The null check through `requireNonNull` is how javac 25 implements the JLS rule, not something the JLS prescribes. The missing message follows from JEP 358: only exceptions "created and thrown directly by the JVM" get the helpful detail message, and `requireNonNull` throws its own [Doc: JEP 358](https://openjdk.org/jeps/358). The same early evaluation also freezes the receiver, which is [§3](#3-method-references)'s router incident.
+
+**Follow-ups an interviewer will ask.**
+- *Why does the lambda's message name `holder`, a variable the lambda's method never declared?* The captured value is a parameter of the synthetic `lambda$` method, and the lab is compiled with local variable names, so the JVM can print it; without a local variable table, JEP 358 prints placeholders such as `<parameter1>` or `<local4>` instead of names [Doc: JEP 358](https://openjdk.org/jeps/358) [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+- *What about the unbound form, `Holder::get` as a `Function<Holder, String>`?* It has no receiver to evaluate when it is created, so creating it always succeeds; `apply(null)` throws, like the lambda [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+- *How do you keep the lazy behavior with a field that may be `null` at startup?* Use the lambda, `msg -> current.accept(msg)`, which reads the field on every call, or pass a `Supplier` of the receiver; a bound reference is right only when the receiver is meant to be fixed [Lab: ReceiverTimingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s03/ReceiverTimingTest.java).
+
+**Trap to avoid.** Answering that both forms throw on the call, as if a method reference were only shorter syntax. For a bound reference, the receiver is evaluated, and checked, when the reference is created.
+
+</details>
 
 <!-- /TASK: QB-M05-01 -->
 
