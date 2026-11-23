@@ -1267,12 +1267,116 @@ Questions that drill this section: [Q05.26](#q05-26), [Q05.27](#q05-27); exercis
 ## 10. `Optional`: a return type for maybe-absent results
 <!-- TASK: SEC-M05-10 -->
 ### The problem it solves
+
+A method `Customer findByEmail(String email)` returns `null` when nobody has that address. Its signature says nothing about that, so one caller checks for `null`, another does not, and the second one throws `NullPointerException` three calls later, in code that never mentioned the lookup. Javadoc comments ("returns null if not found") help only the people who read them. `Optional<T>` moves the "maybe absent" into the return type itself: the caller cannot reach the `Customer` without first deciding what happens when there is none. It also gives that decision a vocabulary (a default, a fallback lookup, an exception that names what was missing) that fits in one expression and chains with the stream operations of the previous sections.
+
 ### Mental model
+
+An `Optional` is a box that holds either one non-null value or nothing, and the type on the label says which kind of thing may be inside. You do not reach into the box and hope; you tell it what to do in both cases: "if there is a customer, give me its name; if not, say `guest`". `map` changes what is in the box without opening it, `flatMap` does the same when the change itself produces a box (so you do not end up with a box inside a box), and `orElse`, `orElseGet`, `or` and `orElseThrow` say what an empty box turns into.
+
+Two limits belong in the picture. The box is meant for return values, the place where a method tells its caller "there may be no result"; it is not a better `null` for fields and parameters. And the label does not stop anyone from handing you no box at all: a variable of type `Optional` can still hold `null`.
+
 ### How it actually works
+
+**What it is for.** The Java 25 Javadoc's API note states the purpose: "`Optional` is primarily intended for use as a method return type where there is a clear need to represent 'no result,' and where using `null` is likely to cause errors. A variable whose type is `Optional` should never itself be `null`; it should always point to an `Optional` instance" [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html). The second sentence is a rule for programmers, not something the language enforces: in the lab, calling `map` on an `Optional` variable that holds `null` throws `NullPointerException` like any other null reference [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). `Optional` is also a value-based class, so two equal instances must be treated as interchangeable, never compared with `==` or used as a lock [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html); why, and what goes wrong, is [02 §8](02-java-equality-immutability-records.md#8-value-based-classes-and-identity) and [Q02.22](02-java-equality-immutability-records.md#q02-22).
+
+**Creating one.** `Optional.of(value)` describes a value that must not be `null`, and throws `NullPointerException` if it is; `Optional.ofNullable(value)` returns an empty `Optional` for `null`; `Optional.empty()` is the empty one [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). The streams of the earlier sections produce them too: `findFirst`, `findAny`, `min`, `max` and the one-argument `reduce` return `Optional`, because an empty stream has no first or largest element, and the primitive streams return `OptionalInt`, `OptionalLong` or `OptionalDouble` from their own `max`, `min` and `average` [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html) [Doc: Java 25 API, IntStream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/IntStream.html); in the lab, `IntStream.empty().max()` is an empty `OptionalInt` [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). The primitive versions avoid boxing ([§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect)) but have no `map`, `filter`, `flatMap` or `or` in JDK 25 [Src: JDK 25, java.util.OptionalInt](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/OptionalInt.java).
+
+**Transforming without opening.** `map(f)` applies `f` to the value if one is present and wraps the result; if `f` returns `null`, the result is an empty `Optional`, not an `Optional` holding `null` [Doc: Java 25 API, Optional.map](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#map(java.util.function.Function)). In the lab, mapping a customer with no referrer through its nullable `referrerId` accessor gives an empty `Optional` [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). `flatMap(f)` is for an `f` that already returns an `Optional`, such as another lookup: `map` would produce `Optional<Optional<String>>`, while `flatMap` returns `f`'s result directly [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). `filter(p)` keeps the value only if it matches. `stream()` turns an `Optional` into a stream of zero or one elements, which is what makes `flatMap(Optional::stream)` drop the empty results of a stream of lookups [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html).
+
+**Deciding what empty means.** The consuming methods differ in one detail that interviews test constantly: when their argument runs.
+
+| Method | What it takes | When the argument runs | Result when empty | Since |
+|---|---|---|---|---|
+| `orElse(other)` | a value | before the call, always (it is an ordinary argument) | `other` | 8 |
+| `orElseGet(supplier)` | a `Supplier<T>` | only when empty | the supplier's result | 8 |
+| `or(supplier)` | a `Supplier<Optional<T>>` | only when empty | the supplier's `Optional` | 9 |
+| `orElseThrow()` | nothing | — | throws `NoSuchElementException` | 10 |
+| `orElseThrow(exceptionSupplier)` | a `Supplier` of an exception | only when empty | throws the supplied exception | 8 |
+| `ifPresentOrElse(action, emptyAction)` | a `Consumer` and a `Runnable` | the matching one only | runs `emptyAction` | 9 |
+
+Sources for the table: each method's description in the Javadoc and its `@since` tag in the JDK 25 source (`or`, `stream` and `ifPresentOrElse` 9, `orElseThrow()` 10, `isEmpty` 11, the rest 1.8) [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html) [Src: JDK 25, java.util.Optional](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Optional.java). The `orElse` row follows from Java's evaluation rules, not from anything `Optional` does: the argument expressions of a method invocation are evaluated before control passes to the method [Doc: JLS 25 §15.12.4.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.4.2), so `orElse(loadDefault())` calls `loadDefault()` even when the value is present and then throws its result away. In the lab, with a value present, the `orElse` argument ran once and the `orElseGet` supplier never ran, and `or`'s supplier ran only for the empty `Optional` [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). [Q05.29](#q05-29) drills the counting.
+
+**`get()` and `orElseThrow()`.** Both return the value or throw `NoSuchElementException`, and the Javadoc of `get()` says "the preferred alternative to this method is `orElseThrow()`" [Doc: Java 25 API, Optional.get](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#get()). The behavior is the same, and in the lab both throw with the message `No value present`, which the JDK 25 source hard-codes [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java) [Src: JDK 25, java.util.Optional](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Optional.java). The name is the point: `get()` reads like a getter that cannot fail, while `orElseThrow()` says what happens when it does. When absence is an error the caller should hear about, `orElseThrow(() -> new CustomerNotFoundException(id))` names the missing thing, which "No value present" in a log never does.
+
+**Where it does not belong.** `Optional` does not implement `Serializable`: in the lab, `Serializable.class.isAssignableFrom(Optional.class)` is `false`, and writing a `Serializable` record with an `Optional` component to an `ObjectOutputStream` throws `NotSerializableException: java.util.Optional` [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java) [Src: JDK 25, java.util.Optional](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Optional.java). That and the API note's "method return type" are the language-level reasons against `Optional` fields. Against `Optional` parameters: the caller must wrap every argument, may still pass `null` for the `Optional` itself, and an overload or a nullable parameter documents the same choice more plainly. Against `Optional<List<T>>`: an empty list already means "nothing", so the extra box gives callers two ways to say the same thing. How JPA maps entity attributes and how a JSON library treats `Optional` properties are framework questions, for [23](23-jpa-hibernate-fundamentals.md) and [18](18-spring-mvc-and-rest-controllers.md); the Java-side rule is the API note's, which is why the lab's `Customer` keeps a nullable `referrerId` component and exposes `Optional<String> referrer()` from an accessor.
+
 ### Code
+
+A customer service whose lookups return `Optional`, with each caller deciding what absent means. The approach: never call `isPresent()` followed by `get()`; pick the method that states the decision.
+
+1. `CustomerLookup.findById` returns `Optional<Customer>`, so every caller sees that a customer may be missing.
+2. `displayName` maps to the name and falls back to a constant with `orElse`; a constant costs nothing to evaluate, so the eager argument is harmless here.
+3. `referrerOf` follows an optional reference: the referrer id is itself optional, and looking it up returns another `Optional`, so both steps use `flatMap` and the result stays `Optional<Customer>`.
+4. `findAnywhere` asks the fallback lookup only when the primary finds nothing, because `or` takes a `Supplier`.
+5. `require` is for callers that cannot continue without a customer: `orElseThrow` with a supplier throws an exception that names the id.
+6. `namesOf` looks up a list of ids and drops the missing ones with `flatMap(Optional::stream)`.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/s10/CustomerService.java
+    // Absent becomes a default value: the default is a constant, so orElse is fine here.
+    public String displayName(String id) {
+        return primary.findById(id).map(Customer::name).orElse("guest");
+    }
+
+    // The referrer lookup already returns Optional, so flatMap keeps one level: Optional<Customer>.
+    public Optional<Customer> referrerOf(String id) {
+        return primary.findById(id).flatMap(Customer::referrer).flatMap(primary::findById);
+    }
+
+    // The fallback is queried only when the primary finds nothing (or takes a Supplier, so it is lazy).
+    public Optional<Customer> findAnywhere(String id) {
+        return primary.findById(id).or(() -> fallback.findById(id));
+    }
+
+    // Absent is an error for this caller: say which id, instead of get()'s "No value present".
+    public Customer require(String id) {
+        return findAnywhere(id).orElseThrow(() -> new CustomerNotFoundException(id));
+    }
+
+    // Optional::stream turns each result into zero or one elements, so missing ids simply drop out.
+    public List<String> namesOf(List<String> ids) {
+        return ids.stream()
+                .map(primary::findById)
+                .flatMap(Optional::stream)
+                .map(Customer::name)
+                .toList();
+    }
+```
+
+`CustomerServiceTest` checks each method with present and missing ids, including that the fallback lookup ran only for the id the primary did not have.
+
 ### Failure modes and operations
+
+The most common failure is `NoSuchElementException: No value present` from a `get()` or `orElseThrow()` that assumed a value would always be there. It usually appears when data changes, not code: a record is deleted, a cache starts returning empty, a new tenant has no configuration. The message names neither the lookup nor the key, so the stack trace's line number is the only clue; [Q05.30](#q05-30) works through that incident. The fix at the call site is to decide what absent means there, and where it is an error, to throw with `orElseThrow(supplier)` and an exception that names what was missing.
+
+The second is `orElse` with an expensive argument: `cache.find(key).orElse(database.load(key))` queries the database on every call, hits included, because the argument is evaluated before `orElse` runs. Nothing fails; the evidence is database load that does not drop when the cache hit rate rises, and a profiler or a query counter showing the fallback called once per request. `orElseGet(() -> database.load(key))` runs it only on a miss ([Q05.29](#q05-29)).
+
+The third is serialization: an `Optional` field in a class that is serialized with Java serialization throws `NotSerializableException: java.util.Optional` at the first write, as the lab shows [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java); it surfaces wherever objects are written out, such as a session store or a distributed cache that uses Java serialization. Keep the field a nullable reference and return `Optional` from the accessor.
+
+> [!NOTE]
+> **Version notes.** Java 8: `Optional` with `of`, `ofNullable`, `empty`, `get`, `isPresent`, `ifPresent`, `filter`, `map`, `flatMap`, `orElse`, `orElseGet` and `orElseThrow(Supplier)`, plus `OptionalInt`, `OptionalLong` and `OptionalDouble` (`@since 1.8`); the Java 8 Javadoc has no API note about return types [Doc: Java 8 API, Optional](https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html). Java 9: `or`, `stream` and `ifPresentOrElse` (`@since 9`), and the class gains the API note "primarily intended for use as a method return type" [Doc: Java 9 API, Optional](https://docs.oracle.com/javase/9/docs/api/java/util/Optional.html). Java 10: the no-argument `orElseThrow()` (`@since 10`), and `get()`'s Javadoc names it "the preferred alternative" [Doc: Java 10 API, Optional](https://docs.oracle.com/javase/10/docs/api/java/util/Optional.html). Java 11: `isEmpty` (`@since 11`). The same additions reach `OptionalInt`, `OptionalLong` and `OptionalDouble` (`stream`, `ifPresentOrElse` 9, `orElseThrow()` 10, `isEmpty` 11), without `map`, `flatMap`, `filter` or `or` [Src: JDK 25, java.util.Optional](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Optional.java) [Src: JDK 25, java.util.OptionalInt](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/OptionalInt.java). Java 25 (default): no change to `Optional`'s methods since 11.
+
 ### Best practices and anti-patterns
+
+- Return `Optional<T>` from a method whose result may legitimately be absent, such as a lookup by key, because the return type then forces every caller to decide what absent means.
+- Never return `null` from a method declared to return `Optional`, because callers trust the type and call `map` or `orElse` on the result without a check.
+- Use `orElseGet(supplier)` or `or(supplier)` when the fallback costs anything (a query, a call, an allocation you care about), and `orElse` only for constants or values already computed, because `orElse`'s argument is evaluated even when a value is present.
+- Prefer `map`, `flatMap`, `filter`, `orElse*` and `ifPresentOrElse` over `isPresent()` followed by `get()`, because the pair is a `null` check with more ceremony, and the `get()` can drift away from its check in later edits.
+- Use `orElseThrow(() -> new SomethingNotFoundException(key))` where absence is an error, rather than `get()` or the bare `orElseThrow()`, because the exception then names what was missing.
+- Use `flatMap` when the mapping function returns an `Optional`, because `map` would build `Optional<Optional<T>>`.
+- Do not use `Optional` for fields, method parameters or collection elements, and return an empty collection instead of `Optional<List<T>>`, because `Optional` is designed as a return type, is not `Serializable`, and an empty collection already says "nothing".
+- Do not compare `Optional`s with `==` or synchronize on them, because `Optional` is value-based ([02 §8](02-java-equality-immutability-records.md#8-value-based-classes-and-identity)); use `equals`.
+- Use `OptionalInt`, `OptionalLong` and `OptionalDouble` for primitive results, as the primitive streams do, because they avoid boxing; convert to `Optional` only when you need `map` or `flatMap`.
+
 ### Misconceptions and traps
+
+- *"`Optional` removes `NullPointerException`s."* It documents absence in a return type; it does not change what `null` can do. A variable of type `Optional` can still be `null`, and `Optional.of(maybeNull)` throws `NullPointerException` at once [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). The belief comes from languages whose type systems track nullability and whose compilers reject an unchecked dereference; Java's `Optional` is a library class, and the compiler checks nothing about it beyond its type.
+- *"`orElse` is lazy."* Its argument is an ordinary expression, evaluated before the call; only `orElseGet`, `or` and `orElseThrow(Supplier)` take suppliers [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). The myth exists because `orElse(x)` reads like "otherwise, x", and because with a constant argument the difference never shows.
+- *"Use `Optional` everywhere instead of `null`."* The Javadoc describes it as "primarily intended for use as a method return type" [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html); as a field it breaks Java serialization, and as a parameter it gives the caller three states to pass (a value, empty, `null`) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). The habit comes from functional languages, where `Option` types are used everywhere, and from style guides that equate fewer `null`s with safer code. *Once less clear:* the Java 8 Javadoc had no API note about return types; it was added in Java 9 [Doc: Java 9 API, Optional](https://docs.oracle.com/javase/9/docs/api/java/util/Optional.html).
+- *"`map` with a function that returns `null` gives `Optional.of(null)`."* An `Optional` cannot hold `null`; `map` returns an empty `Optional` when the function's result is `null` [Doc: Java 25 API, Optional.map](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#map(java.util.function.Function)) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). The confusion comes from `Stream.map`, which passes a `null` result through as an element (in the lab, `Stream.of("a").map(s -> null).toList()` holds one `null`) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java).
+
+Questions that drill this section: [Q05.28](#q05-28), [Q05.29](#q05-29), [Q05.30](#q05-30); exercise [Exercise 05.4](#ex05-4).
 <!-- /TASK: SEC-M05-10 -->
 
 ## Summary

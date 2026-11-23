@@ -1493,11 +1493,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261123-0001-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
 
 ### SEC-M05-10 · M · §10 `Optional`: a return type for maybe-absent results
-- Status: `todo` · Deps: SEC-M05-09 · needs: none
+- Status: `done` · Deps: SEC-M05-09 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md` (region `SEC-M05-10`), lab `m05/s10/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
 - Inputs: [M05](modules/M05.md) §1 (lab design), §2 (boundaries) and §4 entry §10; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); the ledger rows homed in §10 (M05 §3); src.zip for JDK sources; openjdk.org (with `curl`) for JEPs.
 - Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M05 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M05 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by: —
+- Done by: S20261123-0001-claudecode-cloud (claude-opus-5-5; main session, tests first, no java-workflow skill in this harness)
 
 ### QB-M05-01 · M · Q05.01–Q05.08
 - Status: `todo` · Deps: SEC-M05-01, -02, -03 · needs: none

@@ -586,6 +586,14 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-18.html#jls-18.4
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ForkJoinTask.java
 - https://github.com/openjdk/jdk/tree/jdk-25-ga/src/java.base/share/classes/java/util/function
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#get()
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#map(java.util.function.Function)
+- https://docs.oracle.com/javase/10/docs/api/java/util/Optional.html
+- https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html
+- https://docs.oracle.com/javase/9/docs/api/java/util/Optional.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.4.2
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/OptionalInt.java
 
 
 ## 17 spring-transactions
