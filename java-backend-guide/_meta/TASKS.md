@@ -1535,11 +1535,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261123-1801-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M05-02 · M · Ex05.2 · A custom `Collector` that is correct in parallel
-- Status: `todo` · Deps: SEC-M05-05, -08 · needs: none
+- Status: `done` · Deps: SEC-M05-05, -08 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md` (region `EX-M05-02`), lab `m05/ex2/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M05](modules/M05.md) §6 row Ex05.2; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M05 §6 criterion has a test `@DisplayName("Ex05.2 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by: —
+- Done by: S20261123-1801-claudecode-cloud (claude-opus-5-5)
 
 ### EX-M05-03 · M · Ex05.3 · A gatherer: deduplicate consecutive elements and batch them
 - Status: `todo` · Deps: SEC-M05-04, -07 · needs: none

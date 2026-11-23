@@ -2626,6 +2626,180 @@ The three records are one line each: [`Order`](../labs/java-language/src/main/ja
 <!-- TASK: EX-M05-02 -->
 <a id="ex05-2"></a>
 ### Exercise 05.2 · A custom `Collector` that is correct in parallel
+
+**Problem.** A metrics library summarizes request latencies, in microseconds, with a home-made collector. Its unit tests pass, and in production its dashboards were right until a colleague changed a `stream()` into a `parallelStream()` to speed up the nightly batch; from then on the counts were too low. The combiner had never run in a test, because a sequential `collect` never calls it ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)). Write `Stats.collector()`, a collector of `long` values that returns `Stats(count, sum, min, max)` and is correct on a sequential and on a parallel stream, and the tests that prove it.
+
+**Constraints.** JDK only. Build it with `Collector.of`, with your own mutable container; do not wrap `Collectors.summarizingLong` (that is the alternative below). The result is immutable, and `min` and `max` are `OptionalLong`, empty for no values, so no sentinel such as `Long.MAX_VALUE` reaches a caller ([§10](#10-optional-a-return-type-for-maybe-absent-results)). Parallel tests assert results, never how many splits happened or which thread ran what ([§8](#8-parallel-streams-and-the-common-forkjoinpool)).
+
+**Acceptance criteria.**
+- [ ] (1) On a fixed-seed random input, the sequential result matches `LongSummaryStatistics` (count, sum, minimum, maximum).
+- [ ] (2) On the same input as a `parallelStream()`, large enough to split, the result matches too; the test asserts `isParallel()`, not the number of splits.
+- [ ] (3) An empty stream gives `count` 0 and empty `min` and `max` (`OptionalLong`).
+- [ ] (4) The combiner is associative: combining (a, b) then c equals a then (b, c), tested directly on the collector's functions.
+- [ ] (5) The characteristics are declared truthfully: no `CONCURRENT`, and no `IDENTITY_FINISH`, because a finisher builds the record.
+
+<details><summary>Hint 1</summary>
+
+A parallel `collect` may give a chunk with no elements its own container, and then combine it with another. What must an empty container hold for `min` and `max`, so that merging it changes nothing? The collector's *identity* constraint states exactly this ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)).
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+`Stats.collector()` returns `Collector<Long, ?, Stats>`, so a test cannot name the container type to call `supplier()`, `accumulator()` and `combiner()` itself. A private generic helper `<A> … helper(Collector<Long, A, Stats> c)` captures the wildcard and gives it a name ([03 §4](03-java-generics.md#4-wildcards-pecs-and-variance)).
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Separate the mutable container, which the stream gives to one thread at a time, from the immutable result, and make the container's starting values the identity of every operation the combiner performs.
+1. **Container.** `StatsAccumulator` holds `count`, `sum`, `min` and `max`, starting at 0, 0, `Long.MAX_VALUE` and `Long.MIN_VALUE`. Those are the identities of `+`, `Math.min` and `Math.max`, so an empty container merged into any other changes nothing, which is the identity constraint, and a chunk with no elements is harmless. `LongSummaryStatistics` starts from the same four values [Src: JDK 25, java.util.LongSummaryStatistics](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LongSummaryStatistics.java). No field is shared, so the class needs no locks: results "must be serially thread-confined" ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)).
+2. **Accumulator and combiner.** `add(value)` updates the four fields; `merge(right)` folds the right container into the left one and returns it. Addition, `min` and `max` are each associative, so the combiner is too, whichever way the chunks are grouped.
+3. **Finisher.** `toStats()` returns `Stats.Empty` when the count is 0, and `Stats.NonEmpty(count, sum, min, max)` otherwise. `Stats` is a sealed interface over these two records, so the sentinels never leave the container, and `min()` and `max()` return `OptionalLong`s computed from the record, not stored in it ([§10](#10-optional-a-return-type-for-maybe-absent-results)).
+4. **Characteristics.** `Collector.of(supplier, accumulator, combiner, finisher)` with no characteristics gives an empty set; only the overload without a finisher adds `IDENTITY_FINISH` on its own [Src: JDK 25, java.util.stream.Collector](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collector.java). Declaring `IDENTITY_FINISH` here would be false, and the JDK would skip the finisher and cast the container to `Stats` ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)); declaring `CONCURRENT` would be false too (see the follow-ups).
+
+```java
+package dev.interview.javalanguage.m05.ex2;
+
+import java.util.OptionalLong;
+import java.util.stream.Collector;
+
+/**
+ * Module 05 Ex05.2: count, sum, minimum and maximum of {@code long} values. An empty input is its own type, so no
+ * sentinel such as {@code Long.MAX_VALUE} ever reaches a caller as a minimum.
+ */
+public sealed interface Stats permits Stats.Empty, Stats.NonEmpty {
+
+    long count();
+
+    long sum();
+
+    OptionalLong min();
+
+    OptionalLong max();
+
+    /** A collector that is correct sequentially and in parallel: one container per chunk, merged by the combiner. */
+    static Collector<Long, ?, Stats> collector() {
+        return Collector.of(
+                StatsAccumulator::new, // supplier: a fresh container for each chunk
+                StatsAccumulator::add, // accumulator: folds one value in
+                StatsAccumulator::merge, // combiner: folds the right chunk into the left one
+                StatsAccumulator::toStats); // finisher: builds the immutable result, so no IDENTITY_FINISH
+    }
+
+    record Empty() implements Stats {
+
+        @Override
+        public long count() {
+            return 0;
+        }
+
+        @Override
+        public long sum() {
+            return 0;
+        }
+
+        @Override
+        public OptionalLong min() {
+            return OptionalLong.empty();
+        }
+
+        @Override
+        public OptionalLong max() {
+            return OptionalLong.empty();
+        }
+    }
+
+    record NonEmpty(long count, long sum, long minimum, long maximum) implements Stats {
+
+        @Override
+        public OptionalLong min() {
+            return OptionalLong.of(minimum);
+        }
+
+        @Override
+        public OptionalLong max() {
+            return OptionalLong.of(maximum);
+        }
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex2/Stats.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex2/Stats.java)</sub>
+
+```java
+package dev.interview.javalanguage.m05.ex2;
+
+/**
+ * Module 05 Ex05.2: the mutable container behind {@link Stats#collector()}. The stream gives each chunk its own
+ * instance and never shares one between threads, so it needs no synchronization.
+ */
+final class StatsAccumulator {
+
+    private long count;
+    private long sum;
+    // Identity values: any real value replaces them, and merging an empty container changes nothing.
+    private long min = Long.MAX_VALUE;
+    private long max = Long.MIN_VALUE;
+
+    void add(long value) {
+        count++;
+        sum += value;
+        min = Math.min(min, value);
+        max = Math.max(max, value);
+    }
+
+    StatsAccumulator merge(StatsAccumulator right) {
+        count += right.count;
+        sum += right.sum;
+        min = Math.min(min, right.min);
+        max = Math.max(max, right.max);
+        return this;
+    }
+
+    Stats toStats() {
+        return count == 0 ? new Stats.Empty() : new Stats.NonEmpty(count, sum, min, max);
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex2/StatsAccumulator.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex2/StatsAccumulator.java)</sub>
+
+The tests call the collector's functions through helpers that capture its container type, for example:
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex2/StatsCollectorTest.java
+    // The helpers capture the hidden container type A, so the collector's own functions can be called directly.
+    private static <A> A fill(Collector<Long, A, Stats> collector, long[] values) {
+        A container = collector.supplier().get();
+        for (long value : values) {
+            collector.accumulator().accept(container, value);
+        }
+        return container;
+    }
+
+    private static <A> Stats abThenC(Collector<Long, A, Stats> collector, long[] a, long[] b, long[] c) {
+        A ab = collector.combiner().apply(fill(collector, a), fill(collector, b));
+        return collector.finisher().apply(collector.combiner().apply(ab, fill(collector, c)));
+    }
+```
+
+**How each criterion is met** [Lab: StatsCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex2/StatsCollectorTest.java). The input is 100,000 values from `new Random(42).longs(100_000, -1_000_000, 1_000_000)`, the same on every run.
+- (1) `Ex05.2 · (1) sequentially, the result matches LongSummaryStatistics on a fixed-seed input`: the stream is not parallel, and the result equals a `Stats.NonEmpty` built from `Arrays.stream(values).summaryStatistics()`.
+- (2) `Ex05.2 · (2) on a parallel stream, the result matches LongSummaryStatistics on every run`: a `@RepeatedTest(10)` over the values as a `List<Long>`, whose `parallelStream()` reports `isParallel()`; every run equals the same `LongSummaryStatistics` values. It asserts an invariant over repeated runs, as nondeterministic code requires, and never how the input was split.
+- (3) `Ex05.2 · (3) an empty stream gives count 0, sum 0 and empty min and max, sequential or parallel`: both `Stream.<Long>empty()` and an empty `parallelStream()` give count 0, sum 0 and empty `OptionalLong`s.
+- (4) `Ex05.2 · (4) the combiner is associative: (a, b) then c equals a then (b, c), empty slices included`: a parameterized test cuts ten values into three slices at six pairs of cut points, among them an empty first slice, an empty middle slice, an empty last slice, and two cases with every value in one slice; for each, `combine(combine(a, b), c)` and `combine(a, combine(b, c))`, finished, both equal the sequential result over all ten values.
+- (5) `Ex05.2 · (5) characteristics are truthful: not CONCURRENT, not IDENTITY_FINISH, and the finisher builds the record`: the characteristics contain neither, and finishing a fresh container returns a `Stats.Empty`, not the container.
+
+**Alternative approach:** `Collectors.collectingAndThen(Collectors.summarizingLong(Long::longValue), s -> s.getCount() == 0 ? new Stats.Empty() : new Stats.NonEmpty(s.getCount(), s.getSum(), s.getMin(), s.getMax()))`: the JDK's summary collector, which uses `LongSummaryStatistics` as both container and result and so declares `IDENTITY_FINISH` [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java), with the record built in a finisher. **Trade-offs:** it is the right production answer for these four figures, one line and already correct in parallel; the hand-written collector is what remains when the figures are ones the JDK does not compute (a histogram, a top-k, a percentile sketch), and it is the version an interviewer asks for to see whether you know the four functions and their constraints. Implementing the `Collector` interface in a named class is a third option, worth it only when the collector needs configuration or several entry points.
+
+**Interviewer follow-ups.**
+- *Why not declare `CONCURRENT` and save the merging?* `CONCURRENT` promises that one container accepts accumulator calls from several threads at once, and on an unordered parallel stream the JDK then fills one shared container ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)). `count++` and `sum += value` on plain fields would be conflicting accesses not ordered by happens-before, a data race, and freedom from data races still "allows errors arising from groups of operations that need to be perceived atomically and are not" [Doc: JLS 25 §17.4.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4.5); a read-modify-write like `count++` is such a group. A concurrent version needs `LongAdder`s and an atomic minimum and maximum, the tools of [12](12-concurrency-locks-atomics-collections.md), and the contention usually costs more than the merges it saves.
+- *What happens when the sum overflows?* `sum += value` wraps around silently, exactly as `LongSummaryStatistics` does, since it also adds with `sum += value` [Src: JDK 25, java.util.LongSummaryStatistics](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/LongSummaryStatistics.java). `Math.addExact` throws `ArithmeticException` "if the result overflows a long" [Src: JDK 25, java.lang.Math](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Math.java), but it makes the outcome depend on the grouping: `(Long.MAX_VALUE + 1) + (-2)` overflows at the first step, while `Long.MAX_VALUE + (1 + (-2))` does not, so a parallel run could fail where the sequential one succeeds, or the reverse. Wrapping addition stays associative; if overflow is a real risk, accumulate the sum in a `BigInteger`, whose addition never overflows, or bound the inputs so that the sum cannot reach `Long.MAX_VALUE`.
+- *Should it declare `UNORDERED`?* It would be truthful, since none of the four figures depends on encounter order, and it is not required. In JDK 25 a non-concurrent collector's `UNORDERED` only makes the terminal operation report `NOT_ORDERED` [Src: JDK 25, java.util.stream.ReduceOps](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/ReduceOps.java), a flag applied to the last stage after any stateful stages have already been evaluated [Src: JDK 25, java.util.stream.AbstractPipeline](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/AbstractPipeline.java); the JDK's own `summarizingLong` declares only `IDENTITY_FINISH` [Src: JDK 25, java.util.stream.Collectors](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Collectors.java). The exercise leaves it out.
+- *The values arrive as a `LongStream`: avoid the boxing.* `LongStream` has no `collect(Collector)`, but it has `collect(Supplier<R>, ObjLongConsumer<R>, BiConsumer<R, R>)`, whose combiner "must fold the elements from the second result container into the first" [Src: JDK 25, java.util.stream.LongStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/LongStream.java). The same container serves: `StatsAccumulator::new`, `StatsAccumulator::add` and `StatsAccumulator::merge` (its return value is ignored), followed by `toStats()`, behind a `Stats.of(LongStream)` factory; boxing versus primitive streams is [Q05.19](#q05-19).
+
+**Tests:** [StatsCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex2/StatsCollectorTest.java).
+
+</details>
 <!-- /TASK: EX-M05-02 -->
 
 <!-- TASK: EX-M05-03 -->
