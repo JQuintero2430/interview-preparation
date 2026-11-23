@@ -2265,20 +2265,244 @@ So to the teammate: keep streams sequential by default; make a nightly CPU-bound
 <a id="q05-25"></a>
 ### Q05.25 · Production scenario · After a report endpoint switches to `parallelStream()` with an HTTP call per element, unrelated async work across the service slows down
 
+*As the interviewer frames it:* "A Spring Boot service on an 8-CPU container builds a report by enriching each of about 40 order lines with a call to the pricing service: `lines.parallelStream().map(pricingClient::price).toList()`, where `price` is a blocking HTTP call of 200 to 500 ms. The change made one report faster in a manual test. A day after the deployment, latency rises on endpoints that never build a report, especially those that use `CompletableFuture.supplyAsync(...)` without an executor; CPU stays low, and the slowdown tracks how many reports are running. What is going on, how do you prove it, and how do you fix it?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The parallel stream runs its lambdas on the JVM's one common `ForkJoinPool`, the same pool that runs every `CompletableFuture.*Async` call without an explicit executor. With the default parallelism of `availableProcessors() - 1`, 7 workers on 8 CPUs, a few concurrent reports, each holding workers for hundreds of milliseconds in blocking HTTP calls, occupy the whole pool, and the unrelated async tasks wait in its queue. Low CPU with rising latency is the signature of threads waiting, not working. Prove it with a thread dump that shows `ForkJoinPool.commonPool-worker-…` threads in the HTTP client's socket read under the report code. Fix it by moving the blocking fan-out off the common pool: a dedicated, bounded executor, or `Gatherers.mapConcurrent` with a stated concurrency limit; and give the other `CompletableFuture` calls their own executor too.
+
+**Full explanation.**
+- *What the symptoms say.* Latency spreads to endpoints that share no code with the report, CPU is low, and the slowdown scales with concurrent reports: a shared, bounded resource is being held by waiting threads. The shared resource both features have in common is the common pool: parallel streams run their forked tasks there, and `CompletableFuture` runs "all *async* methods without an explicit Executor argument" on `ForkJoinPool.commonPool()` [Doc: Java 25 API, CompletableFuture](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html); the lab confirmed both use the same instance [Lab: CommonPoolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java).
+- *Hypotheses, ranked.* (1) Common-pool saturation by the blocking lambdas, which fits every symptom and the timing of the deployment. (2) The pricing service is slow and something else (an HTTP connection pool shared with other endpoints) is exhausted; it would also explain low CPU, but not why only `supplyAsync` users suffer most. (3) A general resource problem, garbage collection or a database pool; ruled out quickly because CPU is low and the slowdown follows report traffic.
+- *Evidence that confirms (1).* Take two or three thread dumps a few seconds apart while reports run (`jcmd <pid> Thread.print`, which "prints all threads with stacktraces" [Doc: JDK 25 jcmd](https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html); [10](10-jvm-performance-and-troubleshooting.md) covers reading them). Every `ForkJoinPool.commonPool-worker-…` thread sits in a socket read below `pricingClient.price`, below the stream's `ForkJoinTask` frames, in each dump. `ForkJoinPool.commonPool().toString()` logged at the same moment reports the pool's parallelism and its worker and task counts [Doc: Java 25 API, ForkJoinPool](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html): every worker busy and queued tasks growing. Read `ForkJoinPool.getCommonPoolParallelism()` at startup too, since the container's CPU limit sets it [Src: JDK 25, java.util.concurrent.ForkJoinPool](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ForkJoinPool.java).
+- *Why the pool does not grow its way out.* The `ForkJoinPool` Javadoc says compensating threads are added when tasks wait to join other tasks, but "no such adjustments are guaranteed in the face of blocked I/O or other unmanaged synchronization" [Doc: Java 25 API, ForkJoinPool](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html). [§8](#8-parallel-streams-and-the-common-forkjoinpool) has the mechanism.
+- *Fix.* Revert the `parallelStream()`: the work is I/O-bound, so parallel streams were the wrong tool. For the fan-out, either use `lines.stream().gather(Gatherers.mapConcurrent(10, pricingClient::price)).toList()`, which runs each call on a virtual thread, keeps the input order and caps concurrent calls per pipeline [Doc: Java 25 API, Gatherers](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html) [Lab: MapConcurrentTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s07/MapConcurrentTest.java), or submit the calls to a dedicated, bounded executor with `CompletableFuture.supplyAsync(supplier, executor)` [Doc: Java 25 API, CompletableFuture](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html). Size either limit from what the pricing service can take, not from the CPU count, and remember that `mapConcurrent`'s limit applies per request ([§7](#7-stream-gatherers) failure modes). Executor sizing is [13](13-concurrency-executors-and-completablefuture.md)'s subject.
+- *Prevention and monitoring.* A review rule: no blocking call inside `parallelStream()`, `parallel()` or a default-executor `*Async` method; pass an explicit executor to every `CompletableFuture` async call in service code. Export the common pool's active and queued counts (or log `commonPool().toString()` periodically) and alert on a queue that keeps growing; keep a latency SLO on the endpoints that use async work, so the next shared-pool problem shows up as their latency, not as a mystery.
+
+**Follow-ups an interviewer will ask.**
+- *Would raising `java.util.concurrent.ForkJoinPool.common.parallelism` to 100 fix it?* It would hide it until traffic grows, and it changes the pool for every library in the JVM. The Java 25 Javadoc also says the property's "usage is discouraged" [Doc: Java 25 API, ForkJoinPool](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ForkJoinPool.html). The blocking calls still belong somewhere bounded and separate.
+- *Why did the manual test look faster?* With one report and an idle pool, seven workers plus the calling thread really did make about eight calls at once. The cost appears only with concurrent requests, which a single-user test never creates ([Q05.24](#q05-24)).
+- *Would wrapping it in `customPool.submit(() -> lines.parallelStream()...)` be an acceptable fix?* In JDK 25 it moves the work to the custom pool, but no specification promises that, so it is undocumented behavior [Lab: CommonPoolTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s08/CommonPoolTest.java); an explicit executor or `mapConcurrent` states the limit in a documented API.
+
+**Trap to avoid.** Answering "the pricing service is slow" and stopping there. A slow dependency explains slow reports, not slow endpoints that never call it; the shared common pool is what connects the two.
+
+</details>
+
 <a id="q05-26"></a>
 ### Q05.26 · Concept · Checked exceptions inside lambdas: why `Function` cannot throw `IOException`, and the workarounds ranked
+
+`paths.stream().map(p -> Files.readString(p))` does not compile. Why, exactly, and what are your options, from best to worst?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A lambda body may throw only the checked exceptions that the target functional interface's method declares, and `Function.apply`, like every interface in `java.util.function`, declares none; `Files.readString` throws `IOException`, so the lambda does not fit. The options, best first: (1) catch inside and wrap with the cause, `UncheckedIOException` for I/O; (2) the same wrapping, written once in an adapter around a project interface such as `CheckedFunction` whose method declares `throws Exception`; (3) when one failure must not stop the batch, return a result per element (success or failure) instead of throwing; (4) last, a "sneaky throw" that hides the checked exception from the compiler, which leaves callers unable to catch it by type.
+
+**Full explanation.** The rule is JLS §11.2.3: it is a compile-time error if a lambda body can throw a checked exception that is not a subclass of something "declared in the throws clause of the function type targeted by the lambda expression" [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3); method references have the equivalent rule in §15.13.2 [Doc: JLS 25 §15.13.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.13.2). In the lab, javac 25 rejects the lambda with `compiler.err.unreported.exception.need.to.catch.or.throw`, the method reference `map(Files::readString)` with `compiler.err.incompatible.thrown.types.in.mref`, and accepts the same lambda when its target is a project interface that declares `throws IOException` [Lab: CheckedExceptionRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/CheckedExceptionRulesTest.java). So the restriction belongs to the stream API's choice of interfaces, not to lambdas. The ranking follows from what each option keeps: wrapping keeps the type (as the cause) and the stack trace, and `UncheckedIOException` lets a caller still catch the I/O case [Doc: Java 25 API, UncheckedIOException](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/UncheckedIOException.html) [Lab: WrappingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/WrappingTest.java); the adapter keeps the same behavior with less noise; the result type keeps every element's outcome [Lab: ResultPipelineTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/ResultPipelineTest.java); the sneaky throw keeps the exception object but makes `catch (IOException e)` a compile error at the call site, so only `catch (Exception e)` can see it [Lab: CheckedExceptionRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/CheckedExceptionRulesTest.java). [§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams) has the adapter's code and each option's mechanism.
+
+**Follow-ups an interviewer will ask.**
+- *Why does a generic `ThrowingFunction<T, R, E extends Exception>` not remove the problem?* Because `Stream.map` takes a `java.util.function.Function`, not your interface [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html); a throwing interface is useful as the *input* of an adapter that returns a `Function`, which is option (2).
+- *What must the adapter do with `InterruptedException`?* Re-set the interrupt flag with `Thread.currentThread().interrupt()` before wrapping, because catching it clears the flag; the lab's adapter does, and its test checks the flag is set afterwards [Lab: WrappingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/WrappingTest.java). Interruption itself is [11](11-concurrency-threads-and-jmm.md)'s.
+- *Does a stream over `Files.lines` throw only when the file cannot be opened?* No: later read errors and malformed input surface as `UncheckedIOException` from the stream method that caused the read, so even a pipeline that wraps nothing can throw it [Doc: Java 25 API, Files.lines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)) [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java).
+
+**Trap to avoid.** Proposing `catch (IOException e) { log; return ""; }` as a workaround. It compiles, and it turns a failure into fake data and a job that reports success: [Q05.27](#q05-27) is that incident.
+
+</details>
 
 <a id="q05-27"></a>
 ### Q05.27 · Production scenario · A nightly import reports success while skipping files: an exception caught and logged inside a lambda
 
+*As the interviewer frames it:* "A nightly job imports every CSV file a partner drops into a folder. It has reported success every night for months. This morning finance says yesterday's totals are about a third lower than the partner's own figures, and the partner insists all files were delivered. The job's metrics show `files=3` and a normal duration. Here is the core of the job. What happened, and how do you make sure it cannot happen silently again?"
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_27.java
+    // Bug: a failed file is logged and counted as zero records, so the report always says success.
+    public static ImportReport importSwallowing(List<Path> files) {
+        long records = files.stream()
+                .mapToLong(file -> {
+                    try {
+                        return countRecords(file);
+                    } catch (IOException e) {
+                        LOG.log(System.Logger.Level.WARNING, "skipping " + file, e);
+                        return 0;
+                    }
+                })
+                .sum();
+        return new ImportReport(files.size(), records, List.of());
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The lambda catches the `IOException`, logs a warning and returns `0`, so a file that could not be read counts as "a file with zero records". Nothing propagates, the report always has an empty failure list, and the job's status and metrics say success. A file that was listed but could not be opened (deleted, still being written, permission denied) disappeared into one `WARNING` line. The fix is to make failures data: map each file to a `Result`, count and name the failures in the report, and fail the job, or alert, when any file failed.
+
+**Full explanation.**
+- *What the symptoms say.* The totals are low but the job "succeeded" and saw the expected number of files: the files were found but their records were not counted. That points at the per-file step, not at delivery or listing.
+- *Hypotheses, ranked.* (1) Some files failed to read and the failure was swallowed, which the code above does for any `IOException`. (2) The files were read but parsed wrongly (a changed delimiter, a header row), so records were dropped without an exception. (3) The files arrived after the job listed the folder, or were still being written; that is a cause of (1) as much as an alternative, since a file that vanishes or is locked fails to open.
+- *Evidence.* Search the job's logs for its `WARNING skipping …` lines for that night: each one names a file and carries the `IOException` as its cause, for example `NoSuchFileException` or `AccessDeniedException`. Compare files in, records out per file: a file with a nonzero size on disk and zero records imported is (1) or (2), and the presence or absence of its log line separates them. In the lab, three files with one missing give `ImportReport(files=3, records=5, failed=[])`, and `succeeded()` is `true` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). This is the catch-log-and-default option that [§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams) leaves off its list of workarounds.
+- *Fix.* Keep the per-file isolation (one bad file should not lose the others), but return the outcome instead of hiding it, then decide after the pipeline:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_27.java
+    // Fix: one Result per file, so every failure is counted and reported instead of hidden.
+    public static ImportReport importReporting(List<Path> files) {
+        List<Result<Long>> results =
+                files.stream().map(Result.attempt(Q05_27::countRecords)).toList();
+        long records = results.stream()
+                .mapToLong(result -> result instanceof Result.Success<Long>(Long count) ? count : 0)
+                .sum();
+        List<Path> failed = IntStream.range(0, files.size())
+                .filter(i -> results.get(i) instanceof Result.Failure<Long>)
+                .mapToObj(files::get)
+                .toList();
+        return new ImportReport(files.size(), records, failed);
+    }
+```
+
+For the same three files it returns `ImportReport(files=3, records=5, failed=[missing.csv])` and `succeeded()` is `false` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). `Result.attempt` and the sealed `Result` type are [§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams)'s ([Lab: ResultPipelineTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/ResultPipelineTest.java)). The job then exits non-zero, or marks the run as partial, whenever `failed` is not empty, and the failed files are retried or reported to the partner.
+
+- *Prevention and monitoring.* Emit `files_failed` and `records_imported` as metrics next to `files_seen`, and alert on `files_failed > 0` and on records imported far below the usual range for that partner. Reconcile with the source when it publishes counts (the partner's own totals would have caught this the first night). In review, treat `catch` + log + `return` default inside a lambda as a defect unless "missing" truly means the default. To stop files from being read while still being written, agree on a completion marker or an atomic rename with the partner; that part is [06](06-java-exceptions-strings-io.md)'s.
+
+**Follow-ups an interviewer will ask.**
+- *Why not just let the exception propagate?* Then the first bad file ends the whole import and the later files are not read [Lab: WrappingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/WrappingTest.java). That is right when any failure makes the whole result wrong (a single request), and wrong for a batch where the other files should still go in.
+- *The log line was there all along: why did nobody see it?* Because a `WARNING` in a nightly job is read by no one, and a metric that only counts successes cannot show a failure. Failures that change a business number must reach the job's status or an alert, not only a log.
+- *Is the parallel version of this job any different?* With `parallelStream()` the swallowing works the same way; with propagation, which failure surfaces when several files fail is not specified, so the error report must come from the per-file results, not from one exception [Lab: ParallelExceptionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/ParallelExceptionTest.java).
+
+**Trap to avoid.** Fixing it by changing `WARNING` to `ERROR`. The log level does not change the job's status, the report or the metric; the failure has to become part of the job's result.
+
+</details>
+
 <a id="q05-28"></a>
 ### Q05.28 · Concept · `Optional` done right: what it is for, `map` vs `flatMap`, `or`, and the anti-patterns (fields, parameters, `get()`, `Optional<List<T>>`)
+<!-- ledger: honeywell-optum-md-01-12 -->
+
+What is `Optional` for, and what does using it well look like? Cover how you transform and consume one, and the uses that are common but wrong.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `Optional<T>` is a return type for "there may be no result", such as a lookup by key: the type makes every caller decide what absent means. Transform it without unwrapping: `map` when the function returns a plain value, `flatMap` when it returns another `Optional`, `filter` to keep only a matching value. Consume it by saying what empty becomes: `orElse` for a constant, `orElseGet` or `or` when the fallback costs something, `orElseThrow(supplier)` when absence is an error. The wrong uses: `Optional` fields (it is not `Serializable`) and parameters, `Optional<List<T>>` instead of an empty list, `isPresent()` followed by `get()`, and returning `null` from a method declared to return `Optional`.
+
+**Full explanation.** The Java 25 Javadoc states the purpose in its API note: `Optional` "is primarily intended for use as a method return type where there is a clear need to represent 'no result,' and where using `null` is likely to cause errors", and a variable of type `Optional` "should never itself be `null`" [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html). Each part of the answer is a consequence. `map` returns an empty `Optional` if the function returns `null`, and `flatMap` avoids `Optional<Optional<T>>` when the function is itself a lookup [Doc: Java 25 API, Optional.map](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#map(java.util.function.Function)) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). `or` (Java 9) takes a `Supplier<Optional<T>>`, so a fallback lookup runs only on a miss; in the lab's `CustomerService`, the fallback ran only for the id the primary did not have [Lab: CustomerServiceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/CustomerServiceTest.java). The anti-patterns break the API note or the class itself: `Optional` does not implement `Serializable`, so a record with an `Optional` component fails with `NotSerializableException: java.util.Optional` [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java); a parameter gives callers three states to pass; an empty list already says "nothing"; and `get()`'s own Javadoc calls `orElseThrow()` "the preferred alternative" [Doc: Java 25 API, Optional.get](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#get()). [§10](#10-optional-a-return-type-for-maybe-absent-results) has the method table with each one's version and the service code.
+
+**Follow-ups an interviewer will ask.**
+- *Is `Optional` a fix for `NullPointerException`?* No. It documents absence in a return type, but the compiler does not stop an `Optional` variable from being `null`, and `Optional.of(null)` throws at once [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). It moves the decision to the caller; it does not remove `null` from the language.
+- *Why is there no `map` on `OptionalInt`?* The primitive optionals have only the consuming methods (`orElse`, `orElseThrow`, `ifPresent`, `stream` and the like), not `map`, `filter`, `flatMap` or `or`, in JDK 25 [Src: JDK 25, java.util.OptionalInt](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/OptionalInt.java); convert with `Optional.of(x.getAsInt())` only when you need them.
+- *Can you compare two `Optional`s with `==`?* No: `Optional` is value-based, so identity is not meaningful; use `equals`, which compares the contents [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html). Why identity on value-based classes is a trap is [Q02.22](02-java-equality-immutability-records.md#q02-22).
+
+**Trap to avoid.** Describing `isPresent()` plus `get()` as "using `Optional`". It is a `null` check with more ceremony, and the `get()` can drift away from its check in a later edit; [Q05.30](#q05-30) is where that ends.
+
+</details>
 
 <a id="q05-29"></a>
 ### Q05.29 · Output · `orElse(loadDefault())` vs `orElseGet(this::loadDefault)`: how many times does `loadDefault` run?
 
+What does `new Q05_29().run()` print? `loadDefault` prints a line each time it runs.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_29.java
+    void run() {
+        Optional<String> present = Optional.of("cached");
+        Optional<String> empty = Optional.empty();
+        System.out.println(present.orElse(loadDefault()));
+        System.out.println(present.orElseGet(this::loadDefault));
+        System.out.println(empty.orElse(loadDefault()));
+        System.out.println(empty.orElseGet(this::loadDefault));
+        System.out.println("calls " + calls);
+    }
+
+    String loadDefault() {
+        calls++;
+        System.out.println("loadDefault #" + calls);
+        return "default";
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+loadDefault #1
+cached
+cached
+loadDefault #2
+default
+loadDefault #3
+default
+calls 3
+```
+
+`orElse(loadDefault())` calls `loadDefault()` before `orElse` even runs, so it runs for the present value too (call 1) and its result is thrown away. `orElseGet(this::loadDefault)` passes a supplier that `Optional` calls only when it is empty, so the present case prints `cached` with no call, and the empty case makes call 3.
+
+**Full explanation.** Nothing in `Optional` makes `orElse` eager: Java evaluates the argument expressions of a method invocation before control passes to the method [Doc: JLS 25 §15.12.4.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.12.4.2), so `loadDefault()` has run by the time `orElse` can look at the value. `orElseGet` takes a `Supplier`, and its Javadoc says it returns "the value, if present, otherwise the result produced by the supplying function" [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html): the method reference `this::loadDefault` creates the supplier without calling it. Count the calls line by line: the present `orElse` evaluates its argument (1), the present `orElseGet` does not call its supplier, the empty `orElse` evaluates its argument (2), and the empty `orElseGet` calls the supplier (3). The lab runs the snippet and asserts the eight lines [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java); [§10](#10-optional-a-return-type-for-maybe-absent-results) has the full table of which consuming methods take suppliers.
+
+**Follow-ups an interviewer will ask.**
+- *When is `orElse` the right choice, then?* When its argument is a constant or a value already computed (`orElse("guest")`), because evaluating it costs nothing and the code reads more simply; that is what the lab's `CustomerService.displayName` does [Lab: CustomerServiceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/CustomerServiceTest.java).
+- *What would `orElse(loadDefault())` cost in production?* If `loadDefault` is a database or remote call, it runs on every lookup, hits included, so the fallback's load does not fall when the cache hit rate rises; §10's failure modes describe how that shows up in a query counter.
+- *Does `or(() -> fallback.find(id))` behave like `orElseGet`?* Yes for laziness: `or` also takes a supplier, called only when empty, but it returns an `Optional`, so the chain can continue [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java).
+
+**Trap to avoid.** Answering "`loadDefault` runs once, for the empty `orElse`" or "twice, once per empty case". The present `orElse` call runs it too, because the argument is evaluated before the method is called.
+
+</details>
+
 <a id="q05-30"></a>
 ### Q05.30 · Production scenario · `NoSuchElementException: No value present` pages the on-call after a lookup starts returning empty
+<!-- ledger: honeywell-optum-md-01-12 -->
+
+*As the interviewer frames it:* "The billing service has run for a year without this error. Since this morning, the invoice endpoint returns 500 for some requests, and the logs show `java.util.NoSuchElementException: No value present` with a stack trace into `BillingService.seats`. No code was deployed this week. Here is the method. Walk me through finding the cause and fixing it properly."
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_30.java
+    // Bug: get() assumes every tenant has a plan; a new tenant fails with "No value present".
+    public int seatsBuggy(String tenant) {
+        return findPlan(tenant).get().seats();
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `get()` throws `NoSuchElementException` with the fixed message `No value present` whenever the `Optional` is empty, and this call assumed every tenant has a billing plan. No deployment plus a sudden error means the *data* changed: most likely a tenant was onboarded without a plan, or a plan was removed. Confirm it by finding which tenant the failing requests have in common and checking that tenant's plan. Fix the call site by deciding what absence means there: if a plan is required, `orElseThrow(() -> new PlanNotFoundException(tenant))`, mapped to a clear error response; if the business has a default (a free tier), `orElse` it. Then fix the data, and add the missing-plan case to the tests.
+
+**Full explanation.**
+- *What the symptoms say.* The exception is from `Optional.get()` on an empty value; the JDK 25 source hard-codes the message, so it names neither the lookup nor the key [Src: JDK 25, java.util.Optional](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Optional.java), and the line number in the stack trace is the only pointer. Only "some requests" fail, and nothing was deployed, so something about particular inputs changed.
+- *Hypotheses, ranked.* (1) A new or migrated tenant has no plan row. (2) Existing plans were deleted or became invisible to the query (a soft-delete flag, an expired validity window, a changed tenant id format). (3) A cache or replica in front of the lookup started returning empty for keys it should know (an eviction, an incomplete warm-up). Each predicts a different pattern in the failing requests.
+- *Evidence.* Add the tenant id to the error log, or read it from the request logs or traces of the failing requests: if every failure is for the same few tenants, check their plans directly in the database. One new tenant with no plan confirms (1); tenants that had plans yesterday point at (2), and the table's audit trail or the migration log shows what changed; a plan that is in the database but not returned by the service points at (3). In the lab, a known tenant returns 25 seats and an unknown one throws exactly `NoSuchElementException: No value present` [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java).
+- *Fix.* Decide at the call site what a missing plan means, and say it in code:
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m05/outputs/Q05_30.java
+    // Fix where absence is an error: throw an exception that names what is missing.
+    public int seats(String tenant) {
+        return findPlan(tenant).map(Plan::seats).orElseThrow(() -> new PlanNotFoundException(tenant));
+    }
+
+    // Fix where absence has a business meaning: decide it explicitly at the call site.
+    public int seatsOrFreeTier(String tenant) {
+        return findPlan(tenant).map(Plan::seats).orElse(FREE_TIER_SEATS);
+    }
+```
+
+In the lab, `seats("newco")` throws `PlanNotFoundException: no billing plan for tenant newco`, and `seatsOrFreeTier("newco")` returns the free tier's 1 seat [Lab: Q05OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/outputs/Q05OutputsTest.java). Which one is right is a business decision, not a coding one; the exception version should be mapped to a 4xx or a specific 5xx response with that message ([18](18-spring-mvc-and-rest-controllers.md) covers error responses). Then repair the data for the affected tenants.
+
+- *Prevention and monitoring.* Treat `Optional.get()` and the bare `orElseThrow()` in service code as review findings, or enable the IDE or static-analysis inspection that flags them; tests for every lookup include the "not found" case; onboarding creates the plan in the same transaction as the tenant, or validates that it exists. Alert on the rate of `NoSuchElementException` and of the named not-found exception per endpoint, so a data problem shows up as a labeled error, not as an anonymous 500.
+
+**Follow-ups an interviewer will ask.**
+- *Would `isPresent()` before `get()` have prevented this?* Only if the code also decided what to do when it is false, and then `orElseThrow(supplier)` or `orElse` says the same thing in one call. Adding the check without a decision just moves the failure.
+- *Why not return `0` seats when the plan is missing?* Because zero seats is a real value that bills the tenant nothing and hides the missing data; a default is right only when the business defines one, which is why the free tier is a named constant in the lab, not a silent `0`.
+- *Why is the bare `orElseThrow()` no better than `get()` here?* It throws the same `NoSuchElementException` with the same message; the Javadoc prefers it only because its name says it can throw [Doc: Java 25 API, Optional.get](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#get()). The improvement comes from the supplier version and an exception that names the tenant.
+
+**Trap to avoid.** Treating it as a code bug only and shipping `orElse(0)`. The incident is a data problem exposed by code that never decided what absence means; both need fixing, and the decision belongs to the business rule, not to whatever makes the error go away.
+
+</details>
 
 <!-- /TASK: QB-M05-04 -->
 

@@ -9,12 +9,16 @@ import static org.assertj.core.api.Assertions.entry;
 import dev.interview.javalanguage.m01.support.InMemoryCompiler;
 import dev.interview.javalanguage.m01.support.OutputCapture;
 import dev.interview.javalanguage.m05.s05.Employee;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -25,9 +29,13 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 // The printed lines and diagnostic keys are the claims the guide makes, so the expected values stay literal.
 class Q05OutputsTest {
+
+    @TempDir
+    Path dir;
 
     private static final List<Employee> STAFF = List.of(
             new Employee("ann", "search", 120), new Employee("bo", "search", 80), new Employee("cy", "ops", 90));
@@ -429,6 +437,63 @@ class Q05OutputsTest {
                 new ArrayList<>(IntStream.range(0, 10_000).boxed().toList()).spliterator());
 
         assertThat(threads).isNotEmpty().noneMatch(Thread::isVirtual);
+    }
+
+    @Test
+    @DisplayName("Q05.27 · the swallowing import reports success for a missing file; the Result version reports it")
+    void q05_27_swallowedFailureVersusReportedFailure() throws IOException {
+        Path threeRecords = Files.writeString(dir.resolve("a.csv"), "1\n2\n3\n");
+        Path twoRecords = Files.writeString(dir.resolve("b.csv"), "4\n5\n");
+        Path missing = dir.resolve("missing.csv");
+        List<Path> files = List.of(threeRecords, missing, twoRecords);
+
+        Q05_27.ImportReport swallowed = Q05_27.importSwallowing(files);
+        Q05_27.ImportReport reported = Q05_27.importReporting(files);
+
+        assertThat(swallowed).isEqualTo(new Q05_27.ImportReport(3, 5, List.of()));
+        assertThat(swallowed.succeeded()).isTrue();
+        assertThat(reported).isEqualTo(new Q05_27.ImportReport(3, 5, List.of(missing)));
+        assertThat(reported.succeeded()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Q05.29 · orElse runs its argument even when present; orElseGet only when empty: 3 calls in all")
+    void q05_29_printsWhenLoadDefaultRuns() {
+        List<String> lines = OutputCapture.linesOf(() -> Q05_29.main(new String[0]));
+
+        assertThat(lines)
+                .containsExactly(
+                        "loadDefault #1",
+                        "cached",
+                        "cached",
+                        "loadDefault #2",
+                        "default",
+                        "loadDefault #3",
+                        "default",
+                        "calls 3");
+    }
+
+    @Test
+    @DisplayName("Q05.30 · get() on a missing plan throws NoSuchElementException: No value present")
+    void q05_30_getThrowsWithoutContext() {
+        Q05_30 billing = new Q05_30(Map.of("acme", new Q05_30.Plan("acme", 25)));
+
+        assertThat(billing.seatsBuggy("acme")).isEqualTo(25);
+        assertThatThrownBy(() -> billing.seatsBuggy("newco"))
+                .isExactlyInstanceOf(NoSuchElementException.class)
+                .hasMessage("No value present");
+    }
+
+    @Test
+    @DisplayName("Q05.30 · orElseThrow with a supplier names the tenant; orElse applies the free tier")
+    void q05_30_fixesNameTheTenantOrDecide() {
+        Q05_30 billing = new Q05_30(Map.of("acme", new Q05_30.Plan("acme", 25)));
+
+        assertThatThrownBy(() -> billing.seats("newco"))
+                .isInstanceOf(Q05_30.PlanNotFoundException.class)
+                .hasMessage("no billing plan for tenant newco");
+        assertThat(billing.seats("acme")).isEqualTo(25);
+        assertThat(billing.seatsOrFreeTier("newco")).isEqualTo(1);
     }
 
     private static List<String> enclosingInstanceFields(Class<?> type) {
