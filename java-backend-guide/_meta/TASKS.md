@@ -1570,11 +1570,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261124-0001-claudecode-cloud (a fresh read-only general-purpose subagent on sonnet, a model that wrote none of M05; the main session transcribed its verdict into [REVIEW-M05](reviews/REVIEW-M05.md): CHANGES_REQUIRED, 0 BLOCKER · 1 MAJOR · 7 MINOR · 7 NIT → FIX-M05-01..04)
 
 ### FIX-M05-01 · M · Factual accuracy (findings 1, 3, 4, 5, 10)
-- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Status: `done` · Deps: REVIEW-M05 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md` (§1 lambda vs anonymous class bullet and Version notes, §2 How it works and Version notes, Q05.17, Ex05.2 follow-up, §9 quote), possibly `labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CompiledFormTest.java` (finding 5), `SOURCES.md`, `_meta/reviews/REVIEW-M05.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: each finding verified in its source first (JDK 18 release note, JLS 25 §17.4.3/§17.4.5, `Stream.collect` Javadoc, `Stream` class Javadoc), then applied or recorded as rejected with evidence in REVIEW-M05 "Resolutions"; Standard checks rows 3 (if a test changed), 4, 5, 6.
-- Done by: —
+- Done by: S20261124-0601-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M05-02 · S · Sources, tags and status markers (findings 2, 6, 7, 9)
 - Status: `todo` · Deps: REVIEW-M05 · needs: none

@@ -88,3 +88,13 @@
 - No finding touches the §8 items Jorge approved (HOUSE-10); none is rejected.
 - Finding 5: per the plan's R3 rule, prefer changing the test to locate the body method through the call site's implementation handle. If that makes the test heavier than the claim is worth, reword the sentence.
 - Finding 12 is a readability finding (G1). Every claim keeps its basis tag when text is shortened.
+
+## Resolutions
+
+- **FIX-M05-01** (S20261124-0601-claudecode-cloud). Findings 1, 3, 4, 5 and 10 accepted, each checked in its source first:
+  - 1: JDK 18 release note "Enclosing Instance Fields Omitted from Inner Classes That Don't Use Them" (read with `curl`: unused `this$` fields omitted since JDK 18; "Subclasses of java.io.Serializable are not affected"). §1 bullet now says the anonymous class keeps the enclosing instance when its body uses it, with Doc and Lab tags; §1 Version notes gain a Java 18 line.
+  - 3: the quote is in `Stream.collect(Supplier, BiConsumer, BiConsumer)` (src.zip `Stream.java` line 1110), not in the package summary's `#MutableReduction` section; Q05.17 retagged `[Doc: Java 25 API, Stream]`.
+  - 4: JLS 25 page read with `curl`: "perceived atomically" sits in §17.4.3, the data-race definition in §17.4.5. The Ex05.2 follow-up now cites §17.4.5 for the definition, then "making the fields `volatile` removes the race but not the bug" with the quote tagged §17.4.3.
+  - 5: route chosen per the main-session note: `CompiledFormTest.lambdaBody_isInstanceMethod_onlyWhenItUsesThis` now finds each body through the call site's implementation handle (bootstrap argument 1) and also asserts the non-capturing body is `static`, so the §2 claim "the other two are `static`" is fully asserted. The §2 sentence now says the lab asserts only the prefix and locates bodies by call site, not by name.
+  - 10: src.zip `Stream.java` line 139 reads "do not actually need to be closed after use"; "actually" inserted in §9.
+

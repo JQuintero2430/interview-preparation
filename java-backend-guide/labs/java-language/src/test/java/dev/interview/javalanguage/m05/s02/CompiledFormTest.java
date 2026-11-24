@@ -4,16 +4,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.interview.javalanguage.m01.support.InMemoryCompiler;
 import dev.interview.javalanguage.m05.support.ClassFileView;
+import java.lang.classfile.MethodModel;
 import java.lang.classfile.instruction.InvokeDynamicInstruction;
 import java.lang.constant.ClassDesc;
 import java.lang.constant.ConstantDescs;
+import java.lang.constant.DirectMethodHandleDesc;
 import java.lang.reflect.AccessFlag;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-// The lambda$ prefix is a javac naming convention, not a specification: only the prefix is asserted.
+// The lambda$ prefix is a javac naming convention, not a specification: only the prefix is asserted, and the
+// static-or-instance test finds each body through its call site, not by name.
 class CompiledFormTest {
 
     private static final String METAFACTORY = "java.lang.invoke.LambdaMetafactory.metafactory";
@@ -85,12 +89,31 @@ class CompiledFormTest {
         var result = InMemoryCompiler.compile(Map.of("Shapes", THREE_CAPTURES));
         var view = ClassFileView.of(result.classes().get("Shapes"));
 
-        assertThat(view.firstMethodStartingWith("lambda$field"))
+        assertThat(lambdaBodyCalledFrom(view, "field"))
                 .hasValueSatisfying(
                         body -> assertThat(ClassFileView.flagsOf(body)).doesNotContain(AccessFlag.STATIC));
-        assertThat(view.firstMethodStartingWith("lambda$local"))
+        assertThat(lambdaBodyCalledFrom(view, "local"))
                 .hasValueSatisfying(
                         body -> assertThat(ClassFileView.flagsOf(body)).contains(AccessFlag.STATIC));
+        assertThat(lambdaBodyCalledFrom(view, "none"))
+                .hasValueSatisfying(
+                        body -> assertThat(ClassFileView.flagsOf(body)).contains(AccessFlag.STATIC));
+    }
+
+    // Finds the body through the call site's implementation handle (bootstrap argument 1 of metafactory),
+    // so the test does not depend on javac's lambda$<method>$<n> naming.
+    private static Optional<MethodModel> lambdaBodyCalledFrom(ClassFileView view, String enclosingMethod) {
+        return view.model().methods().stream()
+                .filter(method -> method.methodName().equalsString(enclosingMethod))
+                .flatMap(method -> method.code().stream())
+                .flatMap(code -> code.elementStream())
+                .filter(InvokeDynamicInstruction.class::isInstance)
+                .map(InvokeDynamicInstruction.class::cast)
+                .map(site -> (DirectMethodHandleDesc) site.bootstrapArgs().get(1))
+                .flatMap(handle -> view.model().methods().stream()
+                        .filter(method -> method.methodName().equalsString(handle.methodName())
+                                && method.methodType().equalsString(handle.lookupDescriptor())))
+                .findFirst();
     }
 
     @Test
