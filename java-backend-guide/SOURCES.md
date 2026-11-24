@@ -579,6 +579,7 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/UncheckedIOException.html
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#list(java.nio.file.Path)
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/BaseStream.html#onClose(java.lang.Runnable)
 - https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html#flatMap(java.util.function.Function)
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3
@@ -611,6 +612,10 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4.5
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Objects.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Properties.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NumberFormatException.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java
 
 ## 17 spring-transactions
 

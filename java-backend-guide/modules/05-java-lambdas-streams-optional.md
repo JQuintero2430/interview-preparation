@@ -2989,6 +2989,249 @@ Walk through it with a `last` shared by both runs: the left run emits `a` (share
 <!-- TASK: EX-M05-04 -->
 <a id="ex05-4"></a>
 ### Exercise 05.4 · A config loader: checked exceptions, results and `Optional`
+
+**Problem.** A service reads its settings at startup from every `*.properties` file of a configuration directory. The first version, `Files.list(dir).map(p -> load(p))`, did not compile, because `load` throws `IOException` ([§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams)); the quick fix wrapped everything in `new RuntimeException(e.getMessage())`. Three incidents followed. A half-copied file from a deployment stopped every instance with a message that named no file. A missing `pool.size` key failed with `NoSuchElementException: No value present` from an `Optional.get()`, which named no key ([§10](#10-optional-a-return-type-for-maybe-absent-results)). And the directory listing was never closed. Write `ConfigLoader.load(dir)`, which reports an outcome for every file instead of failing on the first bad one, and a `Config` whose lookups say what is missing, for a `@TempDir` holding good, undecodable and malformed files.
+
+**Constraints.** JDK only. Opening the directory may fail as a whole, and `load` declares that `IOException`; nothing a single file does may escape it. Catch only the exceptions a bad file can cause, so a bug in the loader (a `NullPointerException`, say) still propagates. No `Optional.get()` and no `isPresent()` followed by a read. Exception messages name the key, never the value, because a configuration value may be a password ([§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams), **Security**). Files are searched in file-name order, and the first file that has a key wins.
+
+**Acceptance criteria.**
+- [ ] (1) `load(dir)` returns every file's outcome as a sealed `Result` (success with the parsed `Properties`, or failure with the path and the cause); no exception escapes for a single bad file.
+- [ ] (2) The directory stream from `Files.list` is closed (an `onClose` probe, asserted).
+- [ ] (3) `find(key)` returns `Optional<String>` searching files in name order, empty when absent, without calling `get()`.
+- [ ] (4) `requiredInt(key)` throws a domain exception naming the key when absent or not a number, with the original cause kept.
+- [ ] (5) The default for a missing key is computed lazily (a counter shows the supplier runs only when the key is absent).
+
+<details><summary>Hint 1</summary>
+
+A test cannot see a file descriptor being released, but it can see a close handler run: `Stream.onClose` registers one. For that, the test must be able to hand the loader a stream it built itself, so the loader should not call `Files.list` directly. Which interface would `Files::list` fit, given that it throws `IOException`?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+Three methods of `Optional` take a `Supplier`, and each answers a different "what if it is absent": a default value computed on demand, another `Optional` to try, or an exception to throw. Which one fits `valueOr`, and which one fits `requiredInt`? `orElse` is none of them ([§10](#10-optional-a-return-type-for-maybe-absent-results)).
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Split the job at the point where failure changes meaning. Up to the directory listing, a failure means "there is no configuration", and it propagates. Per file, a failure is a fact to report, so it becomes a value. After loading, absence is a normal answer for `find`, and an error, with the key in the message, for `requiredInt`.
+1. **A port for the listing.** `DirectoryLister` is a one-method interface whose `list` declares `throws IOException`, so `Files::list` fits it while no `java.util.function` type would ([§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams)). The loader takes it in its constructor (a Strategy), `fromDisk()` passes `Files::list`, and the tests pass a stream with a close probe.
+2. **Close the directory.** The stream `Files.list` returns "contains a reference to an open directory", "the directory is closed by closing the stream", and the method "must be used within a try-with-resources statement or similar control structure" [Doc: Java 25 API, Files.list](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#list(java.nio.file.Path)). `load` opens it in a try-with-resources block, which closes it when the method returns and when an exception leaves it.
+3. **Fix the order.** The `Files.list` Javadoc says nothing about the order of entries [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java), so `load` sorts by file name, which makes "the first file wins" the same on every machine. `sorted` reads the whole listing before the first file is opened ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)), which is fine for a configuration directory.
+4. **One outcome per file.** `loadOne` opens the file with `Files.newBufferedReader`, which decodes UTF-8 and whose read methods "throw `IOException` if a malformed or unmappable byte sequence is read", and parses it with `Properties.load(Reader)`, which throws `IllegalArgumentException` "if a malformed Unicode escape appears in the input" and leaves the reader open [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java) [Src: JDK 25, java.util.Properties](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Properties.java). So the reader gets its own try-with-resources, and the method catches exactly `IOException | IllegalArgumentException` and returns `LoadResult.Failed(file, cause)`: the "result per element" of [§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams), with the path and the original exception.
+5. **`find`.** `Config.of` keeps the successful loads in order, with `mapMulti` emitting zero or one `Properties` per result ([§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect)). `find` maps each to `getProperty(key)`, filters out the `null`s and takes `findFirst()`. The filter must come first: `findFirst` throws `NullPointerException` "if the element selected is null" [Src: JDK 25, java.util.stream.Stream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Stream.java).
+6. **`valueOr` and `requiredInt`.** `valueOr` is `find(key).orElseGet(fallback)`, so the fallback runs only on a miss. `requiredInt` uses `orElseThrow(() -> ConfigException.missing(key))`, then `Integer.parseInt`, and turns a `NumberFormatException` into `ConfigException.notAnInteger(key, e)`, keeping it as the cause.
+
+```java
+package dev.interview.javalanguage.m05.ex4;
+
+import java.nio.file.Path;
+import java.util.Properties;
+
+/** Module 05 Ex05.4: the outcome of loading one file. A bad file is a value, so it cannot end the whole load. */
+public sealed interface LoadResult permits LoadResult.Loaded, LoadResult.Failed {
+
+    Path file();
+
+    record Loaded(Path file, Properties properties) implements LoadResult {}
+
+    record Failed(Path file, Exception cause) implements LoadResult {}
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/LoadResult.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/LoadResult.java)</sub>
+
+```java
+package dev.interview.javalanguage.m05.ex4;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Properties;
+import java.util.stream.Stream;
+
+/**
+ * Module 05 Ex05.4: reads every {@code *.properties} file of a directory, in file-name order, and reports one
+ * {@link LoadResult} per file instead of failing on the first bad one.
+ */
+public final class ConfigLoader {
+
+    /** Lists a directory's entries; it declares {@code IOException}, which {@code java.util.function} types cannot. */
+    @FunctionalInterface
+    public interface DirectoryLister {
+        Stream<Path> list(Path dir) throws IOException;
+    }
+
+    private final DirectoryLister lister;
+
+    public ConfigLoader(DirectoryLister lister) {
+        this.lister = lister;
+    }
+
+    public static ConfigLoader fromDisk() {
+        return new ConfigLoader(Files::list);
+    }
+
+    // Opening the directory can fail as a whole, so that IOException is declared; a bad file never escapes.
+    public List<LoadResult> load(Path dir) throws IOException {
+        try (Stream<Path> entries = lister.list(dir)) { // closes the open directory, on success and on failure
+            return entries.filter(ConfigLoader::isPropertiesFile)
+                    .sorted(Comparator.comparing(path -> path.getFileName().toString()))
+                    .map(ConfigLoader::loadOne)
+                    .toList();
+        }
+    }
+
+    private static boolean isPropertiesFile(Path path) {
+        return path.getFileName().toString().endsWith(".properties");
+    }
+
+    // The checked exception is caught inside the lambda's body and returned as data (§9, "a result per element").
+    private static LoadResult loadOne(Path file) {
+        try (Reader reader = Files.newBufferedReader(file)) {
+            Properties properties = new Properties();
+            properties.load(reader);
+            return new LoadResult.Loaded(file, properties);
+        } catch (IOException | IllegalArgumentException e) { // undecodable bytes, a vanished file, a bad Unicode escape
+            return new LoadResult.Failed(file, e);
+        }
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/ConfigLoader.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/ConfigLoader.java)</sub>
+
+```java
+package dev.interview.javalanguage.m05.ex4;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.function.Supplier;
+
+/** Module 05 Ex05.4: lookups over the files that loaded, earliest file name first. */
+public final class Config {
+
+    private final List<Properties> sources;
+
+    private Config(List<Properties> sources) {
+        this.sources = sources;
+    }
+
+    // Keeps the successful loads in their order; the failures are the caller's to report (load returned them).
+    public static Config of(List<LoadResult> results) {
+        List<Properties> loaded = results.stream()
+                .<Properties>mapMulti((result, sink) -> {
+                    if (result instanceof LoadResult.Loaded success) {
+                        sink.accept(success.properties()); // zero or one element per result (§6)
+                    }
+                })
+                .toList();
+        return new Config(loaded);
+    }
+
+    // Absent is a normal answer here, so the return type says so.
+    public Optional<String> find(String key) {
+        return sources.stream()
+                .map(properties -> properties.getProperty(key))
+                .filter(Objects::nonNull)
+                .findFirst();
+    }
+
+    // The fallback may be costly (a remote call, a computed path): orElseGet runs it only when the key is absent.
+    public String valueOr(String key, Supplier<String> fallback) {
+        return find(key).orElseGet(fallback);
+    }
+
+    // Absent or unparsable is an error for this caller: the exception names the key and keeps the cause.
+    public int requiredInt(String key) {
+        String raw = find(key).orElseThrow(() -> ConfigException.missing(key));
+        try {
+            return Integer.parseInt(raw.strip());
+        } catch (NumberFormatException e) {
+            throw ConfigException.notAnInteger(key, e);
+        }
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/Config.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/Config.java)</sub>
+
+```java
+package dev.interview.javalanguage.m05.ex4;
+
+/** Module 05 Ex05.4: a configuration value the application cannot run without is missing or unusable. */
+public final class ConfigException extends RuntimeException {
+
+    private final String key;
+
+    private ConfigException(String key, String message, Throwable cause) {
+        super(message, cause);
+        this.key = key;
+    }
+
+    static ConfigException missing(String key) {
+        return new ConfigException(key, "missing required key '" + key + "'", null);
+    }
+
+    // The message names the key only: the raw value may be a secret, and messages end up in logs.
+    static ConfigException notAnInteger(String key, NumberFormatException cause) {
+        return new ConfigException(key, "key '" + key + "' is not an integer", cause);
+    }
+
+    public String key() {
+        return key;
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/ConfigException.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex4/ConfigException.java)</sub>
+
+The test of criterion (2) for the hard case, a listing that fails after it was opened:
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex4/ConfigLoaderTest.java
+    @Test
+    @DisplayName("Ex05.4 · (2) the directory stream is closed when reading the directory itself fails midway")
+    void load_closesDirectoryStreamWhenListingFails() {
+        AtomicInteger closed = new AtomicInteger();
+        var failure = new UncheckedIOException(new IOException("directory became unreadable"));
+        var loader = new ConfigLoader(d -> Stream.concat(
+                        Files.list(d),
+                        Stream.<Path>generate(() -> {
+                                    throw failure;
+                                })
+                                .limit(1))
+                .onClose(closed::incrementAndGet));
+
+        assertThatExceptionOfType(UncheckedIOException.class)
+                .isThrownBy(() -> loader.load(dir))
+                .isSameAs(failure);
+        assertThat(closed).hasValue(1);
+    }
+```
+
+The lister's stream yields the real entries and then throws the way a directory read error does: `Files.list` wraps an `IOException` that happens "when accessing the directory after this method has returned" in an `UncheckedIOException`, thrown from the method that caused the access [Doc: Java 25 API, Files.list](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#list(java.nio.file.Path)). The exception leaves `load` unchanged, it is not one file's failure, and the close handler has still run once.
+
+**How each criterion is met** [Lab: ConfigLoaderTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex4/ConfigLoaderTest.java). The `@TempDir` holds `10-service.properties` and `20-shared.properties` (both valid, both defining `region`), `30-binary.properties` (the bytes `0xC3 0x28`, which are not valid UTF-8), `40-escape.properties` (`path=C:\u12`, an incomplete `\u` escape) and `notes.txt`.
+- (1) `Ex05.4 · (1) load returns one outcome per *.properties file, in name order, and throws for none`: four results, in file-name order, `notes.txt` left out, the first two `Loaded` with their values. `Ex05.4 · (1) a failure keeps its path and the original cause: bad bytes, a bad escape, a vanished file`: the binary file fails with a `MalformedInputException`, the escape with `IllegalArgumentException("Malformed \uxxxx encoding.")`, the message the JDK 25 source throws [Src: JDK 25, java.util.Properties](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Properties.java), and a path the lister names but that no longer exists (a file deleted between listing and reading) with a `NoSuchFileException`; each `Failed` carries its own path.
+- (2) `Ex05.4 · (2) the directory stream is closed after a load that had failing files`: an `onClose` counter reads 1 after a load with two failures. `Ex05.4 · (2) the directory stream is closed when reading the directory itself fails midway` is the excerpt above.
+- (3) `Ex05.4 · (3) find searches the loaded files in name order: the first file that has the key wins`: `region` comes from `10-service.properties` (`eu-west-1`), not from `20-shared.properties`; `retries`, which only the second file has, is found there; an absent key gives `Optional.empty()`. `Ex05.4 · (3) the code under test never calls Optional.get()` reads the four source files of `m05/ex4` and asserts that none contains `.get()`.
+- (4) `Ex05.4 · (4) requiredInt throws a ConfigException naming a missing key`: `pool.size` parses to 8; `max.connections` throws with the message `missing required key 'max.connections'`, `key()` returning the key, and no cause, since nothing failed underneath. `Ex05.4 · (4) requiredInt throws a ConfigException naming the key, with the NumberFormatException as cause`: `retries=three` throws `key 'retries' is not an integer`, with the `NumberFormatException` as the cause.
+- (5) `Ex05.4 · (5) the default supplier runs only when the key is absent`: the counter stays at 0 for the present `timeout.ms` and reaches 1 for the absent `cache.ttl`, whose value is the supplier's.
+
+**Alternative approach:** fail fast. `load` maps each path through §9's `CheckedFunction.unchecked(...)` adapter and lets the first `UncheckedIOException` end the load. **Trade-offs:** for configuration, stopping the service is often the right final decision, since a service with half its settings should not take traffic; the question is where that decision lives. Fail-fast makes it inside the loader, and reports only the first bad file, so a deployment with three broken files needs three failed restarts to find them all. Returning outcomes lets the caller report every bad file at once and then decide to stop (see the first follow-up), or to start with a warning when a file is optional. Fail-fast is shorter and fine for a single file. In a Spring Boot application, this job belongs to the framework's externalized configuration and `@ConfigurationProperties` binding ([20](20-spring-boot-autoconfiguration-and-config.md)); the exercise is the language-level mechanism under any such loader.
+
+**Interviewer follow-ups.**
+- *The service must not start if any file failed. Where does that check go, and what should it report?* In the startup code, after `load`, not inside it: collect the `Failed` results, and if there are any, throw one exception whose message lists the paths and that carries each cause through `addSuppressed` (on `Throwable` since Java 7 [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java)), so one log entry shows every broken file and its stack trace. `load`'s contract stays "an outcome per file", and a tool that only validates a directory can reuse it.
+- *The `NumberFormatException` is kept as the cause. Does that leak a secret?* It can. `ConfigException`'s own message names only the key, but `Integer.parseInt` builds its exception with `"For input string: \"" + s + "\""` [Src: JDK 25, java.lang.NumberFormatException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NumberFormatException.java), so a logged stack trace prints the raw value in the "Caused by" line. For keys that may hold secrets (anything under `*.password` or `*.token`), throw without the cause, or with a cause whose message is replaced, and accept that the parse detail is lost; for ordinary settings, the cause is worth keeping.
+- *Why catch `IOException | IllegalArgumentException` and not `Exception`?* Those are the two failures a bad file can produce, from the reader and from `Properties.load` (step 4). Catching `Exception` would also turn the loader's own bugs, a `NullPointerException` or a `ClassCastException`, into "this file is bad", and the incident would be investigated as a deployment problem. The same rule as §9: wrap or return what you expect, let the rest propagate.
+- *Why not return `Optional<Properties>` per file instead of a sealed result?* An empty `Optional` says "nothing" but not why: the path and the cause, which are the whole point of a failure report, would be lost. `Optional` is "primarily intended for use as a method return type where there is a clear need to represent 'no result'" [Doc: Java 25 API, Optional](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html), which is `find`'s situation; a failed load is a result with information, which is what a sealed type with a `Failed` record carries ([07](07-java-modern-language-features.md)).
+
+**Tests:** [ConfigLoaderTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex4/ConfigLoaderTest.java).
+
+</details>
 <!-- /TASK: EX-M05-04 -->
 
 ## Check your understanding
