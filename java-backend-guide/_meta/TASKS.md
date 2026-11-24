@@ -1563,10 +1563,38 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261124-0001-claudecode-cloud (claude-opus-5-5)
 
 ### REVIEW-M05 · L
-- Status: `in_progress` · Deps: CLOSE-M05 · needs: none
+- Status: `done` · Deps: CLOSE-M05 · needs: none
 - Files touched: `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: RUN.md §4 (independent review); the module file; [M05](modules/M05.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: run in a session different from every `Done by` of M05's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M05; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection.
+- Done by: S20261124-0001-claudecode-cloud (a fresh read-only general-purpose subagent on sonnet, a model that wrote none of M05; the main session transcribed its verdict into [REVIEW-M05](reviews/REVIEW-M05.md): CHANGES_REQUIRED, 0 BLOCKER · 1 MAJOR · 7 MINOR · 7 NIT → FIX-M05-01..04)
+
+### FIX-M05-01 · M · Factual accuracy (findings 1, 3, 4, 5, 10)
+- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Files touched: `modules/05-java-lambdas-streams-optional.md` (§1 lambda vs anonymous class bullet and Version notes, §2 How it works and Version notes, Q05.17, Ex05.2 follow-up, §9 quote), possibly `labs/java-language/src/test/java/dev/interview/javalanguage/m05/s02/CompiledFormTest.java` (finding 5), `SOURCES.md`, `_meta/reviews/REVIEW-M05.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: each finding verified in its source first (JDK 18 release note, JLS 25 §17.4.3/§17.4.5, `Stream.collect` Javadoc, `Stream` class Javadoc), then applied or recorded as rejected with evidence in REVIEW-M05 "Resolutions"; Standard checks rows 3 (if a test changed), 4, 5, 6.
+- Done by: —
+
+### FIX-M05-02 · S · Sources, tags and status markers (findings 2, 6, 7, 9)
+- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Files touched: `modules/05-java-lambdas-streams-optional.md`, `SOURCES.md` (05 block), possibly `labs/java-language/src/test/java/dev/interview/javalanguage/m05/s03/MethodReferenceRulesTest.java` (9: the ambiguity clause), `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: the jcmd URL in the 05 block; status markers at first body mention (STYLE-GUIDE §4.2); each listed paragraph carries a tag that supports it; unsupported clauses dropped or tagged; Standard checks rows 3 (if a test changed), 4, 5, 6.
+- Done by: —
+
+### FIX-M05-03 · M · Terms, answer order and repetition (findings 8, 11, 12)
+- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Files touched: `modules/05-java-lambdas-streams-optional.md`, `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: every term in finding 8 glossed or linked at first use; Q05.27 and Q05.30 follow D1 order; the repetitions in finding 12 replaced by links, every remaining claim keeping its tag; rows 5, 6.
+- Done by: —
+
+### FIX-M05-04 · S · Exercise wording and §7 security item (findings 13, 14, 15)
+- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Files touched: `modules/05-java-lambdas-streams-optional.md` (Ex05.1 Constraints, Ex05.4 criterion (4), §7 Best practices), `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: the wording fixes applied (E2 mapping unchanged); one §7 `**Security:**` item; rows 5, 6.
 - Done by: —
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
