@@ -619,6 +619,35 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4.3
 
+## 06 java-exceptions-strings-io
+
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.1.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.1.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.1.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.18
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.6
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.1.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.6
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.3
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.7.5
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/runtime/globals.hpp
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Error.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Exception.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/MatchException.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/RuntimeException.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java
+- https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/dao/DataAccessException.java
+- https://kotlinlang.org/docs/exceptions.html
+- https://openjdk.org/jeps/358
+- https://www.oracle.com/java/technologies/javase/15-relnote-issues.html
+
 ## 17 spring-transactions
 
 - https://github.com/spring-projects/spring-boot/blob/v4.1.2/module/spring-boot-jdbc/src/main/java/org/springframework/boot/jdbc/autoconfigure/DataSourceTransactionManagerAutoConfiguration.java
