@@ -1563,7 +1563,7 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261124-0001-claudecode-cloud (claude-opus-5-5)
 
 ### REVIEW-M05 · L
-- Status: `todo` · Deps: CLOSE-M05 · needs: none
+- Status: `in_progress` · Deps: CLOSE-M05 · needs: none
 - Files touched: `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: RUN.md §4 (independent review); the module file; [M05](modules/M05.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: run in a session different from every `Done by` of M05's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M05; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection.
