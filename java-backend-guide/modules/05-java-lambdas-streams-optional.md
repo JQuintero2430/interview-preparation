@@ -441,7 +441,6 @@ A method reference fails the way the method it names fails; the one failure of i
 Questions that drill this section: [Q05.07](#q05-07), [Q05.08](#q05-08).
 
 ## 4. Stream pipelines: laziness, short-circuiting and encounter order
-<!-- TASK: SEC-M05-04 -->
 ### The problem it solves
 
 A reminder service had a helper that, in review, looked finished: `void remindAll(List<User> users) { users.stream().filter(User::isDue).map(notifier::send); }`. It compiled, the unit test that only checked "no exception" passed, and in production not one reminder went out. The pipeline had no terminal operation, so neither `isDue` nor `send` ever ran. A month later a second job paged through an external API with `Stream.iterate(firstPage, Page::next).filter(p -> p.contains(id)).findFirst()`; when an `id` was missing from every page, the job never returned and held its worker thread until someone restarted it. Both bugs come from the same idea: a stream does nothing until a terminal operation asks for elements, and then it asks for exactly as many as that operation needs. Interviews probe this with evaluation-order puzzles because the order in which lambdas run, and whether they run at all, follows from it.
@@ -579,10 +578,8 @@ The third is memory on finite but large streams: `sorted` holds its whole input 
 - *"Adding `limit` makes any pipeline cheap."* A `limit` after `sorted` still lets `sorted` read the whole input; it bounds only what comes after it [Lab: StatefulOperationsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s04/StatefulOperationsTest.java). The intuition comes from `limit` on an infinite `iterate`, where nothing upstream buffers.
 
 Questions that drill this section: [Q05.09](#q05-09), [Q05.10](#q05-10), [Q05.11](#q05-11), [Q05.12](#q05-12), [Q05.13](#q05-13).
-<!-- /TASK: SEC-M05-04 -->
 
 ## 5. Collectors: `toMap`, `groupingBy`, `teeing` and writing your own
-<!-- TASK: SEC-M05-05 -->
 ### The problem it solves
 
 An identity service built its user index at startup with `users.stream().collect(Collectors.toMap(User::email, Function.identity()))`. It ran for months. Then a data migration left two accounts with the same e-mail address, and the next deployment failed to start with `IllegalStateException: Duplicate key …`, whose message also printed both user records into the startup log. A week later a reporting endpoint grouped orders with `groupingBy(Order::region)`, and its output began to change order from one release to the next, because the code had been relying on an iteration order that `groupingBy` never promised. Collectors are where most real stream code does its work, and their contracts (what a duplicate key does, which map you get, what an empty group looks like) are exactly what these two teams had guessed.
@@ -721,10 +718,8 @@ Under load, the cost of grouping is memory and merging. `groupingBy` holds one c
 - *"The combiner runs in every `collect`."* A sequential `collect` uses one container and never calls it [Lab: CustomCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s05/CustomCollectorTest.java). The assumption comes from the four-function signature, which suggests all four always run; it is why a wrong combiner goes unnoticed.
 
 Questions that drill this section: [Q05.14](#q05-14), [Q05.15](#q05-15), [Q05.16](#q05-16); exercises [Exercise 05.1](#ex05-1), [Exercise 05.2](#ex05-2).
-<!-- /TASK: SEC-M05-05 -->
 
 ## 6. Primitive streams, `flatMap`, `mapMulti` and `reduce` vs `collect`
-<!-- TASK: SEC-M05-06 -->
 ### The problem it solves
 
 A billing job summed invoice lines with `lines.stream().map(Line::amountCents).reduce(0, Integer::sum)`. It was correct, and in a profile it allocated an `Integer` for nearly every line, because most amounts fall outside the small range of values Java keeps boxed in advance. A later change made it `parallelStream()` and, to apply a fixed fee, changed the seed from `0` to the fee: the total came out a different, larger number on almost every run. A third developer gathered results with `reduce(new ArrayList<>(), …)` because `reduce` "is how you fold a stream", and the parallel version returned lists with duplicated elements. All three bugs come from the same gap: not knowing which reduction a stream offers, what each one requires of its arguments, and where the boxing happens.
@@ -892,10 +887,8 @@ The expansion operators fail on size. `flatMap` over a lazy inner stream feeds i
 - *"`mapMulti` is always faster than `flatMap`."* The Javadoc recommends it for small expansions and imperative generation only; it has no early stop, so under a short-circuiting terminal it can do more work than `flatMap` [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html) [Lab: FlatMapAndMapMultiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s06/FlatMapAndMapMultiTest.java). The myth comes from reading only the first of its two "preferable" cases.
 
 Questions that drill this section: [Q05.17](#q05-17), [Q05.18](#q05-18), [Q05.19](#q05-19), [Q05.20](#q05-20); exercise [Exercise 05.1](#ex05-1).
-<!-- /TASK: SEC-M05-06 -->
 
 ## 7. Stream gatherers
-<!-- TASK: SEC-M05-07 -->
 ### The problem it solves
 
 A monitoring service read sensor values as a stream and had to raise an alert when the average of every five consecutive readings crossed a threshold. Nothing among `map`, `filter`, `distinct`, `sorted` and `limit` looks at a group of consecutive elements, so the team wrote a custom `Collector` that built the windows, which forced the whole input into memory and could not work on the live, unbounded feed at all, and then post-processed the collector's result with a second stream. The same gap shows up for running totals, "drop a value when it repeats the previous one", batching requests in groups of 100, and "take items until a budget is spent". Before Java 24 each of these needed a collector plus post-processing, a hand-written `Spliterator`, or a loop outside the stream. A *gatherer* is the missing piece: a user-defined intermediate operation, with its own state, that can stop the stream early and works on infinite input.
@@ -1006,7 +999,6 @@ Memory: a window holds `n` elements, and the `windowFixed` and `windowSliding` J
 - *"`mapConcurrent` returns results in completion order."* It "preserves the ordering of the stream" [Doc: Java 25 API, Gatherers](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html) [Lab: MapConcurrentTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s07/MapConcurrentTest.java). The expectation comes from `CompletionService` and reactive `flatMap`, which do emit in completion order.
 
 Questions that drill this section: [Q05.21](#q05-21), [Q05.22](#q05-22); exercise [Exercise 05.3](#ex05-3).
-<!-- /TASK: SEC-M05-07 -->
 
 ## 8. Parallel streams and the common `ForkJoinPool`
 ### The problem it solves
@@ -1127,7 +1119,6 @@ What to configure and observe. The only setting is the common pool's parallelism
 Questions that drill this section: [Q05.18](#q05-18), [Q05.23](#q05-23), [Q05.24](#q05-24), [Q05.25](#q05-25); exercise [Exercise 05.2](#ex05-2).
 
 ## 9. Checked exceptions and resources in lambdas and streams
-<!-- TASK: SEC-M05-09 -->
 ### The problem it solves
 
 A log-processing job reads every file in a directory and counts the lines that contain `ERROR`. The loop version compiles and works. Rewritten as a stream, `paths.stream().map(p -> Files.readString(p))` does not compile, because `readString` throws `IOException` and `Function.apply` declares nothing. The quick fixes that make the error go away each break something else: a `catch` that logs and returns an empty string hides missing files, a bare `RuntimeException` hides what kind of failure happened, and a helper that "sneaks" the exception past the compiler leaves callers unable to catch it. Then the job runs for a week and dies with "Too many open files", because the stream returned by `Files.lines` holds an open file until someone closes it. Checked exceptions and resources are where the stream API meets real I/O, and both need a deliberate choice, not the first thing that compiles.
@@ -1262,10 +1253,8 @@ The fourth is diagnosis across threads. An exception from a parallel pipeline ma
 - *"`Files.lines` only throws `IOException` when the file cannot be opened."* That is the only checked exception it declares; read errors and malformed input later surface as `UncheckedIOException` from whichever stream method caused the read [Doc: Java 25 API, Files.lines](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/file/Files.html#lines(java.nio.file.Path)) [Lab: StreamClosingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s09/StreamClosingTest.java). The signature encourages the belief: a single `throws IOException` reads as the method's full list of failures.
 
 Questions that drill this section: [Q05.26](#q05-26), [Q05.27](#q05-27); exercise [Exercise 05.4](#ex05-4).
-<!-- /TASK: SEC-M05-09 -->
 
 ## 10. `Optional`: a return type for maybe-absent results
-<!-- TASK: SEC-M05-10 -->
 ### The problem it solves
 
 A method `Customer findByEmail(String email)` returns `null` when nobody has that address. Its signature says nothing about that, so one caller checks for `null`, another does not, and the second one throws `NullPointerException` three calls later, in code that never mentioned the lookup. Javadoc comments ("returns null if not found") help only the people who read them. `Optional<T>` moves the "maybe absent" into the return type itself: the caller cannot reach the `Customer` without first deciding what happens when there is none. It also gives that decision a vocabulary (a default, a fallback lookup, an exception that names what was missing) that fits in one expression and chains with the stream operations of the previous sections.
@@ -1377,15 +1366,16 @@ The third is serialization: an `Optional` field in a class that is serialized wi
 - *"`map` with a function that returns `null` gives `Optional.of(null)`."* An `Optional` cannot hold `null`; `map` returns an empty `Optional` when the function's result is `null` [Doc: Java 25 API, Optional.map](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html#map(java.util.function.Function)) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java). The confusion comes from `Stream.map`, which passes a `null` result through as an element (in the lab, `Stream.of("a").map(s -> null).toList()` holds one `null`) [Lab: OptionalSemanticsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/s10/OptionalSemanticsTest.java).
 
 Questions that drill this section: [Q05.28](#q05-28), [Q05.29](#q05-29), [Q05.30](#q05-30); exercise [Exercise 05.4](#ex05-4).
-<!-- /TASK: SEC-M05-10 -->
 
 ## Summary
-<!-- TASK: CLOSE-M05 -->
-<!-- /TASK: CLOSE-M05 -->
+A lambda has no type of its own: it takes one from its target, a functional interface with exactly one abstract method, where default and static methods and redeclared public `Object` methods do not count, and `@FunctionalInterface` only asks the compiler to check that. Inside a lambda, `this` is the enclosing instance and names follow the enclosing scope, unlike an anonymous class, and `andThen` and `compose` apply their functions in opposite orders ([§1](#1-functional-interfaces-and-lambda-expressions)). javac compiles the body to a private synthetic method and an `invokedynamic` instruction; on first execution `LambdaMetafactory` spins a hidden class, the captured values become the call site's arguments, and a lambda's identity is unspecified. Captured locals must be effectively final because their values are copied, and an `int[]` or `AtomicInteger` workaround brings back the shared mutable state the rule keeps out ([§2](#2-how-lambdas-compile-and-capture-invokedynamic-and-effectively-final)). A method reference is a lambda whose body is one call; its four kinds differ in who supplies the receiver, and a bound reference evaluates its receiver once, so `holder::get` throws on a `null` holder where the equivalent lambda would throw only when called ([§3](#3-method-references)).
+
+A stream conveys elements from its source and stores none. Intermediate operations only build linked stages; the terminal operation pulls each element through every stateless stage before reading the next, stateful stages such as `sorted` are barriers, short-circuiting lets an infinite source finish, `peek` may not run at all, and a stream can be consumed only once ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)). A collector is four functions, supplier, accumulator, combiner and finisher, bound by identity and associativity constraints and by truthful characteristics; a sequential `collect` never calls the combiner, the two-argument `toMap` throws on a duplicate key and on a `null` value, and `partitioningBy` always has both keys ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)). Primitive streams exist to avoid boxing and own `sum` and `average`; `flatMap` closes each mapped stream, `mapMulti` pushes zero or more elements; `reduce` folds immutable values from an identity that seeds every chunk, so `reduce(10, Integer::sum)` adds 10 once per chunk in parallel, while `collect` fills a fresh container per chunk ([§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect)). A gatherer, final since Java 24, is a user-defined intermediate operation: state from an initializer, an integrator that pushes zero or more elements and can stop the stream, an optional combiner and a finisher; the built-ins are `windowFixed`, `windowSliding`, `scan`, `fold` and `mapConcurrent`, and `mapConcurrent` keeps encounter order ([§7](#7-stream-gatherers)).
+
+A parallel stream splits its source with a `Spliterator` and runs on the common `ForkJoinPool`, `availableProcessors() - 1` workers plus the calling thread, shared with every default-executor `CompletableFuture`; ordered results stay in encounter order, `forEach` does not, and blocking calls in a parallel stream starve unrelated work in the same JVM ([§8](#8-parallel-streams-and-the-common-forkjoinpool)). A lambda cannot throw a checked exception that its functional method does not declare, and none in `java.util.function` declares one; the workarounds, best first, are wrapping with the cause kept (`UncheckedIOException` for I/O), a project interface plus one adapter, a result value per element, and, last, sneaky throw. A terminal operation does not close a stream: `Files.lines`, `Files.list` and `Files.walk` need try-with-resources, and catching, logging and returning a default inside a lambda hides failures ([§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams)). `Optional` is a return type for "no result", never itself `null`, not a field or a parameter, and not `Serializable`; `orElse` evaluates its argument even when a value is present while `orElseGet`, `or` and `orElseThrow(Supplier)` run only when it is empty, and `orElseThrow` with an exception that names the key beats `get()`'s "No value present" ([§10](#10-optional-a-return-type-for-maybe-absent-results)).
 
 ## Question bank
 
-<!-- TASK: QB-M05-01 -->
 <a id="q05-01"></a>
 ### Q05.01 · Concept · What makes an interface functional: one abstract method, and why default, static and `Object` methods do not count
 <!-- ledger: honeywell-optum-md-01-09 -->
@@ -1650,9 +1640,6 @@ The lambda only captures the value of `holder` (`null`) and dereferences it when
 
 </details>
 
-<!-- /TASK: QB-M05-01 -->
-
-<!-- TASK: QB-M05-02 -->
 <a id="q05-09"></a>
 ### Q05.09 · Concept · Anatomy of a stream pipeline: source, intermediate and terminal operations, and who pulls the elements
 <!-- ledger: honeywell-optum-md-01-09 -->
@@ -1993,9 +1980,6 @@ Explain the four functions of a `Collector` and its characteristics. What goes w
 
 </details>
 
-<!-- /TASK: QB-M05-02 -->
-
-<!-- TASK: QB-M05-03 -->
 <a id="q05-17"></a>
 ### Q05.17 · Difference · `reduce` vs `collect`: immutable vs mutable reduction, identity and associativity
 
@@ -2259,9 +2243,6 @@ So to the teammate: keep streams sequential by default; make a nightly CPU-bound
 
 </details>
 
-<!-- /TASK: QB-M05-03 -->
-
-<!-- TASK: QB-M05-04 -->
 <a id="q05-25"></a>
 ### Q05.25 · Production scenario · After a report endpoint switches to `parallelStream()` with an HTTP call per element, unrelated async work across the service slows down
 
@@ -2504,11 +2485,8 @@ In the lab, `seats("newco")` throws `PlanNotFoundException: no billing plan for 
 
 </details>
 
-<!-- /TASK: QB-M05-04 -->
-
 ## Hands-on exercises
 
-<!-- TASK: EX-M05-01 -->
 <a id="ex05-1"></a>
 ### Exercise 05.1 · An order report with collectors
 
@@ -2621,9 +2599,7 @@ The three records are one line each: [`Order`](../labs/java-language/src/main/ja
 **Tests:** [OrderReportTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex1/OrderReportTest.java).
 
 </details>
-<!-- /TASK: EX-M05-01 -->
 
-<!-- TASK: EX-M05-02 -->
 <a id="ex05-2"></a>
 ### Exercise 05.2 · A custom `Collector` that is correct in parallel
 
@@ -2800,9 +2776,7 @@ The tests call the collector's functions through helpers that capture its contai
 **Tests:** [StatsCollectorTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex2/StatsCollectorTest.java).
 
 </details>
-<!-- /TASK: EX-M05-02 -->
 
-<!-- TASK: EX-M05-03 -->
 <a id="ex05-3"></a>
 ### Exercise 05.3 · A gatherer: deduplicate consecutive elements and batch them
 
@@ -2984,9 +2958,7 @@ Walk through it with a `last` shared by both runs: the left run emits `a` (share
 **Tests:** [Gatherers2Test](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex3/Gatherers2Test.java).
 
 </details>
-<!-- /TASK: EX-M05-03 -->
 
-<!-- TASK: EX-M05-04 -->
 <a id="ex05-4"></a>
 ### Exercise 05.4 · A config loader: checked exceptions, results and `Optional`
 
@@ -3232,12 +3204,80 @@ The lister's stream yields the real entries and then throws the way a directory 
 **Tests:** [ConfigLoaderTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex4/ConfigLoaderTest.java).
 
 </details>
-<!-- /TASK: EX-M05-04 -->
 
 ## Check your understanding
-<!-- TASK: CLOSE-M05 -->
-<!-- /TASK: CLOSE-M05 -->
+**Explain it back.**
+1. To a colleague who calls lambdas "shorter anonymous classes": what javac writes for a lambda, what happens the first time its `invokedynamic` instruction runs, and why `this` means something different in each.
+2. To a teammate fighting "local variables referenced from a lambda must be final or effectively final": why captured locals are copied, why a write after the lambda is rejected too, and why the one-element-array workaround is a trap.
+3. To a new hire puzzled by the order in which `peek` records calls: what a terminal operation starts, why elements travel one at a time through stateless stages, what `sorted` changes, and how `findFirst` stops an infinite `Stream.iterate`.
+4. To a reviewer approving a hand-written `Collector`: the four functions, the identity and associativity constraints, why sequential tests never exercise the combiner, and how `reduce` differs from `collect`.
+5. To an engineer who wants `parallelStream()` on an endpoint that makes one HTTP call per element: how the work is split, whose threads run it, and what else in the service slows down.
+6. To a developer whose loader wraps every `IOException` in `new RuntimeException(e.getMessage())` and calls `Optional.get()`: what each choice loses, which stream must be closed, and what to write instead.
+
+**Flashcards.**
+
+<details><summary>Is <code>Comparator</code> a functional interface, although it declares <code>equals</code> as well as <code>compare</code>?</summary>
+
+Yes: a redeclared public `Object` method does not count, so `compare` is its only abstract method ([Q05.01](#q05-01)).
+
+</details>
+
+<details><summary>Why does <code>var f = x -&gt; x;</code> not compile?</summary>
+
+A lambda takes its type from its target, and `var` supplies no target type ([Q05.02](#q05-02)).
+
+</details>
+
+<details><summary>Inside a lambda, what does <code>this</code> refer to? Inside an anonymous class?</summary>
+
+The enclosing instance; the anonymous class's own instance ([Q05.03](#q05-03)).
+
+</details>
+
+<details><summary>Which runs first in <code>f.andThen(g)</code>? In <code>f.compose(g)</code>?</summary>
+
+`f` in `andThen`; `g` in `compose` ([Q05.04](#q05-04)).
+
+</details>
+
+<details><summary><code>holder</code> is <code>null</code>. Where does <code>Supplier&lt;String&gt; s = holder::get;</code> throw, and where does <code>() -&gt; holder.get()</code>?</summary>
+
+The method reference throws `NullPointerException` where it is evaluated; the lambda throws only when `s.get()` is called ([Q05.08](#q05-08)).
+
+</details>
+
+<details><summary>A pipeline with <code>filter</code>, <code>map</code> and <code>peek</code> but no terminal operation: how many elements does it process?</summary>
+
+None: intermediate operations only build stages, and traversal starts with the terminal operation ([Q05.10](#q05-10)).
+
+</details>
+
+<details><summary>What does the two-argument <code>Collectors.toMap</code> do with a duplicate key? With a <code>null</code> value?</summary>
+
+Throws `IllegalStateException` for the duplicate key and `NullPointerException` for the `null` value; a merge function handles duplicates ([Q05.14](#q05-14)).
+
+</details>
+
+<details><summary>Why can <code>reduce(10, Integer::sum)</code> give a larger total on a parallel stream?</summary>
+
+The first argument is the identity and seeds every chunk, so the 10 is added once per chunk; the identity of `+` is 0 ([Q05.18](#q05-18)).
+
+</details>
+
+<details><summary>What do <code>windowFixed(2)</code> and <code>windowSliding(2)</code> give over <code>1..5</code>?</summary>
+
+`[[1, 2], [3, 4], [5]]` and `[[1, 2], [2, 3], [3, 4], [4, 5]]` ([Q05.22](#q05-22)).
+
+</details>
+
+<details><summary>How many times does <code>loadDefault()</code> run in <code>find(key).orElse(loadDefault())</code> when the key is present?</summary>
+
+Once: the argument is evaluated before `orElse` runs; `orElseGet(this::loadDefault)` would not call it ([Q05.29](#q05-29)).
+
+</details>
 
 ## Connections
-<!-- TASK: CLOSE-M05 -->
-<!-- /TASK: CLOSE-M05 -->
+- **Builds on:** [03. Generics and type erasure § 2. Generic types, generic methods and type inference](03-java-generics.md#2-generic-types-generic-methods-and-type-inference), because target typing in [§1](#1-functional-interfaces-and-lambda-expressions) is inference from the context, and a lambda's parameter types come from it; [§ 4. Wildcards, PECS and variance](03-java-generics.md#4-wildcards-pecs-and-variance) and [§ 8. Reading generic signatures in the JDK](03-java-generics.md#8-reading-generic-signatures-in-the-jdk), because every stream and collector signature reads `Function<? super T, ? extends R>`, and [Exercise 05.2](#ex05-2)'s test helpers capture a wildcard; [04. Collections internals § 1. The Collections Framework](04-java-collections-internals.md#1-the-collections-framework-interfaces-contracts-and-sequenced-collections), because collections are the usual stream source and target, [§ 7. Iterators](04-java-collections-internals.md#7-iterators-fail-fast-weakly-consistent-and-snapshot), because the non-interference rule of [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order) is the stream form of fail-fast iteration, and [§ 8. Immutable, unmodifiable and fixed-size lists](04-java-collections-internals.md#8-immutable-unmodifiable-and-fixed-size-lists), for what `toList()` and the `Collectors` list factories return; [01 § 11. Nested types](01-java-oop-fundamentals.md#11-nested-types), because the anonymous class is what a lambda is compared with in [Q05.03](#q05-03); [02 § 4. Ordering](02-java-equality-immutability-records.md#4-ordering-comparable-and-comparator), because `Comparator` is the functional interface most method references in [§3](#3-method-references) target, and [§ 8. Value-based classes](02-java-equality-immutability-records.md#8-value-based-classes-and-identity), because `Optional` is one.
+- **Read next:** [06. Exceptions, strings and I/O](06-java-exceptions-strings-io.md), because the checked exceptions, `UncheckedIOException` and try-with-resources that [§9](#9-checked-exceptions-and-resources-in-lambdas-and-streams) works around are taught there in full; [07. Modern language features](07-java-modern-language-features.md), because the sealed interfaces and records behind `Result`, `Stats` and `LoadResult` ([Exercise 05.2](#ex05-2), [Exercise 05.4](#ex05-4)) and the pattern matching that consumes them are its subject; [13. Executors and `CompletableFuture`](13-concurrency-executors-and-completablefuture.md), because the common `ForkJoinPool` of [§8](#8-parallel-streams-and-the-common-forkjoinpool), work stealing and `CompletableFuture` chains of lambdas continue there.
+- **Uses these ideas later:** [11. Threads and the JMM](11-concurrency-threads-and-jmm.md) (why a `CONCURRENT` collector over plain fields, [Exercise 05.2](#ex05-2), is a data race); [12. Locks, atomics and concurrent collections](12-concurrency-locks-atomics-collections.md) (`LongAdder` and the concurrent maps a concurrent collector needs, and the blocking queue a time-bounded batch needs, [Exercise 05.3](#ex05-3)); [14. Virtual threads](14-concurrency-virtual-threads.md) (the virtual threads under `mapConcurrent` in [§7](#7-stream-gatherers)); [19. Reactive Spring with WebFlux](19-spring-reactive-webflux.md) (push-based streams with back-pressure, against the pull-based, single-use `java.util.stream` of [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)); [20. Boot auto-configuration and configuration](20-spring-boot-autoconfiguration-and-config.md) (the framework's version of [Exercise 05.4](#ex05-4)'s loader); [51. Design principles and patterns](51-design-principles-and-patterns.md) (Strategy and Command written as lambdas).
+- **Comparisons:** [Angular guide, 02. Scope, closures and `this` § 3. Closures](../../angular-fullstack-guide/modules/02-js-scope-closures-this.md#3-closures), where a JavaScript closure holds "variables, not snapshots" and sees later changes, against the copied, effectively final locals of [§2](#2-how-lambdas-compile-and-capture-invokedynamic-and-effectively-final); [§ 4. How this is bound](../../angular-fullstack-guide/modules/02-js-scope-closures-this.md#4-how-this-is-bound), where an arrow function takes `this` from its enclosing scope, as a Java lambda does in [§1](#1-functional-interfaces-and-lambda-expressions); [Angular guide, 22. RxJS foundations § 1. Push collections](../../angular-fullstack-guide/modules/22-rxjs-foundations.md#1-push-collections-observables-promises-iterators-and-laziness), for a lazy, push-based Observable next to the lazy, pull-based stream of [§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order).

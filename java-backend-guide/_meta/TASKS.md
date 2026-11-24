@@ -1556,11 +1556,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261124-0001-claudecode-cloud (claude-opus-5-5)
 
 ### CLOSE-M05 · M
-- Status: `todo` · Deps: every SEC, QB and EX task of M05 · needs: none
+- Status: `done` · Deps: every SEC, QB and EX task of M05 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md` (the three `CLOSE-M05` regions: Summary, Check your understanding, Connections), `PROGRESS.md` (row 05), `_meta/sources/*.md` (status `written` for every primary row of M05 §3), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: the whole module; [M05](modules/M05.md) §2, §3; STYLE-GUIDE §2.3, §9; [QUALITY-BAR](QUALITY-BAR.md) (all items).
 - Acceptance: QUALITY-BAR F1–F4 and every other item checked with its command, one line per item in the LOG; `grep -c 'TASK:' modules/05-java-lambdas-streams-optional.md` prints 0; every ledger row of M05 §3 whose primary target is 05 is `written` with its question or section; Standard checks row 8 (full build, `-DexcludedGroups=docker` if Docker is absent) plus rows 4, 5, 6; module-stats row 05 has no flag.
-- Done by: —
+- Done by: S20261124-0001-claudecode-cloud (claude-opus-5-5)
 
 ### REVIEW-M05 · L
 - Status: `todo` · Deps: CLOSE-M05 · needs: none
