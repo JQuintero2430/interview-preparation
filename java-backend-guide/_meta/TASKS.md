@@ -1584,11 +1584,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261124-0601-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M05-03 · M · Terms, answer order and repetition (findings 8, 11, 12)
-- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Status: `done` · Deps: REVIEW-M05 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md`, `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: every term in finding 8 glossed or linked at first use; Q05.27 and Q05.30 follow D1 order; the repetitions in finding 12 replaced by links, every remaining claim keeping its tag; rows 5, 6.
-- Done by: —
+- Done by: S20261124-0601-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M05-04 · S · Exercise wording and §7 security item (findings 13, 14, 15)
 - Status: `todo` · Deps: REVIEW-M05 · needs: none
