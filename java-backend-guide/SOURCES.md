@@ -647,6 +647,18 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://kotlinlang.org/docs/exceptions.html
 - https://openjdk.org/jeps/358
 - https://www.oracle.com/java/technologies/javase/15-relnote-issues.html
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.17
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.22
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-18.html#jls-18.4
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.10.2.5
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.9.1
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java
+- https://jcp.org/en/jsr/detail?id=334
+- https://openjdk.org/jeps/484
 
 ## 17 spring-transactions
 
