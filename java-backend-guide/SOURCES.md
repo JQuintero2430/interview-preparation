@@ -659,6 +659,17 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java
 - https://jcp.org/en/jsr/detail?id=334
 - https://openjdk.org/jeps/484
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-6.html#jls-6.3
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/Closeable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/AutoCloseable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/zip/GZIPInputStream.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.sql/share/classes/java/sql/SQLException.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/jdk.management/share/classes/com/sun/management/UnixOperatingSystemMXBean.java
+- https://openjdk.org/jeps/213
 
 ## 17 spring-transactions
 
