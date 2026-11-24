@@ -990,6 +990,7 @@ Memory: a window holds `n` elements, and the `windowFixed` and `windowSliding` J
 - Use `Integrator.ofGreedy` when the integrator never stops early, because the library may then skip checking its result.
 - Prefer `fold` to `reduce` when the reduction is order-dependent or has no sensible combiner, because `fold` is defined as sequential and `reduce` requires associativity.
 - Give `mapConcurrent` a `maxConcurrency` sized from the downstream system's capacity, because it is the only bound per pipeline, and it multiplies with concurrent requests.
+- **Security:** bound a window size `n` and a `maxConcurrency` that derive from client input, because a window may be allocated at its full size even on a short stream, and `maxConcurrency` sets how many calls one request puts in flight against the downstream service [Doc: Java 25 API, Gatherers](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherers.html).
 
 ### Misconceptions and traps
 
@@ -2490,7 +2491,7 @@ In the lab, `seats("newco")` throws `PlanNotFoundException: no billing plan for 
 
 **Problem.** A shop's end-of-day job builds a sales report from the day's order lines, each an `Order(customer, category, amountCents)`. Today it is a 200-line method of nested loops and `HashMap`s filled by hand, and every new figure adds another loop. Rewrite it as `OrderReport`, one small query per figure, each answered by a collector ([§5](#5-collectors-tomap-groupingby-teeing-and-writing-your-own)): the total per customer, the order count per category, the top customers, a large/small split, and the smallest and largest order.
 
-**Constraints.** JDK only. Every public method is one stream pipeline that ends in one `collect` ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)): no loops, no `forEach`, no fields other than `static final` constants, nothing mutated outside the container a collector fills. Amounts are whole cents in a `long`, summed with a primitive collector ([§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect)). Inputs and their fields are non-`null`; results need not be unmodifiable.
+**Constraints.** JDK only. Every public method is one stream pipeline that ends in one top-level `collect` (a finisher may stream the collector's own result) ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)): no loops, no `forEach`, no fields other than `static final` constants, nothing mutated outside the container a collector fills. Amounts are whole cents in a `long`, summed with a primitive collector ([§6](#6-primitive-streams-flatmap-mapmulti-and-reduce-vs-collect)). Inputs and their fields are non-`null`; results need not be unmodifiable.
 
 **Acceptance criteria.**
 - [ ] (1) `totalByCustomer(orders)` returns the total per customer as a `TreeMap`, in customer-name order.
@@ -2968,7 +2969,7 @@ Walk through it with a `last` shared by both runs: the left run emits `a` (share
 - [ ] (1) `load(dir)` returns every file's outcome as a sealed `Result` (success with the parsed `Properties`, or failure with the path and the cause); no exception escapes for a single bad file.
 - [ ] (2) The directory stream from `Files.list` is closed (an `onClose` probe, asserted).
 - [ ] (3) `find(key)` returns `Optional<String>` searching files in name order, empty when absent, without calling `get()`.
-- [ ] (4) `requiredInt(key)` throws a domain exception naming the key when absent or not a number, with the original cause kept.
+- [ ] (4) `requiredInt(key)` throws a domain exception naming the key when absent or not a number, with the `NumberFormatException` kept as the cause when the value is not a number.
 - [ ] (5) The default for a missing key is computed lazily (a counter shows the supplier runs only when the key is absent).
 
 <details><summary>Hint 1</summary>

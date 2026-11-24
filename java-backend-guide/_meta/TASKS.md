@@ -1591,11 +1591,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261124-0601-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M05-04 · S · Exercise wording and §7 security item (findings 13, 14, 15)
-- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Status: `done` · Deps: REVIEW-M05 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md` (Ex05.1 Constraints, Ex05.4 criterion (4), §7 Best practices), `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: the wording fixes applied (E2 mapping unchanged); one §7 `**Security:**` item; rows 5, 6.
-- Done by: —
+- Done by: S20261124-0601-claudecode-cloud (claude-opus-5-5, main session)
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
 
