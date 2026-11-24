@@ -616,6 +616,8 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NumberFormatException.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html#jls-17.4.3
 
 ## 17 spring-transactions
 

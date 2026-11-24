@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.interview.javalanguage.m01.support.InMemoryCompiler;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import javax.tools.Diagnostic;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -55,7 +57,15 @@ class MethodReferenceRulesTest {
     @Test
     @DisplayName("M05 §3 · Integer::toString is ambiguous as a Function<Integer, String>")
     void compile_fails_whenStaticAndUnboundFormsBothApply() {
-        assertThat(errorCodes(AMBIGUOUS_TO_STRING)).containsExactly(INCOMPATIBLE_TYPES);
+        var result = InMemoryCompiler.compile(Map.of(SOURCE_NAME, AMBIGUOUS_TO_STRING));
+
+        assertThat(result.errorCodes()).containsExactly(INCOMPATIBLE_TYPES);
+        assertThat(result.diagnostics())
+                .filteredOn(d -> d.getKind() == Diagnostic.Kind.ERROR)
+                .singleElement()
+                .extracting(d -> d.getMessage(Locale.ROOT))
+                .asString()
+                .contains("reference to toString is ambiguous");
     }
 
     @Test

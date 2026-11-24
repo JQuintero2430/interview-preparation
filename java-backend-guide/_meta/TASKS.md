@@ -1577,11 +1577,11 @@ Appended by PLAN-M05 (S20261122-0601-claudecode-cloud). Plan: [M05](modules/M05.
 - Done by: S20261124-0601-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M05-02 · S · Sources, tags and status markers (findings 2, 6, 7, 9)
-- Status: `todo` · Deps: REVIEW-M05 · needs: none
+- Status: `done` · Deps: REVIEW-M05 · needs: none
 - Files touched: `modules/05-java-lambdas-streams-optional.md`, `SOURCES.md` (05 block), possibly `labs/java-language/src/test/java/dev/interview/javalanguage/m05/s03/MethodReferenceRulesTest.java` (9: the ambiguity clause), `_meta/reviews/REVIEW-M05.md`, `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M05](reviews/REVIEW-M05.md) (the findings named); the module locations quoted there; STYLE-GUIDE §4; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: the jcmd URL in the 05 block; status markers at first body mention (STYLE-GUIDE §4.2); each listed paragraph carries a tag that supports it; unsupported clauses dropped or tagged; Standard checks rows 3 (if a test changed), 4, 5, 6.
-- Done by: —
+- Done by: S20261124-0601-claudecode-cloud (claude-opus-5-5, main session)
 
 ### FIX-M05-03 · M · Terms, answer order and repetition (findings 8, 11, 12)
 - Status: `todo` · Deps: REVIEW-M05 · needs: none
