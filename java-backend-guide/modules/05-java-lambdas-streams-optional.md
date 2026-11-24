@@ -2805,6 +2805,185 @@ The tests call the collector's functions through helpers that capture its contai
 <!-- TASK: EX-M05-03 -->
 <a id="ex05-3"></a>
 ### Exercise 05.3 · A gatherer: deduplicate consecutive elements and batch them
+
+**Problem.** A telemetry agent reads a sensor's status codes as an endless stream (`OK, OK, OK, WARN, WARN, OK, …`) and ships them to a collector service in HTTP requests of at most 100 entries. Two things go wrong in its current code. It sends every repeated status, although only changes matter, and `distinct()` is not the answer, because it would drop the second `OK` for good, so a return to `OK` after a `WARN` would never be reported. And its batching is a captured `ArrayList` filled from a `forEach`, which breaks the day two agents share the code path. Write the two missing intermediate operations as gatherers ([§7](#7-stream-gatherers)): `Gatherers2.distinctConsecutive()`, which drops an element only when it equals the one just before it, and `Gatherers2.batch(n)`, which groups elements into lists of `n`. Both must work on the endless stream, and both must be safe to keep in a `static final` field and share.
+
+**Constraints.** JDK 25 only, no preview flags. Write both with `Gatherer.ofSequential`; `batch` must not delegate to `Gatherers.windowFixed`, which is the reference it is tested against. No mutable state outside the object the initializer creates: no fields on `Gatherers2`, no variables captured by a lambda. `distinctConsecutive` treats `null` as an ordinary value, equal to another `null` and different from everything else, and the tests assert that choice. `batch(n)` follows `windowFixed(n)` in every observable way: an `IllegalArgumentException` for a size below 1, unmodifiable lists, a shorter last list, nothing for an empty stream.
+
+**Acceptance criteria.**
+- [ ] (1) `Gatherers2.distinctConsecutive()` turns `a, a, b, a, c, c` into `a, b, a, c`.
+- [ ] (2) `batch(n)` emits lists of `n` elements and a short final batch, matching `Gatherers.windowFixed(n)` on the same input.
+- [ ] (3) Both work on an infinite stream when followed by `limit` (short-circuiting reaches the integrator).
+- [ ] (4) `distinctConsecutive` treats `null` elements as equal to each other (the choice this exercise makes; the test asserts it).
+- [ ] (5) The gatherer keeps its state in the initializer's state object, not in a captured variable, so two pipelines using one gatherer instance do not interfere.
+
+<details><summary>Hint 1</summary>
+
+What should `distinctConsecutive` store as "the previous element" before the first element has arrived? If the answer is `null`, then a stream that starts with `null` loses its first element. "No previous element yet" and "the previous element was `null`" are two different states, so the state object needs to tell them apart.
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+For `batch`, the integrator sees a full batch, but who sees the last, short one? The integrator never learns that the input has ended; one of the other three functions of a gatherer does. And once a list has been pushed downstream, it belongs to the next stage: if you clear it and reuse it for the next batch, what happens to the list the next stage is holding?
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Each gatherer is a private state class with an `integrate` method, wired together by `Gatherer.ofSequential`, the same shape as the JDK's own `windowFixed`, which keeps its window in a local `FixedWindow` class [Src: JDK 25, java.util.stream.Gatherers](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java). Both are order-dependent, so both are sequential ([§7](#7-stream-gatherers)), and neither ever decides on its own to stop, so both integrators are greedy.
+1. **The state of `distinctConsecutive`.** `Previous<T>` holds `seen` and `last`. The flag exists because `null` is a legitimate element: without it, an initial `last == null` would make a leading `null` look like a repeat.
+2. **Its integrator.** If an element has been seen and `Objects.equals(last, element)`, the element is a repeat: drop it and return `true`, asking for more. Otherwise, record it and return `downstream.push(element)`. `Objects.equals` returns `true` when both arguments are `null`, and otherwise calls `equals` on the first [Src: JDK 25, java.util.Objects](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Objects.java), which is exactly the `null` rule of the constraints.
+3. **The state of `batch`.** `Batch<T>` holds the size and the list being filled. When the list reaches `n`, the integrator pushes it and returns what `push` returned.
+4. **The pushed batch is never touched again.** `takeBuffer()` wraps the full list with `Collections.unmodifiableList` and starts a new `ArrayList`. The wrapper is an "unmodifiable view" whose queries "read through" to the list behind it [Src: JDK 25, java.util.Collections](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Collections.java), so clearing and reusing the same list would empty the batch the next stage already holds; a new list per batch avoids that. `List.copyOf` would be the other way to make it read-only, but it throws `NullPointerException` if the collection "contains any nulls" [Src: JDK 25, java.util.List](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/List.java), while `windowFixed` allows `null` elements in its windows [Src: JDK 25, java.util.stream.Gatherers](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java).
+5. **The finisher flushes the rest.** At the end of input, `finish` pushes the partly filled list if it is not empty and the downstream is not already rejecting, the same two checks `windowFixed`'s finisher makes [Src: JDK 25, java.util.stream.Gatherers](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java). An empty stream never adds anything, so it emits nothing.
+6. **Greedy integrators.** `Integrator.ofGreedy` marks an integrator that consumes all its input and "may only relay that the downstream does not want more elements"; the library may then skip inspecting its return value [Src: JDK 25, java.util.stream.Gatherer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherer.java). Returning `push`'s answer is that relaying, and it is what lets a later `limit` end an infinite stream.
+7. **Validation first.** `batch(0)` throws before any gatherer exists, as `windowFixed(0)` does [Src: JDK 25, java.util.stream.Gatherers](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java), so a bad size fails where the pipeline is built, not on its first element.
+
+```java
+package dev.interview.javalanguage.m05.ex3;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Gatherer;
+import java.util.stream.Gatherer.Downstream;
+import java.util.stream.Gatherer.Integrator;
+
+/**
+ * Module 05 Ex05.3: two gatherers the JDK does not ship. Both are sequential, because each depends on encounter
+ * order, and both keep their state in an object their initializer creates, so one instance can serve any number of
+ * pipelines at once.
+ */
+public final class Gatherers2 {
+
+    private Gatherers2() {}
+
+    /**
+     * Drops an element when it equals the one just before it ({@code Objects.equals}, so {@code null} equals
+     * {@code null}): {@code a, a, b, a} becomes {@code a, b, a}.
+     */
+    public static <T> Gatherer<T, ?, T> distinctConsecutive() {
+        return Gatherer.<T, Previous<T>, T>ofSequential(
+                Previous::new, // initializer: no previous element yet
+                Integrator.ofGreedy(Previous::integrate)); // never stops on its own; relays push's answer
+    }
+
+    /**
+     * Groups elements into unmodifiable lists of {@code size}, the last one possibly shorter; no batch for an empty
+     * stream. Same contract as {@code Gatherers.windowFixed(size)}.
+     *
+     * @throws IllegalArgumentException if {@code size} is less than 1
+     */
+    public static <T> Gatherer<T, ?, List<T>> batch(int size) {
+        if (size < 1) {
+            throw new IllegalArgumentException("size must be at least 1, was " + size);
+        }
+        return Gatherer.<T, Batch<T>, List<T>>ofSequential(
+                () -> new Batch<>(size), // initializer: an empty buffer for this run
+                Integrator.ofGreedy(Batch::integrate), // pushes a full batch, otherwise keeps buffering
+                Batch::finish); // finisher: flushes the short last batch
+    }
+
+    // The state of one distinctConsecutive run. "No previous element" needs its own flag, because null is a value.
+    private static final class Previous<T> {
+        private boolean seen;
+        private T last;
+
+        boolean integrate(T element, Downstream<? super T> downstream) {
+            if (seen && Objects.equals(last, element)) {
+                return true; // a repeat: drop it and ask for more
+            }
+            seen = true;
+            last = element;
+            return downstream.push(element);
+        }
+    }
+
+    // The state of one batch run: the elements of the batch being filled.
+    private static final class Batch<T> {
+        private final int size;
+        private List<T> buffer;
+
+        Batch(int size) {
+            this.size = size;
+            this.buffer = new ArrayList<>(size);
+        }
+
+        boolean integrate(T element, Downstream<? super List<T>> downstream) {
+            buffer.add(element);
+            if (buffer.size() < size) {
+                return true;
+            }
+            return downstream.push(takeBuffer());
+        }
+
+        void finish(Downstream<? super List<T>> downstream) {
+            if (!buffer.isEmpty() && !downstream.isRejecting()) {
+                downstream.push(takeBuffer());
+            }
+        }
+
+        // Hands the filled list downstream as read-only and starts a new one, so a pushed batch never changes later.
+        private List<T> takeBuffer() {
+            List<T> full = Collections.unmodifiableList(buffer);
+            buffer = new ArrayList<>(size);
+            return full;
+        }
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex3/Gatherers2.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m05/ex3/Gatherers2.java)</sub>
+
+The test of criterion (5) that a captured variable cannot pass, because it keeps two runs of one instance in progress at the same time:
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex3/Gatherers2Test.java
+    @Test
+    @DisplayName("Ex05.3 · (5) one gatherer instance used by two interleaved pipelines: neither sees the other's state")
+    void oneInstance_twoInterleavedPipelines() {
+        var distinct = Gatherers2.<String>distinctConsecutive();
+        Iterator<String> left = Stream.of("a", "a", "b", "b").gather(distinct).iterator();
+        Iterator<String> right = Stream.of("b", "b", "a", "a").gather(distinct).iterator();
+
+        // Alternate pulls, so both pipelines are mid-run at the same time.
+        List<String> fromLeft = new ArrayList<>();
+        List<String> fromRight = new ArrayList<>();
+        while (left.hasNext() || right.hasNext()) {
+            if (left.hasNext()) {
+                fromLeft.add(left.next());
+            }
+            if (right.hasNext()) {
+                fromRight.add(right.next());
+            }
+        }
+
+        assertThat(fromLeft).containsExactly("a", "b");
+        assertThat(fromRight).containsExactly("b", "a");
+    }
+```
+
+Walk through it with a `last` shared by both runs: the left run emits `a` (shared `last` = `a`), the right run emits `b` (shared `last` = `b`), then the left run's second `a` no longer equals `b` and is emitted again, so the left result would start `a, a`. With the state from the initializer, each iterator has its own `Previous`, and both results are right.
+
+**How each criterion is met** [Lab: Gatherers2Test](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex3/Gatherers2Test.java).
+- (1) `Ex05.3 · (1) distinctConsecutive turns a, a, b, a, c, c into a, b, a, c`: the second `a` survives, because it repeats an earlier element, not the previous one. `Ex05.3 · (1) distinctConsecutive on an empty stream emits nothing` covers the edge.
+- (2) `Ex05.3 · (2) batch(n) emits batches of n and a short last batch, equal to windowFixed(n)`: a parameterized test over `1..10` with sizes 1, 2, 3, 7, 10 and 11 (exact division, a short last batch, and a size larger than the input) asserts that the result equals `windowFixed(n)`'s, that every batch but the last has `n` elements, and the last one's size. `Ex05.3 · (2) batch(3) over 1..8 gives [1, 2, 3], [4, 5, 6], [7, 8]; nothing for an empty stream` fixes the expected values, the same ones §7's lab asserts for `windowFixed(3)`. `Ex05.3 · (2) like windowFixed, batch rejects a size below 1 and emits unmodifiable lists`: both `batch(0)` and `windowFixed(0)` throw `IllegalArgumentException`, and `add` on a full batch and on the short last batch throws `UnsupportedOperationException`.
+- (3) Short-circuiting ([§4](#4-stream-pipelines-laziness-short-circuiting-and-encounter-order)) has to travel back through the gatherer. `Ex05.3 · (3) distinctConsecutive on an infinite stream stops when a later limit is reached`: `Stream.iterate(0, i -> i + 1).map(i -> i / 3)` (`0, 0, 0, 1, 1, 1, …`) through `distinctConsecutive()` and `limit(5)` gives `0, 1, 2, 3, 4`, and a `peek` before the gatherer records 13 pulls, the last being the first `4`. `Ex05.3 · (3) batch on an infinite stream stops when a later limit is reached`: `batch(4)` then `limit(3)` gives three batches after exactly 12 pulls. In JDK 25, `push` hands the element to the next stage and then returns `false` once that stage reports it wants no more [Src: JDK 25, java.util.stream.GathererOp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/GathererOp.java); the integrator returns that `false`, and the pull stops. The exact pull counts are what the JDK 25 lab run observes on a sequential stream.
+- (4) `Ex05.3 · (4) distinctConsecutive treats null as equal to null and different from any value`: `null, null, a, null, null, a, a` gives `null, a, null, a`. `Ex05.3 · (4) a leading null is emitted: "no previous element" is not the same as "previous was null"` is the test the `seen` flag exists for.
+- (5) `Ex05.3 · (5) one gatherer instance used by two pipelines in turn: each run starts with fresh state`: one `distinctConsecutive()` instance gives `x, y`, then `y, z` for `y, y, z`, so the second run did not remember `y`; one `batch(2)` instance gives `[1, 2], [3]`, then `[4, 5]`. `Ex05.3 · (5) one gatherer instance used by two interleaved pipelines: neither sees the other's state` is the excerpt above.
+
+**Alternative approach:** for `batch`, `Gatherers.windowFixed(n)` itself; for `distinctConsecutive`, a `filter` with a captured `AtomicReference<T>` holding the previous element. **Trade-offs:** in production, `windowFixed` is the right answer for batching: it is specified, tested and allocates each window as an array in one go [Src: JDK 25, java.util.stream.Gatherers](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java), and `batch` earns its place only when the batching rule is one the JDK does not ship (by total byte size, or closing a batch when a key changes). The `filter` version is shorter and works once, sequentially, but it is the design criterion (5) rejects: its state lives in the captured variable, so it fails the interleaved test, and the Stream API requires the function passed to `filter` to be stateless [Doc: Java 25 API, Stream](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html). On Java 21, with no gatherers ([§7](#7-stream-gatherers), Version notes), a plain loop over an `Iterator` is the honest alternative.
+
+**Interviewer follow-ups.**
+- *Can `distinctConsecutive` be made parallel with `Gatherer.of` and a combiner?* Only by giving up streaming. Whether the right chunk's first element is a repeat depends on the left chunk's last element, which a parallel run knows only when both chunks are done, so each chunk would have to keep everything it emitted until the combiner had compared the boundary. That is the reason the JDK builds all five of its own gatherers with `ofSequential` [Src: JDK 25, java.util.stream.Gatherers](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherers.java). It is also unnecessary for correctness: on a parallel stream, a gatherer with the default combiner still sees the elements in encounter order with one state, while upstream stages may run in parallel ([§7](#7-stream-gatherers)) [Src: JDK 25, java.util.stream.GathererOp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/GathererOp.java).
+- *Now drop readings that differ from the previous one by less than 0.5.* Take the test as a parameter: `distinctConsecutiveBy(BiPredicate<? super T, ? super T> same)`, with `distinctConsecutive()` as `distinctConsecutiveBy(Objects::equals)`. The subtle part is what "previous" means once "the same" is no longer an equivalence: compared with the previous *input* element, `1.0, 1.4, 1.8, 2.2` drifts by 1.2 and every step is dropped as "the same"; compared with the last *emitted* element, the drift is caught at `1.8`. The solution above already updates `last` only when it emits, which is the version that catches drift; for exact equality the two readings agree.
+- *Ship a batch after 100 entries or after 2 seconds, whichever comes first.* A gatherer cannot do that. Its functions run only when an element arrives (the integrator) or when the input ends (the finisher) [Doc: Java 25 API, Gatherer](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Gatherer.html); there is no timer, and a stream pulls, so with no new reading no code runs at all. A time bound needs a producer thread and a `BlockingQueue` drained with a timeout ([12](12-concurrency-locks-atomics-collections.md)), or a reactive pipeline, where time is an input ([19](19-spring-reactive-webflux.md)).
+- *Why `ofGreedy`, if `distinctConsecutive` sometimes returns `true` without pushing?* "Greedy" says that the integrator never *initiates* the stop; returning `true` for a dropped element and relaying `push`'s answer for a kept one are both within that contract [Src: JDK 25, java.util.stream.Gatherer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/stream/Gatherer.java). An integrator that returns `false` on its own, as §7's `withinBudget` does when the budget is spent, must not be greedy, because the library may then ignore that `false`.
+
+**Tests:** [Gatherers2Test](../labs/java-language/src/test/java/dev/interview/javalanguage/m05/ex3/Gatherers2Test.java).
+
+</details>
 <!-- /TASK: EX-M05-03 -->
 
 <!-- TASK: EX-M05-04 -->
