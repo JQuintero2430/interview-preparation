@@ -1635,11 +1635,11 @@ Appended by PLAN-M06 (S20261124-0601-claudecode-cloud). Plan: [M06](modules/M06.
 - Done by: S20261124-1802-claudecode-cloud (claude-opus-5-5)
 
 ### SEC-M06-05 · M · §5 Exceptions at boundaries and uncaught exceptions
-- Status: `todo` · Deps: SEC-M06-04 · needs: none
+- Status: `done` · Deps: SEC-M06-04 · needs: none
 - Files touched: `modules/06-java-exceptions-strings-io.md` (region `SEC-M06-05`), lab `m06/s05/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
 - Inputs: [M06](modules/M06.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §5) and §4 entry §5; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS and Javadoc.
 - Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M06 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M06 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by: —
+- Done by: S20261125-0002-claudecode-cloud (claude-opus-5-5)
 
 ### SEC-M06-06 · M · §6 Strings: the pool, compact strings, concatenation and the `String` API
 - Status: `todo` · Deps: SEC-M06-05 · needs: none

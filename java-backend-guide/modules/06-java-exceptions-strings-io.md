@@ -573,15 +573,143 @@ In the lab, the declined exception exposes `orderId` and `reason` and keeps a `S
 Questions that drill this section: [Q06.10](#q06-10), [Q06.11](#q06-11), [Q06.12](#q06-12).
 
 ## 5. Exceptions at boundaries and uncaught exceptions
-<!-- TASK: SEC-M06-05 -->
 ### The problem it solves
+
+An order service consumes messages from a queue. When the inventory service times out, the repository catches the `IOException`, logs it and rethrows it wrapped; the service layer catches that, logs it and rethrows it wrapped again; the listener logs it a third time. One failure becomes three stack traces in three formats, the error-rate alert counts it three times, and on-call engineers cannot tell one incident from three. Another class in the same service catches the exception, logs it at debug level and returns `null`, so a caller later fails with a `NullPointerException` far from the cause. A cache-refresh job runs in a thread pool through `submit`, starts failing after a schema change, and nothing anywhere says so, because nobody calls `get()` on the `Future`. And on deployment, the old instance never stops: a worker caught `InterruptedException`, ignored it and went back to waiting. The problem is to decide where an exception is caught and logged, what code that cannot handle an exception must do with it, and what the JVM and the thread pools do with an exception nobody catches.
+
 ### Mental model
+
+Think of a failure as a complaint passed up a company. The clerk who receives it either solves it or passes it up unchanged, with notes attached (a cause), and does not photocopy it into the archive on the way (log it). Only the desk that can decide what happens next, a request handler, a message listener or a batch step, files it once, with the whole chain of notes, and answers the customer. A complaint nobody handles does not vanish: in a thread it ends that thread's work, and the JVM hands it to a chain of handlers that ends with "print it to standard error". A thread pool has two doors for work. Through `execute`, a failure travels that same chain. Through `submit`, the failure is sealed in an envelope, the `Future`, and stays there until someone opens it.
+
+```mermaid
+flowchart TB
+    T["exception escapes run()"] --> H{"thread has its own handler?"}
+    H -- yes --> HU["thread's handler"]
+    H -- no --> G["ThreadGroup.uncaughtException"]
+    G --> D{"default handler set?"}
+    D -- yes --> DU["default handler"]
+    D -- no --> E["print to System.err"]
+    P["task in a ThreadPoolExecutor"] --> X{"execute or submit?"}
+    X -- execute --> W["worker thread dies, pool adds a replacement"]
+    W --> T
+    X -- submit --> F["FutureTask stores the exception"]
+    F --> GET["get() throws ExecutionException"]
+```
+
+What to notice: the `submit` branch never reaches a handler, so it is the one place where a failure can print nothing at all.
+
 ### How it actually works
+
+**Catch where you can decide.** A `catch` block is useful only if it does something the caller could not: retry, use a fallback, translate the failure into the vocabulary of the layer above ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)), or decide the fate of the whole unit of work. That last decision lives at a boundary: the HTTP handler that picks a status code, the message listener that acknowledges, retries or dead-letters the message, the batch step that skips a record or fails the job. Layers in between let exceptions pass, wrapping them only to translate. In the lab, `OrderListener.handle` is the only `catch` in the path: a `TransientFailureException` is logged once and the message is retried, any other `RuntimeException` is logged once and dead-lettered, and the object logged is the original exception with its cause chain intact [Lab: OrderListenerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/OrderListenerTest.java). Logging once with the whole chain is enough, because a stack trace prints every `Caused by:` link ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)); log format, levels and correlation ids are [44](44-observability-logging-metrics-slos.md)'s subject, and what to do around a slow or failing downstream call (timeouts, circuit breakers, bulkheads) is [42](42-resilience-patterns.md)'s.
+
+**`InterruptedException`: restore the flag or propagate.** Interruption is how one thread asks another to stop, and it is a request carried by a flag on the thread. When a thread blocked in `sleep`, `join` or `wait` is interrupted, "its interrupt status will be cleared and it will receive an `InterruptedException`" [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java). So catching the exception removes the only trace of the request. Code that can declare `throws InterruptedException` should, and code that cannot (a `Runnable`, an interface method) must call `Thread.currentThread().interrupt()` before returning, so that the code above it sees the request. In the lab, a latch wait in an already interrupted thread throws at once; `Interrupts.awaitRestoringInterrupt` catches it, restores the flag and returns `false`, and `isInterrupted()` is `true` afterwards, while a version that swallows the exception leaves `isInterrupted()` `false` [Lab: InterruptHandlingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/InterruptHandlingTest.java). The listener does the same: it restores the flag and asks for a retry, without logging an error, because a shutdown is not a failure [Lab: OrderListenerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/OrderListenerTest.java). How interruption works, and which blocking calls respond to it, is [11](11-concurrency-threads-and-jmm.md)'s subject.
+
+**What happens to an uncaught exception.** When an exception leaves a thread's `run` method, the thread terminates, and "the Java Virtual Machine will query the thread for its `UncaughtExceptionHandler` using `getUncaughtExceptionHandler` and will invoke the handler's `uncaughtException` method" [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java). `getUncaughtExceptionHandler` returns the handler set on the thread, or else the thread's `ThreadGroup`, which implements the same interface. `ThreadGroup.uncaughtException` passes the call to its parent group, and the root group calls the default handler set by `Thread.setDefaultUncaughtExceptionHandler`, or, if there is none, prints `Exception in thread "<name>"` and the stack trace to `System.err` [Src: JDK 25, java.lang.ThreadGroup](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ThreadGroup.java). Any exception thrown by a handler "will be ignored by the Java Virtual Machine" [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java). In the lab, a thread's own handler receives the thread and the very exception object; with no handler on the thread, the default handler receives it; when both exist, the thread's own wins; and an unstarted thread with no handler reports its `ThreadGroup` as its handler [Lab: UncaughtHandlerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/UncaughtHandlerTest.java). Virtual threads take part in the same chain; all of them share one `ThreadGroup` named `VirtualThreads` [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java), and [14](14-concurrency-virtual-threads.md) covers them.
+
+**The main thread and the exit status.** An exception that escapes `main` goes through the same chain, and then the `java` launcher sets its exit code: it "will be non-zero if main threw an exception", and "an uncaught exception handler cannot change the launcher's return code except by calling `System.exit`". Before destroying the JVM, the launcher waits "for all non-daemon threads to end" [Src: JDK 25, libjli java.c](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/native/libjli/java.c). In the lab, run in child JVMs: a `main` that throws prints `Exception in thread "main" java.lang.IllegalStateException: config missing` and exits with status 1; with a default handler installed, the handler's line is printed instead of the stack trace and the status is still 1; and a program whose `worker` thread dies with an exception prints that thread's trace, carries on, and exits with 0 [Lab: MainThreadExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/MainThreadExitTest.java). So an uncaught exception kills one thread, never the JVM by itself, and only an exception from `main` reaches the exit status.
+
+**Thread pools: `execute` and `submit`.** `ThreadPoolExecutor.runWorker` runs each task inside `try { task.run(); afterExecute(task, null); } catch (Throwable ex) { afterExecute(task, ex); throw ex; }`, and the rethrown exception ends the worker thread, so it reaches that thread's uncaught-exception handler. In a `finally` block around the loop, `processWorkerExit` removes the dead worker and, while the pool is running, calls `addWorker` to start a replacement [Src: JDK 25, java.util.concurrent.ThreadPoolExecutor](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ThreadPoolExecutor.java). `submit` does not hand the pool your task: `AbstractExecutorService.submit` wraps it with `newTaskFor` in a `FutureTask` and executes that [Src: JDK 25, java.util.concurrent.AbstractExecutorService](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/AbstractExecutorService.java), and `FutureTask.run` catches every `Throwable` from your code and stores it with `setException`, so that `get()` later reports "an `ExecutionException` with the given throwable as its cause" [Src: JDK 25, java.util.concurrent.FutureTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/FutureTask.java). The worker survives, and no handler runs. In the lab, a task run with `execute` reaches the handler installed by the pool's `ThreadFactory`, on a thread named by that factory, and the next task runs on a different thread of the same factory; the same task run with `submit` gives an `ExecutionException` whose cause is the original exception from `get()`, a `Future.state()` of `FAILED`, and no handler call at all [Lab: ThreadPoolFailureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/ThreadPoolFailureTest.java). The same applies to periodic tasks: if an execution of a `scheduleAtFixedRate` task throws, "subsequent executions are suppressed" and only the returned future's `get()` shows why [Src: JDK 25, java.util.concurrent.ScheduledExecutorService](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledExecutorService.java). `CompletableFuture.runAsync` likewise catches the exception and completes its future exceptionally [Src: JDK 25, java.util.concurrent.CompletableFuture](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/CompletableFuture.java); its `exceptionally` and `handle` stages, and executor design in general, are [13](13-concurrency-executors-and-completablefuture.md)'s subject.
+
+**`afterExecute`, the pool-level hook.** `afterExecute(Runnable, Throwable)` runs on the worker thread after every task; its `Throwable` is "the uncaught `RuntimeException` or `Error` that caused execution to terminate abruptly", and the Javadoc warns that tasks such as `FutureTask` "catch and maintain computational exceptions … and the internal exceptions are *not* passed to this method" [Src: JDK 25, java.util.concurrent.ThreadPoolExecutor](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ThreadPoolExecutor.java). In the lab, a pool that records what `afterExecute` receives gets the exception once, for the `execute` task, and `null` once, for the failed `submit` task [Lab: ThreadPoolFailureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/ThreadPoolFailureTest.java). To see both kinds, the hook has to look inside the task when it receives `null`, which the Code below does.
+
 ### Code
+
+The approach: a pool that reports every task failure, whichever door the task came through, plus a `ThreadFactory` that names threads and installs a handler as a last line of defence.
+
+1. Build the pool's threads with `Thread.ofPlatform().name(prefix, 0).uncaughtExceptionHandler(handler).factory()`: the factory names threads `prefix0`, `prefix1`, … and is "safe for use by multiple concurrent threads" [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java).
+2. Subclass `ThreadPoolExecutor` and override `afterExecute`, calling `super` first, as the Javadoc advises for nesting.
+3. When the `Throwable` argument is `null`, check whether the task is a `Future` in state `FAILED` and take its exception with `exceptionNow()`; both methods exist since Java 19 [Src: JDK 25, java.util.concurrent.Future](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/Future.java).
+4. Hand every failure to a `TaskFailureListener` port, so the pool decides nothing about logging or alerting.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/s05/PoolThreads.java
+    public static ThreadFactory withHandler(String namePrefix, Thread.UncaughtExceptionHandler handler) {
+        return Thread.ofPlatform()
+                .name(namePrefix, 0)
+                .uncaughtExceptionHandler(handler)
+                .factory();
+    }
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/s05/FailureReportingExecutor.java
+    @Override
+    protected void afterExecute(Runnable task, Throwable thrown) {
+        super.afterExecute(task, thrown);
+        Throwable failure = thrown != null ? thrown : failureStoredIn(task);
+        if (failure != null) {
+            listener.taskFailed(task, failure);
+        }
+    }
+
+    // A submitted task is a FutureTask that caught the exception, so afterExecute receives null.
+    private static Throwable failureStoredIn(Runnable task) {
+        if (task instanceof Future<?> future && future.state() == Future.State.FAILED) {
+            return future.exceptionNow();
+        }
+        return null;
+    }
+```
+
+In the lab, this executor reports two failures for one failing `execute` task, one failing `submit` task and one successful `submit` task [Lab: ThreadPoolFailureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/ThreadPoolFailureTest.java). The boundary itself, the listener that decides and logs once, is short:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/s05/OrderListener.java
+    public Outcome handle(String message) {
+        try {
+            processor.process(message);
+            return Outcome.ACK;
+        } catch (TransientFailureException e) {
+            failureLog.failed(message, e);
+            return Outcome.RETRY;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Outcome.RETRY;
+        } catch (RuntimeException e) {
+            failureLog.failed(message, e);
+            return Outcome.DEAD_LETTER;
+        }
+    }
+```
+
+The order of the `catch` clauses matters: `TransientFailureException` is a `RuntimeException`, so it must come first ([§2](#2-try-catch-and-finally-control-flow-and-compile-time-rules)). Catching `RuntimeException` is right here and wrong in the layers below, because this is the one place that decides the message's fate; `Error`s still pass through ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)).
+
 ### Failure modes and operations
+
+- **Silent failures in pools.** A task run with `submit`, or a periodic task, whose `Future` nobody reads, fails without a log line, and a periodic task also stops running [Src: JDK 25, java.util.concurrent.FutureTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/FutureTask.java) [Src: JDK 25, java.util.concurrent.ScheduledExecutorService](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledExecutorService.java). The evidence is negative: the job's own success metric or "last run" timestamp stops moving while the error rate stays flat. Read every `Future`, catch inside the task body, or report from `afterExecute` as in the Code; [Q06.13](#q06-13) works through an incident.
+- **Thread churn from `execute` failures.** Each failing `execute` task kills its worker and the pool creates another [Src: JDK 25, java.util.concurrent.ThreadPoolExecutor](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ThreadPoolExecutor.java). Under a steady stream of failing tasks the pool keeps creating platform threads, and with a naming factory the sign is thread names with ever larger numbers in thread dumps and logs, because the factory's counter grows with every thread it creates [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java) [Lab: ThreadPoolFailureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/ThreadPoolFailureTest.java). Catch expected failures inside the task.
+- **Duplicated traces from catch-log-rethrow.** Every layer that logs and rethrows adds one more copy of the same failure, so log volume, error counts and alerts all scale with the depth of the call stack rather than with the number of failures. Under an outage of a downstream service this multiplies log ingestion at the worst moment. Log at the boundary only, once, passing the exception itself rather than `e.getMessage()`, so the stack trace and its `Caused by:` links ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)) are printed [Lab: OrderListenerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/OrderListenerTest.java); [44](44-observability-logging-metrics-slos.md) covers log pipelines.
+- **Shutdown that hangs.** `ExecutorService.shutdownNow` makes only "best-effort attempts" to stop running tasks: "typical implementations will cancel via `Thread#interrupt`, so any task that fails to respond to interrupts may never terminate" [Src: JDK 25, java.util.concurrent.ExecutorService](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ExecutorService.java). A worker that swallows `InterruptedException` loses the request and goes back to waiting [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java) [Lab: InterruptHandlingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/InterruptHandlingTest.java). At deployment this shows as an old instance that runs until the orchestrator's grace period ends and it is killed, possibly in the middle of a unit of work. A thread dump of the stuck process shows the worker back in its blocking call ([10](10-jvm-performance-and-troubleshooting.md)); [11](11-concurrency-threads-and-jmm.md) covers interruption.
+- **Uncaught traces that never reach the log system.** Without a default handler, the root `ThreadGroup` prints uncaught exceptions with `System.err.print` and `printStackTrace(System.err)` [Src: JDK 25, java.lang.ThreadGroup](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ThreadGroup.java), bypassing the logging framework, its format and its correlation ids. In a container, those lines appear in the container's stderr stream but not in the application's structured log index, or as one log event per line. Install a default handler at startup that logs through the application's logger, and keep it simple, because an exception it throws is ignored [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java).
+- **An exit status that hides failure.** A batch program whose work happens in other threads exits with status 0 even if every one of them died with an exception, because only `main`'s exception sets the launcher's status [Src: JDK 25, libjli java.c](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/native/libjli/java.c) [Lab: MainThreadExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/MainThreadExitTest.java). A scheduler that judges the run by its exit status then records success. Collect the workers' results in `main` (`Future.get`, or an explicit failure count) and call `System.exit` with a non-zero status when any failed.
+
+> [!NOTE]
+> **Version notes.** Java 19: `Future.state()` and `Future.exceptionNow()` (`@since 19`) [Src: JDK 25, java.util.concurrent.Future](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/Future.java); before them, `afterExecute` had to call `get()` on a done `Future`, unwrap `ExecutionException` and restore the interrupt flag, as the `afterExecute` Javadoc sample still does [Src: JDK 25, java.util.concurrent.ThreadPoolExecutor](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ThreadPoolExecutor.java). Java 21: `Thread.ofPlatform()` and `Thread.Builder` with `uncaughtExceptionHandler(…)` and `factory()` (`@since 21`) [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java); on Java 8 to 17, a `ThreadFactory` is a class that calls `new Thread(r, name)` and `setUncaughtExceptionHandler` itself.
+
+> [!NOTE]
+> **Framework vs language.** The JVM and `java.lang.Thread` define what happens to an exception that leaves a thread (the handler chain above), and `java.util.concurrent` defines what a pool does with it (`execute` kills the worker, `submit` stores it in the `Future`). Spring adds its own boundaries on top. For `@Async` methods that return `void`, Spring's `AsyncUncaughtExceptionHandler` is "a strategy for handling uncaught exceptions thrown from asynchronous methods" that do not return a `Future` [Src: Spring Framework 7.0.10, AsyncUncaughtExceptionHandler](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-aop/src/main/java/org/springframework/aop/interceptor/AsyncUncaughtExceptionHandler.java), and its default, `SimpleAsyncUncaughtExceptionHandler`, logs the exception at error level [Src: Spring Framework 7.0.10, SimpleAsyncUncaughtExceptionHandler](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-aop/src/main/java/org/springframework/aop/interceptor/SimpleAsyncUncaughtExceptionHandler.java). For web requests, `@ControllerAdvice` and `ProblemDetail` are the boundary that turns an exception into a response ([18](18-spring-mvc-and-rest-controllers.md)). Neither changes what a plain `ExecutorService` does with a task you submit yourself.
+
 ### Best practices and anti-patterns
+
+- Catch an exception only where the code can retry, fall back, translate or decide the outcome of the unit of work, because a `catch` that does none of these only hides the failure or duplicates its log line [Lab: OrderListenerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/OrderListenerTest.java).
+- Log a failure once, at the boundary, passing the exception itself so the whole cause chain is printed, because every extra log-and-rethrow multiplies log volume and alert counts by the depth of the stack.
+- Never swallow an exception with an empty `catch`, a debug-level log or a `return null`, because the caller then fails later, somewhere else, without the original cause.
+- Restore the interrupt flag with `Thread.currentThread().interrupt()` whenever you catch `InterruptedException` and cannot rethrow it, because catching it clears the flag and the code above can no longer see the stop request [Lab: InterruptHandlingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/InterruptHandlingTest.java).
+- Read every `Future` you get from `submit`, or report failures from `afterExecute`, because a failure stored in an unread `Future` is invisible [Lab: ThreadPoolFailureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/ThreadPoolFailureTest.java).
+- Give every pool a `ThreadFactory` that names its threads and installs an uncaught-exception handler, because thread dumps and log lines are then attributable to a pool, and `execute` failures reach the application's logger [Lab: ThreadPoolFailureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/ThreadPoolFailureTest.java).
+- Install a default uncaught-exception handler at startup that logs through the application's logger, because the built-in fallback writes to `System.err`, outside the log pipeline [Src: JDK 25, java.lang.ThreadGroup](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ThreadGroup.java).
+- Make a batch program's exit status reflect its workers' results, because only an exception from `main` makes the launcher exit non-zero [Lab: MainThreadExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/MainThreadExitTest.java).
+- **Security:** never return an exception's message or stack trace to a client; log the detail at the boundary and return a generic error with a correlation id, because messages and traces expose class names, library versions, SQL and file paths that help an attacker ([18](18-spring-mvc-and-rest-controllers.md) for `ProblemDetail`, [39](39-api-security-and-secrets.md) for API hardening).
+
 ### Misconceptions and traps
-<!-- /TASK: SEC-M06-05 -->
+
+- *"An exception in a pool task will show up in the logs."* Only for `execute`, where it reaches the worker's handler; with `submit` it is stored in the `Future` and nothing prints until `get()` is called [Lab: ThreadPoolFailureTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/ThreadPoolFailureTest.java). The belief comes from plain threads and `execute`, where the default fallback does print the trace to standard error.
+- *"Catch and log at every layer, to be safe."* It does not add safety, only copies: the boundary's single log line already holds the whole cause chain ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)) [Lab: OrderListenerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/OrderListenerTest.java). The habit comes from code where exceptions were swallowed somewhere above, so logging early was the only way to see them; the fix for that is to stop the swallowing.
+- *"`InterruptedException` is noise: catch it and carry on."* It is a request to stop, and catching it clears the flag that carried the request [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java) [Lab: InterruptHandlingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/InterruptHandlingTest.java). The myth exists because it is a checked exception on `Thread.sleep`, so the first time most people meet it is as a compile error to silence.
+- *"An uncaught exception crashes the JVM."* It ends the thread it was thrown in; other threads, and the JVM, carry on, and the exit status changes only for an exception from `main` [Lab: MainThreadExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/MainThreadExitTest.java). Single-threaded programs are where the belief comes from: there, the main thread is the whole program.
+- *"A default handler that logs the exception makes the program exit normally."* The launcher's status is 1 whenever `main` threw, handler or not; only `System.exit` changes it [Src: JDK 25, libjli java.c](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/native/libjli/java.c) [Lab: MainThreadExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/MainThreadExitTest.java). The confusion comes from the word "handler", which suggests the exception was dealt with.
+
+Questions that drill this section: [Q06.13](#q06-13), [Q06.14](#q06-14).
 
 ## 6. Strings: the pool, compact strings, concatenation and the `String` API
 <!-- TASK: SEC-M06-06 -->
