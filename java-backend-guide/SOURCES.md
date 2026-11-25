@@ -755,6 +755,17 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://www.oracle.com/java/technologies/javase/seccodeguide.html#8-2
 - https://www.oracle.com/java/technologies/javase/seccodeguide.html#8-3
 - https://www.oracle.com/java/technologies/javase/seccodeguide.html#8-6
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/text/MessageFormat.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/text/NumberFormat.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/time/format/DateTimeFormatter.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ListResourceBundle.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Locale.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Properties.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PropertyResourceBundle.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ResourceBundle.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/spi/LocaleServiceProvider.java
+- https://openjdk.org/jeps/226
+- https://openjdk.org/jeps/252
 
 ## 17 spring-transactions
 
