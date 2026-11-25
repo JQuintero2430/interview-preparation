@@ -3,10 +3,13 @@ package dev.interview.javalanguage.m06.support;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-// Runs a main class from this test classpath in a fresh JVM, for behavior that ends the JVM itself.
+// Runs a main class from this test classpath in a fresh JVM, for behavior that ends the JVM itself
+// or that is fixed when the JVM starts (such as the default charset).
 public final class ChildJvm {
 
     // The container sets these and the child JVM would echo "Picked up ..." into the output.
@@ -19,11 +22,20 @@ public final class ChildJvm {
     public record Result(int exitCode, List<String> lines) {}
 
     public static Result run(Class<?> mainClass) throws IOException, InterruptedException {
+        return run(mainClass, Map.of(), List.of());
+    }
+
+    // Output is decoded as UTF-8, so a test can see exactly which bytes the child wrote.
+    public static Result run(Class<?> mainClass, Map<String, String> environment, List<String> jvmOptions)
+            throws IOException, InterruptedException {
         Path java = Path.of(System.getProperty("java.home"), "bin", "java");
-        ProcessBuilder builder = new ProcessBuilder(
-                        java.toString(), "-cp", System.getProperty("java.class.path"), mainClass.getName())
-                .redirectErrorStream(true);
+        List<String> command = new ArrayList<>();
+        command.add(java.toString());
+        command.addAll(jvmOptions);
+        command.addAll(List.of("-cp", System.getProperty("java.class.path"), mainClass.getName()));
+        ProcessBuilder builder = new ProcessBuilder(command).redirectErrorStream(true);
         builder.environment().keySet().removeAll(ECHOED_OPTION_VARIABLES);
+        builder.environment().putAll(environment);
         Process process = builder.start();
         if (!process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
             process.destroyForcibly();

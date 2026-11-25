@@ -711,6 +711,16 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://openjdk.org/jeps/280
 - https://openjdk.org/jeps/378
 - https://www.oracle.com/java/technologies/javase/jdk7-relnotes.html
+- https://docs.oracle.com/en/java/javase/19/docs/api/java.base/java/lang/System.html
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/charset/CharsetDecoder.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.4
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Character.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/Charset.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CodingErrorAction.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/StandardCharsets.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/text/BreakIterator.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/text/Normalizer.java
+- https://openjdk.org/jeps/400
 
 ## 17 spring-transactions
 
