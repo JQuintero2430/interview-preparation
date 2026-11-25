@@ -697,6 +697,20 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/native/libjli/java.c
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-aop/src/main/java/org/springframework/aop/interceptor/AsyncUncaughtExceptionHandler.java
 - https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-aop/src/main/java/org/springframework/aop/interceptor/SimpleAsyncUncaughtExceptionHandler.java
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.18.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.29
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.5
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.6
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.7
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.11
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/StringBuffer.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/StringBuilder.java
+- https://openjdk.org/jeps/192
+- https://openjdk.org/jeps/254
+- https://openjdk.org/jeps/280
+- https://openjdk.org/jeps/378
+- https://www.oracle.com/java/technologies/javase/jdk7-relnotes.html
 
 ## 17 spring-transactions
 
