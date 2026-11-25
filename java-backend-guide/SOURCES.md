@@ -766,6 +766,8 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/spi/LocaleServiceProvider.java
 - https://openjdk.org/jeps/226
 - https://openjdk.org/jeps/252
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.1
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/reflect/Constructor.java
 
 ## 17 spring-transactions
 

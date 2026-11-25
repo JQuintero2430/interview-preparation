@@ -1266,24 +1266,375 @@ Questions that drill this section: [Q06.26](#q06-26).
 <!-- TASK: QB-M06-01 -->
 <a id="q06-01"></a>
 ### Q06.01 · Concept · The `Throwable` family: `Error`, `Exception` and `RuntimeException`, what `catch` may name, and which exceptions the JVM throws itself
+<!-- ledger: core-java-240-02-17, core-java-240-02-18, core-java-240-02-20, core-java-pdf-02-45, core-java-pdf-03-13, core-java-240-02-19, core-java-240-03-01, core-java-240-03-03, core-java-240-03-04 -->
+
+An interviewer opens with: "What is an exception in Java? Draw the hierarchy, tell me what a `catch` clause is allowed to name, and which exceptions come from the JVM itself rather than from library code." A candidate answers: "An exception is a runtime error. All exception classes live in `java.lang`, and creating an object of an abstract class throws `InstantiationException`." What is right, and what is wrong?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** An exception is an object, an instance of `Throwable` or a subclass, that a `throw` statement or the JVM raises to abandon the normal flow; it travels up the call stack to the nearest matching `catch`. Under `Throwable` are two branches: `Exception`, for conditions a reasonable application might catch, with `RuntimeException` as its unchecked subtree, and `Error`, for serious problems an application should not try to catch. A `catch` may name `Throwable` or any subclass, never a type variable, or a union of unrelated ones. The JVM throws by itself the run-time exceptions of expression evaluation (`NullPointerException`, `ArithmeticException`, `ArrayIndexOutOfBoundsException`, `ClassCastException`, …), `LinkageError`s while loading classes, and `VirtualMachineError`s such as `OutOfMemoryError`; checked exceptions such as `IOException` come from library code. The candidate's three claims are all wrong.
+
+**Full explanation.** The hierarchy, the meaning of each branch and the list of conditions the JVM detects are [§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked); the interview points are what the candidate got wrong:
+- *"A runtime error."* Every exception is thrown at run time, so the phrase says nothing; what matters is that it is an object with a class, a message, a stack trace and a cause, which the handler is chosen by [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). And the checked ones are enforced at compile time, by `javac` ([Q06.02](#q06-02)).
+- *"All exception classes live in `java.lang`."* They live wherever their library does: `IOException` in `java.io`, `SQLException` in `java.sql`, `DataAccessException` in Spring's `org.springframework.dao` [Src: JDK 25, java.sql.SQLException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.sql/share/classes/java/sql/SQLException.java) [Src: spring-tx 7.0.10, DataAccessException](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/dao/DataAccessException.java). Only the root classes and the JVM's own exceptions are in `java.lang`.
+- *"`new` on an abstract class throws `InstantiationException`."* `new Shape()` for an abstract `Shape` never runs: the class to instantiate "must denote a class that is accessible, non-abstract, and not an enum class. Otherwise, a compile-time error occurs" [Doc: JLS 25 §15.9.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.1). `InstantiationException` is thrown only through reflection, by `Constructor.newInstance` "if the class that declares the underlying constructor represents an abstract class" [Src: JDK 25, java.lang.reflect.Constructor](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/reflect/Constructor.java). In the lab, the `new` fails with `compiler.err.abstract.cant.be.instantiated`, and the reflective call on a compiled abstract class throws `InstantiationException` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+
+What a `catch` may name is fixed by JLS §14.20: "each class type used in the denotation of the type of an exception parameter must be the class `Throwable` or a subclass of `Throwable`", and "it is a compile-time error if a type variable is used" there [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20). Both rules exist because a handler is matched against the thrown object's runtime class, which carries no type arguments, which is also why an exception class cannot be generic (`compiler.err.generic.throwable` [Lab: ExceptionCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionCompileRulesTest.java)). Catching `Error` or `Throwable` is legal; it is just rarely right ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions) shows the one place it belongs). On "which exceptions does the JVM generate": the JVM raises each JLS §15.6 run-time exception itself, as the lab shows for six of them, and all of those are unchecked [Doc: JLS 25 §15.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.6) [Lab: ExceptionHierarchyTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionHierarchyTest.java). The reverse does not hold: library code throws unchecked exceptions too (`IllegalArgumentException`, `Objects.requireNonNull`'s `NullPointerException`), so "unchecked" means "exempt from the compile-time check", not "thrown by the JVM".
+
+**Follow-ups an interviewer will ask.**
+- *Can you catch an `Error`, and should you?* You can: `catch (StackOverflowError e)` runs like any other handler [Lab: ExceptionHierarchyTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionHierarchyTest.java). You rarely should: the `Error` Javadoc says a reasonable application "should not try to catch" them [Src: JDK 25, java.lang.Error](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Error.java), although the JLS allows that "sophisticated programs may yet wish to catch and attempt to recover from some of these conditions" [Doc: JLS 25 §11.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2). Log it at the outermost boundary and let the thread or process end ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors) covers the JVM's errors).
+- *What does exception handling buy over return codes, and what are its keywords?* The normal path carries no error checks, handlers are chosen by type, and a method that cannot handle a failure passes it on by doing nothing: the JVM unwinds the stack until it finds a handler "that indicates that it handles that particular exception by naming the class of the exception or a superclass" [Doc: JLS 25 §11](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html). The five keywords are `try`, `catch`, `finally`, `throw` and `throws`; try-with-resources adds none, it is a `try` with a resource specification [Doc: JLS 25 §14.20.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3).
+- *Can a `catch` handle an exception thrown by another `try` block?* Only if that code runs inside its own `try` block, directly or through calls: code is "dynamically enclosed by a catch clause if it appears within the try block of the try statement of which the catch clause is a part, or if the caller of the statement or expression is dynamically enclosed by the catch clause" [Doc: JLS 25 §11.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.3). If no handler matches, no `catch` runs and the exception continues up the stack; nothing is "ignored".
+
+**Trap to avoid.** Saying that unchecked exceptions are "the ones the JVM throws" and checked ones "the ones the programmer throws". The split is by superclass only: `IllegalArgumentException` is unchecked and thrown by library code, and a class that extends `Throwable` directly is checked [Doc: JLS 25 §11.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.1.1).
+
+</details>
 
 <a id="q06-02"></a>
 ### Q06.02 · Difference · Checked vs unchecked exceptions: the catch-or-declare rule, `throw` vs `throws`, and when to use each
+<!-- ledger: core-java-pdf-01-02, core-java-240-03-11, core-java-240-03-12, core-java-240-03-13, core-java-pdf-01-55, core-java-240-03-02, core-java-240-03-17, core-java-pdf-03-18, core-java-240-03-15, core-java-pdf-03-29 -->
+
+A study sheet says: "Checked exceptions are compile-time exceptions, such as `IOException` and `SQLException`; unchecked exceptions are runtime exceptions, such as `DivideByZeroException` and `OutOfMemoryError`, and an unchecked exception that nobody catches stops the program. `throws` should list only checked exceptions." Correct it, then explain the catch-or-declare rule, the difference between `throw` and `throws`, and how you decide which kind a new exception should be.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Checked and unchecked differ only in what the compiler checks; both are thrown at run time. Unchecked means `RuntimeException`, `Error` and their subclasses; every other `Throwable` is checked. For a checked exception that a method body can throw, the method must catch it or list it (or a superclass) in its `throws` clause; for unchecked ones the compiler asks nothing. `throw` is a statement that throws one object now; `throws` is part of a declaration that lists exception types, and may list unchecked ones too. The sheet's errors: `DivideByZeroException` does not exist (integer division by zero throws `ArithmeticException`), `OutOfMemoryError` is an `Error`, not a `RuntimeException`, and an uncaught exception ends only the thread that threw it. Make a new exception checked when the immediate caller can do something about the failure, unchecked when it signals a bug or a failure no nearby caller can handle.
+
+**Full explanation.** The two groups side by side:
+
+| | Checked | Unchecked |
+|---|---|---|
+| Which classes | `Throwable`, `Exception` and their subclasses, except the two subtrees on the right [Doc: JLS 25 §11.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.1.1) | `RuntimeException` and its subclasses, `Error` and its subclasses [Doc: JLS 25 §11.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.1.1) |
+| What `javac` requires | catch it, or declare it (or a superclass) in `throws` [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3) | nothing; declaring is "permitted but not required" [Doc: JLS 25 §8.4.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.6) |
+| What the JVM checks | nothing [Doc: JVMS 25 §4.7.5](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.7.5) | nothing |
+| JDK examples | `IOException`, `InterruptedException`, `ClassNotFoundException`, `SQLException` | `IllegalArgumentException`, `NullPointerException`, `ArithmeticException`; `OutOfMemoryError`, `StackOverflowError` (errors) |
+| Intended for | a condition outside the program's control that the caller can plan for | a bug in the caller, or a failure recovery is "difficult or impossible" for [Doc: JLS 25 §11.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2) |
+
+The lab classifies `IOException`, `InterruptedException`, `ClassNotFoundException`, `IllegalArgumentException`, `NullPointerException` and `OutOfMemoryError` by their superclass chain alone, and in it the JVM raises an unchecked `ArithmeticException` for an integer division by zero [Lab: ExceptionHierarchyTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionHierarchyTest.java); `SQLException` extends `java.lang.Exception` directly [Src: JDK 25, java.sql.SQLException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.sql/share/classes/java/sql/SQLException.java). The **catch-or-declare rule** is computed from declarations: a call "can throw" what the called method's `throws` clause lists, and a `throw` what its expression's static type is [Doc: JLS 25 §11.2.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.1). In the lab, calling a `throws IOException` method from a method that neither catches nor declares fails with `compiler.err.unreported.exception.need.to.catch.or.throw` [Lab: ExceptionCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionCompileRulesTest.java). **`throw` vs `throws`**: `throw` takes any expression assignable to `Throwable`, and a `null` value makes it throw a `NullPointerException` instead [Doc: JLS 25 §14.18](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.18) [Lab: ExceptionHierarchyTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionHierarchyTest.java); `throws` lists class types or type variables that are subtypes of `Throwable`, and its checked types "are part of the contract between the implementor and user of the method" [Doc: JLS 25 §8.4.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.6) [Doc: JLS 25 §11.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2). So "`throws` should list only checked exceptions" is wrong as a rule: unchecked ones may be listed, and are simply not required. **Uncaught**: an exception nobody catches terminates the thread it was thrown in; in the lab, a worker thread that dies leaves the JVM running and its exit status unchanged, while an exception that escapes `main` makes the launcher exit with status 1 [Lab: MainThreadExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/MainThreadExitTest.java) ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)). **When to use each** is the rule in [§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked) ("Choosing checked or unchecked"): it is a question about the caller, not about how serious the failure is, and many frameworks choose unchecked for infrastructure failures, as Spring's `DataAccessException` does [Src: spring-tx 7.0.10, DataAccessException](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/dao/DataAccessException.java).
+
+**Follow-ups an interviewer will ask.**
+- *Must an overriding method repeat the parent's `throws` clause?* No. It may declare the same types, narrower ones, none, or any unchecked ones; it may not add a checked type the parent's clause does not cover, which fails with `compiler.err.override.meth.doesnt.throw` [Doc: JLS 25 §8.4.8.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-8.html#jls-8.4.8.3) [Lab: ExceptionCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionCompileRulesTest.java).
+- *Is `ClassNotFoundException` checked?* Yes: it extends `ReflectiveOperationException`, which extends `Exception` [Src: JDK 25, java.lang.ClassNotFoundException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ClassNotFoundException.java) [Lab: ExceptionHierarchyTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionHierarchyTest.java). Its `Error` counterpart, `NoClassDefFoundError`, is [Q06.12](#q06-12).
+- *Why can't a `Function` lambda call a method that throws `IOException`?* A lambda body is checked against its functional interface method's `throws` clause, and `Function.apply` declares none [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3); the ways around it are [05 §9](05-java-lambdas-streams-optional.md#9-checked-exceptions-and-resources-in-lambdas-and-streams).
+- *Does a `throws` clause guarantee that nothing else checked escapes?* Only for code `javac` checked. The JVM does not enforce the clause, so other JVM languages and "sneaky throw" tricks can throw an undeclared checked exception [Doc: JVMS 25 §4.7.5](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.7.5) [Lab: ExceptionHierarchyTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionHierarchyTest.java).
+
+**Trap to avoid.** "Checked exceptions happen at compile time, unchecked ones at run time." Every exception happens at run time; "checked" names the compile-time check, and it depends only on the class's superclass, never on where or when it is thrown.
+
+</details>
 
 <a id="q06-03"></a>
 ### Q06.03 · Output · `return` in `try`, a change in `finally`, and a `return` in `finally`: what does each method return or throw?
+<!-- ledger: core-java-pdf-02-13, core-java-240-03-07, core-java-240-03-18, core-java-240-08-25, core-java-pdf-03-02 -->
+
+What does this print?
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_03.java
+    static String order() {
+        try {
+            System.out.println("try");
+            return "result";
+        } finally {
+            System.out.println("finally");
+        }
+    }
+
+    static int primitive() {
+        int count = 1;
+        try {
+            return count;
+        } finally {
+            count = 2;
+        }
+    }
+
+    static List<String> reference() {
+        List<String> items = new ArrayList<>();
+        try {
+            items.add("try");
+            return items;
+        } finally {
+            items.add("finally");
+        }
+    }
+
+    @SuppressWarnings("finally")
+    static int returnInFinally() {
+        try {
+            throw new IllegalStateException("lost");
+        } finally {
+            return 42;
+        }
+    }
+
+    @SuppressWarnings("finally")
+    static void throwInFinally() {
+        try {
+            throw new IllegalArgumentException("first");
+        } finally {
+            throw new IllegalStateException("second");
+        }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(order());
+        System.out.println(primitive());
+        System.out.println(reference());
+        System.out.println(returnInFinally());
+        try {
+            throwInFinally();
+        } catch (RuntimeException e) {
+            System.out.println(e + " cause=" + e.getCause() + " suppressed=" + e.getSuppressed().length);
+        }
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+try
+finally
+result
+1
+[try, finally]
+42
+java.lang.IllegalStateException: second cause=null suppressed=0
+```
+
+A `return` evaluates its value first, then runs `finally`, then hands the saved value to the caller: so `finally` prints before `result`, and assigning `count = 2` in `finally` does not change the 1 already computed, while adding to the returned list does change the object the caller receives. A `finally` that itself returns or throws replaces whatever was pending: the `IllegalStateException("lost")` disappears behind `return 42`, and `"first"` disappears behind `"second"`, with no cause and nothing suppressed.
+
+**Full explanation.** A `return` with a value "first evaluates the Expression", and if it is inside a `try` with `finally`, those `finally` clauses run "before control is transferred to the invoker" [Doc: JLS 25 §14.17](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.17). The value is fixed before `finally` runs, so `primitive()` returns 1. For `reference()` the stored value is a reference: `finally` cannot make the method return a different list, but it can mutate the one already chosen. The last two methods are the rule that makes `finally` dangerous: when `finally` completes abruptly for a reason S (a `return`, a `throw`), "the try statement completes abruptly for reason S (and reason R is discarded)" [Doc: JLS 25 §14.20.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.2). Discarding is total: the second exception does not even get the first one as its cause or as a suppressed exception, as the last line shows. The lab runs `main` and asserts the seven lines [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java); [§2](#2-try-catch-and-finally-control-flow-and-compile-time-rules) has the same cases with event logs and the compiled form of `finally`.
+
+**Follow-ups an interviewer will ask.**
+- *Does the compiler warn about `return 42` in `finally`?* Only with the lint category `-Xlint:finally`, which "warns about finally clauses that do not terminate normally" [Doc: javac, -Xlint](https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html); the two lab methods carry `@SuppressWarnings("finally")` because they do it on purpose. Turn it on in builds, or ban the pattern in static analysis.
+- *A `catch` block returns 1 and `finally` returns 2: which wins?* `finally`, by the same rule: the `catch` block's abrupt completion is reason R, and `finally`'s `return` is reason S, which replaces it [Doc: JLS 25 §14.20.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.2).
+- *How do you keep both exceptions when cleanup in `finally` can fail?* Use try-with-resources, which adds the cleanup failure to the body's exception with `addSuppressed`, or call `addSuppressed` yourself in a hand-written `finally` ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining), [Q06.07](#q06-07)).
+
+**Trap to avoid.** Answering `2` for `primitive()` because "`finally` runs last". It runs last, but after the value was taken; only a `return` in `finally`, not an assignment, changes what the caller gets.
+
+</details>
 
 <a id="q06-04"></a>
 ### Q06.04 · Concept · When does `finally` not run? `System.exit`, `halt`, a crash, a thread that never leaves `try`, and daemon threads
+<!-- ledger: core-java-240-03-19, core-java-pdf-03-02 -->
+
+"A `finally` block always runs." Give every case where it does not, say whether shutdown hooks run in each, and say where cleanup that must happen when the JVM stops belongs instead.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `finally` runs whenever control *leaves* the `try` block or a `catch` block, by any route. It does not run when control never leaves: an infinite loop, a deadlock, a thread blocked forever. And it does not run when the JVM stops running Java code: after `System.exit` or `Runtime.exit` (shutdown hooks run, `finally` blocks do not), after `Runtime.halt` (nothing runs, not even hooks), in daemon threads, virtual threads included, that are still inside `try` when the JVM exits, and when the process is killed or crashes. Cleanup that must happen at shutdown belongs in a shutdown hook, which runs on `exit` and when the OS signals the JVM to stop, but not on `halt` or a kill that ends the process at once.
+
+**Full explanation.** The JLS defines `finally` by how control leaves the block, "no matter how control leaves the try block or catch block" [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20), so every case above is one where control does not leave it. The JVM-exit cases are spelled out in the `Runtime` Javadoc. The *shutdown sequence* starts when the last non-daemon thread ends, when `exit` is called, or "when some external event occurs, such as an interrupt or a signal is received from the operating system"; it starts the registered shutdown hooks, which "run concurrently with any daemon or non-daemon threads" still alive; when the hooks finish, the JVM terminates, and then "threads' current methods do not complete normally or abruptly", "`finally` clauses are not executed" and try-with-resources resources "are not closed". `halt` terminates the JVM without starting the shutdown sequence at all [Src: JDK 25, java.lang.Runtime](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java). In the lab, a child JVM that calls `System.exit(3)` inside `try` prints its shutdown hook's line and never its `finally` line, and a daemon thread blocked inside `try` when `main` returns never prints its `finally` line [Lab: JvmExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/JvmExitTest.java). Virtual threads fall in the daemon case because "virtual threads are daemon threads and so do not prevent the shutdown sequence from beginning" [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java). A process killed outright or a JVM crash leaves no Java code running, by definition. The full list with the failure modes, `System.exit` in library code among them, is in [§2](#2-try-catch-and-finally-control-flow-and-compile-time-rules).
+
+| How it stops | `finally` in other threads | Shutdown hooks |
+|---|---|---|
+| Last non-daemon thread ends | not run in daemon threads still inside `try` | run |
+| `System.exit` / `Runtime.exit` | not run (including the caller's own) | run |
+| OS signal that starts the shutdown sequence | not run, unless the thread finishes before the hooks do | run |
+| `Runtime.halt` | not run | not run |
+| Process killed outright, JVM crash | not run | not run |
+
+The first four rows are the `Runtime` Javadoc's shutdown and termination text applied to each event [Src: JDK 25, java.lang.Runtime](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java), and the first two are also in the lab [Lab: JvmExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/JvmExitTest.java); the last row is the process ending, after which no code of any kind runs.
+
+**Follow-ups an interviewer will ask.**
+- *A container is stopped with a termination signal while requests are in flight. Do their `finally` blocks run?* Only if those threads finish before the JVM terminates. The signal starts the shutdown sequence, the hooks run alongside the request threads, and once the hooks are done the JVM stops without running pending `finally` clauses [Src: JDK 25, java.lang.Runtime](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java). Letting in-flight work finish is therefore a hook's job: a hook that stops accepting work and waits, with a bound, for what is running. Spring Boot's graceful shutdown is [21](21-spring-boot-actuator-and-operations.md)'s subject.
+- *Does `finally` run when the `try` block throws `StackOverflowError` or `OutOfMemoryError`?* Yes: an error is a throwable like any other, and control leaves the block abruptly [Doc: JLS 25 §14.20.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.2) [Lab: ExceptionHierarchyTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s01/ExceptionHierarchyTest.java). The `finally` code may itself fail for the same reason (no stack or no memory left), and then its error replaces the first ([Q06.03](#q06-03)).
+- *If `finally` throws halfway through, does the rest of it run?* No. The `finally` block ran, but it completed abruptly at the failing statement, like any block; what follows in it is skipped, and its exception replaces the pending outcome [Doc: JLS 25 §14.20.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.2). That is why each cleanup step that can fail gets its own `try` or its own resource.
+
+**Trap to avoid.** "`System.exit` runs `finally` because the JVM shuts down cleanly." A clean shutdown runs *hooks*; it never resumes the threads, and the thread that called `exit` does not return from it either [Src: JDK 25, java.lang.Runtime](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java).
+
+</details>
 
 <a id="q06-05"></a>
 ### Q06.05 · Bug hunt · Five `try`/`catch` snippets: which compile, and why? (catch order, an unthrown checked exception, code after `throw`, a bare `try`, nesting)
+<!-- ledger: core-java-240-03-05, core-java-240-03-06, core-java-pdf-03-63, core-java-240-03-08, core-java-240-03-09, core-java-240-03-16, core-java-240-03-20, core-java-240-03-23, core-java-pdf-03-56, core-java-pdf-03-51 -->
+
+A code-review quiz. Each snippet is one source file `Probe.java`. Which compile? For each that does not, what does `javac` report, and what is the fix? For the one that compiles, what does `run()` return?
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java
+    private static final String SNIPPET_A_CATCH_ORDER = """
+            import java.io.*;
+            class Probe {
+                void load(File file) throws IOException { new FileReader(file).close(); }
+                void run(File file) {
+                    try { load(file); }
+                    catch (Exception e) { System.out.println("failed"); }
+                    catch (IOException e) { System.out.println("I/O"); }
+                }
+            }
+            """;
+    private static final String SNIPPET_B_UNTHROWN_CHECKED = """
+            import java.util.*;
+            class Probe {
+                void run(List<String> names) {
+                    try { names.add("ann"); }
+                    catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                }
+            }
+            """;
+    private static final String SNIPPET_C_AFTER_THROW = """
+            class Probe {
+                int parse(String text) {
+                    if (text.isBlank()) {
+                        throw new IllegalArgumentException("blank");
+                        return -1;
+                    }
+                    return Integer.parseInt(text);
+                }
+            }
+            """;
+    private static final String SNIPPET_D_STATEMENT_BETWEEN = """
+            class Probe {
+                void run() {
+                    try { System.out.println("work"); }
+                    System.out.println("between");
+                    catch (RuntimeException e) { }
+                }
+            }
+            """;
+    private static final String SNIPPET_E_NESTED = """
+            import java.io.IOException;
+            public class Probe {
+                void read() throws IOException { throw new IOException("disk"); }
+                public String run() {
+                    StringBuilder events = new StringBuilder();
+                    try {
+                        try { read(); }
+                        finally { events.append("inner finally, "); }
+                    } catch (IOException e) {
+                        events.append("outer caught ").append(e.getMessage());
+                    }
+                    return events.toString();
+                }
+            }
+            """;
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Only E compiles, and `run()` returns `"inner finally, outer caught disk"`.
+- A: `compiler.err.except.already.caught`. `catch (Exception e)` already catches every `IOException`, so the second clause can never run. Put `IOException` first.
+- B: `compiler.err.except.never.thrown.in.try`. `names.add` cannot throw the checked `InterruptedException`. Remove the clause.
+- C: `compiler.err.unreachable.stmt`. `return -1` follows a `throw` in the same block. Delete it.
+- D: two errors, `compiler.err.try.without.catch.finally.or.resource.decls` and `compiler.err.catch.without.try`. Nothing may stand between a `try` block and its `catch`. Move the statement into the block or after the statement.
+- E: compiles. A `try` with only `finally` is legal, and an exception the inner `try` does not catch goes, after its `finally`, to the enclosing `try`.
+
+**Full explanation.** Each error is a rule from [§2](#2-try-catch-and-finally-control-flow-and-compile-time-rules), and the lab compiles every snippet and asserts its diagnostic key [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java):
+- **A, catch order.** A `catch` for E1 is an error when "a preceding catch clause of the immediately enclosing try statement can catch E1 or a superclass of E1" [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3). Handlers are tried left to right and the first compatible one wins [Doc: JLS 25 §14.20.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.1), so the specific clause goes first.
+- **B, an unthrown checked exception.** Catching a checked class the `try` block cannot throw is an error "unless E1 is `Exception` or a superclass of `Exception`" [Doc: JLS 25 §11.2.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.3). "Cannot throw" comes from the declarations: `List.add` declares no checked exception.
+- **C, code after `throw`.** "It is a compile-time error if a statement cannot be executed because it is unreachable", and a `throw` never completes normally [Doc: JLS 25 §14.22](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.22) [Doc: JLS 25 §14.18](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.18). The final `return Integer.parseInt(text)` is fine: "an if-then statement can complete normally iff it is reachable", so code after the `if` is reachable [Doc: JLS 25 §14.22](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.22).
+- **D, a statement between `try` and `catch`.** The grammar puts `Catches` and `Finally` directly after the `try` block [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20), so the parser sees a `try` with neither, then a statement, then a `catch` with no `try`; the same holds for a statement between `try` and `finally`.
+- **E, nesting and propagation.** `try Block Finally` is one of the three legal forms; only try-with-resources may omit both `catch` and `finally` [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20). `read()` throws, the inner `try` has no handler, so its `finally` runs and the `IOException` reaches the next dynamically enclosing handler, here the outer `catch` [Doc: JLS 25 §11.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.3). The inner `try` also needs no `throws IOException` on `run()`, because the outer `catch` handles it. Had no `try` matched, the exception would leave `run()` and continue up the call stack, running every `finally` on the way ([Q06.01](#q06-01)).
+
+**Follow-ups an interviewer will ask.**
+- *Would B compile with `catch (Exception e)` instead?* Yes. `Exception`, `Throwable` and every unchecked class are always allowed, because unchecked exceptions can occur anywhere; in the lab, `catch (RuntimeException e)`, `catch (Exception e)` and `catch (Throwable t)` around a `println` all compile [Lab: TryCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/TryCompileRulesTest.java).
+- *If the inner `try` in E also had `catch (IOException e)`, which handlers would run?* The inner `catch`, then the inner `finally`, and not the outer `catch`: the inner statement handled the exception and completed normally [Doc: JLS 25 §14.20.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.2).
+- *Is a bare `try { … }` ever legal?* Only as try-with-resources: `try (var in = open()) { … }` needs neither `catch` nor `finally` [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20); without resources it fails as in D [Lab: TryCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/TryCompileRulesTest.java).
+
+**Trap to avoid.** Calling A "a warning" or "dead code the compiler tolerates". An unreachable `catch` is a compile-time error, exactly like an unreachable statement, and the fix is the order, not deleting the specific handler.
+
+</details>
 
 <a id="q06-06"></a>
 ### Q06.06 · Concept · Multi-catch and precise rethrow: why the parameter is final, why alternatives cannot be subclasses, and what `throws` a rethrow needs
+<!-- ledger: core-java-240-03-10, core-java-pdf-02-67, core-java-240-03-22 -->
+
+A colleague writes `catch (FileNotFoundException || IOException e) { e = wrap(e); throw e; }` and is surprised by three compile errors. Explain how multi-catch works, why each part is rejected, and what `throws` clause a method needs when a `catch` rethrows the exception it caught.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A multi-catch clause, `catch (A | B e)` with a *single* `|`, is one handler for several exception types, as if the clause were repeated once per type with a shared body; the parameter's type is the alternatives' closest common superclass. The parameter is implicitly final, so `e = …` does not compile, and the alternatives must be unrelated, so `FileNotFoundException | IOException` does not compile either: `IOException` already covers its subclass. Rethrowing a `final` or effectively final parameter is *precise*: `throw e` can throw only the checked types the `try` block can throw and the clause catches, so the method declares those types, not the parameter's declared type. That holds for `catch (Exception e) { log(e); throw e; }` too, as long as `e` is never assigned.
+
+**Full explanation.** The rules, from JLS §14.20 and §11.2.2, with the lab's diagnostic keys ([§2](#2-try-catch-and-finally-control-flow-and-compile-time-rules) introduces them):
+- **The separator and the meaning.** The grammar joins alternatives with `|` [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20); `||` is the conditional-or operator and is a syntax error there. A multi-catch clause "can be thought of as a sequence of uni-catch clauses", one per alternative, whose parameter type is "lub(D1, D2, ..., Dn)", the least upper bound [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20). In the lab, inside `catch (FileNotFoundException | EOFException e)` the assignment `IOException io = e` compiles and `FileNotFoundException f = e` fails with `compiler.err.prob.found.req` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+- **Implicitly final.** "An exception parameter of a multi-catch clause is implicitly declared final if it is not explicitly declared final"; assigning it fails with `compiler.err.multicatch.parameter.may.not.be.assigned` [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20) [Lab: TryCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/TryCompileRulesTest.java). The rule keeps the parameter meaning "the object that was caught": its declared type is the common superclass, so an assignment could store an exception that is neither alternative, and the rethrow analysis below relies on the parameter being final or effectively final [Doc: JLS 25 §11.2.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.2).
+- **Disjoint alternatives.** "It is a compile-time error if a union of types contains two alternatives Di and Dj (i ≠ j) where Di is a subtype of Dj" (`compiler.err.multicatch.types.must.be.disjoint`) [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20) [Lab: TryCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/TryCompileRulesTest.java). `FileNotFoundException` adds nothing that `IOException` does not already catch; write `catch (IOException e)`.
+- **Precise rethrow.** A `throw` of a final or effectively final `catch` parameter can throw exactly the exception classes that the `try` block can throw, that the clause can catch, and that no earlier clause catches [Doc: JLS 25 §11.2.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.2). In the lab, rethrowing from `catch (IOException | InterruptedException e)` compiles when the method declares both types and fails with `compiler.err.unreported.exception.need.to.catch.or.throw` when it declares only `IOException` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java); and `catch (Exception e) { …; throw e; }` around a `read() throws IOException` needs only `throws IOException`, until the body assigns `e`, which turns the rule off [Lab: TryCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/TryCompileRulesTest.java).
+
+The colleague's version therefore fails on the `||`, on the related alternatives, and on the assignment. What they meant is either `catch (IOException e) { throw e; }` (which needs no `catch` at all) or wrapping, `throw new ExportFailedException("…", e)`, which throws a new object and keeps the original as its cause ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)). Both forms arrived in Java 7 with Project Coin [Doc: JSR 334](https://jcp.org/en/jsr/detail?id=334).
+
+**Follow-ups an interviewer will ask.**
+- *Does precise rethrow need the parameter to be declared `final`?* No; effectively final is enough, meaning it is never assigned [Doc: JLS 25 §11.2.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-11.html#jls-11.2.2) [Lab: TryCompileRulesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s02/TryCompileRulesTest.java).
+- *Does precise rethrow apply to `throw new RuntimeException(e)`?* No. That throws a new object whose type is the expression's static type; precise rethrow is about throwing the caught parameter itself. Wrapping is how you translate between layers ([Q06.09](#q06-09)).
+- *Does javac copy the handler body once per alternative?* The JLS says a compiler is "neither required nor recommended" to do so, since the class file can represent the clause without duplication [Doc: JLS 25 §14.20](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20).
+
+**Trap to avoid.** Widening to `catch (Exception e)` just to share a handler body. Multi-catch shares the body without also catching every unchecked bug, and precise rethrow means a broad `catch` that logs and rethrows no longer forces `throws Exception`.
+
+</details>
 
 <a id="q06-07"></a>
 ### Q06.07 · Output · try-with-resources with two resources whose `close` and body throw: what is printed, in what order, and what does `getSuppressed` hold?
+
+What does this print? Each `Step` prints when it opens and closes, and every `close()` throws.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_07.java
+    record Step(String name) implements AutoCloseable {
+        Step {
+            System.out.println("open " + name);
+        }
+
+        @Override
+        public void close() {
+            System.out.println("close " + name);
+            throw new IllegalStateException("close " + name + " failed");
+        }
+    }
+
+    public static void main(String[] args) {
+        try (Step a = new Step("A");
+                Step b = new Step("B")) {
+            System.out.println("body");
+            throw new IllegalArgumentException("body failed");
+        } catch (IllegalArgumentException e) {
+            System.out.println("caught " + e.getMessage());
+            for (Throwable suppressed : e.getSuppressed()) {
+                System.out.println("suppressed " + suppressed.getMessage());
+            }
+        } finally {
+            System.out.println("finally");
+        }
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+open A
+open B
+body
+close B
+close A
+caught body failed
+suppressed close B failed
+suppressed close A failed
+finally
+```
+
+Resources open left to right and close in reverse, `B` then `A`, before the `catch` runs. The body's `IllegalArgumentException` is the primary exception; each close failure is added to it as a suppressed exception in the order the resources closed. The `catch` for `IllegalArgumentException` matches although every `close()` threw `IllegalStateException`, because suppressed exceptions are recorded, not thrown; `finally` runs last.
+
+**Full explanation.** The JLS defines try-with-resources by translation: one nested `try` per resource, each of which closes its resource and, when an exception is already propagating, passes the close failure to that exception's `addSuppressed` [Doc: JLS 25 §14.20.3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3.1). The innermost `try` belongs to `B`, so `B` closes first and its failure is suppressed first; the body's exception then travels out to `A`'s `try`, which closes `A` and adds the second failure. "Resources are closed in the reverse order from that in which they were initialized", and "an exception from the closing of one resource does not prevent the closing of other resources" [Doc: JLS 25 §14.20.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3). Because this statement has a `catch` and a `finally`, it is an *extended* try-with-resources: the basic statement is nested inside an ordinary `try` that carries them, so "all resources will have been closed (or attempted to be closed) by the time the finally block is executed", and the `catch` sees the exception only after both closes [Doc: JLS 25 §14.20.3.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3.2). `addSuppressed` appends to the list that `getSuppressed()` returns, so the array is in the order the closes failed [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). The lab runs `main` and asserts the nine lines [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java); the translation and the other orderings are [§3](#3-try-with-resources-suppressed-exceptions-and-chaining).
+
+**Follow-ups an interviewer will ask.**
+- *What if the body completes normally and both closes still throw?* The exception "from the rightmost resource failing to close" is thrown, with the others suppressed in it [Doc: JLS 25 §14.20.3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3.1): `close B failed` with `close A failed` suppressed, as in the lab [Lab: TryWithResourcesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s03/TryWithResourcesTest.java). Here it is an `IllegalStateException`, so this `catch` would not match it: `finally` would print and the exception would leave `main`.
+- *What if `B`'s constructor throws?* `A`, which did initialize, is closed, the body never runs, and the constructor's exception is the one thrown [Doc: JLS 25 §14.20.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3); the lab records `open A`, `open B failed`, `close A` [Lab: TryWithResourcesTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s03/TryWithResourcesTest.java).
+- *Would `log.error(e.getMessage())` in the `catch` show the two close failures?* No. Only the full rendering of the exception object prints `Suppressed:` blocks, so pass the exception to the logger [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java) [Lab: ThrowableApiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s03/ThrowableApiTest.java).
+
+**Trap to avoid.** Printing `caught` before the `close` lines, or `close A` before `close B`. The resources belong to the inner, translated statement, so they are closed, newest first, before any `catch` or `finally` of the statement you wrote.
+
+</details>
 
 <!-- /TASK: QB-M06-01 -->
 
