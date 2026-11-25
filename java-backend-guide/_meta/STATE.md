@@ -5,8 +5,8 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
 - **Current module:** 06 `java-exceptions-strings-io` (core, lab `java-language`), planned by PLAN-M06 (S20261124-0601-claudecode-cloud): [M06](modules/M06.md), skeleton `modules/06-java-exceptions-strings-io.md` (40 TASK markers: 10 SEC, 4 QB, 3 EX, CLOSE ×3), smoke test `m06/smoke/M06LabSmokeTest` (3 tests pass); 87 ledger rows homed (85 primary, 2 `architect-md` secondary). Modules 17, 01, 02, 03, 04 and 05 closed, reviewed, fixed (REVIEW-M05 findings all resolved by FIX-M05-01..04 in S20261124-0601).
 - **In progress:** none
-- **Last finished task:** SEC-M06-08 (S20261125-0602-claudecode-cloud): §8 written, lab `m06/s08` (main: `UploadStore`; tests `StreamBasicsTest` 7, `FilesVsFileTest` 3, `RandomAccessTest` 3, `UploadStoreTest` 3, helper `CountingInputStream`). Earlier this session: SEC-M06-07 (§7, lab `m06/s07`, 22 tests; `m06/support/ChildJvm` overload with JVM options and environment).
-- **Next task:** SEC-M06-09 (M), then SEC-M06-10 … in TASKS.md order.
+- **Last finished task:** SEC-M06-09 (S20261125-1201-claudecode-cloud): §9 written, lab `m06/s09` (main: `AllowListReader`; tests `SerializationBasicsTest` 7, `ExternalizableTest` 2, `SerialVersionTest` 4, `FilterTest` 5, helper `SerialBytes`). Before it: SEC-M06-08 (S20261125-0602-claudecode-cloud, §8, lab `m06/s08`).
+- **Next task:** SEC-M06-10 (M), then QB-M06-01 … in TASKS.md order.
 - **Counts:** modules done 0/55 (17, 01, 02, 03, 04 and 05 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 7/55 (17, 01, 02, 03, 04, 05, 06); CLOSE 6/55 (17, 01, 02, 03, 04, 05); REVIEW 6/55 (17, 01, 02, 03, 04, 05).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**

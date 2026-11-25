@@ -734,6 +734,27 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/MappedByteBuffer.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/channels/FileChannel.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Path.java
+- https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/class.html#stream-unique-identifiers
+- https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/index.html
+- https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/serial-arch.html#serialization-of-records
+- https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/version.html#compatible-changes
+- https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/version.html#incompatible-changes
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/Externalizable.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputFilter.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectOutputStream.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/Serial.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/HashMap.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/jdk.jfr/share/classes/jdk/jfr/events/DeserializationEvent.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/jdk.jfr/share/conf/jfr/default.jfc
+- https://openjdk.org/jeps/290
+- https://openjdk.org/jeps/395
+- https://openjdk.org/jeps/415
+- https://protobuf.dev/overview/
+- https://protobuf.dev/programming-guides/proto3/#updating
+- https://www.oracle.com/java/technologies/javase/seccodeguide.html#8
+- https://www.oracle.com/java/technologies/javase/seccodeguide.html#8-2
+- https://www.oracle.com/java/technologies/javase/seccodeguide.html#8-3
+- https://www.oracle.com/java/technologies/javase/seccodeguide.html#8-6
 
 ## 17 spring-transactions
 
