@@ -1705,11 +1705,11 @@ Appended by PLAN-M06 (S20261124-0601-claudecode-cloud). Plan: [M06](modules/M06.
 - Done by: S20261126-1201-claudecode-cloud (model identifier not recorded: cloud harness policy)
 
 ### EX-M06-01 · M · Ex06.1 · A batch exporter that never loses an error
-- Status: `todo` · Deps: SEC-M06-02, -03, -04, -08 · needs: none
+- Status: `done` · Deps: SEC-M06-02, -03, -04, -08 · needs: none
 - Files touched: `modules/06-java-exceptions-strings-io.md` (region `EX-M06-01`), lab `m06/ex1/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
 - Inputs: [M06](modules/M06.md) §6 row Ex06.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses.
 - Acceptance: QUALITY-BAR E1 anatomy; every M06 §6 criterion has a test `@DisplayName("Ex06.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by: —
+- Done by: S20261126-1801-claudecode-cloud (main session; model omitted in pushed files per the cloud harness rule)
 
 ### EX-M06-02 · M · Ex06.2 · A Unicode-safe text toolkit
 - Status: `todo` · Deps: SEC-M06-06, -07 · needs: none

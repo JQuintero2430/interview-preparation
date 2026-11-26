@@ -2706,6 +2706,112 @@ In the lab, with [§10](#10-internationalization-locale-resourcebundle-and-local
 <!-- TASK: EX-M06-01 -->
 <a id="ex06-1"></a>
 ### Exercise 06.1 · A batch exporter that never loses an error
+
+**Problem.** A payments service exports each settlement batch to two files: a data file with one line per record, and a manifest that says how many records the data file holds, so the bank's importer can tell a complete batch from a truncated one. The current exporter closes both writers in one `finally` and catches `Exception` to log it. On bad nights it does all the things [§3](#3-try-with-resources-suppressed-exceptions-and-chaining) warns about: a failing `close()` replaces the "disk full" that caused it, a failure to open the manifest leaks the data file's descriptor, and a blank record from upstream (a bug) is reported as a transport failure. Write `Exporter`, which writes one batch through a `Sink` port (one sink per part, opened per batch) and reports every failure the way a caller can act on it.
+
+**Constraints.** JDK only. `Sink` extends `AutoCloseable`, with `write(String) throws IOException` and a `close()` narrowed to `throws IOException` ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)); a `SinkFactory` opens one sink per `BatchPart` (`DATA`, then `MANIFEST`), so tests can inject fakes that fail anywhere. The exporter takes one constructor dependency, the factory. A production adapter, `FileSinkFactory`, writes each part to a new UTF-8 file in one directory ([§8](#8-io-byte-and-character-streams-buffering-and-nio2)) and must never overwrite an earlier export. No `catch (Exception e)`, no `catch (Throwable t)`, and no `finally` block anywhere in the solution.
+
+**Acceptance criteria.**
+- [ ] (1) Every sink that was opened is closed, in reverse order of opening, on success and on failure (a recording fake asserts the order); with the file adapter, both files are complete after an export.
+- [ ] (2) When writing fails and closing also fails, the write failure is the one reported (the cause of the exception the caller gets), and every close failure is in its `getSuppressed()`.
+- [ ] (3) I/O failures from opening, writing or closing are translated into one unchecked domain exception, `ExportFailedException`, that names the batch id (in its message and in a `batchId()` accessor) and keeps the original `IOException` as its cause.
+- [ ] (4) A failure while opening the second sink still closes the first, and nothing is written.
+- [ ] (5) Programming errors (an `IllegalArgumentException` from a bad record or a bad batch id) are not translated: the caller gets the same exception object.
+- [ ] (6) The solution has no `catch (Exception e)`, no `catch (Throwable t)` and no `finally` block, asserted by a test that reads the source files.
+
+<details><summary>Hint 1</summary>
+
+Four of the six criteria (reverse order, closing what was opened when a later open fails, the body's exception winning over close failures, close failures kept as suppressed) are word for word the guarantees of one statement in [§3](#3-try-with-resources-suppressed-exceptions-and-chaining). How many resources can its header declare, and what does the compiler write for each?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+Where the `catch` stands decides what it covers. On the same try-with-resources statement it sees exceptions from the initializers, the body and the implicit `close()` calls, after every resource is already closed. And a `catch` matches the *primary* exception only: if it names `IOException`, an `IllegalArgumentException` that carries an `IOException` in its suppressed list still goes past it.
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Let the compiler write the cleanup, and write by hand only the one decision the compiler cannot make: which failures become `ExportFailedException`.
+1. **Two resources in one header.** `try (Sink data = sinks.open(batchId, DATA); Sink manifest = sinks.open(batchId, MANIFEST))`. The JLS translation nests one `try` per resource, so resources close "in the reverse order from that in which they were initialized", "all resources initialized so far" are closed when a later one "fails to initialize", and "an exception from the closing of one resource does not prevent the closing of other resources" [Doc: JLS 25 §14.20.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3). That is criteria (1) and (4), with no code of our own.
+2. **The body writes, the header owns the sinks.** Validate and write each record, then write `records=<n>` to the manifest, and return the count. A close failure that happens while the body's exception is pending is added to that exception's suppressed list, which is criterion (2) ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)).
+3. **Translate on the same statement.** `catch (IOException e)` on the try-with-resources statement makes it an *extended* one, so it covers opening, writing and closing, and runs after both sinks are closed [Doc: JLS 25 §14.20.3.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3.2). It throws `ExportFailedException(batchId, e)`: the cause carries the suppressed close failures with it, so nothing is lost (criteria 2 and 3).
+4. **Catch nothing else.** `IllegalArgumentException` is not an `IOException`, so it passes the `catch` unchanged (criterion 5). There is nothing to write in a `finally` and no reason for a catch-all, which is criterion (6).
+5. **The domain exception.** Unchecked, because the exporter's caller (a scheduled job) cannot recover from a broken disk in a way the compiler should force ([§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked)); the batch id is a field as well as part of the message, so a caller branches on data and not on text, and it declares `serialVersionUID` ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)). Its constructor takes an `IOException`, not any `Throwable`, so the type itself documents what it translates.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex1/Exporter.java
+    public int export(String batchId, List<String> records) {
+        try (Sink data = sinks.open(batchId, BatchPart.DATA);
+                Sink manifest = sinks.open(batchId, BatchPart.MANIFEST)) {
+            for (String record : records) {
+                data.write(Records.validated(record));
+            }
+            manifest.write("records=" + records.size());
+            return records.size();
+        } catch (IOException e) {
+            throw new ExportFailedException(batchId, e);
+        }
+    }
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex1/ExportFailedException.java
+public class ExportFailedException extends RuntimeException {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private final String batchId;
+
+    public ExportFailedException(String batchId, IOException cause) {
+        super("Failed to export batch " + batchId, Objects.requireNonNull(cause));
+        this.batchId = Objects.requireNonNull(batchId);
+    }
+```
+
+The file adapter opens each part with `Files.newBufferedWriter(file, UTF_8, CREATE_NEW)`. `CREATE_NEW` means "create a new file, failing if the file already exists", and the check and the creation are atomic with respect to other file system operations [Src: JDK 25, java.nio.file.StandardOpenOption](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/StandardOpenOption.java); `WRITE` is added for you whenever options are given [Src: JDK 25, java.nio.file.spi.FileSystemProvider](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/spi/FileSystemProvider.java). The writer names its charset, so the default charset never matters ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)), and `BufferedWriter.close()` flushes its buffer before closing the file [Src: JDK 25, java.io.BufferedWriter](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/BufferedWriter.java), which is why the files are complete only once the sinks are closed. The batch id comes from upstream data and becomes a file name, so the adapter resolves it inside the directory and rejects an id that escapes it, as [§8](#8-io-byte-and-character-streams-buffering-and-nio2)'s upload store does:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex1/FileSinkFactory.java
+    @Override
+    public Sink open(String batchId, BatchPart part) throws IOException {
+        Path file = fileFor(batchId, part);
+        return new WriterSink(Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW));
+    }
+
+    // The batch id comes from upstream data: it must not choose a file outside the export directory.
+    Path fileFor(String batchId, BatchPart part) {
+        Path file = directory.resolve(batchId + part.fileSuffix()).normalize();
+        if (!directory.equals(file.getParent())) {
+            throw new IllegalArgumentException("batch id escapes the export directory: " + batchId);
+        }
+        return file;
+    }
+```
+
+The other files are short: the port [`Sink`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex1/Sink.java), the factory [`SinkFactory`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex1/SinkFactory.java), the enum [`BatchPart`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex1/BatchPart.java) and the validator [`Records`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex1/Records.java), which throws `IllegalArgumentException("blank export record")`.
+
+**How each criterion is met** [Lab: ExporterTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/ExporterTest.java). The fake factory, [`RecordingSinks`](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/RecordingSinks.java), records every open, write and close as an event, and fails the open, the first write or the close of any part with the exception object a test gives it.
+- (1) `Ex06.1 · (1) on success both sinks are closed, the manifest (opened last) first`: the events are `open data`, `open manifest`, the two data writes, `write manifest records=2`, `close manifest`, `close data`, and `export` returns 2. `Ex06.1 · (1) on a write failure both sinks are still closed, in reverse order of opening`: after `write data failed` come `close manifest` and `close data`. `Ex06.1 · (1) with the file adapter both files are complete after export, because closing flushed them` [Lab: FileSinkFactoryTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/FileSinkFactoryTest.java): `b-7.csv` reads back, in UTF-8, as `José;120.00\nZoë;80.50\n` and `b-7.manifest` as `records=2\n`.
+- (2) `Ex06.1 · (2) a write failure stays the cause, and both close failures are suppressed on it`: the data write throws `IOException("disk full")` and both closes fail. The caller gets `ExportFailedException` whose cause is that same `disk full` object, and its `getSuppressed()` is exactly `[manifest close failed, data close failed]`, in closing order. The translated exception itself has no suppressed entries: they belong to the failure they happened during, and `printStackTrace` prints them under its `Caused by:` block, because it prints each enclosed exception's suppressed list as well as its cause [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java).
+- (3) `Ex06.1 · (3) an I/O failure becomes one unchecked ExportFailedException naming the batch, cause kept`: a refused open gives exactly `ExportFailedException`, a `RuntimeException`, with the message `Failed to export batch b-7`, `batchId()` `b-7` and the same `IOException` object as its cause. `Ex06.1 · (3) close failures after a good body are translated too: the first one closed is the cause`: with only the two closes failing, the cause is the manifest's close failure with the data file's suppressed on it; the JLS throws the exception "from the rightmost resource failing to close" and suppresses the others [Doc: JLS 25 §14.20.3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.20.3.1), and the rightmost resource is the first to close. With the file adapter [Lab: FileSinkFactoryTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/FileSinkFactoryTest.java): `Ex06.1 · (3) a missing export directory surfaces as ExportFailedException caused by NoSuchFileException`, and `Ex06.1 · (3) exporting the same batch twice fails with FileAlreadyExistsException as the cause`, with the first export's data file unchanged. The `Files` Javadoc calls `FileAlreadyExistsException` an "optional specific exception" [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java), so the exporter relies only on it being an `IOException`; the specific subclass is what JDK 25 threw on Linux in the lab.
+- (4) `Ex06.1 · (4) a failure opening the second sink still closes the first, and nothing is written`: the events are exactly `open data`, `open manifest failed`, `close data`, and the cause is the open failure, with nothing suppressed.
+- (5) `Ex06.1 · (5) a blank record's IllegalArgumentException passes through untranslated, close failure suppressed`: the caller gets `IllegalArgumentException("blank export record")`, not `ExportFailedException`, with the data sink's close failure in its suppressed list, and both sinks are closed. `Ex06.1 · (5) a sink's own IllegalArgumentException reaches the caller as the same object`: `isSameAs`, with no cause. `Ex06.1 · (5) a batch id that escapes the directory is an IllegalArgumentException, not translated` [Lab: FileSinkFactoryTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/FileSinkFactoryTest.java): `../b-7` is rejected and no file appears outside the export directory.
+- (6) `Ex06.1 · (6) the solution has no catch (Exception e), no catch (Throwable t) and no finally block` [Lab: ExporterSourceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/ExporterSourceTest.java): the test reads the seven source files of `m06.ex1`, strips line comments, finds no `catch (Exception`, `catch (Throwable` or `finally`, and finds the one `catch (IOException e)`. Reading the source is cruder than a review, but it runs on every build, so the rule cannot regress unnoticed.
+
+**Alternative approach:** when the number of destinations is known only at run time (a configurable list of mirrors), a try-with-resources header cannot declare them, because each resource is a separate declaration. The usual answer is a composite resource: a `Sinks` class that opens sinks one by one into a `Deque`, and whose `close()` closes them from the top, catching `IOException` from each, keeping the first one and adding the later ones to it with `addSuppressed`, then throwing it; if an open fails part-way, the composite closes the sinks it already holds and adds their close failures to the open failure. The composite is then the single resource of a try-with-resources statement. **Trade-offs:** it handles any number of sinks, but it is the code from the problem statement written by hand once more, with every ordering rule of [§3](#3-try-with-resources-suppressed-exceptions-and-chaining) to get right and test again; for a fixed set of parts, the two-resource header is shorter and correct by construction. A second alternative, validating every record before opening any sink, removes the partial data file that a blank record leaves behind, at the price of one more pass over the batch; it changes what (5) observes (no sink is opened at all) but not what the caller gets.
+
+**Interviewer follow-ups.**
+- *The importer must never see a half-written batch.* With the file adapter, when the manifest's open fails, the data file was already created by `CREATE_NEW`, which creates the file when it opens it [Src: JDK 25, java.nio.file.StandardOpenOption](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/StandardOpenOption.java), so it stays on disk. Write both parts to temporary files in the same directory, and only after the try-with-resources statement completes normally, move them into place with `Files.move(temp, target, ATOMIC_MOVE)`, manifest last, so the importer, which waits for the manifest, never sees a partial data file; the atomic move and its failure mode are [Q06.24](#q06-24)'s follow-up. Delete the temporary files on failure in the `catch`, adding any delete failure as suppressed.
+- *Should `ExportFailedException` be checked?* The caller is a scheduled job whose only options are "retry later" or "alert", which it applies to every export failure the same way, so the compiler forcing a `catch` at every call site adds nothing ([§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked)'s rule). If one caller must branch (retry a missing mount, never retry an existing file, because that batch was already exported), give the exception a field for that decision, filled from the cause's type at translation time, as [§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)'s `DeclineReason` does, rather than making callers inspect `getCause()`.
+- *Who logs it?* Not the exporter. The job boundary that decides the batch's fate logs it once, passing the exception object to the logger so the cause and the suppressed close failures are printed with it ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)); logging in the exporter as well would print the same failure twice, and logging `e.getMessage()` would print only `Failed to export batch b-7` ([Q06.08](#q06-08)).
+- *What does `close()` failing mean for the data?* For a buffered writer, `close()` is where the last buffer is flushed, so a close failure can mean the file is truncated: it is a real I/O failure, not noise, which is why criterion (3) translates it after a good body instead of ignoring it. Even a clean `close()` hands the bytes to the operating system, not to the disk ([§8](#8-io-byte-and-character-streams-buffering-and-nio2)); a batch that must survive a power loss needs `FileChannel.force` before it is reported as exported.
+
+**Tests:** [ExporterTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/ExporterTest.java), [FileSinkFactoryTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/FileSinkFactoryTest.java), [ExporterSourceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/ExporterSourceTest.java).
+
+</details>
 <!-- /TASK: EX-M06-01 -->
 
 <!-- TASK: EX-M06-02 -->
