@@ -2050,24 +2050,339 @@ The fix: the `catch` names only the checked exception it can translate, keeps it
 <!-- TASK: QB-M06-03 -->
 <a id="q06-15"></a>
 ### Q06.15 · Output · `==` between literals, constant expressions, runtime concatenation, `new String` and `intern()`: which comparisons print `true`?
+<!-- ledger: honeywell-optum-md-01-06, core-java-pdf-02-56, core-java-pdf-03-20 -->
+
+What does this print? A study sheet adds two claims to check on the way: "`"abc"` is a primitive value", and "two strings with the same value can be unequal under `==` because `==` compares references".
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_15.java
+    static final String PREFIX = "or";
+
+    public static void main(String[] args) {
+        String literal = "order";
+        final String finalLocal = "or";
+        String plainLocal = "or";
+        String copy = new String("order");
+
+        System.out.println("1 " + (literal == "or" + "der"));
+        System.out.println("2 " + (literal == PREFIX + "der"));
+        System.out.println("3 " + (literal == finalLocal + "der"));
+        System.out.println("4 " + (literal == plainLocal + "der"));
+        System.out.println("5 " + literal.equals(plainLocal + "der"));
+        System.out.println("6 " + (literal == copy));
+        System.out.println("7 " + (literal == copy.intern()));
+        System.out.println("8 " + (literal == (plainLocal + "der").intern()));
+        System.out.println("9 " + literal == "9 " + literal);
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+1 true
+2 true
+3 true
+4 false
+5 true
+6 false
+7 true
+8 true
+false
+```
+
+Lines 1 to 3 compare the literal with a *constant expression*, which the compiler folds into the same pooled string; line 4 concatenates a non-`final` local at run time, which makes a new object, equal (line 5) but not identical; `new String` always makes a new object (line 6); `intern()` returns the pooled instance (lines 7 and 8). Line 9 prints only `false`, because `+` binds tighter than `==`: it compares `"9 order"` with another `"9 order"` built at run time. The sheet: `"abc"` is not a primitive but a reference to a `String` object; and `==` does compare references, which is only half the story, because literals and constants make equal strings identical.
+
+**Full explanation.** The rule behind every line is [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) ("What is pooled"): literals and the values of constant expressions are interned, and strings "computed by concatenation at run time are newly created and therefore distinct" [Doc: JLS 25 §3.10.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.5). Line by line:
+- **1.** `"or" + "der"` has only literals, so it is a constant expression [Doc: JLS 25 §15.29](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.29), computed by `javac` and stored as the one constant `order`: the same instance as `literal`.
+- **2 and 3.** `PREFIX` and `finalLocal` are *constant variables*: `final`, of type `String`, and initialized with a constant expression. A constant expression may use them, so both concatenations are folded as well. Whether the variable is a field or a local does not matter; `final` and the initializer do.
+- **4 and 5.** `plainLocal` is not `final`, so `plainLocal + "der"` is not a constant expression: it runs at run time and its result "is newly created" [Doc: JLS 25 §15.18.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.18.1). Same text, so `equals` is `true`; another object, so `==` is `false`. Removing one `final` keyword moves line 3 to line 4's result, which is why `==` on strings is a defect even when it "works".
+- **6.** `new` always creates an object ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api), "`new String` and `intern()`").
+- **7 and 8.** `intern()` returns the pooled string equal to the receiver, which here is the literal's instance, so "`s.intern() == t.intern()` is `true` if and only if `s.equals(t)` is `true`" [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java).
+- **9.** The equality operators have "lower precedence" than the relational ones [Doc: JLS 25 §15.21](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.21), which in turn bind less tightly than `+`, so the line is `("9 " + literal) == ("9 " + literal)`: two run-time concatenations, two objects, and `println` receives the `boolean` `false` with no label. The parentheses around every other comparison are there for this reason.
+
+The lab runs `main` and asserts the nine lines [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+
+**The sheet's claims.** `"abc"` is not a primitive: "a string literal is always of type `String`" [Doc: JLS 25 §3.10.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.5), a class, so the literal is a reference to an object, which is why `"abc".length()` compiles; the only primitive text type is `char`, one UTF-16 code unit ([Q06.21](#q06-21)). The second claim is right about `==`, which compares references for any object ([02 §1](02-java-equality-immutability-records.md#1-identity-vs-equality-and-the-equals-contract)), but it predicts `false` for lines 1, 2, 3, 7 and 8; the pool is what makes them `true`.
+
+**Follow-ups an interviewer will ask.**
+- *Would `switch (status) { case "SETTLED" -> … }` have the same problem?* No: for a `String` selector, equality with a case constant "is defined in terms of the `equals` method of class `String`" [Doc: JLS 25 §14.11.1.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1.2). It has a different trap: when no label applies and the selector is `null`, "a `NullPointerException` is thrown" [Doc: JLS 25 §14.11.3](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.3), unless the switch has a `case null`.
+- *Is a `static final String` read from configuration a constant variable?* No: `static final String ENV = System.getenv("ENV")` is `final`, but its initializer is a method call, not a constant expression, so `ENV + "x"` is a run-time concatenation [Doc: JLS 25 §15.29](https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.29). The same distinction decides whether reading the field initializes its class ([Q06.12](#q06-12)).
+
+**Trap to avoid.** Answering "`==` on equal strings is always `false`". It is `true` for every pair of compile-time constants and every interned value, which is exactly why the bug survives tests written with literals.
+
+</details>
 
 <a id="q06-16"></a>
 ### Q06.16 · Concept · The string pool and compact strings: what is pooled, what `intern` does, where the pool lives, and how a `String` stores its characters
+<!-- ledger: honeywell-optum-md-01-06 -->
+
+"How does the string pool work? What goes into it, what does `intern()` do, where does the pool live, and how many objects does `new String("abc")` create? And while we are at it: how does a `String` store its characters since Java 9?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The pool is one JVM-wide table of `String` instances with distinct contents. The compiler's constants go in: every literal, text block and string-valued constant expression is interned when the JVM first resolves it. Anything else goes in only through `intern()`, which returns the pooled string equal to the receiver, adding the receiver if none exists. Since JDK 7 the pooled strings are ordinary objects in the main heap; HotSpot indexes them with a hash table, the `StringTable`. `new String("abc")` evaluates the literal, which is created once per JVM the first time it is resolved, and then creates one new `String` per execution; in JDK 25 that copy shares the literal's internal array. Since Java 9 (compact strings) a `String` holds a `byte[]` plus a `coder`: one byte per character when all characters fit Latin-1, two bytes per UTF-16 code unit otherwise.
+
+**Full explanation.** The rules and the heap location are [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) ("What is pooled", "`new String` and `intern()`", "Compact strings"); this answer adds the run-time view.
+- **When a literal reaches the pool.** A literal is a `CONSTANT_String` entry in the class file. The JVM derives the `String` when it resolves that entry: if `String.intern` "has previously been invoked" on a string with the same code points, the constant is "a reference to that same instance"; otherwise a new `String` is created and `String.intern` "is invoked on the new instance" [Doc: JVMS 25 §5.1](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.1). So the pool is filled while the program runs, not when a class is loaded. In the lab, a string built with a `StringBuilder` and interned *before* the method's literal with the same text is first used is kept by `intern()`, and the literal then evaluates to that very object [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). That result depends on when the literal is resolved: HotSpot did it at first use here, and the JVMS lets an implementation choose a "lazy" linkage strategy or an "eager" one that resolves symbolic references "at once" [Doc: JVMS 25 §5.4](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4), so the guaranteed part is only that `intern()` and the literal agree.
+- **How many objects for `new String("abc")`.** Two `String` objects take part: the pooled literal, created at most once per JVM (and not at all if an equal string was interned earlier), and the new copy, created every time the expression runs. In the lab two executions give two distinct copies, both `equals` to the literal and both interning to it [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). In JDK 25 the copy constructor assigns `this.value = original.value`, so the copy shares the literal's byte array instead of duplicating it, and its Javadoc says that "unless an explicit copy of `original` is needed, use of this constructor is unnecessary since Strings are immutable" [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java).
+- **Where the pool lives.** The `String` objects are in the main heap since JDK 7 ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api), with the release-note citation). HotSpot finds them through its `StringTable`, whose `-XX:StringTableSize` is the "number of buckets in the interned String table" (65536 by default on 64-bit JVMs, rounded to a power of 2) [Src: HotSpot jdk-25-ga, globals.hpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/runtime/globals.hpp) [Src: HotSpot jdk-25-ga, globalDefinitions.hpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/utilities/globalDefinitions.hpp). `-XX:+PrintStringTableStatistics` prints "statistics about the StringTable and SymbolTable" [Src: HotSpot jdk-25-ga, globals.hpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/runtime/globals.hpp), and `jcmd <pid> VM.stringtable` dumps the table of a running JVM [Src: HotSpot jdk-25-ga, diagnosticCommand.hpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/services/diagnosticCommand.hpp). These are the tools for the "`intern()` on unbounded input" failure of [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api).
+- **Compact strings.** The fields are `byte[] value` and `byte coder`, `LATIN1` or `UTF16` [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java). The `java` launcher documents the switch: `-XX:-CompactStrings` "disables the Compact Strings feature", which is on by default and "reduces, by 50%, the amount of space required for Strings containing only single-byte characters", while strings "containing at least one multibyte character" are stored "as 2 bytes per character using UTF-16 encoding" [Doc: java command, -XX:-CompactStrings](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html): one `€` makes the whole string UTF-16. Nothing in the API changed: `length()` and `charAt` still speak UTF-16 code units ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)), and in the lab `"é"` has length 1 and an emoji length 2 [Lab: StringApiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s06/StringApiTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *Should we `intern()` the currency codes we parse, to save memory?* Not values from input: the pool is JVM-wide and grows with every distinct value. Map a closed set to an enum or a small cache you own, or let `-XX:+UseStringDeduplication` share the arrays ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api), Failure modes).
+- *Is string deduplication the same as interning?* No. Deduplication lets identical `String` objects "point to and share the same character array" [Doc: java command, -XX:+UseStringDeduplication](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html); they remain distinct objects, so `==` still says `false`, and only the arrays are saved. Interning makes one object.
+- *When would you disable compact strings?* The `java` documentation names an application that "overwhelmingly will be allocating multibyte character Strings", or an unexpected performance regression after the upgrade [Doc: java command, -XX:-CompactStrings](https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html); measure first, because the flag doubles the memory of every Latin-1 string.
+
+**Trap to avoid.** "`new String("abc")` always creates two objects." It creates one new `String` each time it runs; the literal's object exists once per JVM, possibly created long before, and in JDK 25 the new one does not even copy the characters.
+
+</details>
 
 <a id="q06-17"></a>
 ### Q06.17 · Concept · How `+` compiles: constant folding, `StringConcatFactory` and `invokedynamic`, `String + double`, and concatenation in a loop
+<!-- ledger: core-java-pdf-03-35, core-java-pdf-03-73 -->
+
+"What does adding a `double` to a `String` produce, and what does `javac` generate for `"order " + id + "#" + n`? Was the advice 'never use `+`, always `StringBuilder`' ever right, and is it now?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `String + double` is a `String`: the `double` goes through string conversion, which formats it like `Double.toString`, so `"price " + 2.5` is `"price 2.5"`. For the compiled form there are two cases. If every operand is a constant, `javac` computes the result and stores one constant. Otherwise, since Java 9, it emits one `invokedynamic` instruction whose bootstrap method is `StringConcatFactory.makeConcatWithConstants`, with a *recipe* string that holds the constant parts inline and a `\u0001` placeholder for each run-time value; the JDK chooses how to build the string when the call site is first linked. Before Java 9 it emitted a `StringBuilder` append chain. So `+` in a single expression is fine and the advice was always wrong there; in a loop it is still right, because each iteration makes a new `String` that copies everything built so far.
+
+**Full explanation.** The rules are [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) ("How `+` compiles", "`String + number`", "`+` in a loop"); here is what each looks like in practice.
+- **Constant folding.** Strings "concatenated from constant expressions" are "computed at compile time and then treated as if they were literals" [Doc: JLS 25 §3.10.5](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.5); there is no call at run time and the result is pooled ([Q06.15](#q06-15)).
+- **The recipe.** `StringConcatFactory`'s recipe is read "from left to right": `\1` (U+0001) is "an ordinary argument" passed at the call, `\2` (U+0002) "a constant" passed as a bootstrap argument, and "any other char value" is a single constant character [Src: JDK 25, java.lang.invoke.StringConcatFactory](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/StringConcatFactory.java). In the lab, `"order " + id + "#" + n` compiles to one `invokedynamic` whose recipe is `"order \u0001#\u0001"` and whose call-site type is `(String, int) → String` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java): the `int` is passed as an `int`, with no boxing and no `StringBuilder`. Because the strategy lives in the bootstrap method, a newer JDK can make old bytecode faster without recompiling it, which is the point of JEP 280 [Doc: JEP 280](https://openjdk.org/jeps/280). One limit is visible: the factory accepts at most 200 argument slots, and "users requiring more than 200 argument slots in concatenation are expected to split the large concatenation in smaller expressions" [Src: JDK 25, java.lang.invoke.StringConcatFactory](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/StringConcatFactory.java).
+- **`String + double` and the other conversions.** Each non-`String` operand goes through string conversion [Doc: JLS 25 §5.1.11](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.11), and the factory converts "as per JLS 5.1.11" [Src: JDK 25, java.lang.invoke.StringConcatFactory](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/StringConcatFactory.java). For a `double` that is `Double.toString`, which writes plain decimals when the decimal exponent is from -3 to 6 and scientific notation otherwise [Src: JDK 25, java.lang.Double](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Double.java). In the lab, `"price " + price` is `"price 2.5"`, `"price " + price * 2` is `"price 5.0"` (multiplication first, and a `double` always shows a decimal point), `"" + 1e7 + " " + 1e-4` is `"1.0E7 1.0E-4"`, `'a' + 'b' + "!"` is `"195!"` because the first `+` adds two `char`s as `int`s, and a `null` `String` plus another is `"nullnull"` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). The left-to-right rule (`1 + 2 + "3"` is `"33"`) is [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api)'s. For money, never print a `double` this way; format a `BigDecimal` with an explicit locale ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)).
+- **Concatenation in a loop.** In the lab, `out += part` inside a `for` loop compiles to one `invokedynamic` call site in the loop body, and that call runs once per iteration, each time creating a new `String` from the previous one plus the part [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). The JDK can optimize one concatenation, not merge iterations, so the copying grows with the square of the result's length ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api), Failure modes); one `StringBuilder` outside the loop, or `Collectors.joining`, is the fix.
+
+**Code.** The two methods the lab compiles and inspects:
+
+```java
+// Excerpt of labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java (CONCAT_SOURCE)
+            public class Labels {
+                public String label(String id, int n) { return "order " + id + "#" + n; }
+                public String joined(List<String> parts) {
+                    String out = "";
+                    for (String part : parts) { out += part; }
+                    return out;
+                }
+            }
+```
+
+**Follow-ups an interviewer will ask.**
+- *How do you see this yourself?* `javap -c -v` on the class: `-c` "prints disassembled code" and `-v` "prints additional information", which includes the constant pool and the `BootstrapMethods` attribute with the recipe [Doc: javap command](https://docs.oracle.com/en/java/javase/25/docs/specs/man/javap.html); the lab reads the same structures with the `java.lang.classfile` API [Lab: ConcatCompileTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s06/ConcatCompileTest.java).
+- *Code compiled for Java 8 and run on Java 25: which strategy runs?* The `StringBuilder` chain that is in the bytecode; only recompiling with `--release 9` or later gives the `invokedynamic` form [Lab: ConcatCompileTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s06/ConcatCompileTest.java).
+- *Does `String.concat` behave the same as `+`?* For two non-null strings it gives the same text, but it takes only a `String`, and its first statement is `str.isEmpty()`, so a `null` argument throws `NullPointerException` [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java), where `+` writes `"null"` [Doc: JLS 25 §5.1.11](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.11).
+
+**Trap to avoid.** Saying "`+` creates a `StringBuilder`". That describes `javac` until Java 8; since Java 9 a constant `+` is folded and a non-constant one is an `invokedynamic` call site, and the reason to avoid `+` in loops is the copying, not the builder.
+
+</details>
 
 <a id="q06-18"></a>
 ### Q06.18 · Difference · `String` vs `StringBuilder` vs `StringBuffer`: mutability, synchronization, and what to use when
+<!-- ledger: core-java-pdf-02-31 -->
+
+"What is the difference between `String`, `StringBuilder` and `StringBuffer`, and which do you use when?" A study sheet answers: "`String` is immutable and `StringBuffer` is mutable." What does that leave out?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `String` is an immutable value: every "change" returns a new string, which is what makes strings safe to share, cache, pool and use as map keys. `StringBuilder` (Java 5) and `StringBuffer` (Java 1.0) are mutable buffers for building text, with the same API; `StringBuffer`'s methods are synchronized, `StringBuilder`'s are not. Use `String` for values, `+` for a one-expression concatenation, one `StringBuilder` for text built across statements or a loop, and `String.join` or `Collectors.joining` for elements with a separator. `StringBuffer` is almost never the answer: a builder is normally a local variable used by one thread, and when threads do share one, per-call locking does not make a sequence of appends atomic. The sheet leaves out `StringBuilder` entirely, and the synchronization that is the only difference between the two buffers.
+
+**Full explanation.** Why `String` is immutable is [02 §5](02-java-equality-immutability-records.md#5-immutability) and [Q02.15](02-java-equality-immutability-records.md#q02-15); the builder mechanics are [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) ("`+` in a loop, `StringBuilder` and `StringBuffer`"). Side by side:
+
+| | `String` | `StringBuilder` | `StringBuffer` |
+|---|---|---|---|
+| Mutable | no | yes | yes |
+| Thread safety | safe to share (immutable) | "not safe for use by multiple threads" [Src: JDK 25, java.lang.StringBuilder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/StringBuilder.java) | methods "synchronized where necessary", operations behave "as if they occur in some serial order" [Src: JDK 25, java.lang.StringBuffer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/StringBuffer.java) |
+| `equals` / `hashCode` | by content | `Object`'s, identity | `Object`'s, identity |
+| `compareTo` | by content | by content, `@since 11` | by content, `@since 11`, `synchronized` |
+| Since | 1.0 | 1.5 | 1.0 |
+| Use for | values, keys, constants | building text in one thread | legacy APIs that require it |
+
+Three rows need a word.
+- **Equality.** `StringBuilder` "implements `Comparable` but does not override `equals`", so "the natural ordering of `StringBuilder` is inconsistent with equals" [Src: JDK 25, java.lang.StringBuilder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/StringBuilder.java). In the lab two builders holding `ana` are not `equals`, `compareTo` gives 0, and `"ana".contentEquals(builder)` is `true` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). Never use a builder as a map key; call `toString()` or compare with `contentEquals`.
+- **What synchronization buys.** In the lab, two threads each append `"ab"` 10,000 times to one `StringBuffer`: the length is always 40,000 and removing every `"ab"` leaves nothing, so no append was split by another [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). That is the whole guarantee: one call at a time. A line written as `append(name).append(": ").append(value)` is three calls, and another thread's call can fall between them. The test asserts the invariant and never a particular interleaving; a `StringBuilder` shared the same way has no such guarantee.
+- **Capacity.** A buffer is an array with spare room. `new StringBuilder()` has "an initial capacity of 16 characters", and when it must grow, the new capacity is the larger of the required size and "twice the old capacity, plus 2" [Src: JDK 25, java.lang.StringBuilder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/StringBuilder.java) [Src: JDK 25, java.lang.AbstractStringBuilder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/AbstractStringBuilder.java). In the lab, appending 17 characters to a default builder gives capacity 34, and `new StringBuilder(1_000)` starts at 1,000 [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). Doubling keeps the total copying linear; presizing helps only when the final size is known and large.
+
+One more difference from `String`: `reverse()` treats a surrogate pair "as single characters for the reverse operation", so "the order of the high-low surrogates is never reversed" [Src: JDK 25, java.lang.AbstractStringBuilder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/AbstractStringBuilder.java); in the lab `a😀b` reverses to `b😀a` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). A hand-written loop over `charAt` from the end would split the emoji ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)).
+
+**Follow-ups an interviewer will ask.**
+- *So when is `StringBuffer` right?* When an API you must call requires one, and even that is disappearing: `Matcher.appendReplacement` and `appendTail` took only a `StringBuffer` until Java 9 added `StringBuilder` overloads (`@since 9`) [Src: JDK 25, java.util.regex.Matcher](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/regex/Matcher.java). For text shared across threads, build per thread and combine, or guard the whole sequence with one lock; a `StringBuffer` only locks each call.
+- *Is `bufferA.compareTo(bufferB)` atomic with respect to both buffers?* No: it "synchronizes on `this`, the current object, but not" on the other buffer [Src: JDK 25, java.lang.StringBuffer](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/StringBuffer.java), so another thread can change the argument during the comparison. The same holds for appending one buffer to another: the class synchronizes "only on the string buffer performing the operation, not on the source".
+- *Why is `String` final?* So no subclass can break the immutability that the pool, map keys and security checks rely on ([Q02.15](02-java-equality-immutability-records.md#q02-15)).
+
+**Trap to avoid.** "Use `StringBuffer` because it is thread-safe." The safety is per call, which is rarely the unit that matters, and the cost is paid by every single-threaded use.
+
+</details>
 
 <a id="q06-19"></a>
 ### Q06.19 · Output · `String` API traps: `split` with `"."` and with trailing empty fields, a text block's indentation, and `strip` vs `trim`
+<!-- ledger: core-java-240-01-21 -->
+
+What does this print? In line 6, the text block's content lines are indented 16 spaces in the source and the closing `"""` 14; the code replaces spaces with `_` and newlines with `|` to make them visible.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_19.java
+        String row = "7,ana,,lima,,";
+        System.out.println("1 " + Arrays.toString(row.split(",")));
+        System.out.println("2 " + row.split(",", -1).length);
+        System.out.println("3 " + row.split(",", 3)[2]);
+        System.out.println("4 " + "".split(",").length + " " + ",".split(",").length);
+        System.out.println("5 " + "2026.11.26".split(".").length + " " + "2026.11.26".split("\\.").length);
+
+        String block = """
+                {
+                  "id": 7
+                }
+              """;
+        System.out.println("6 " + block.replace(" ", "_").replace("\n", "|"));
+
+        String padded = " ana "; // U+2003 EM SPACE, "ana", an ASCII space
+        System.out.println("7 " + padded.trim().length() + " U+"
+                + Integer.toHexString(padded.trim().charAt(0)));
+        System.out.println("8 " + padded.strip().length() + " " + padded.strip());
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+1 [7, ana, , lima]
+2 6
+3 ,lima,,
+4 1 0
+5 0 3
+6 __{|____"id":_7|__}|
+7 4 U+2003
+8 3 ana
+```
+
+`split(regex)` is `split(regex, 0)`, which discards trailing empty strings (lines 1 and 4); a negative limit keeps them (2); a positive limit stops splitting and leaves the rest in the last element (3); an input with no match returns the input itself (4); `.` is a regex that matches every character (5). The text block loses the 14 spaces of indentation that its closing delimiter has, so 2 remain (6). `trim` removes only characters up to U+0020, so the EM SPACE stays; `strip` removes Unicode white space (7, 8).
+
+**Full explanation.** The rules are [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) ("`split` takes a regular expression", "Text blocks", "`strip` vs `trim`"); line by line:
+- **1.** The six fields are `7`, `ana`, empty, `lima`, empty, empty. With a limit of zero "trailing empty strings will be discarded", so the last two go; the empty field *between* `ana` and `lima` stays, because it is not trailing [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java).
+- **2.** A negative limit applies the pattern "as many times as possible" and discards nothing: all six fields.
+- **3.** A positive limit `n` applies the pattern "at most `n - 1` times", and "the array's last entry will contain all input beyond the last matched delimiter": with 3, the third element is `,lima,,` [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java).
+- **4.** "If the expression does not match any part of the input then the resulting array has just one element, namely this string", so splitting `""` gives one empty string, not an empty array. `","` splits into two empty strings, and both are trailing, so the result is empty.
+- **5.** `.` matches any character, so every character is a delimiter, every field is empty, and every field is trailing: length 0. `"\\."` is the regex for a literal dot (in source, a backslash escaped for the string literal), giving `2026`, `11`, `26`; `Pattern.quote(".")` does the same for any delimiter.
+- **6.** Incidental white space is removed "as if by execution of `String.stripIndent`" [Doc: JLS 25 §3.10.6](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.6), and the minimum indentation counts the closing-delimiter line [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java). That line has 14 spaces, so 14 are removed from each line: `{` and `}` keep 2, `"id": 7` keeps 4. The closing delimiter on its own line also gives the block a final newline, the last `|`.
+- **7 and 8.** `trim()` removes leading and trailing characters whose code point is "less than or equal to `'U+0020'`"; U+2003 is above that, so only the trailing ASCII space goes and 4 characters remain, the first being U+2003. `strip()` removes what `Character.isWhitespace(int)` accepts, which includes the EM SPACE [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java).
+
+The lab runs `main` and asserts the eight lines [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+
+**Follow-ups an interviewer will ask.**
+- *What is the difference between `args.length` and `s.length()`?* An array's `length` is "the public `final` field `length`, which contains the number of components of the array" [Doc: JLS 25 §10.7](https://docs.oracle.com/javase/specs/jls/se25/html/jls-10.html#jls-10.7), so it has no parentheses; `String.length()` is a method that returns the number of UTF-16 code units ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api)), and a collection's count is `size()`. The three spellings come from three different kinds of thing: a language-defined array member, a class method, and an interface method.
+- *How would you split CSV with quoted fields?* Not with `split`, which knows nothing about quoting; use a CSV parser, and in any case check the field count of every record, because a short record is where columns shift ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api), Failure modes).
+- *What if the closing `"""` ends the last content line, as in `}"""`?* Then there is no separate closing line, the minimum indentation comes from the content lines alone, and the content ends at `}`, with no final newline [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java); in the lab the same block written that way is `{|__"id":_7|}` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+
+**Trap to avoid.** Reading `split` as a plain-text delimiter that keeps every field. It takes a regex and, by default, drops trailing empty fields; a record whose optional last columns are empty comes back shorter.
+
+</details>
 
 <a id="q06-20"></a>
 ### Q06.20 · Concept · ASCII, Unicode, UTF-8 and UTF-16: code points, code units, how many bytes each encoding uses, and what a Java `char` is
+<!-- ledger: core-java-240-01-22, core-java-240-01-23, core-java-pdf-01-40 -->
+
+"What are ASCII and Unicode, and how many bits do Unicode, ASCII, UTF-8 and UTF-16 use? How does Java use Unicode?" Two study sheets answer: "ASCII represents values 0 to 255"; "Unicode is a 16-bit set, 0 to 65535, and Java uses ASCII for its input except for strings, identifiers and comments"; "UTF-8 uses 8, 16 or 18 bits". Correct them as you answer.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** ASCII is a 7-bit character set: 128 characters, codes 0 to 127; the 256-value tables are 8-bit extensions such as ISO-8859-1. Unicode is not an encoding but a numbering of characters, *code points*, from U+0000 to U+10FFFF, which needs 21 bits. Encodings turn code points into bytes: UTF-8 uses 1 to 4 bytes per code point (1 for ASCII), UTF-16 one or two 16-bit *code units* (2 or 4 bytes), UTF-32 always 4 bytes. A Java `char` is one UTF-16 code unit, 16 bits, range 0 to 65535, so a character above U+FFFF, every emoji included, takes two `char`s, a surrogate pair. Java source is Unicode: identifiers, strings and comments may use any Unicode character, and only the language's own tokens (keywords, operators, separators) are ASCII. The sheets mix up `char`'s range with Unicode's, and the UTF-8 figure is wrong.
+
+**Full explanation.** The model and the lab byte counts are [§7](#7-unicode-and-charsets-char-code-points-and-encodings) ("Code points and code units", "ASCII, ISO-8859-1, UTF-8 and UTF-16"); this answer corrects the sheets claim by claim.
+- **ASCII.** `US-ASCII` is "seven-bit ASCII", the "Basic Latin block of the Unicode character set" [Src: JDK 25, java.nio.charset.Charset](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/Charset.java), and "the first 128 characters of the Unicode UTF-16 encoding are the ASCII characters" [Doc: JLS 25 §3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1). A byte above 127 means nothing in ASCII: in the lab, the byte `0xE9` decoded as `US_ASCII` is the replacement character U+FFFD, and decoded as ISO-8859-1 it is `é` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). "0 to 255" describes such 8-bit sets, which differ from each other above 127.
+- **Unicode.** It "was originally designed as a fixed-width 16-bit character encoding" and "has since been changed to allow for characters whose representation requires more than 16 bits": legal code points run "U+0000 to U+10FFFF" [Doc: JLS 25 §3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1). In the lab `Character.MAX_CODE_POINT` is `0x10FFFF`, 21 binary digits [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). "0 to 65535" is the range of Java's `char` [Doc: JLS 25 §4.2.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.1), fixed when Unicode still fit in 16 bits; JDK 25's `Character` follows Unicode 16.0 [Src: JDK 25, java.lang.Character](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Character.java).
+- **The encodings.**
+
+  | Encoding | Unit | Bytes per code point | BOM when Java encodes |
+  |---|---|---|---|
+  | US-ASCII | 7-bit code in a byte | 1, only U+0000–U+007F | no |
+  | ISO-8859-1 | byte | 1, only U+0000–U+00FF | no |
+  | UTF-8 | byte | 1 to 4 | no |
+  | UTF-16 | 16-bit code unit | 2 or 4 | `UTF_16` yes, `UTF_16BE`/`LE` no |
+  | UTF-32 | 32-bit code unit | 4 | no (JDK 25) |
+
+  The UTF-8 and UTF-16 counts for `A`, `é`, `€` and an emoji are in [§7](#7-unicode-and-charsets-char-code-points-and-encodings)'s lab. Encoding `A` with `UTF_16` writes `FE FF 00 41`, a big-endian byte-order mark and then the unit, while `UTF_16BE` writes 2 bytes; `A😀` is 8 bytes in UTF-32 [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). "8, 16 or 18 bits" for UTF-8 matches nothing: the forms are 8, 16, 24 or 32 bits.
+- **What Java uses.** Java "represents text in sequences of 16-bit code units, using the UTF-16 encoding" [Doc: JLS 25 §3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1): `char`, `String.length()` and `charAt` count those units, and the code-point methods exist for the rest ([Q06.21](#q06-21)). Since Java 9 a `String` *stores* Latin-1 text in one byte per character ([Q06.16](#q06-16)), which changes memory, not what the API counts.
+- **Java source.** "Programs are written using the Unicode character set" [Doc: JLS 25 §3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1). The sheet's sentence garbles a different rule: "except for comments, identifiers, and the contents of character literals, string literals, and text blocks", all *input elements* "are formed only from ASCII characters" (or Unicode escapes that produce them) [Doc: JLS 25 §3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1). That is about keywords, operators and separators, not about how the file is read. Identifier letters "may be drawn from the entire Unicode character set" [Doc: JLS 25 §3.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.8): in the lab, a class with a field named `größe` compiles and the field reads 3 [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). How `javac` decodes the file's bytes is a separate question: UTF-8 by default since JDK 18, unless `-encoding` says otherwise ([§7](#7-unicode-and-charsets-char-code-points-and-encodings), Version notes).
+
+**Follow-ups an interviewer will ask.**
+- *What is a Unicode escape, and why can it break a comment?* `\uXXXX` "represents the UTF-16 code unit whose encoding is xxxx", and translating escapes is the *first* lexical step, before comments and tokens are recognized [Doc: JLS 25 §3.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.2). So `\u000a` inside a `//` comment becomes a real line feed and ends the comment: in the lab, `// … \u000a x = 2;` compiles to an assignment that runs, and the method returns 2 instead of 1 [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). For the same reason the JLS says not to write `'\u000a'` for a line-feed `char`, and to use `'\n'` [Doc: JLS 25 §3.10.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.4).
+- *The `Charset` Javadoc says UTF-32 writes a byte-order mark. Does it?* The Javadoc groups `UTF-16` and `UTF-32` in one sentence: when encoding, "it uses big-endian byte order and writes a big-endian byte-order mark" [Src: JDK 25, java.nio.charset.Charset](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/Charset.java). JDK 25's UTF-32 encoder is built with its byte-order-mark flag `false` [Src: JDK 25, sun.nio.cs.UTF_32](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/UTF_32.java), and in the lab `UTF_32` and `UTF_32BE` both give 8 bytes for `A😀` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). When a format requires a BOM, write it yourself.
+- *Why did Java pick UTF-16 rather than UTF-8 for `String`?* `char` was defined when Unicode was a 16-bit code, so one `char` per character was the design [Doc: JLS 25 §3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1); supplementary characters were added later as pairs of units, which kept every existing `char` API working for the BMP.
+
+**Trap to avoid.** Treating "Unicode" and "UTF-16" as the same thing, or saying a `char` holds a character. Unicode numbers characters; UTF-8, UTF-16 and UTF-32 encode those numbers; and a `char` is one 16-bit unit of one of those encodings.
+
+</details>
 
 <a id="q06-21"></a>
 ### Q06.21 · Output · An emoji and an accented letter: what do `length()`, `codePointCount`, `charAt`, `getBytes(UTF_8).length` and `'a' + 1` give?
+<!-- ledger: core-java-240-01-24 -->
+
+What does this print? The source file is UTF-8, `composed` holds the single code point U+00E9, and `decomposed` holds `e` followed by U+0301 COMBINING ACUTE ACCENT; both display as `é`.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_21.java
+        String emoji = "😀"; // U+1F600 GRINNING FACE
+        String composed = "é"; // U+00E9
+        String decomposed = "é"; // e + U+0301 COMBINING ACUTE ACCENT
+
+        System.out.println("1 " + emoji.length() + " " + emoji.codePointCount(0, emoji.length()));
+        System.out.println(
+                "2 " + Integer.toHexString(emoji.charAt(0)) + " " + Integer.toHexString(emoji.codePointAt(0)));
+        System.out.println("3 " + emoji.getBytes(StandardCharsets.UTF_8).length);
+        System.out.println("4 " + emoji.substring(0, 1).getBytes(StandardCharsets.UTF_8).length);
+        System.out.println("5 " + composed.length() + " " + composed.getBytes(StandardCharsets.UTF_8).length);
+        System.out.println("6 " + decomposed.length() + " " + decomposed.equals(composed));
+        System.out.println("7 " + ('a' + 1));
+        System.out.println("8 " + (char) ('a' + 1));
+        System.out.println("9 " + 'a' + 1);
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+1 2 1
+2 d83d 1f600
+3 4
+4 1
+5 1 2
+6 2 false
+7 98
+8 b
+9 a1
+```
+
+The emoji is one code point stored as two UTF-16 code units, so `length()` is 2, `charAt(0)` is the high surrogate U+D83D, and `codePointAt(0)` the whole U+1F600; UTF-8 needs 4 bytes for it, and half of it encodes as one `?` byte. The composed `é` is one unit and two UTF-8 bytes; the decomposed one is two units and not `equals` to the composed one. `'a' + 1` is the `int` 98 because `char` arithmetic is `int` arithmetic; cast back, it is `b`; and with a `String` first, `+` is concatenation from left to right.
+
+**Full explanation.** The mechanisms are [§7](#7-unicode-and-charsets-char-code-points-and-encodings) ("What the `String` API counts", "A code point is still not what the user sees", "`char` literals and `char` arithmetic"); line by line:
+- **1 and 2.** U+1F600 is above U+FFFF, a supplementary character, so UTF-16 represents it as a high surrogate and a low surrogate [Doc: JLS 25 §3.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1). `length()` counts the two units, `codePointCount` counts one code point, `charAt(0)` returns the unit `0xD83D`, and `codePointAt(0)` sees a high surrogate followed by a low one and returns the supplementary code point [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java).
+- **3 and 4.** UTF-8 uses 4 bytes for a code point above U+FFFF ([Q06.20](#q06-20)). `substring(0, 1)` keeps only the high surrogate, and `getBytes` "always replaces malformed-input and unmappable-character sequences" with the charset's replacement [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java): one `?` byte, silently.
+- **5 and 6.** U+00E9 is in the BMP and in Latin-1: one code unit, two UTF-8 bytes. The decomposed form is two code points and two units, and `equals` compares code units, so the two `é`s differ until both are normalized ([§7](#7-unicode-and-charsets-char-code-points-and-encodings) shows `Normalizer` making them equal).
+- **7 to 9.** "A character literal is always of type `char`" [Doc: JLS 25 §3.10.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.4), an integral type, and an integer operator without a `long` operand works in 32-bit precision with an `int` result [Doc: JLS 25 §4.2.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.2): `'a'` is 97, so `'a' + 1` is the `int` 98, printed as a number. The cast narrows it back to the `char` `b`. In line 9 the left operand of the first `+` is the `String` `"9 "`, so `'a'` is converted to `"a"`, then `1` to `"1"` [Doc: JLS 25 §5.1.11](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.11). Numeric promotion in general is [Q01.05](01-java-oop-fundamentals.md#q01-05).
+
+The lab runs `main` and asserts the nine lines [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+
+**Character constant vs string constant**, the question this one answers from the study sheet. `'a'` is a `char`: a primitive, one UTF-16 code unit, a number usable in arithmetic, and it cannot hold a supplementary character, because "it is a compile-time error to attempt to represent a supplementary character in a character literal" [Doc: JLS 25 §3.10.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.10.4). `"a"` is a `String`: a reference to an object, pooled because it is a literal ([Q06.15](#q06-15)), of any length, including zero and including emoji. They are not interchangeable: `"a".equals('a')` is `false`, because the `char` is boxed to a `Character`, which is not a `String`.
+
+**Follow-ups an interviewer will ask.**
+- *How do you count what a user sees as characters?* Neither `length()` nor `codePointCount`: the decomposed `é` is two code points and one user-perceived character, and a flag is two code points. `BreakIterator.getCharacterInstance()` finds extended grapheme cluster boundaries ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)).
+- *How do you truncate a display name to 20 characters safely?* Cut at a code-point boundary with `offsetByCodePoints`, or at a grapheme boundary when a user will read it, and check the limit the store actually counts, which may be bytes ([§7](#7-unicode-and-charsets-char-code-points-and-encodings), Failure modes; [Ex06.2](#ex06-2) builds it).
+- *Is `Character.isLetter(emoji.charAt(0))` true?* No: the `char` overloads "cannot support supplementary characters" and treat a surrogate as an undefined character; use `Character.isLetter(int)` with the code point ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)) [Src: JDK 25, java.lang.Character](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Character.java).
+
+**Trap to avoid.** Answering line 1 with "1 1" because the emoji looks like one character, or line 7 with "b". `length()` counts UTF-16 units, and `char` arithmetic produces an `int`.
+
+</details>
 
 <!-- /TASK: QB-M06-03 -->
 

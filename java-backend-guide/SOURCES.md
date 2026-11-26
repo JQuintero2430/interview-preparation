@@ -775,6 +775,19 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NoSuchMethodError.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/BlockingQueue.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledThreadPoolExecutor.java
+- https://docs.oracle.com/en/java/javase/25/docs/specs/man/javap.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1.2
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.21
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.2
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.1
+- https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/services/diagnosticCommand.hpp
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/utilities/globalDefinitions.hpp
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/AbstractStringBuilder.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/StringConcatFactory.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/regex/Matcher.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/UTF_32.java
 
 ## 17 spring-transactions
 

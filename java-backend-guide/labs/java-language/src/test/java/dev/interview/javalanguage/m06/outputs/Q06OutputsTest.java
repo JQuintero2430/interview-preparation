@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
+import java.lang.classfile.ClassFile;
+import java.lang.classfile.ClassModel;
+import java.lang.classfile.instruction.InvokeDynamicInstruction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +42,29 @@ class Q06OutputsTest {
     private static final String INCOMPATIBLE_TYPES = "compiler.err.prob.found.req";
     private static final String ABSTRACT_INSTANTIATED = "compiler.err.abstract.cant.be.instantiated";
 
+    private static final String CONCAT_SOURCE = """
+            import java.util.List;
+            public class Labels {
+                public String label(String id, int n) { return "order " + id + "#" + n; }
+                public String joined(List<String> parts) {
+                    String out = "";
+                    for (String part : parts) { out += part; }
+                    return out;
+                }
+            }
+            """;
+    private static final String UNICODE_ESCAPE_IN_COMMENT = """
+            public class Probe {
+                public static int value() {
+                    int x = 1;
+                    // the escape ends this comment early: \\u000a x = 2;
+                    return x;
+                }
+            }
+            """;
+    private static final String UNICODE_IDENTIFIER = """
+            public class Probe { public static int größe = 3; }
+            """;
     private static final String NEW_ON_ABSTRACT_CLASS = """
             abstract class Shape { public Shape() {} }
             class Probe { Shape shape = new Shape(); }
@@ -463,6 +490,200 @@ class Q06OutputsTest {
         }
     }
 
+    @Test
+    @DisplayName("Q06.15 · only literals, constant expressions and intern() compare == to the literal")
+    void q06_15_stringIdentity() {
+        assertThat(OutputCapture.linesOf(() -> Q06_15.main(new String[0])))
+                .containsExactly(
+                        "1 true", "2 true", "3 true", "4 false", "5 true", "6 false", "7 true", "8 true", "false");
+    }
+
+    @Test
+    @DisplayName("Q06.16 · a string interned before its literal is first used becomes the literal's value (HotSpot)")
+    void q06_16_internBeforeLiteral() {
+        assertThat(Q06_16.internBeforeTheLiteralIsUsed()).isEqualTo(new Q06_16.InternFirst(true, true));
+    }
+
+    @Test
+    @DisplayName("Q06.16 · new String(literal) is one more object, equal to the pooled literal and never == to it")
+    @SuppressWarnings({"StringEquality", "StringOperationCanBeSimplified"})
+    void q06_16_newStringIsANewObjectEveryTime() {
+        String first = new String("q06-16");
+        String second = new String("q06-16");
+
+        assertThat(first).isNotSameAs(second).isNotSameAs("q06-16").isEqualTo("q06-16");
+        assertThat(first.intern()).isSameAs(second.intern()).isSameAs("q06-16");
+    }
+
+    @Test
+    @DisplayName("Q06.17 · the concat recipe holds the constants inline and \\u0001 for each runtime argument")
+    void q06_17_concatRecipe() {
+        var result = InMemoryCompiler.compile(Map.of("Labels", CONCAT_SOURCE));
+        assertThat(result.success()).isTrue();
+        ClassModel model = ClassFile.of().parse(result.classes().get("Labels"));
+
+        List<InvokeDynamicInstruction> label = invokeDynamicsIn(model, "label");
+        assertThat(label).hasSize(1);
+        assertThat(label.getFirst().bootstrapArgs()).containsExactly("order \u0001#\u0001");
+        assertThat(label.getFirst().typeSymbol().descriptorString())
+                .isEqualTo("(Ljava/lang/String;I)Ljava/lang/String;");
+    }
+
+    @Test
+    @DisplayName("Q06.17 · += in a loop compiles to one concat call site that runs once per iteration")
+    void q06_17_concatInALoop() throws Exception {
+        var result = InMemoryCompiler.compile(Map.of("Labels", CONCAT_SOURCE));
+        ClassModel model = ClassFile.of().parse(result.classes().get("Labels"));
+
+        assertThat(invokeDynamicsIn(model, "joined")).hasSize(1);
+        Class<?> labels = result.load("Labels");
+        Object joined = labels.getMethod("joined", List.class)
+                .invoke(labels.getConstructor().newInstance(), List.of("a", "b", "c"));
+        assertThat(joined).isEqualTo("abc");
+    }
+
+    @Test
+    @DisplayName("Q06.17 · string conversion: a double, a char and null in a concatenation")
+    @SuppressWarnings("ConstantValue")
+    void q06_17_stringConversion() {
+        double price = 2.5;
+        String missing = null;
+
+        assertThat("price " + price).isEqualTo("price 2.5");
+        assertThat("price " + price * 2).isEqualTo("price 5.0");
+        assertThat("" + 1e7 + " " + 1e-4).isEqualTo("1.0E7 1.0E-4");
+        assertThat('a' + 'b' + "!").isEqualTo("195!");
+        assertThat(missing + missing).isEqualTo("nullnull");
+    }
+
+    @Test
+    @DisplayName("Q06.18 · StringBuilder keeps Object.equals, compares by content, and reverses surrogate pairs whole")
+    void q06_18_builderEqualityAndReverse() {
+        StringBuilder one = new StringBuilder("ana");
+        StringBuilder other = new StringBuilder("ana");
+
+        assertThat(one.equals(other)).isFalse();
+        assertThat(one.compareTo(other)).isZero();
+        assertThat("ana".contentEquals(one)).isTrue();
+        assertThat(new StringBuilder("a😀b").reverse().toString()).isEqualTo("b😀a");
+    }
+
+    @Test
+    @DisplayName("Q06.18 · a default StringBuilder holds 16 chars, and one more grows it to twice plus 2")
+    void q06_18_builderCapacity() {
+        StringBuilder builder = new StringBuilder();
+        int initial = builder.capacity();
+        builder.append("x".repeat(17));
+
+        assertThat(initial).isEqualTo(16);
+        assertThat(builder.capacity()).isEqualTo(34);
+        assertThat(new StringBuilder(1_000).capacity()).isEqualTo(1_000);
+    }
+
+    @Test
+    @DisplayName("Q06.18 · concurrent StringBuffer appends never interleave inside one append")
+    void q06_18_bufferAppendsAreAtomic() throws Exception {
+        StringBuffer shared = new StringBuffer();
+        CountDownLatch start = new CountDownLatch(1);
+        Runnable writer = () -> {
+            awaitQuietly(start);
+            for (int i = 0; i < 10_000; i++) {
+                shared.append("ab");
+            }
+        };
+        Thread first = Thread.ofPlatform().start(writer);
+        Thread second = Thread.ofPlatform().start(writer);
+        start.countDown();
+        first.join();
+        second.join();
+
+        assertThat(shared.length()).isEqualTo(40_000);
+        assertThat(shared.toString().replace("ab", "")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Q06.19 · split, a text block's closing delimiter, and trim vs strip")
+    void q06_19_stringApiTraps() {
+        assertThat(OutputCapture.linesOf(() -> Q06_19.main(new String[0])))
+                .containsExactly(
+                        "1 [7, ana, , lima]",
+                        "2 6",
+                        "3 ,lima,,",
+                        "4 1 0",
+                        "5 0 3",
+                        "6 __{|____\"id\":_7|__}|",
+                        "7 4 U+2003",
+                        "8 3 ana");
+    }
+
+    @Test
+    @DisplayName("Q06.19 · a closing delimiter at the end of the last line leaves no final newline")
+    void q06_19_closingDelimiterOnTheLastLine() {
+        String block = """
+                {
+                  "id": 7
+                }""";
+
+        assertThat(block.replace(" ", "_").replace("\n", "|")).isEqualTo("{|__\"id\":_7|}");
+    }
+
+    @Test
+    @DisplayName("Q06.20 · a Unicode escape in a comment is translated before the comment is recognized")
+    void q06_20_unicodeEscapeEndsAComment() throws Exception {
+        var result = InMemoryCompiler.compile(Map.of(SOURCE_NAME, UNICODE_ESCAPE_IN_COMMENT));
+        assertThat(result.errorCodes()).isEmpty();
+
+        Object value = result.load(SOURCE_NAME).getMethod("value").invoke(null);
+
+        assertThat(value).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Q06.20 · identifiers may use any Unicode letter")
+    void q06_20_unicodeIdentifier() throws Exception {
+        var result = InMemoryCompiler.compile(Map.of(SOURCE_NAME, UNICODE_IDENTIFIER));
+        assertThat(result.errorCodes()).isEmpty();
+
+        assertThat(result.load(SOURCE_NAME).getField("größe").get(null)).isEqualTo(3);
+        assertThat(Character.isJavaIdentifierStart('ß')).isTrue();
+    }
+
+    @Test
+    @DisplayName(
+            "Q06.20 · bytes per encoding: ASCII has no byte above 127, UTF-16 writes a BOM and JDK 25 UTF-32 does not")
+    void q06_20_bytesPerEncoding() {
+        assertThat(new String(new byte[] {(byte) 0xE9}, StandardCharsets.US_ASCII))
+                .isEqualTo("�");
+        assertThat(new String(new byte[] {(byte) 0xE9}, StandardCharsets.ISO_8859_1))
+                .isEqualTo("é");
+        assertThat("A".getBytes(StandardCharsets.UTF_16)).containsExactly(0xFE, 0xFF, 0x00, 0x41);
+        assertThat("A".getBytes(StandardCharsets.UTF_16BE)).hasSize(2);
+        assertThat("A😀".getBytes(StandardCharsets.UTF_32BE)).hasSize(8);
+        assertThat("A😀".getBytes(StandardCharsets.UTF_32)).hasSize(8);
+        assertThat(Character.MAX_CODE_POINT).isEqualTo(0x10FFFF);
+        assertThat(Integer.toBinaryString(Character.MAX_CODE_POINT)).hasSize(21);
+    }
+
+    @Test
+    @DisplayName("Q06.21 · length, code points, UTF-8 bytes, a lone surrogate, and char arithmetic")
+    void q06_21_emojiAndAccent() {
+        assertThat(OutputCapture.linesOf(() -> Q06_21.main(new String[0])))
+                .containsExactly("1 2 1", "2 d83d 1f600", "3 4", "4 1", "5 1 2", "6 2 false", "7 98", "8 b", "9 a1");
+    }
+
+    @Test
+    @DisplayName("Q06.21 · a char literal is not equal to a one-character string, and a surrogate is not a letter")
+    @SuppressWarnings("EqualsBetweenInconvertibleTypes")
+    void q06_21_charIsNotAString() {
+        String emoji = "😀";
+
+        assertThat("a".equals('a')).isFalse();
+        assertThat("a".equals(String.valueOf('a'))).isTrue();
+        assertThat(Character.isLetter(emoji.charAt(0))).isFalse();
+        assertThat(Character.isLetter(emoji.codePointAt(0))).isFalse();
+        assertThat(Character.isSurrogate(emoji.charAt(0))).isTrue();
+    }
+
     // Stand-in for a blocking call: like Thread.sleep, it clears the interrupt status and throws.
     private static int blockingFetch(String sku) throws InterruptedException {
         if (Thread.interrupted()) {
@@ -486,5 +707,23 @@ class Q06OutputsTest {
 
         assertThat(result.success()).isFalse();
         assertThat(result.errorCodes()).containsExactly(expectedKey);
+    }
+
+    private static List<InvokeDynamicInstruction> invokeDynamicsIn(ClassModel model, String methodName) {
+        return model.methods().stream()
+                .filter(method -> method.methodName().equalsString(methodName))
+                .flatMap(method -> method.code().stream())
+                .flatMap(code -> code.elementStream())
+                .filter(InvokeDynamicInstruction.class::isInstance)
+                .map(InvokeDynamicInstruction.class::cast)
+                .toList();
+    }
+
+    private static void awaitQuietly(CountDownLatch latch) {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

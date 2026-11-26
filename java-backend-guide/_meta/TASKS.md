@@ -1691,11 +1691,11 @@ Appended by PLAN-M06 (S20261124-0601-claudecode-cloud). Plan: [M06](modules/M06.
 - Done by: S20261126-0001-claudecode-cloud (claude-opus-5-5)
 
 ### QB-M06-03 · M · Q06.15–Q06.21
-- Status: `todo` · Deps: SEC-M06-06, -07 · needs: none
+- Status: `done` · Deps: SEC-M06-06, -07 · needs: none
 - Files touched: `modules/06-java-exceptions-strings-io.md` (region `QB-M06-03`), lab `m06/outputs/**` (main `Q06_mm` classes and their tests), `SOURCES.md`
 - Inputs: [M06](modules/M06.md) §5 rows Q06.15–Q06.21 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
 - Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M06 §5 lists rows (primary and duplicate IDs, and fixes the source errors in those rows' Notes), and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
-- Done by: —
+- Done by: S20261126-0601-claudecode-cloud (claude-opus-5-5)
 
 ### QB-M06-04 · M · Q06.22–Q06.26
 - Status: `todo` · Deps: SEC-M06-07, -08, -09, -10 · needs: none
