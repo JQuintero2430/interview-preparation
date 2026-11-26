@@ -2389,18 +2389,315 @@ The lab runs `main` and asserts the nine lines [Lab: Q06OutputsTest](../labs/jav
 <!-- TASK: QB-M06-04 -->
 <a id="q06-22"></a>
 ### Q06.22 · Production scenario · After a JDK upgrade and a move to containers, a partner's CSV import shows `Ã©` where customers' names had `é`
+<!-- ledger: core-java-pdf-03-36 -->
+
+*As the interviewer frames it:* "A partner sends a daily customer file. Two JVMs handle it: a fetcher downloads the file and writes a cleaned copy to a staging volume, and a loader reads the staging copy and inserts the rows. Last week the fetcher moved from JDK 17 on a Windows VM to JDK 25 in a Linux container; the loader was not touched. Since then `José` is stored as `JosÃ©` and `Zoë` as `ZoÃ«`. Names without accents are fine, there is no `�` anywhere, and the partner says nothing changed on their side. What happened, how do you prove it, and what do you do about the rows already stored?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `Ã©` is what the two UTF-8 bytes of `é` (`c3 a9`) look like when a single-byte charset such as windows-1252 or ISO-8859-1 decodes them one byte per character. So somewhere UTF-8 bytes were read with a single-byte charset, and no `�` means no UTF-8 decoder ever met single-byte input. Given the timing, the most likely cause is that the fetcher writes the staging file without naming a charset: on JDK 17 on Windows its default was windows-1252, on JDK 25 it is UTF-8, and the loader, still on the old default, decodes the new bytes as windows-1252. Confirm by hex-dumping the same record at each hop and printing each JVM's `file.encoding`. Fix both ends to name UTF-8, repair the stored rows only where undoing the wrong decode is exact, test the pipeline with non-ASCII data, and alert on rows that still look like mojibake.
+
+**Full explanation.**
+- **What the symptoms tell you.** In the lab, `José` is `4a 6f 73 c3 a9` in UTF-8 and `4a 6f 73 e9` in ISO-8859-1; the UTF-8 bytes read through a windows-1252 reader give exactly `JosÃ©` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). The opposite mistake looks different: single-byte `e9` decoded as UTF-8 becomes `�`, or a `MalformedInputException` with a strict decoder ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)). Names without accents survive because ASCII bytes are the same in all three charsets. So the question is narrow: which step decodes UTF-8 bytes with a single-byte charset, and why did that start last week?
+- **Hypotheses, ranked.**
+  1. *Default-charset drift between the upgraded writer and the untouched reader.* JEP 400 describes this hazard: an application writes with a `FileWriter` that takes no charset, a second one reads with a `FileReader` that takes none, and "if the default charset differs between the JDK of the first application and the JDK of the second application then the resulting text may be silently corrupted". In JDK 17 and earlier on Windows the default was "a codepage-based charset such as windows-1252"; since Java 18 it is UTF-8 [Doc: JEP 400](https://openjdk.org/jeps/400). Before the move, both sides used windows-1252 for the staging file and agreed; now only the loader does. This fits every symptom and the timing, so it comes first.
+  2. *A single-byte charset carried into the new image.* A start script or a `JAVA_TOOL_OPTIONS` variable with `-Dfile.encoding=ISO-8859-1`, an old workaround, would make the fetcher's own default single-byte, so its reader decodes the partner's UTF-8 file wrongly. JEP 400 calls values other than `UTF-8` and `COMPAT` unspecified, but "if such a value worked in JDK 17 then it will likely continue to work" [Doc: JEP 400](https://openjdk.org/jeps/400); in the lab, a JDK 25 child JVM started with that variable prints `Picked up JAVA_TOOL_OPTIONS: -Dfile.encoding=ISO-8859-1` and reports a default of `ISO-8859-1` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java).
+  3. *Only the display is wrong.* The stored text is right and a viewer (a spreadsheet opening a CSV export, a database console) decodes as windows-1252. The container's own logs would not show `Ã©`: piped `System.out` in a POSIX `C` locale writes `é` as `?` ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)), so `Ã©` in a log line means the string itself holds those two characters.
+  4. *The partner changed after all.* They now send UTF-8 where they used to send windows-1252, or their file already contains `c3 83 c2 a9`, the UTF-8 encoding of the broken `Ã©` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). Least likely, but the first check below settles it.
+- **The evidence that confirms one.** Take one affected record and hex-dump its bytes at every hop: the partner's original file, the staging copy, and the stored value (with the database's own hex function; [26](26-postgresql-internals.md) covers PostgreSQL's text types). `c3 a9` is UTF-8 `é`, `e9` is single-byte `é`, `c3 83 c2 a9` is already double-encoded; the first hop where the bytes change is the culprit (if the original already has `c3 83 c2 a9`, it is hypothesis 4). Then print each JVM's settings in its own image: JEP 400 gives `java -XshowSettings:properties -version 2>&1 | grep file.encoding` [Doc: JEP 400](https://openjdk.org/jeps/400), which in the lab prints `file.encoding = UTF-8` for JDK 25 in the `C` locale [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java); for a running JVM, `jcmd <pid> VM.system_properties` prints its system properties [Src: JDK 25, diagnosticCommand.hpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/services/diagnosticCommand.hpp). Look for a `Picked up JAVA_TOOL_OPTIONS` line at the top of the container's output (hypothesis 2). Finally, search both code bases for the APIs JEP 400 lists as using the default charset: the `InputStreamReader`, `FileReader`, `OutputStreamWriter`, `FileWriter` and `PrintStream` constructors without a charset, plus `Formatter` and `Scanner` [Doc: JEP 400](https://openjdk.org/jeps/400), and `getBytes()` and `new String(bytes)` without one.
+- **The fix.** Make the staging file's encoding part of the contract between the two programs: UTF-8, named in the code on both sides (`Files.newBufferedWriter(path, UTF_8)`, and a reader that reports malformed input, such as [§7](#7-unicode-and-charsets-char-code-points-and-encodings)'s `PartnerFeed`). If the loader cannot be redeployed today, JEP 400's stopgap is to start the old JDK with `-Dfile.encoding=UTF-8` [Doc: JEP 400](https://openjdk.org/jeps/400). Then repair the rows already stored, with the Code below: re-encode each value with the charset that decoded it wrongly, then decode the bytes as UTF-8 with a strict decoder, and keep the result only if both steps succeed. In the lab that turns `JosÃ©` back into `José`, leaves the correct `José` and the legitimate `JOÃO` untouched, and, because windows-1252 maps the UTF-8 continuation byte `93` of `Ó` to `“`, needs the windows-1252 encoder rather than ISO-8859-1 to repair `Ã“` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). Some rows cannot be repaired: the five byte values `81`, `8d`, `8f`, `90` and `9d` decode to U+FFFD in Java's windows-1252, so `Á` (`c3 81`) became `Ã�` and its second byte is gone [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). Those rows are reloaded from the partner's original files.
+- **Prevention and what to monitor.** A pipeline test that runs the real images of both programs on a fixture with `José`, `Zoë` and an emoji and compares the stored bytes; a build check that rejects the charset-less constructors and methods listed above; and, before any JDK upgrade, a run of the old JDK with `-Dfile.encoding=UTF-8`, which JEP 400 strongly encourages [Doc: JEP 400](https://openjdk.org/jeps/400). Log each JVM's `file.encoding`, `native.encoding` and `stdout.encoding` at start-up. After each import, count the stored names for which the repair function returns a different value: those are almost certainly mojibake, the expected count is zero, and a legitimate name such as `JOÃO` is not counted because its bytes are not valid UTF-8 [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java).
+
+**Code.** The repair undoes exactly one wrong decode and refuses everything else:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_22.java
+    // Undoes one wrong decode of UTF-8 bytes with a single-byte charset (the one the evidence names).
+    // Both coders report errors by default, so text that does not round-trip exactly
+    // (correct text, or text that already lost bytes) is left alone.
+    public static Optional<String> undoWrongDecode(String stored, Charset wrongCharset) {
+        try {
+            ByteBuffer originalBytes = wrongCharset.newEncoder().encode(CharBuffer.wrap(stored));
+            return Optional.of(
+                    StandardCharsets.UTF_8.newDecoder().decode(originalBytes).toString());
+        } catch (CharacterCodingException notMojibake) {
+            return Optional.empty();
+        }
+    }
+```
+
+A fresh `CharsetEncoder` or `CharsetDecoder` reports malformed and unmappable input by default [Doc: Java 25 API, CharsetEncoder](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/charset/CharsetEncoder.html) [Doc: Java 25 API, CharsetDecoder](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/nio/charset/CharsetDecoder.html), which is what makes the refusals possible.
+
+**Follow-ups an interviewer will ask.**
+- *Why not add `-Dfile.encoding=COMPAT` to the new fetcher and move on?* `COMPAT` takes the default from `native.encoding` ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)), and a Linux container in the `C` locale has ASCII there, so the fetcher would write `é` as `?`, which is worse; the stopgap belongs on the old side, `-Dfile.encoding=UTF-8` on JDK 17 [Doc: JEP 400](https://openjdk.org/jeps/400).
+- *An old interview answer says the default encoding is `Cp1252` or `8859_1`. Is that right?* It was a platform-dependent answer for JDK 17 and earlier: a Windows code page such as windows-1252 on Windows, the locale's charset elsewhere. Since Java 18 the default is UTF-8 on every platform unless `-Dfile.encoding=COMPAT` is given [Doc: JEP 400](https://openjdk.org/jeps/400), and only console output still follows the operating system ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)).
+- *Why not run every stored name through `new String(name.getBytes(ISO_8859_1), UTF_8)`?* Because that converts the correct rows too, and the lenient `String` constructor turns their bytes into `�` without complaint: in the lab, a correct `José` becomes `Jos�` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java).
+
+**Trap to avoid.** Treating the upgrade as the bug and rolling it back. JDK 25 did what JEP 400 says; the bug is the charset-less write and read that silently depended on two machines agreeing, and it returns at the next platform change unless the charset is named.
+
+</details>
 
 <a id="q06-23"></a>
 ### Q06.23 · Difference · Byte streams vs readers and writers: the decorator chain, buffering, where the charset enters, and what `read` and `readLine` return at the end
+<!-- ledger: core-java-pdf-02-44, core-java-pdf-03-26, core-java-pdf-01-49, core-java-pdf-02-28, core-java-pdf-02-51 -->
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `InputStream` and `OutputStream` move bytes; `Reader` and `Writer` move characters, which in Java are UTF-16 code units. The two families meet only at `InputStreamReader` and `OutputStreamWriter`, and that bridge is the one place a charset is applied. Both families are built as decorators: a filter stream or reader wraps another and adds one job, such as buffering, typed values or lines, and closing the outer one closes the chain. Buffering matters because each unbuffered call may reach the file or socket. At the end of the stream, `read()` returns -1 in both families (otherwise 0 to 255 for a byte, 0 to 65535 for a `char`), `read(buffer)` returns -1 (otherwise the count read, possibly less than the buffer), and `BufferedReader.readLine()` returns `null`, while an empty line is `""`.
+
+**Full explanation.** [§8](#8-io-byte-and-character-streams-buffering-and-nio2) has the mechanism; the differences side by side:
+
+| | Byte streams | Character streams |
+|---|---|---|
+| Unit | bytes | `char`s, UTF-16 code units ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)) |
+| Base types | `InputStream`, `OutputStream` | `Reader`, `Writer` |
+| `read()` returns | 0 to 255, or -1 at the end | 0 to 65535, or -1 at the end |
+| Files | `FileInputStream`, `FileOutputStream` | `FileReader`, `FileWriter` (default charset unless one is passed) |
+| Buffering decorator | `BufferedInputStream`, `BufferedOutputStream` | `BufferedReader` (adds `readLine`), `BufferedWriter` |
+| Printing | `PrintStream` (`System.out`) | `PrintWriter` |
+| For | binary data: images, archives, encrypted or compressed content | text, once its charset is known |
+
+The `read()` ranges and end values are documented on each base class [Src: JDK 25, java.io.InputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/InputStream.java) [Src: JDK 25, java.io.Reader](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/Reader.java); `FileReader` takes a `Charset` since Java 11 [Src: JDK 25, java.io.FileReader](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/FileReader.java).
+- **Where the charset enters.** Only at the bridge, which "reads bytes and decodes them into characters using a specified charset" or the default one [Src: JDK 25, java.io.InputStreamReader](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/InputStreamReader.java). A character stream therefore always carries a charset decision, explicit or inherited, and a byte stream never does: reading binary data through a reader corrupts it, and reading text as bytes leaves the decoding to be done.
+- **Filter streams are decorators.** A `FilterInputStream` "wraps some other input stream, which it uses as its basic source of data, possibly transforming the data along the way or providing additional functionality" [Src: JDK 25, java.io.FilterInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/FilterInputStream.java). `BufferedInputStream`, `DataInputStream` and `BufferedReader` each add one capability on top of the stream they wrap, which is why a text chain reads `new BufferedReader(new InputStreamReader(in, charset))`: bytes, then the bridge, then the buffer that offers `readLine`.
+- **End of stream and short reads.** `read(byte[])` "blocks until input data is available", returns 0 only for a zero-length array, returns -1 "if no byte is available because the stream is at the end of the file", and otherwise reads "at least one byte" [Src: JDK 25, java.io.InputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/InputStream.java); `Reader.read(char[])` follows the same contract [Src: JDK 25, java.io.Reader](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/Reader.java). So a loop must write only the `count` it got: in the lab, a source that returns at most 3 bytes per call is still copied whole, all 20,000 bytes of `0xFF` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). `readLine` returns `null` only at the end; in the lab `"a\r\nb\n\ncafé"` gives `a`, `b`, `""` and `café` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). And because a `Reader` counts code units, `read()` on `é😀` returns `0xE9`, then the two surrogates `0xD83D` and `0xDE00`, then -1 [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java).
+- **The printing classes hide errors.** "A `PrintStream` never throws an `IOException`; instead, exceptional situations merely set an internal flag that can be tested via the `checkError` method" [Src: JDK 25, java.io.PrintStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/PrintStream.java), and "methods in this class never throw I/O exceptions" holds for `PrintWriter` too [Src: JDK 25, java.io.PrintWriter](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/PrintWriter.java). In the lab, a `PrintWriter` over a writer that fails with "disk full" returns normally from `println` and `flush`, and only `checkError()` is `true` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). For data that must not be lost, write through a `BufferedWriter`, whose `write` methods throw `IOException` [Src: JDK 25, java.io.BufferedWriter](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/BufferedWriter.java).
+
+**Code.** The two loops, each ending on its family's end-of-stream value:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_23.java
+    // Bytes stay bytes: no charset anywhere. read may return fewer bytes than asked for; only -1 ends.
+    public static long copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[CHUNK];
+        long total = 0;
+        int count;
+        while ((count = in.read(buffer)) != -1) {
+            out.write(buffer, 0, count);
+            total += count;
+        }
+        return total;
+    }
+
+    // Bytes, then the bridge (the one place the charset enters), then the buffer that provides readLine.
+    public static List<String> readLines(InputStream in, Charset charset) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, charset))) {
+            List<String> lines = new ArrayList<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line);
+            }
+            return lines;
+        }
+    }
+```
+
+In real code, `in.transferTo(out)` replaces the first loop and `Files.newBufferedReader(path)` builds the second chain ([§8](#8-io-byte-and-character-streams-buffering-and-nio2)).
+
+**Follow-ups an interviewer will ask.**
+- *What is the `System` class for?* It is a holder of static members: the standard streams `in`, `out` and `err`; `getProperty` for JVM system properties and `getenv` for the process's environment variables, which, unlike properties, "are visible to all descendants of the process which defines them"; `currentTimeMillis`, wall-clock milliseconds since the 1970 epoch whose granularity "depends on the underlying operating system", and `nanoTime`, which "can only be used to measure elapsed time and is not related to any other notion of system or wall-clock time"; `arraycopy`; `lineSeparator` (`"\n"` on UNIX, `"\r\n"` on Windows, Java 7); and `exit` [Src: JDK 25, java.lang.System](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/System.java). Measure durations with `nanoTime`, the one of the two that is specified for elapsed time.
+- *Why not `DataInputStream.readLine()`?* It is `[Deprecated since Java 1.1 — use BufferedReader.readLine]`: its Javadoc says it "does not properly convert bytes to characters" and gives the `BufferedReader` replacement [Src: JDK 25, java.io.DataInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/DataInputStream.java).
+- *Is `readLine` returning `null` the same as reading an empty line?* No: an empty line is `""` and the loop continues; `null` means nothing was left to read. A loop that stops at the first blank line is a common bug when parsing files with empty records.
+
+**Trap to avoid.** `while (in.read(buffer) != -1) out.write(buffer);`. It compiles, works in a test with a small in-memory stream, and corrupts real transfers: a read may fill only part of the buffer, and this loop writes the whole buffer, stale bytes included. Write `count` bytes, or use `transferTo`.
+
+</details>
 
 <a id="q06-24"></a>
 ### Q06.24 · Difference · `File` vs `Path` and `Files` vs `RandomAccessFile` and `FileChannel`: what each is for, and why NIO.2 reports errors better
+<!-- ledger: core-java-pdf-02-66, core-java-pdf-03-34 -->
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** `File` (Java 1.0) and `Path` (Java 7) are both *names* of files: neither reads content or holds a file open. `File` also carries the old file operations, which report failure as `false`, `null` or `0`; `Path` is a pure name, and its operations live in the static class `Files`, which throws an exception that says what went wrong (`NoSuchFileException`, `DirectoryNotEmptyException`, `NotDirectoryException`, `FileAlreadyExistsException`). `RandomAccessFile` and `FileChannel` are *open* files: a `RandomAccessFile` has a file pointer you `seek` and read or write from, and a `FileChannel` adds reads and writes at an absolute position that leave the position alone, transfers between channels, memory mapping and `force`. Use `Path` and `Files` for names and operations, a stream or reader from `Files` for sequential content, and `FileChannel` for positioned or large-file access.
+
+**Full explanation.** [§8](#8-io-byte-and-character-streams-buffering-and-nio2) covers each API; the comparison:
+
+| | `File` | `Path` + `Files` | `RandomAccessFile` | `FileChannel` |
+|---|---|---|---|---|
+| What it is | a path name plus file operations | a path name; operations in `Files` | an open file with a file pointer | an open file as a channel, with a position |
+| Reads content? | no: open a stream from it | through `Files.newInputStream`, `newBufferedReader`, `readString` | yes, at the pointer | yes, at the position or at an absolute offset |
+| Reports failure | `false`, `null` or `0` | a specific `IOException` subclass | `IOException` | `IOException` |
+| Since | Java 1.0 | Java 7 | Java 1.0 | Java 1.4 |
+
+The "Since" column comes from §8's Version notes [Src: JDK 25, java.nio.file.Path](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Path.java) [Src: JDK 25, java.nio.channels.FileChannel](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/channels/FileChannel.java).
+- **How `File` reports failure.** `listFiles()` returns `null` "if this abstract pathname does not denote a directory, or if an I/O error occurs"; `mkdir()` returns `true` "if and only if the directory was created; `false` otherwise"; `lastModified()` returns `0L` "if the file does not exist or if an I/O error occurs"; and `renameTo` is "inherently platform-dependent", "might not be atomic", and its return value "should always be checked" [Src: JDK 25, java.io.File](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/File.java). None of these says *why*. In the lab, `listFiles()` on a regular file is `null` where `Files.list` throws `NotDirectoryException`; `mkdir()` under a missing parent is `false` where `Files.createDirectory` throws `NoSuchFileException` and `Files.createDirectories` creates the parents; `lastModified()` of a missing file is `0` where `Files.getLastModifiedTime` throws `NoSuchFileException` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). [§8](#8-io-byte-and-character-streams-buffering-and-nio2) shows the same split for `delete`.
+- **What `Files` adds besides exceptions.** `Files.move` fails "if the target file exists" unless `REPLACE_EXISTING` is given, and with `ATOMIC_MOVE` throws `AtomicMoveNotSupportedException` when the file system cannot move atomically [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java); in the lab, a move onto an existing file throws `FileAlreadyExistsException` and the target keeps its content [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). `createDirectory` checks for the file and creates it as "a single operation that is atomic with respect to all other filesystem activities" [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java), so of two instances racing to create the same folder, one succeeds and the other gets an exception (`FileAlreadyExistsException` where the file system reports that specific case). `File.toPath()` and `Path.toFile()` convert between the two, so legacy APIs that take a `File` are no reason to keep using its operations.
+- **`RandomAccessFile` and `FileChannel` are two views of one open file.** The channel from `RandomAccessFile.getChannel()` has a position "always equal to this object's file-pointer offset", and changing either changes the other [Src: JDK 25, java.io.RandomAccessFile](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/RandomAccessFile.java). In the lab, `seek(4)` moves the channel to 4, `channel.position(8)` makes the next `raf.read()` return `'8'`, and an absolute `channel.read(buffer, 0)` leaves the pointer at 9 [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). The absolute form is why `FileChannel` suits several threads reading records from one file, and why new code opens it directly with `FileChannel.open(path, options)` rather than through a `RandomAccessFile` ([§8](#8-io-byte-and-character-streams-buffering-and-nio2)).
+
+**Code.** §8's cleanup job, rewritten with `Files` so each failure carries its reason:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_24.java
+    public record CleanupReport(List<Path> deleted, Map<Path, String> failures) {}
+
+    public static CleanupReport deleteAll(List<Path> files) {
+        List<Path> deleted = new ArrayList<>();
+        Map<Path, String> failures = new LinkedHashMap<>();
+        for (Path file : files) {
+            try {
+                // Absent is fine; anything else that stops the delete is an exception that names the cause.
+                if (Files.deleteIfExists(file)) {
+                    deleted.add(file);
+                }
+            } catch (IOException e) {
+                failures.put(file, e.getClass().getSimpleName() + ": " + e.getMessage());
+            }
+        }
+        return new CleanupReport(List.copyOf(deleted), Collections.unmodifiableMap(failures));
+    }
+```
+
+In the lab, given a processed file, a missing file and a non-empty directory, the report lists the processed file as deleted, says nothing about the missing one, and records `DirectoryNotEmptyException: <path>` for the directory [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). Logged or exported as a metric, that map is what the `File.delete()` version could never produce.
+
+**Follow-ups an interviewer will ask.**
+- *How do you replace a file so that readers never see half of it?* Write the new content to a temporary file in the same directory, then `Files.move(temp, target, ATOMIC_MOVE)`; if the file system cannot do it atomically, the call throws `AtomicMoveNotSupportedException` rather than degrading, and whether an existing target is replaced is "implementation specific" [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java), so test it on the file system you deploy to.
+- *Is `File` deprecated?* No; only `toURL` is, and `File`'s own Javadoc points to `java.nio.file` ([§8](#8-io-byte-and-character-streams-buffering-and-nio2)).
+- *When would you memory-map instead of reading through a channel?* For relatively large files read many times; the `FileChannel` Javadoc says mapping costs more than reading "a few tens of kilobytes", and the mapping lives outside the heap until the buffer is collected ([§8](#8-io-byte-and-character-streams-buffering-and-nio2); [10](10-jvm-performance-and-troubleshooting.md) for native memory).
+
+**Trap to avoid.** Checking before acting: `if (Files.exists(p)) Files.delete(p)`. The `Files.exists` Javadoc warns that its result "is immediately outdated" [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java): another process can remove or create the file in between. Act directly (`deleteIfExists`, `createDirectory`, `move` without `REPLACE_EXISTING`) and handle the exception that comes back.
+
+</details>
 
 <a id="q06-25"></a>
 ### Q06.25 · Trade-off · Java serialization end to end: what is written, `transient`, `static`, `serialVersionUID`, why deserializing untrusted bytes is dangerous, and why JSON or Protobuf replaced it
+<!-- ledger: core-java-pdf-01-08, core-java-240-08-14, core-java-240-08-15, core-java-240-08-16, core-java-240-08-17, core-java-240-08-18, core-java-240-08-19, core-java-240-08-20, core-java-240-08-22, core-java-pdf-01-17, core-java-240-05-38, core-java-240-08-23, core-java-pdf-01-21, core-java-240-05-39, core-java-240-08-21, core-java-pdf-03-14, core-java-pdf-03-38 -->
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A class opts in by implementing `Serializable` (a marker) or `Externalizable`; `ObjectOutputStream.writeObject` then writes each class's descriptor (its name, its `serialVersionUID` and its field descriptions) and the values of every non-`static`, non-`transient` field of the whole reachable graph, keeping shared references and cycles; `ObjectInputStream.readObject` builds new objects from that without running the serializable classes' constructors. A `transient` field comes back as its type's default (`0`, `false`, `null`); a `static` field is class state and is never written. `serialVersionUID` is each class's version stamp, not a unique id, and when it is not declared the computed value changes with harmless edits. The danger is that the bytes choose which classes are built and whose hooks run, all before your cast; filters reduce that risk. The trade-off: Java serialization is defensible only between JVMs running the same code on data you produced yourself, usually a legacy protocol; anything that crosses a service, a release or a trust boundary is better served by JSON or Protobuf.
+
+**Full explanation.** [§9](#9-java-serialization-and-its-risks) has the mechanism; each facet of the question, answered:
+- **What is written and read.** The stream grammar puts the class name and the `serialVersionUID` in every new class descriptor [Doc: Java Object Serialization Specification, §6.4](https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/protocol.html#grammar-for-the-stream-format). In the lab, the bytes of a `CartSession` contain its fully qualified class name and the 8 bytes of its declared `serialVersionUID`, but not the value of its `transient` access token, and the class's serial form, `ObjectStreamClass.lookup(CartSession.class).getFields()`, holds only `userId` and `items` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). Every field's object is written too, transitively; one non-serializable field type fails the write with `NotSerializableException`, and shared references and cycles come back shared ([§9](#9-java-serialization-and-its-risks)).
+- **`transient` and `static`.** A `transient` field is skipped on write and, since no constructor of the serializable class runs on read, it keeps the zero value of its type: in the lab `int` reads back as `0`, `boolean` as `false` and `String` as `null` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). So "a transient field is null after deserialization" is right only for reference types. A `static` field belongs to the class, so it is not in any object's serialized form; the reader sees whatever its own JVM holds ([§9](#9-java-serialization-and-its-risks)).
+- **Which code runs on read.** The no-arg constructor of the first non-serializable superclass runs; the serializable classes' constructors do not ([§9](#9-java-serialization-and-its-risks)). In the lab, reading a `CartSession` leaves its constructor's instance counter unchanged, and the check the constructor makes has to be repeated in `readObject`: bytes edited to blank the `userId` are rejected with `InvalidObjectException: userId is required` [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). Records are the exception: they are read through their canonical constructor. `Externalizable` classes are built with their public no-arg constructor and then read their own state, so they need one ([§9](#9-java-serialization-and-its-risks)).
+- **`serialVersionUID`.** It identifies a *version of one class*, so every class may use `1L`; it is not unique across classes. A mismatch gives `InvalidClassException`. When it is not declared, the runtime computes "a 64-bit hash of the class name, interface class names, methods, and fields" [Doc: Java Object Serialization Specification, §4.6](https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/class.html#stream-unique-identifiers), so the real risk of omitting it is not speed but that a harmless edit (one new method) makes yesterday's bytes unreadable ([§9](#9-java-serialization-and-its-risks)). The `static` field is not serialized as a field; its value travels in the class descriptor, which is how the reader compares versions.
+- **Why untrusted bytes are dangerous, and what filters do.** The stream names the classes, `ObjectInputStream` builds them and runs their `readObject` and `readResolve` methods, and your cast comes last; library classes chained this way are *gadget chains*. Filters (Java 9, JEP 290; per-context factories in Java 17, JEP 415) check each class and the graph's size before the object is built, and an allow-list ending in `!*` is the recommended form; the JDK Javadoc still says deserializing untrusted data "is inherently dangerous and should be avoided" ([§9](#9-java-serialization-and-its-risks)).
+- **What it was used for, and what replaced each use.** Storing objects (sessions, caches), sending them between JVMs, and deep copies through a byte array. For the first two, a format that does not name Java classes; for copies, a copy constructor or a record, which do not rebuild the graph through the serialization machinery. Older answers name JAXB as the XML alternative; it left the JDK in Java 11, when JEP 320 removed the Java EE modules (`java.xml.bind` among them), noting that standalone versions are "readily available from third-party sites, such as Maven Central" [Doc: JEP 320](https://openjdk.org/jeps/320).
+
+The trade-off itself:
+
+| | Java serialization | JSON (for example with Jackson) | Protocol Buffers |
+|---|---|---|---|
+| Who can read it | Java only | any language with a JSON parser | any language with generated code |
+| Schema | the class files on both sides | none in the format itself | a `.proto` file |
+| What decides the types built | class names in the bytes | the reader's mapping configuration | the reader's generated classes |
+| Evolution | compatible changes per the specification, checked by `serialVersionUID` | not defined by the format: the reader's library settings decide what unknown or missing fields do | documented rules: old code ignores new fields |
+| Human-readable | no | yes | no (binary) |
+
+The Java column is [§9](#9-java-serialization-and-its-risks)'s [Doc: Java Object Serialization Specification, §5.6](https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/version.html#incompatible-changes); the Protobuf column is from its documentation, "language-neutral, platform-neutral" with update rules under which "old code … read new messages without issues, ignoring any newly added fields" [Doc: Protocol Buffers overview](https://protobuf.dev/overview/) [Doc: Protocol Buffers proto3 guide, "Updating A Message Type"](https://protobuf.dev/programming-guides/proto3/#updating). Java serialization wins on one point only: it needs no mapping code for an arbitrary graph of Java objects, cycles included. JSON wins where people and other languages read the data and where the payload must not choose the classes; Protobuf wins where a schema shared between teams, compact messages and explicit evolution rules matter, as in gRPC ([34](34-grpc.md)). How Spring configures Jackson is [18](18-spring-mvc-and-rest-controllers.md)'s subject.
+
+**Code.** A serializable class that controls its version, keeps derived and secret state out of the bytes, and checks its invariant on the way in:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_25.java
+    public static final class CartSession implements Serializable {
+        // The version stamp is written into every stream's class descriptor; a distinctive value makes it easy to find.
+        @Serial
+        private static final long serialVersionUID = 0x0CA7_5E55_1000_0001L;
+
+        // Class state: not part of any object's serialized form.
+        static int created;
+
+        private final String userId;
+        private final List<String> items;
+        // Derived or secret state: not written, so it reads back as its type's default value.
+        private transient int cachedTotal;
+        private transient boolean dirty;
+        private transient String accessToken;
+
+        public CartSession(String userId, List<String> items, String accessToken) {
+            if (userId == null || userId.isBlank()) {
+                throw new IllegalArgumentException("userId is required");
+            }
+            this.userId = userId;
+            this.items = List.copyOf(items);
+            this.accessToken = accessToken;
+            this.cachedTotal = this.items.size();
+            this.dirty = true;
+            created++;
+        }
+
+        // No constructor of this class runs on read, so the constructor's check is repeated here.
+        @Serial
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            if (userId == null || userId.isBlank()) {
+                throw new InvalidObjectException("userId is required");
+            }
+        }
+    }
+```
+
+The accessor methods are omitted.
+
+**Follow-ups an interviewer will ask.**
+- *`Serializable` or `Externalizable`?* `Serializable` writes the fields for you and lets you customize with `writeObject`/`readObject`; `Externalizable` makes the class write and read everything itself, needs a public no-arg constructor, and leaves versioning to you ([§9](#9-java-serialization-and-its-risks)). `Externalizable` buys control of the format at the price of the hand-written code that must stay in step on both sides.
+- *How do you keep a singleton a singleton?* Give it `readResolve` returning the instance, or make it an enum, which serialization writes by name and reads with `valueOf` ([§9](#9-java-serialization-and-its-risks)).
+- *A legacy endpoint must keep accepting serialized objects. What is the minimum?* An allow-list filter with limits on every stream, such as [§9](#9-java-serialization-and-its-risks)'s `AllowListReader`, or JVM-wide with `-Djdk.serialFilter`, ending in `!*`; [Ex06.3](#ex06-3) builds one.
+
+**Trap to avoid.** Believing that declaring `serialVersionUID = 1L` makes versions compatible. It only stops the automatic mismatch check; whether old bytes still mean the right thing is decided by the specification's compatible and incompatible changes, which the compiler does not check ([§9](#9-java-serialization-and-its-risks)).
+
+</details>
 
 <a id="q06-26"></a>
 ### Q06.26 · Concept · `Locale` and `ResourceBundle`: how bundle lookup falls back, UTF-8 properties, locale-sensitive formatting, and why machine text uses `Locale.ROOT`
+<!-- ledger: core-java-pdf-01-16, core-java-pdf-03-50, core-java-pdf-02-16 -->
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A `Locale` names a language, optionally with a script, a region and a variant (`fr-CA`, `zh-Hant-TW`); it changes how numbers, dates, currencies, letter case and messages are rendered and parsed, never the data. Every locale-sensitive method either takes one or reads the JVM-wide default, which the JVM takes from the host at start-up. `ResourceBundle.getBundle(base, locale)` tries the candidate bundles from the most specific to the base (`fr_CA`, `fr`), then the default locale's candidates, then the base bundle, and throws `MissingResourceException` only if none exists; each key is looked up along the found bundle's parent chain. Property bundles are read as UTF-8 since Java 9, falling back to ISO-8859-1. Text for people uses the user's locale; text for programs uses `Locale.ROOT`, because it is the neutral locale and does not change with the host.
+
+**Full explanation.** [§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting) has the mechanism; the answer in four parts:
+- **What `Locale` is for.** It is a key for locale data, not a setting with behavior of its own: `Locale.of("pt", "BR")`, `Locale.forLanguageTag("zh-Hant-TW")` and the constants such as `Locale.CANADA_FRENCH` create one, and `toLanguageTag()` gives the BCP 47 form to store ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)). The default is one value per JVM with two categories, `DISPLAY` and `FORMAT`; `String.format` without a locale uses the `FORMAT` default, which is how a German host turns `1234.5` into `1234,50` in a CSV file ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)).
+- **How bundle lookup falls back.** The candidate list comes from the requested locale: in the lab, the default control's candidates for `fr_CA` are `fr_CA`, `fr` and the root locale [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). For each candidate a class is tried and then a properties file; if none matches, "the default control's `getFallbackLocale` method is called, which returns the current default locale", and only then is the base bundle used [Src: JDK 25, java.util.ResourceBundle](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ResourceBundle.java). That middle step is why an Italian user can be served the server's German text, and why [§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)'s `LocalizedMessages` uses `Control.getNoFallbackControl`. Bundles "are cached by default, and the factory methods return the same resource bundle instance multiple times if it has been cached" [Src: JDK 25, java.util.ResourceBundle](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ResourceBundle.java); in the lab two `getBundle` calls for `fr` return the same object [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java), so a changed file on disk is not seen until the cache is cleared (`clearCache`) or the time-to-live of a custom `Control` expires.
+- **UTF-8 properties.** `PropertyResourceBundle` reads its input as UTF-8 and re-reads it as ISO-8859-1 if that fails (Java 9, JEP 226), so translators can save files with `é` and `ô` as they are; `java.util.Properties.load(InputStream)` still reads ISO-8859-1 ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)) [Src: JDK 25, java.util.PropertyResourceBundle](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/PropertyResourceBundle.java).
+- **Formatting, and why machines get `Locale.ROOT`.** `NumberFormat`, `DateTimeFormatter.ofLocalized…`, `MessageFormat` and `toLowerCase`/`toUpperCase` all depend on the locale: currency `1.234,50 €` for Germany, `TITLE` lowercased to `tıtle` under Turkish ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)). Logs, CSV, protocol keys, file names and identifiers are read by programs that expect one fixed form, so they are written with `Locale.ROOT`, "the language/country neutral locale for the locale sensitive operations" [Src: JDK 25, java.util.Locale](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Locale.java), or with a method that takes no locale, such as `Double.toString`. Localized output also changes with the CLDR data of each JDK, so it is never parsed between systems ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)).
+
+**Code.** A release check that answers "what will a user in this locale see in the base language?", which `getBundle` itself never tells you:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_26.java
+    private static final ResourceBundle.Control PROPERTIES =
+            ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
+
+    // Base keys that no bundle in the locale's own chain (for fr_CA: fr_CA, then fr) defines.
+    public static Set<String> untranslatedKeys(String baseName, Locale locale) {
+        Set<String> missing = keysOf(baseName, Locale.ROOT);
+        for (Locale candidate : PROPERTIES.getCandidateLocales(baseName, locale)) {
+            if (!candidate.equals(Locale.ROOT)) {
+                missing.removeAll(keysOf(baseName, candidate));
+            }
+        }
+        return missing;
+    }
+
+    // One file read on its own has no parent bundle, so keySet() holds only that file's keys.
+    private static Set<String> keysOf(String baseName, Locale locale) {
+        String resource = PROPERTIES.toResourceName(PROPERTIES.toBundleName(baseName, locale), "properties");
+        try (InputStream in = Q06_26.class.getClassLoader().getResourceAsStream(resource)) {
+            return in == null ? new TreeSet<>() : new TreeSet<>(new PropertyResourceBundle(in).keySet());
+        } catch (IOException e) {
+            throw new UncheckedIOException(resource, e);
+        }
+    }
+```
+
+In the lab, with [§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)'s four bundles, `fr_CA` lacks only `appName` (its `farewell` and `orderLine` come from `Messages_fr`), `de_DE` lacks `appName` and `orderLine`, and `it_IT`, which has no bundle at all, lacks all four keys [Lab: Q06IoQuestionsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06IoQuestionsTest.java). Run in the build, it turns "Italian users see English" from a support ticket into a failing check; keys that are meant to stay untranslated, such as a product name, go on an allow-list.
+
+**Follow-ups an interviewer will ask.**
+- *Properties file or `ListResourceBundle`?* A properties file holds strings and can be edited by translators; a `ListResourceBundle` subclass returns key-value pairs from `getContents`, so its values can be any object, at the price of compiling translations into code ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)). For a class and a properties file with the same name, the class is found first.
+- *Does `getBundle` with a custom `Control` work in a modular application?* Not from a named module: that overload throws `UnsupportedOperationException` "if this method is called in a named module", and "a custom `Control` implementation is ignored by named modules", which use `ResourceBundleProvider` services instead [Src: JDK 25, java.util.ResourceBundle](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ResourceBundle.java). This lab runs on the class path.
+- *How does a Spring application pick the locale per request?* Through Spring's `LocaleResolver` and `MessageSource`, which sit on top of bundles; that is [18](18-spring-mvc-and-rest-controllers.md)'s subject. The JDK part stays the same: pass the resolved locale to every call instead of setting the JVM default.
+
+**Trap to avoid.** Treating a successful `getBundle` as proof that the text is translated. It returns the nearest bundle it finds, and every key that bundle lacks is answered silently by a parent, ending at the base language; only a check like the one above shows which keys a locale's users read untranslated.
+
+</details>
 
 <!-- /TASK: QB-M06-04 -->
 

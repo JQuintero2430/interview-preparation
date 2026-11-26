@@ -5,8 +5,8 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
 - **Current module:** 06 `java-exceptions-strings-io` (core, lab `java-language`), planned by PLAN-M06 (S20261124-0601-claudecode-cloud): [M06](modules/M06.md), skeleton `modules/06-java-exceptions-strings-io.md` (40 TASK markers: 10 SEC, 4 QB, 3 EX, CLOSE ×3), smoke test `m06/smoke/M06LabSmokeTest` (3 tests pass); 87 ledger rows homed (85 primary, 2 `architect-md` secondary). Modules 17, 01, 02, 03, 04 and 05 closed, reviewed, fixed (REVIEW-M05 findings all resolved by FIX-M05-01..04 in S20261124-0601).
 - **In progress:** none
-- **Last finished task:** QB-M06-03 (S20261126-0601-claudecode-cloud): Q06.15–Q06.21 written (3 Output, 3 Concept, 1 Difference); lab `m06/outputs` (main `Q06_15`, `Q06_16`, `Q06_19`, `Q06_21`; `Q06OutputsTest` now 39 tests). Earlier: QB-M06-02 (S20261126-0001).
-- **Next task:** QB-M06-04 (M, Q06.22–Q06.26), then EX-M06-01..03, CLOSE-M06 in TASKS.md order.
+- **Last finished task:** QB-M06-04 (S20261126-1201-claudecode-cloud): Q06.22–Q06.26 written (1 Production scenario, 2 Difference, 1 Trade-off, 1 Concept); lab `m06/outputs` (main `Q06_22`–`Q06_26`, new test class `Q06IoQuestionsTest`, 20 tests). The question bank is complete (26 questions). Earlier: QB-M06-03 (S20261126-0601).
+- **Next task:** EX-M06-01 (M, Ex06.1 batch exporter), then EX-M06-02, EX-M06-03, CLOSE-M06 in TASKS.md order.
 - **Counts:** modules done 0/55 (17, 01, 02, 03, 04 and 05 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 7/55 (17, 01, 02, 03, 04, 05, 06); CLOSE 6/55 (17, 01, 02, 03, 04, 05); REVIEW 6/55 (17, 01, 02, 03, 04, 05).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
