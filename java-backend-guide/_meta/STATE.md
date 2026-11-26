@@ -5,8 +5,8 @@ Single source of truth for where the job stands (keep under 60 lines). Files on 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
 - **Current module:** 06 `java-exceptions-strings-io` (core, lab `java-language`), planned by PLAN-M06 (S20261124-0601-claudecode-cloud): [M06](modules/M06.md), skeleton `modules/06-java-exceptions-strings-io.md` (40 TASK markers: 10 SEC, 4 QB, 3 EX, CLOSE ×3), smoke test `m06/smoke/M06LabSmokeTest` (3 tests pass); 87 ledger rows homed (85 primary, 2 `architect-md` secondary). Modules 17, 01, 02, 03, 04 and 05 closed, reviewed, fixed (REVIEW-M05 findings all resolved by FIX-M05-01..04 in S20261124-0601).
 - **In progress:** none
-- **Last finished task:** QB-M06-01 (S20261125-1801-claudecode-cloud): Q06.01–Q06.07 written (2 Output, 1 Bug hunt, 3 Concept, 1 Difference); lab `m06/outputs` (main `Q06_03`, `Q06_07`; test `Q06OutputsTest`, 10 tests). Earlier: SEC-M06-10 (S20261125-1201), the last M06 section.
-- **Next task:** QB-M06-02 (M, Q06.08–Q06.14), then QB-M06-03, QB-M06-04, EX-M06-01..03, CLOSE-M06 in TASKS.md order.
+- **Last finished task:** QB-M06-02 (S20261126-0001-claudecode-cloud): Q06.08–Q06.14 written (2 Production scenario, 1 Concept, 1 Design, 1 Trade-off, 1 Difference·Output, 1 Bug hunt); lab `m06/outputs` (main `Q06_08`, `Q06_09`, `Q06_11`, `Q06_12`, `Q06_13`, `Q06_14`; `Q06OutputsTest` now 23 tests). Earlier: QB-M06-01 (S20261125-1801).
+- **Next task:** QB-M06-03 (M, Q06.15–Q06.21), then QB-M06-04, EX-M06-01..03, CLOSE-M06 in TASKS.md order.
 - **Counts:** modules done 0/55 (17, 01, 02, 03, 04 and 05 closed, reviewed, fixed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 7/55 (17, 01, 02, 03, 04, 05, 06); CLOSE 6/55 (17, 01, 02, 03, 04, 05); REVIEW 6/55 (17, 01, 02, 03, 04, 05).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**

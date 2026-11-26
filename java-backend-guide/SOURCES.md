@@ -768,6 +768,13 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://openjdk.org/jeps/252
 - https://docs.oracle.com/javase/specs/jls/se25/html/jls-15.html#jls-15.9.1
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/reflect/Constructor.java
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.4
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.8
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/FileNotFoundException.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NoSuchMethodError.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/BlockingQueue.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledThreadPoolExecutor.java
 
 ## 17 spring-transactions
 

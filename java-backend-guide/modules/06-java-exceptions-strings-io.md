@@ -1641,24 +1641,409 @@ Resources open left to right and close in reverse, `B` then `A`, before the `cat
 <!-- TASK: QB-M06-02 -->
 <a id="q06-08"></a>
 ### Q06.08 · Production scenario · The incident report says only "Failed to export batch": a wrapped exception that dropped its cause
+<!-- ledger: honeywell-optum-md-01-15 -->
+
+*As the interviewer frames it:* "The nightly settlement export failed three nights in a row. The incident ticket quotes the log: `BatchExportException: Failed to export batch b-7`, then twelve `at` lines that end in the scheduler, and nothing below them. Someone reran the batch by hand on the fourth day, it worked, and the ticket was closed as 'transient'. Nobody knows what failed. How do you find out, and how do you make sure the next ticket says why?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** A printed trace that has `at` lines but no `Caused by:` belongs to an exception object whose `getCause()` was `null`: the original failure was lost when the wrapper was *built*, not when it was logged. In order of likelihood: the `catch` built the wrapper from a message only (`new BatchExportException("Failed to export batch " + id)` or `new …(e.getMessage())`); the wrapper class has a cause constructor that never passes the cause to `super`; or a second layer rebuilt the exception from its message. Confirm by reading the line in the top frame, which is where the wrapper was constructed, and by a unit test that asserts the wrapper's cause is the original object. Fix: pass the cause on every path and through every constructor. Prevent it with that test and a review rule, and monitor for wrapper exceptions logged without a cause, because each one is a bug in the code. What failed on those three nights can now only come from other evidence of the same time window.
+
+**Full explanation.**
+- **What the symptoms tell you.** `printStackTrace`, and every logger that is given the exception object, prints the cause under the caption `Caused by: ` whenever `getCause()` returns a non-`null` value, and repeats that for the cause's cause [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). So an empty space under the frames is proof that the object had no cause. And the twelve `at` lines show that the object itself reached the logger, so the chain was not flattened into text on the way.
+- **Hypotheses, ranked.**
+  1. *The `catch` dropped it.* `throw new BatchExportException("Failed to export batch " + batchId)` inside `catch (IOException e)` compiles, reads well, and loses the `IOException`, its class and its trace. [§3](#3-try-with-resources-suppressed-exceptions-and-chaining) shows the variant built from `e.getMessage()`, which has `getCause() == null` [Lab: ThrowableApiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s03/ThrowableApiTest.java). Most likely, because it is the easiest mistake to make and to miss in review.
+  2. *The exception class dropped it.* The call site is correct, `new BatchExportException(message, e)`, but the constructor body is `super(message)`. In the lab, `LossyExportException` built with an `IOException("Connection reset")` has `getCause() == null`, and its printed trace contains neither `Caused by` nor `IOException`; the same call on a class whose constructor calls `super(message, cause)` prints `Caused by: java.io.IOException: Connection reset` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). This one survives code review of the `catch`, so it is the one to check when hypothesis 1 looks fine.
+  3. *A later layer rebuilt it.* A service that catches `BatchExportException` and throws a new one from `e.getMessage()`, or a job runner in another process that reports only the message text; an exception object does not cross a process boundary by itself ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors), error codes vs exceptions).
+  4. *Not this ticket, but the first suspect for a one-line error:* the logger was given a string. Concatenation calls `toString()`, which is the class name and the message only [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java); in the lab, `"export failed: " + e` is exactly `export failed: dev.interview.javalanguage.m06.outputs.Q06_08$BatchExportException: Failed to export batch b-7`, with no frames and no cause, although `e` has one [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). The ticket has frames, so this is ruled out here.
+- **The evidence that confirms one.** The wrapper's stack trace is recorded where it was constructed ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)) [Lab: StackTraceCostTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s04/StackTraceCostTest.java), so its top frame names the file and line of the `new`. Read that line (hypothesis 1), then the constructor it calls (hypothesis 2), then the callers that catch the type (hypothesis 3). Then write the test that was missing: make the channel throw a known `IOException`, catch the `BatchExportException`, and assert that its cause is that same object; it fails today for hypotheses 1 and 2. What actually failed on the three nights is gone from the exception, so it has to come from evidence that was recorded independently in that window: the HTTP or database client's own log lines, the processor's logs for batch `b-7`, connection or timeout metrics at those timestamps.
+- **The fix.** Pass the original on every translating path, `throw new BatchExportException("Failed to export batch " + batchId, e)`, and make each cause-taking constructor call `super(message, cause)`. Keep a message that adds what the cause lacks (the batch id): the two-argument `Throwable` constructor keeps both, and does not derive the message from the cause [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java).
+- **Prevention and what to monitor.** A test per translating `catch` that asserts the cause; a code-review rule that a `catch` which throws a new exception passes the caught variable to it; exception classes that offer the conventional cause constructors ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)). In monitoring, count error events whose exception is one of your own wrapper types and that carry no cause: the expected value is zero, and any other value points at a line of code. Separately, alert when the same batch fails on consecutive runs, which no "transient" explanation covers.
+
+**Code.** The bug and the fix differ in one argument:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_08.java
+    // The bug: the constructor accepts a cause and never hands it to super, so getCause() is null.
+    public static final class LossyExportException extends RuntimeException {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        public LossyExportException(String message, Throwable cause) {
+            super(message);
+        }
+    }
+
+    // The fix: the cause goes to the Throwable constructor, which keeps it for getCause and printStackTrace.
+    public static final class BatchExportException extends RuntimeException {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        public BatchExportException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Is `new BatchExportException(e.toString(), e)` wrong?* No: the cause is kept, so the chain is complete; the message just repeats the cause's text, which is what the one-argument `Throwable(Throwable cause)` constructor does by default with `cause.toString()` [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). A message with context (which batch, which partner) is more useful.
+- *The type you must throw has no cause constructor. What then?* Attach the cause with `initCause` right after construction, once ([Q06.09](#q06-09)).
+- *Would logging the exception at every layer have saved the cause?* Only at the layers below the one that dropped it, as extra copies of the same failure; the boundary's single log line is enough once the chain is intact ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)).
+
+**Trap to avoid.** "We pass `e` to the logger, so the cause is in the log." The logger prints the chain that the object holds. A cause dropped when the exception was constructed cannot be recovered by any logging configuration.
+
+</details>
 
 <a id="q06-09"></a>
 ### Q06.09 · Concept · Chaining and translation: `getCause`, `initCause`, "Caused by:" and "Suppressed:" in a stack trace, and where to translate between layers
+<!-- ledger: honeywell-optum-md-01-15, core-java-240-03-24 -->
+
+"What is exception chaining? What do `getCause` and `initCause` do, what do the `Caused by:` and `Suppressed:` blocks of a stack trace mean, in what order do you read them, and where in an application should one exception be translated into another?" A study sheet adds: "`Throwable` is the superclass of all exceptions; `getMessage()` prints the message and `printStackTrace()` prints the stack trace to the console." Correct the sheet as you answer.
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Chaining links an exception to the one that made it happen, its *cause*. `getCause()` returns it, or `null`; it is set by a constructor that takes a `Throwable`, or at most once by `initCause`, which exists for types that have no cause constructor. A printed trace shows the exception and its frames, then each suppressed exception indented under `Suppressed:`, then the cause under `Caused by:`, and the same again for the cause. The top line is the last translation; the last `Caused by:` is the root cause, what failed first. Translate where one layer must not expose another's types (a repository over a driver, an adapter over a remote API, an implementation of an interface that does not declare the checked exception), once per boundary, always with the original as the cause. The sheet: `Throwable` is the superclass of errors too, not only exceptions; `getMessage()` *returns* the detail message, possibly `null`, and prints nothing; `printStackTrace()` writes to `System.err`, which in a container is the process's standard error stream, outside the application's logger.
+
+**Full explanation.** The methods and the printing format are [§3](#3-try-with-resources-suppressed-exceptions-and-chaining) ("The chaining API on `Throwable`"); the points that make this answer complete are these.
+- **Cause and suppressed mean different things.** A cause is "semantically known at the time of its creation": this failure happened *because of* that one. A suppressed exception is an independent failure, typically from cleanup, that could not be thrown because another exception was already propagating [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). try-with-resources adds suppressed exceptions; only your code adds causes.
+- **The rest of `Throwable`'s API, for the sheet's list.** `getLocalizedMessage()` returns the same as `getMessage()` unless overridden; `toString()` is the class name plus `": "` and the localized message; `getStackTrace()` returns a *copy* of the frames (`getOurStackTrace().clone()`), so editing it changes nothing, and `setStackTrace` replaces them; `fillInStackTrace()` records the current stack and is what makes construction cost something ([Q06.11](#q06-11)); `addSuppressed` and `getSuppressed` manage the suppressed list; the no-argument `printStackTrace()` is `printStackTrace(System.err)` [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java).
+- **Reading a printed chain.** The printer writes `toString()`, one `\tat` line per frame, then each suppressed exception under `Suppressed: ` indented by a tab, then the cause under `Caused by: `, recursing; an enclosed trace's frames that are shared with the trace around it are folded into `... n more` [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java), and the lab shows the `Suppressed:` block printed before `Caused by:` [Lab: ThrowableApiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s03/ThrowableApiTest.java). Read it twice: bottom-up for *what* failed first (the last `Caused by:` and its first frame), top-down for *what the program was doing* when the failure reached the boundary. `... 12 more` does not hide information: those frames are the ones printed in the enclosing trace above.
+- **Where to translate.** The `Throwable` Javadoc gives the reason: a lower layer's exception "is generally unrelated to the abstraction provided by the upper layer", and letting it escape would "tie the API of the upper layer to the details of its implementation" [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). That gives three places: a repository or adapter that turns `SQLException` or an HTTP client's exception into a domain type (Spring's `DataAccessException` hierarchy does this for data access, [22](22-jdbc-and-connection-pooling.md)); an implementation of an interface whose method cannot declare the checked exception, where `UncheckedIOException` is the standard wrapper ([05 §9](05-java-lambdas-streams-optional.md#9-checked-exceptions-and-resources-in-lambdas-and-streams)); and the process boundary, where the exception becomes a status and an error code ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)). Translating in every method adds one `Caused by:` level per method and nothing else. Never translate by message: [Q06.08](#q06-08) is the incident that follows.
+- **Walking to the root cause in code**, for grouping errors by what really failed, means following `getCause()` until it returns `null`. A cycle is possible: `initCause` rejects only `this` [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java), so two exceptions can name each other, which the printer survives with `[CIRCULAR REFERENCE: …]` [Lab: ThrowableApiTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s03/ThrowableApiTest.java). A loop that does not guard against it never ends.
+
+**Code.** The approach: follow `getCause()` until it is `null`, and keep an identity set of the exceptions already visited so that a cycle ends the walk. Identity, not `equals`, because a `Throwable` subclass could override `equals`, and the question is "have I been at this object before". In the lab, a three-level chain returns its `IOException`, an exception without a cause returns itself, and a two-exception cycle returns one of the two instead of looping [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_09.java
+    public static Throwable rootCause(Throwable failure) {
+        Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        Throwable current = failure;
+        while (current.getCause() != null && seen.add(current)) {
+            current = current.getCause();
+        }
+        return current;
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *When do you need `initCause`?* When the type you must throw has no constructor that takes a cause. In JDK 25, `FileNotFoundException` has public constructors `()` and `(String)` only, and so has `NoClassDefFoundError` [Src: JDK 25, java.io.FileNotFoundException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/FileNotFoundException.java) [Src: JDK 25, java.lang.NoClassDefFoundError](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NoClassDefFoundError.java); in the lab, `new FileNotFoundException(path).initCause(accessDenied)` keeps the cause, and reflection confirms neither class has a public constructor with a `Throwable` parameter [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). `initCause` returns `Throwable`, so a `throw` needs a cast, as the Javadoc's own example shows: `throw (HighLevelException) new HighLevelException().initCause(le);` [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). A second call throws `IllegalStateException` ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)).
+- *Cause or suppressed for a failure in cleanup code?* Suppressed: the cleanup failure did not cause the primary one. Add it with `primary.addSuppressed(cleanupFailure)` when a hand-written `finally` must stay ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)).
+- *Why not just let the `SQLException` propagate to the controller?* Every caller would then depend on JDBC, a checked exception would spread through `throws` clauses of code that cannot handle it, and the controller would be choosing HTTP statuses from SQL states. Translation keeps the dependency in one class, and the cause keeps the detail for the log.
+
+**Trap to avoid.** Reading only the first line of the trace. It names the last translation ("Failed to export batch"), which is the least specific description of the failure; the root cause is at the bottom.
+
+</details>
 
 <a id="q06-10"></a>
 ### Q06.10 · Design · Designing a custom exception: checked or unchecked, what context it carries, and error codes vs exceptions
+<!-- ledger: core-java-pdf-01-03, core-java-240-03-21 -->
+
+"You own the payment module. How do you define and throw your own exceptions? Checked or unchecked? What do they carry? And when would you return an error code instead?" A study sheet answers: "Extend `Exception`; unchecked exceptions are recommended", with the sample `public validate(int age) throws InvalidAgeException { … }`. What is missing or wrong in it?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Define a class that extends `Exception` (checked) or `RuntimeException` (unchecked), with the conventional constructors, including the ones that take a cause, `final` fields for the facts a caller branches on, a message built from those fields, and a `serialVersionUID`. Throw it with `throw new PaymentDeclinedException(orderId, reason)`, and list it in `throws` if it is checked. Neither kind is "recommended" in general: make it checked when the immediate caller can and should decide what to do (a declined card: ask for another), unchecked for bugs and for failures no nearby caller can handle (the provider is down). Create a new type only when some caller handles it differently; variation within one kind of handling is a field, usually an enum. Inside the process, use exceptions; at a process boundary, turn them into a stable error code in the response. The sheet's sample does not compile: a method needs a result type or `void`.
+
+**Full explanation.** The mechanisms (constructor conventions, serializability, stack-trace cost) are [§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors). The design, as an interviewer wants to hear it, is a sequence of decisions:
+1. **Start from the callers.** List what each caller does differently: the checkout asks the customer for another card, stops on fraud, retries later when the provider is down. Each *different reaction* is a candidate type; each fact the reaction needs is a field. In the lab, one `PaymentDeclinedException` with a `DeclineReason` enum covers the first two reactions through `customerCanRetry()`, so the controller branches on a field, never on the message [Lab: CustomExceptionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s04/CustomExceptionTest.java). A common base type (`PaymentException`) is worth having only if some caller catches "any payment failure".
+2. **Checked or unchecked.** Apply [§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked)'s rule to each type: a decline is a normal business outcome the caller must handle, so a checked exception makes the compiler enforce it; "provider unavailable" is something only a boundary can handle (retry the message, return 503), so it is unchecked and passes through the layers in between. "Unchecked is recommended" describes a common style, which Spring follows for its own data-access exceptions [Src: spring-tx 7.0.10, DataAccessException](https://github.com/spring-projects/spring-framework/blob/v7.0.10/spring-tx/src/main/java/org/springframework/dao/DataAccessException.java), not a rule of the language. One consequence to name in a Spring application: by default `@Transactional` rolls back on unchecked exceptions and commits on checked ones ([Q17.09](17-spring-transactions.md#q17-09)).
+3. **Constructors.** No-argument and message constructors, plus a cause constructor and a message-and-cause constructor for any exception "that might likely have a cause" [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java), each passing the cause to `super`; the sheet omits them, and [Q06.08](#q06-08) is what happens without them. Constructors with domain parameters (`orderId`, `reason`) are fine, as long as one of them takes a cause.
+4. **Fields and message.** Small, `final`, serializable values (an id, an enum), validated in the constructor; the message is built from them, so the log and the code read the same facts; no card numbers, tokens or personal data, because messages go to logs and fields are serialized with the exception ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors), **Security:**).
+5. **`serialVersionUID`.** Every exception is `Serializable` through `Throwable`, and `javac -Xlint:serial` reports a missing `serialVersionUID` (`compiler.warn.missing.SVUID`) [Lab: CustomExceptionTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s04/CustomExceptionTest.java); declare it with `@Serial`.
+6. **Error codes.** Inside one process an exception beats a returned code: it cannot be ignored by accident, it carries a stack trace, and it unwinds to the layer that handles it. Across processes the object does not travel, so the boundary maps each exception type (or its enum field) to a stable machine-readable code in the error response, Spring's `ProblemDetail` for HTTP ([18](18-spring-mvc-and-rest-controllers.md)), and the client maps the code back to its own exception. Expected results that are not failures ("no customer with that email") are return values, `Optional` or a result type ([05](05-java-lambdas-streams-optional.md)).
+
+**The sheet's sample.** `public validate(int age) throws InvalidAgeException { … }` has no result type, and `javac` rejects it with `compiler.err.invalid.meth.decl.ret.type.req` in the lab [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java); it needs `void` or a type. The sheet also never shows chaining, which is the part of a custom exception that matters most in production.
+
+**Code.** The enum that carries the caller's decision, so the exception class needs no subclass per provider code:
+
+```java
+package dev.interview.javalanguage.m06.s04;
+
+// What the payment provider told us, reduced to the cases the caller handles differently.
+public enum DeclineReason {
+    INSUFFICIENT_FUNDS(true),
+    CARD_EXPIRED(true),
+    FRAUD_SUSPECTED(false);
+
+    private final boolean customerCanRetry;
+
+    DeclineReason(boolean customerCanRetry) {
+        this.customerCanRetry = customerCanRetry;
+    }
+
+    public boolean customerCanRetry() {
+        return customerCanRetry;
+    }
+}
+```
+<sub>Source: [labs/java-language/src/main/java/dev/interview/javalanguage/m06/s04/DeclineReason.java](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/s04/DeclineReason.java)</sub>
+
+The exception that carries it is the Code of [§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors).
+
+**Follow-ups an interviewer will ask.**
+- *One exception class with an error-code enum, or one class per code?* Classes where callers `catch` differently, an enum where they branch on details after catching the same type. Twenty classes that every caller handles the same way are noise; one class whose callers all `switch` on a code to choose completely different reactions is hiding types.
+- *Can a custom exception be generic, `ValidationException<T>`?* No: a generic subclass of `Throwable` is a compile error, because `catch` matches the runtime class, which has no type arguments ([Q06.01](#q06-01)).
+- *Is an exception with only `final` fields immutable?* Your fields are, but `Throwable` keeps mutable state of its own: `setStackTrace`, `addSuppressed`, and one `initCause` call [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). That matters when an instance is shared ([Q06.11](#q06-11)).
+- *Should the exception know its HTTP status?* Keep transport out of the domain: the exception carries the domain fact (the reason), and the web boundary maps it to a status and a code, so the same exception can be handled by a message listener that has no statuses ([18](18-spring-mvc-and-rest-controllers.md)).
+
+**Trap to avoid.** Designing the hierarchy from the thrower's side, one class per thing that can go wrong inside the module. Callers can only use the distinctions they handle differently; everything else belongs in fields and the message.
+
+</details>
 
 <a id="q06-11"></a>
 ### Q06.11 · Trade-off · What does an exception cost? Stack-trace capture, `writableStackTrace`, preallocated exceptions and exceptions as control flow
 
+A teammate wants to speed up a hot path by replacing `throw new QueueFullException("queue full")` with one `static final` instance thrown every time, "because exceptions are expensive". Another wants to drop exceptions there and return a status code. What does an exception cost, what are the options, and when does each win?
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** The cost is in *constructing* the exception: the allocation, and `fillInStackTrace()`, which every public `Throwable` constructor calls and which records the current thread's stack, so it grows with the stack's depth; the `StackTraceElement[]` is built only if someone asks for it, and `throw` itself transfers control. The options: an ordinary exception (full location, paid per occurrence: right for failures, which should be rare); an exception built with `writableStackTrace = false` (cheap, no location: right for a high-rate outcome whose origin is always the same); a preallocated shared instance (no allocation, but a stack trace from wherever it was built and, unless suppression is disabled too, a suppressed list that grows forever); and a return value (right for expected outcomes the caller handles on the spot). The teammate's shared instance is safe only if it is built with suppression and the stack trace disabled. Measure with a profiler before choosing; no rule of thumb replaces that.
+
+**Full explanation.** Where the cost comes from, and the JVM's own fast-throw optimization, are [§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors) [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java). The options side by side:
+
+| Option | Paid per occurrence | What you lose | When it wins |
+|---|---|---|---|
+| `new` ordinary exception | allocation + stack walk at construction [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java) | nothing | real failures: rare, and the trace is what diagnoses them |
+| `new` with `writableStackTrace = false` | allocation only; `getStackTrace()` is empty [Lab: StackTraceCostTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s04/StackTraceCostTest.java) | the location | high-rate, expected rejections from one known place (a rate limiter) |
+| one preallocated instance, suppression and trace disabled | nothing [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java) | location, and any per-occurrence detail (no fields can differ) | the same as above when even the allocation shows up in profiles; what the JVM does for some `OutOfMemoryError`s ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)) |
+| one preallocated instance built the ordinary way | nothing at the throw site | a trace that points at the place it was built; a suppressed list that grows with every close failure [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java) | never |
+| return value (`Optional`, a result type, a `boolean` from `offer`) | whatever the result object costs | the automatic unwinding to a distant handler | expected outcomes handled by the immediate caller ([05](05-java-lambdas-streams-optional.md)) |
+
+Why the fourth row is a bug. An exception built with the ordinary constructors records its stack when it is *created*, so a `static final` instance records the class initializer: in the lab, its top frame is `<clinit>`, not any of the places that later throw it. And suppression stays enabled, so each time the instance is thrown out of a try-with-resources whose `close()` fails, `addSuppressed` appends to the *shared* list: in the lab, three rejected requests add exactly three suppressed exceptions to the one instance, which then holds every unrelated close failure the process ever had [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). `addSuppressed` is `synchronized`, so concurrent throws do not corrupt the list [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java); they make it grow without bound, which is a memory leak. The same instance built with `(message, null, false, false)` stays empty after the same three requests, and its stack trace is empty [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). This is the use the `Throwable` Javadoc names for the four-argument constructor: an exception "repeatedly caught and rethrown, such as to implement control flow between two sub-systems" [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java).
+
+**Exceptions as control flow** cost more than CPU: a `catch` several frames away is a hidden `goto`, the happy path and the outcome are no longer in the same method, and a catch for a broad type also catches the bug you did not expect. A queue that is full, a cache miss or a "not found" is an outcome, and the JDK's own APIs offer both forms: `BlockingQueue.offer` returns a special value, `false`, where `add` throws [Src: JDK 25, java.util.concurrent.BlockingQueue](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/BlockingQueue.java). Keep exceptions for failures, and when a profile (CPU time in `fillInStackTrace`, an allocation profile dominated by one exception type, [10](10-jvm-performance-and-troubleshooting.md)) shows they are on the hot path, either the outcome is not exceptional and needs a return value, or it really is a high-rate rejection and needs a trace-free exception.
+
+**Code.** The two shared instances the lab compares; the only difference is the pair of flags:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_11.java
+    // Shared instance built with suppression and the writable stack trace enabled, as the two-argument constructor
+    // does.
+    public static final QueueFullException SHARED = new QueueFullException("queue full", true);
+
+    // Shared instance built with suppression and the writable stack trace both disabled.
+    public static final QueueFullException SHARED_FROZEN = new QueueFullException("queue full", false);
+
+    public static final class QueueFullException extends RuntimeException {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        QueueFullException(String message, boolean mutable) {
+            super(message, null, mutable, mutable);
+        }
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *Is overriding `fillInStackTrace()` to `return this` the same thing?* For the trace, yes: the lab shows the same empty stack trace [Lab: StackTraceCostTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s04/StackTraceCostTest.java). It is the pre-Java 7 idiom; the four-argument constructor (`@since 1.7`) also turns off suppression, which the override does not [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java).
+- *Why do some `NullPointerException`s in production logs have no message and no frames?* HotSpot's `OmitStackTraceInFastThrow` replaced a hot implicit exception with a preallocated one; run with `-XX:-OmitStackTraceInFastThrow` while investigating ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)) [Src: HotSpot jdk-25-ga, globals.hpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/runtime/globals.hpp).
+- *Does a shallower stack make exceptions cheaper?* The walk is of the current thread's frames, so yes, the same exception costs more deep in a framework call chain than near the top; HotSpot also caps what it records at `MaxJavaStackTraceDepth`, default 1024 [Src: HotSpot jdk-25-ga, globals.hpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/runtime/globals.hpp). That is a reason to measure in the real stack, not in a micro-benchmark with three frames.
+- *Should the rate limiter's trace-free exception still be logged?* Counted, not logged one by one: its origin is known, and a metric of rejections per client says more than ten thousand identical lines.
+
+**Trap to avoid.** "Throwing is slow, so cache the exception." The expensive step is construction, and caching an ordinary instance trades it for a stack trace that lies about where it was thrown and a suppressed list that leaks memory.
+
+</details>
+
 <a id="q06-12"></a>
 ### Q06.12 · Difference · Output · `ClassNotFoundException` vs `NoClassDefFoundError`: what does a class with a failing static initializer throw on the first and the second use?
+<!-- ledger: core-java-240-03-25, core-java-240-03-26 -->
+
+What does this print? The system property `q06.port` is not set.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_12.java
+    static final class Settings {
+        static final int PORT = Integer.parseInt(System.getProperty("q06.port", "eighty"));
+    }
+
+    public static void main(String[] args) {
+        try {
+            Class.forName("com.example.MissingDriver");
+        } catch (ClassNotFoundException e) {
+            System.out.println("1: " + e);
+        }
+        for (int use = 2; use <= 3; use++) {
+            try {
+                System.out.println(Settings.PORT);
+            } catch (LinkageError e) {
+                System.out.println(use + ": " + e.getClass().getSimpleName() + ", message " + e.getMessage());
+                System.out.println("   cause " + e.getCause().getClass().getSimpleName());
+            }
+        }
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).**
+
+```text
+1: java.lang.ClassNotFoundException: com.example.MissingDriver
+2: ExceptionInInitializerError, message null
+   cause NumberFormatException
+3: NoClassDefFoundError, message Could not initialize class dev.interview.javalanguage.m06.outputs.Q06_12$Settings
+   cause ExceptionInInitializerError
+```
+
+`Class.forName` is a lookup by name that your code asked for, and it reports a missing class with the checked `ClassNotFoundException`. Reading `Settings.PORT` initializes `Settings`; `parseInt("eighty")` throws, the JVM wraps that in `ExceptionInInitializerError` and marks the class erroneous, so the second use fails at once with `NoClassDefFoundError: Could not initialize class …`, whose cause in JDK 25 is an `ExceptionInInitializerError` that records the first failure.
+
+**Full explanation.** The two names describe different failures:
+
+| | `ClassNotFoundException` | `NoClassDefFoundError` |
+|---|---|---|
+| Kind | checked exception (`ReflectiveOperationException` → `Exception`) [Src: JDK 25, ClassNotFoundException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ClassNotFoundException.java) | `Error`, a `LinkageError` [Src: JDK 25, java.lang.NoClassDefFoundError](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NoClassDefFoundError.java) |
+| Who throws it | the method you called with a name: `Class.forName`, `ClassLoader.loadClass`, `ClassLoader.findSystemClass` [Src: JDK 25, ClassNotFoundException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ClassNotFoundException.java) | the JVM, while linking or initializing a class that compiled code refers to |
+| Typical causes | a driver or plugin JAR absent from the classpath; a typo in a configured class name | a class present at compile time and absent at run time; a static initializer that failed earlier; a library at a different version on the run-time classpath |
+| First thing to read | the name in the message | the message: a class name, or `Could not initialize class X`; then the cause |
+
+Line 1: the JVM does not "try to load" anything by itself here; `Class.forName` asks the class loader for the name and throws `ClassNotFoundException` with the name as the message, and `toString()` adds the class name in front [Lab: JvmErrorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s04/JvmErrorsTest.java). Line 2: `PORT` is `static final`, but its initializer is a method call, not a constant expression, so it is not a constant variable, and using it is one of the events that initialize the class [Doc: JLS 25 §12.4.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.1) [Doc: JLS 25 §4.12.4](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.12.4). The initializer completes abruptly with a `NumberFormatException`, which is not an `Error`, so the JVM throws a new `ExceptionInInitializerError` with it, and labels the class erroneous [Doc: JLS 25 §12.4.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2). Its message is `null` because the `ExceptionInInitializerError(Throwable)` constructor passes a `null` message; the information is in the cause [Src: JDK 25, java.lang.ExceptionInInitializerError](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ExceptionInInitializerError.java). Line 3: the class is in the erroneous state, so the second use throws `NoClassDefFoundError` without running the initializer again [Doc: JLS 25 §12.4.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2), and HotSpot attaches the saved initialization error as its cause ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)) [Src: HotSpot jdk-25-ga, instanceKlass.cpp](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/oops/instanceKlass.cpp). Both errors are `LinkageError`s, which is why one `catch (LinkageError e)` handles both [Src: JDK 25, java.lang.ExceptionInInitializerError](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ExceptionInInitializerError.java). The lab runs `main` and asserts the five lines [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java); the class is erroneous for the rest of that JVM's life, so a second run of `main` in the same JVM would print `NoClassDefFoundError` for both uses.
+
+The third cause in the table, a version clash, is the one the source answer leaves out. A build that compiles against version 2 of a library while version 1 ends up on the run-time classpath fails with `NoClassDefFoundError` when a class that exists only in version 2 is needed, and with `NoSuchMethodError` when a class exists in both and the method only in version 2: that error "can only occur at run time if the definition of a class has incompatibly changed" [Src: JDK 25, java.lang.NoSuchMethodError](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/NoSuchMethodError.java). The first thing to check then is which version of the JAR the running application actually loaded; class loaders and their delegation are [08](08-jvm-memory-and-class-loading.md)'s subject.
+
+**Follow-ups an interviewer will ask.**
+- *Can the application fix the class and try again?* Not in the same class loader: the erroneous state is permanent for that class, so in practice the fix is a restart after correcting the configuration ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)) [Doc: JLS 25 §12.4.2](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.2).
+- *What if the static initializer throws an `Error`, such as `AssertionError`?* It propagates as itself, unwrapped, the first time, and later uses still get `NoClassDefFoundError` [Lab: JvmErrorsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s04/JvmErrorsTest.java).
+- *Before JDK 18, how would you find the real error?* The repeated `NoClassDefFoundError` carried the message only, so you searched the log for the first `ExceptionInInitializerError`, often at startup ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors), Version notes).
+- *Would `static final int PORT = 80;` behave differently?* Yes: that is a constant variable, so reading it is not an initialization event [Doc: JLS 25 §12.4.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-12.html#jls-12.4.1), and there is nothing that can fail.
+
+**Trap to avoid.** Answering "`NoClassDefFoundError` means a JAR is missing" when the message says `Could not initialize class`. The class was found; its initializer failed earlier, and the cause, or the first `ExceptionInInitializerError` in the log, has the real error.
+
+</details>
 
 <a id="q06-13"></a>
 ### Q06.13 · Production scenario · Nightly tasks in a thread pool stop doing their work and nothing appears in the logs
+<!-- ledger: core-java-240-03-14, core-java-pdf-03-45, architect-md-05-14 -->
+
+*As the interviewer frames it:* "A service runs three nightly jobs on one `ScheduledExecutorService` with two threads, each scheduled with `scheduleAtFixedRate`: refresh exchange rates, purge expired sessions, send the daily digest email. Last week the digest stopped going out. The service is up, health checks are green, CPU is flat, the other two jobs still run, and there is no error in the logs since the deploy. A restart brings the digest back for a few days, then it stops again. What is going on, and what do you check first?"
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** One periodic job stopping with no log line, while its siblings run, is the signature of a periodic task that threw once: `scheduleAtFixedRate` then suppresses every later execution, the pool stores the exception in the `ScheduledFuture` that nobody reads, and no uncaught-exception handler ever runs, because the worker thread did not die. The other candidate is a digest run that is stuck in a blocking call with no timeout, which also stops later runs of that job. A thread dump separates the two (a worker blocked inside the digest code, or both workers idle), and the job's future confirms the first (`isDone()` is `true`, `state()` is `FAILED`). The restart "fixes" it because it creates a new schedule, until the same bad input comes back. Fix: catch and report failures inside the task body, at the job's own boundary, so one bad run does not end the schedule. Prevent and detect it with a "last successful run" metric and an alert on its age, because a job that fails this way never produces an error to alert on.
+
+**Full explanation.**
+- **What the symptoms tell you.** Only one job is affected, so the pool and the process are fine. A restart helps, so the cause is state inside the process, not an outage outside it. It comes back after days, so something in the digest's input (one user, one template, one record) probably triggers it. And there is no log line, so the failure went somewhere that does not log.
+- **Hypotheses, ranked.**
+  1. *The task threw, and the schedule ended.* The `scheduleAtFixedRate` contract: the sequence of executions continues until the task is cancelled, the executor terminates, or "an execution of the task throws an exception. In this case calling `get` on the returned future will throw `ExecutionException`, holding the exception as its cause." Then "subsequent executions are suppressed" and `isDone()` returns `true` [Src: JDK 25, java.util.concurrent.ScheduledExecutorService](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledExecutorService.java). Internally, `ScheduledThreadPoolExecutor` runs a periodic task through `FutureTask.runAndReset`, which catches every `Throwable` and stores it with `setException`, and the task is put back in the queue only if the run completed normally [Src: JDK 25, java.util.concurrent.ScheduledThreadPoolExecutor](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledThreadPoolExecutor.java) [Src: JDK 25, java.util.concurrent.FutureTask](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/FutureTask.java). Nothing escapes the worker, so the thread's handler is never called; this is [§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)'s `submit` door, for periodic tasks. In the lab, a fixed-rate task that throws on its second run makes `get()` throw `ExecutionException` with the original exception as its cause, `isDone()` is `true`, the run count is still 2 after the scheduler has been shut down, and the handler installed by the pool's `ThreadFactory` was called zero times [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). Most likely: it explains every symptom.
+  2. *The digest run is stuck.* A call with no timeout (an SMTP or HTTP call, a database lock) never returns. Later fixed-rate runs "may start late, but will not concurrently execute" [Src: JDK 25, java.util.concurrent.ScheduledExecutorService](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledExecutorService.java), so the digest stops while the other jobs use the second thread. It fits too, except that a restart would then be needed after an outage of the mail server, not after particular data.
+  3. *The task was cancelled or the executor reconfigured.* A code path that calls `cancel` on the future, for example a "reschedule" endpoint that cancels and never schedules again. Least likely, since nothing was changed by hand, but cheap to rule out.
+- **The evidence that confirms one.** Take a thread dump of the running instance ([10](10-jvm-performance-and-troubleshooting.md)). A pool thread with the digest's classes in its stack, in a socket read or waiting for a lock, confirms hypothesis 2 and names the call without a timeout. Both pool threads idle, waiting in the scheduler's queue, leaves 1 or 3. Then look at the job's `ScheduledFuture`: if the service keeps the futures, expose `future.state()` on an admin or health endpoint; `FAILED` means hypothesis 1 and `exceptionNow()` returns the exception, `CANCELLED` means hypothesis 3 [Src: JDK 25, java.util.concurrent.Future](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/Future.java). If nobody kept the futures, that is the first finding, and the next step is to reproduce: run the digest once by hand against the night's data in a test environment, where the exception is thrown to the caller.
+- **The fix.** Make the job its own boundary: the body catches its failures, reports them once with the exception object (log, failure counter), and returns normally, so the next run happens. Catch `RuntimeException`, not `Throwable`: an `Error` such as `OutOfMemoryError` should still end the run and be handled at process level ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)). In the lab, the same failing task wrapped this way ran three times, reported its one failure, and its future was not done until it was cancelled [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). Then fix the data case the exception reveals. If hypothesis 2 is confirmed instead, the fix is a timeout on the call; timeouts and bulkheads are [42](42-resilience-patterns.md)'s subject.
+- **Prevention and what to monitor.** Publish, per job, the time of the last *successful* run and alert when it is older than the period plus a margin: an alert on the absence of success catches every silent failure mode, including ones nobody predicted. Count failures per job. Keep the futures and check them, or report failures from `afterExecute` as in [§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)'s Code. When reviewing code for this class of bug, search first for the places where a failure can disappear: `submit(` and `schedule…(` calls whose returned future is dropped, empty `catch` blocks, `catch` blocks that log at debug level, and fallbacks that turn a failure into a success response; [44](44-observability-logging-metrics-slos.md) covers the logging and alerting side.
+
+**Code.** The wrapper that makes a periodic task report its failures instead of ending its schedule:
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_13.java
+    public static Runnable reportingFailures(Runnable task, Consumer<RuntimeException> onFailure) {
+        return () -> {
+            try {
+                task.run();
+            } catch (RuntimeException e) {
+                onFailure.accept(e);
+            }
+        };
+    }
+```
+
+It is scheduled as `scheduler.scheduleAtFixedRate(reportingFailures(digest, failures::record), …)`, with `failures` the job's logger and counter.
+
+**Follow-ups an interviewer will ask.**
+- *Would `scheduleWithFixedDelay` behave differently?* No: its Javadoc lists the same three ways for the sequence to end, including an execution that throws [Src: JDK 25, java.util.concurrent.ScheduledExecutorService](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/concurrent/ScheduledExecutorService.java).
+- *Outside a pool, what does the JVM do with an exception nobody catches?* The thread it was thrown in ends, and the JVM passes the exception to the thread's `UncaughtExceptionHandler`, which is the thread's own handler or its `ThreadGroup`; the group chain ends at the default handler or, if none is set, prints the trace to `System.err` [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java) [Src: JDK 25, java.lang.ThreadGroup](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/ThreadGroup.java). Other threads carry on: the launcher waits for all non-daemon threads before it destroys the JVM, and only an exception from `main` makes the exit status non-zero [Src: JDK 25, libjli java.c](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/native/libjli/java.c) [Lab: MainThreadExitTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/MainThreadExitTest.java). So "the program terminates" is true only for a program whose last non-daemon thread was the one that failed ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)).
+- *Would a default uncaught-exception handler have logged this failure?* No. The exception never left the worker's `run` method, because the pool caught it and stored it in the future; that is the lab's zero handler calls [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java).
+- *And with `execute` on a plain `ThreadPoolExecutor`?* There the exception kills the worker, reaches the handler, and the pool starts a replacement thread ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)); the failure is visible, but each failure costs a thread.
+
+**Trap to avoid.** Searching the logs harder. In this failure mode no log line was ever written; the evidence is the job's state (its future, its last successful run) and a thread dump, not an error message.
+
+</details>
 
 <a id="q06-14"></a>
 ### Q06.14 · Bug hunt · A service layer that catches, logs and returns `null`, and swallows `InterruptedException`: what goes wrong, and what the boundary should do instead
+<!-- ledger: architect-md-07-23 -->
+
+Review this service. `Inventory.fetch` calls a remote inventory system and declares `throws IOException, InterruptedException`. The checkout calls it as `int stock = stockService.availableStock(sku);`, and the order listener that calls the checkout is the one place that decides whether a message is retried. List every problem, then fix it.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_14.java
+    public static final class StockService {
+        private final Inventory inventory;
+        private final List<String> log;
+
+        public StockService(Inventory inventory, List<String> log) {
+            this.inventory = inventory;
+            this.log = log;
+        }
+
+        public Integer availableStock(String sku) {
+            try {
+                return inventory.fetch(sku);
+            } catch (Exception e) {
+                log.add("could not fetch stock for " + sku + ": " + e.getMessage());
+                return null;
+            }
+        }
+    }
+```
+
+<details>
+<summary>Answer</summary>
+
+**Short answer (30 seconds).** Five problems. `return null` turns a failure into a value, so the checkout fails later with a `NullPointerException` from unboxing, far from the cause and with no link to it. The log line keeps only the message: no exception class, no stack trace, no cause. `catch (Exception e)` also catches `InterruptedException`, whose thrower already cleared the thread's interrupt flag, so the stop request is lost and shutdown can hang. The same `catch` hides bugs, because every `RuntimeException` from `fetch` becomes a `null` too. And the service logs a failure it cannot decide about, so the boundary logs it again or never hears of it. The fix: catch only `IOException`, translate it into an unchecked `StockUnavailableException` with the `IOException` as its cause, let `InterruptedException` propagate through `throws`, log nothing here, and return `int`. The listener, the boundary, logs once and decides.
+
+**Full explanation.** Each problem, with what the lab shows:
+1. **`null` as an error signal.** The caller's `int stock = …` unboxes the `Integer`, and unboxing `null` throws `NullPointerException` [Doc: JLS 25 §5.1.8](https://docs.oracle.com/javase/specs/jls/se25/html/jls-5.html#jls-5.1.8). In the lab, an `IOException("Connection reset")` from `fetch` makes the method return `null`, and assigning that result to an `int` throws `NullPointerException` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). That exception's trace points at the checkout, not at the inventory call, and carries no cause. A caller that checks for `null` instead has to guess what it means: "no stock" and "we don't know" lead to different decisions (reject the order, or retry it).
+2. **A message-only log line.** In the lab, the only record of the failure is `could not fetch stock for sku-1: Connection reset` [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java): no `IOException` class, no frames, no `Caused by:`. `getMessage()` can also be `null` [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java), which would log `…: null`.
+3. **A swallowed interrupt.** A thread blocked in `sleep`, `join` or `wait` has its interrupt status cleared when it receives the `InterruptedException` (the lab's stand-in for the remote call does the same) [Src: JDK 25, java.lang.Thread](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Thread.java), so the exception object is the only remaining trace of the request, and this `catch` discards it. In the lab, an interrupted thread calls the service, gets `null`, and `isInterrupted()` is `false` afterwards [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). The worker carries on as if nothing had asked it to stop, which is how `shutdownNow` and a deployment's graceful shutdown end up waiting for the kill ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)).
+4. **Bugs become data.** `catch (Exception e)` covers every `RuntimeException`, so a `NullPointerException` or `IllegalArgumentException` inside `fetch`, a programming error, is also turned into "no answer" and never reaches anyone who would fix it.
+5. **Catching where nothing can be decided.** The service cannot retry, fall back or decide the message's fate, so its `catch` only hides the failure ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions), "Catch where you can decide"). It also hides the outage from everything above: callers see answers, not failures, so nothing upstream, a retry policy or a circuit breaker, can react to a failing inventory system. Timeouts, breakers and bulkheads around the remote call are [42](42-resilience-patterns.md)'s subject; their precondition is that failures are not swallowed here.
+
+The fix: the `catch` names only the checked exception it can translate, keeps it as the cause, and the method's signature tells the truth (`int`, `throws InterruptedException`). In the lab, an `IOException` comes out as `StockUnavailableException("stock unavailable for sku-1")` whose cause is the same `IOException` object, and an interrupted call throws `InterruptedException` to the caller [Lab: Q06OutputsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/outputs/Q06OutputsTest.java). The listener then retries a `StockUnavailableException` or dead-letters a bug, and restores the interrupt flag on `InterruptedException`, logging once, as [§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)'s `OrderListener` does [Lab: OrderListenerTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/OrderListenerTest.java).
+
+**Code.**
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/outputs/Q06_14.java
+    public static final class StockUnavailableException extends RuntimeException {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        public StockUnavailableException(String sku, Throwable cause) {
+            super("stock unavailable for " + sku, cause);
+        }
+    }
+
+    public static final class FixedStockService {
+        private final Inventory inventory;
+
+        public FixedStockService(Inventory inventory) {
+            this.inventory = inventory;
+        }
+
+        public int availableStock(String sku) throws InterruptedException {
+            try {
+                return inventory.fetch(sku);
+            } catch (IOException e) {
+                throw new StockUnavailableException(sku, e);
+            }
+        }
+    }
+```
+
+**Follow-ups an interviewer will ask.**
+- *What if the method implements an interface that cannot declare `InterruptedException`, such as `Supplier`?* Restore the flag with `Thread.currentThread().interrupt()` before leaving, then throw an unchecked exception or return, so the code above can still see the request [Lab: InterruptHandlingTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s05/InterruptHandlingTest.java) ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)).
+- *Is returning `Optional.empty()` or `0` instead of `null` a fix?* No. It removes the `NullPointerException` and keeps the real bug: a failure reported as a valid answer. `Optional` means "there is no value", which is a different statement from "the system that knows the value is down" ([05](05-java-lambdas-streams-optional.md)).
+- *When is a fallback value right?* When the business has decided that a degraded answer is acceptable (yesterday's cached stock, shown as approximate), and the fallback is visible: a type or flag that says it is a fallback, a metric that counts it, one log line at the boundary. That decision, and its circuit breaker, belong to the resilience layer ([42](42-resilience-patterns.md)), not to a `catch` in the service.
+- *Isn't `catch (RuntimeException e)` exactly what the listener does?* Yes, and it is right there: the listener is the boundary that decides the message's fate, and it logs the exception object once ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)). The same `catch` in a service hides the failure from that boundary. The same mistake inside a stream's lambda is [Q05.27](05-java-lambdas-streams-optional.md#q05-27).
+
+**Trap to avoid.** Fixing only the `NullPointerException`. The `null` is a symptom; the defect is that a failure was turned into a normal-looking result and an interrupt was discarded, and both survive any change to the return value.
+
+</details>
 
 <!-- /TASK: QB-M06-02 -->
 
