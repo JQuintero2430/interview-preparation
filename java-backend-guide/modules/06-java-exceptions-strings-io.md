@@ -2944,6 +2944,149 @@ A `CharsetDecoder` that reports an error does not consume the bad bytes. Read wh
 <!-- TASK: EX-M06-03 -->
 <a id="ex06-3"></a>
 ### Exercise 06.3 · Safe deserialization of a legacy cache entry
+
+**Problem.** The ticketing service from [§9](#9-java-serialization-and-its-risks) cannot drop its Java-serialized session cache this quarter: three services read it, and the migration to JSON is scheduled for later. Until then, every read must be safe. Today the cache client calls `new ObjectInputStream(in).readObject()` and casts the result, so any bytes that reach the cache (a compromised neighbor, a debugging tool that writes entries by hand) choose which classes on the classpath get built. The deploy last month also showed the other failure: entries written by the previous release made every read throw, and the client logged it as an unknown error. Write a `SessionCodec` that reads and writes `Session` entries so that only a session's own classes can be read, oversized or deeply nested payloads are refused, and every failure tells the caller what kind it is.
+
+**Constraints.** JDK only. A `Session` holds a user id, a list of roles and an expiry `Instant`, plus a derived `admin` flag that is not stored. The codec sets nothing JVM-wide: no `ObjectInputFilter.Config.setSerialFilter`, no filter factory, no `jdk.serialFilter` property, because other libraries in the same process deserialize too and a JVM-wide filter can be set only once ([§9](#9-java-serialization-and-its-risks)). Decoding failures are checked exceptions in one sealed hierarchy, each keeping the original exception as its cause ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)).
+
+**Acceptance criteria.**
+- [ ] (1) `SessionCodec` round-trips a `Session`, which declares `serialVersionUID = 1L`, keeps `admin` in a `transient` field, and in `readObject` validates the restored fields and rebuilds `admin`.
+- [ ] (2) Decoding installs a per-stream `ObjectInputFilter` allow-list naming only the classes an honest session stream contains, ending in `!*`; a payload containing any other class is rejected (a `RejectedSessionException` whose cause is the stream's `InvalidClassException`) before that class's `readObject` runs, and a payload of allowed classes that is not a `Session` is rejected rather than cast.
+- [ ] (3) The filter also caps depth, array length and references, and the codec caps the input size; a payload beyond any cap is rejected, and an honest session at the caps still decodes.
+- [ ] (4) Failures are translated with the cause kept: bytes from a release with a different `serialVersionUID`, or naming a class this release no longer has, become `IncompatibleSessionException`; truncated or invalid bytes become `CorruptSessionException`.
+- [ ] (5) The codec never touches JVM-wide filter state, asserted by checking the JVM-wide filter and factory are unchanged after decoding and by reading the solution's source.
+
+<details><summary>Hint 1</summary>
+
+An allow-list must name what is *in the stream*, which is not always what is in your fields. Read the `writeReplace` method of `java.time.Instant` and the `readObject` method of `java.util.ArrayList`: which other class names, and which array type, does the filter get asked about? Then write a test with a session that has no roles, and one with a role.
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+A filter rejection and a `serialVersionUID` mismatch both reach you as `InvalidClassException`. Rather than parse the message, wrap the filter in one of your own that delegates every check and remembers whether it said `REJECTED`; create a new one per stream.
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** The codec is a thin, strict door: decide what may come in before any byte is read, then turn each way of failing into a type the cache client can act on.
+1. **List what an honest stream contains.** The filter is called for each class descriptor, and also for arrays a class's `readObject` asks about: `ArrayList.readObject` calls `checkArray(s, Object[].class, size)` before it allocates its elements [Src: JDK 25, java.util.ArrayList](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java), and a pattern filter matches an array by its element type, here `java.lang.Object` [Src: JDK 25, java.io.ObjectInputFilter](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputFilter.java). An `Instant` is written through `writeReplace` as a `java.time.Ser` [Src: JDK 25, java.time.Instant](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/time/Instant.java), and when a `readResolve` returns a different object, `ObjectInputStream` filters the replacement too, so `java.time.Instant` must be listed as well [Src: JDK 25, java.io.ObjectInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java). The list is therefore `Session`, `java.util.ArrayList`, `java.lang.Object`, `java.time.Ser`, `java.time.Instant`, then `!*`. The constructor copies the roles into an `ArrayList`, so that is the one `List` class an honest stream holds.
+2. **Measure, then set the limits.** "Each call to `readObject` … increases the depth by 1", and the reference count "is increased before reading an object" [Src: JDK 25, java.io.ObjectInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java). In an honest stream the `Session` is checked at depth 1 and its field objects at depth 2; a role is read at depth 3, and although a `String` never calls the filter, a role that repeats the same `String` instance is written as a back-reference, which is checked (with no class) at that depth [Src: JDK 25, java.io.ObjectInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java). So `maxdepth` is 3, `maxarray` is the 64-role limit the constructor also enforces, and `maxrefs` is 128, above the 70 references the lab measures for a session whose 64 roles are one repeated instance.
+3. **Bound the input before the stream.** `maxbytes` is compared only when the filter is called, and "strings are treated as primitives and do not invoke the filter" [Src: JDK 25, java.io.ObjectInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java), so a long string after the last class check is never measured. The codec has the whole `byte[]`, so it rejects anything over 16 KiB before opening the stream, keeps `maxbytes` in the filter for the checks that do happen, and refuses to *encode* a session over the limit, so it never writes what it would refuse to read.
+4. **One stream, one filter, set first.** A new `ObjectInputStream` per entry, `setObjectInputFilter` before the first `readObject` ([§9](#9-java-serialization-and-its-risks)), then an `instanceof` check instead of a cast.
+5. **Tell the failures apart with a Decorator.** A rejected check makes `readObject` throw `InvalidClassException("filter status: REJECTED")`, and so does a `serialVersionUID` mismatch, with a different message [Src: JDK 25, java.io.ObjectInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java). `RecordingFilter` wraps the allow-list, delegates every check and records the first rejection with its class, depth, reference count and bytes. If it recorded one, the failure is `RejectedSessionException`; otherwise the class in this release does not match the stream, which is `IncompatibleSessionException`, as is `ClassNotFoundException`. Every other `IOException` (truncated bytes, a failed validation) is `CorruptSessionException`.
+6. **Validate in `readObject`.** No constructor of `Session` runs on read ([§9](#9-java-serialization-and-its-risks)), and generics are erased, so a stream can put any allowed class, an `ArrayList` for instance, into the `List<String>` field. `readObject` calls `defaultReadObject`, runs the constructor's checks (non-blank user, an expiry, every role a `String`) and throws `InvalidObjectException` with the cause (the two-argument constructor exists since Java 19 [Src: JDK 25, java.io.InvalidObjectException](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/InvalidObjectException.java)); only then does it compute `admin`.
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex3/SessionCodec.java
+    // Exactly the classes an honest Session stream contains, then "!*" so everything else is REJECTED:
+    // ArrayList.readObject asks the filter about an Object[] (matched by its element type, java.lang.Object),
+    // and an Instant travels as java.time.Ser, whose readResolve result is checked as java.time.Instant.
+    static final String PATTERN = "maxdepth=" + MAX_DEPTH
+            + ";maxrefs=" + MAX_REFS
+            + ";maxbytes=" + MAX_BYTES
+            + ";maxarray=" + Session.MAX_ROLES
+            + ";" + Session.class.getName()
+            + ";" + ArrayList.class.getName()
+            + ";java.lang.Object;java.time.Ser;java.time.Instant;!*";
+
+    private final ObjectInputFilter allowList = ObjectInputFilter.Config.createFilter(PATTERN);
+
+    public Session decode(byte[] bytes) throws SessionDecodingException {
+        // maxbytes is only checked when the filter is called, and Strings never call it: bound the input here.
+        if (bytes.length > MAX_BYTES) {
+            throw new RejectedSessionException(bytes.length + " bytes, over the " + MAX_BYTES + "-byte limit", null);
+        }
+        RecordingFilter filter = new RecordingFilter(allowList);
+        try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+            in.setObjectInputFilter(filter); // before the first readObject; a stream accepts one filter
+            return asSession(in.readObject());
+        } catch (InvalidClassException e) {
+            throw translate(e, filter);
+        } catch (ClassNotFoundException e) {
+            throw new IncompatibleSessionException(e);
+        } catch (IOException e) {
+            throw new CorruptSessionException(e);
+        }
+    }
+
+    private static Session asSession(Object decoded) throws RejectedSessionException {
+        if (decoded instanceof Session session) {
+            return session;
+        }
+        String type = decoded == null ? "null" : decoded.getClass().getName();
+        throw new RejectedSessionException("not a Session: " + type, null);
+    }
+
+    // A rejection and a serialVersionUID mismatch are both InvalidClassException: the recorder tells them apart.
+    private static SessionDecodingException translate(InvalidClassException e, RecordingFilter filter) {
+        return filter.firstRejection()
+                .<SessionDecodingException>map(reason -> new RejectedSessionException(reason, e))
+                .orElseGet(() -> new IncompatibleSessionException(e));
+    }
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex3/Session.java
+    // No constructor of this class runs on read: check what the stream put in the fields, then derive.
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        try {
+            requireValid();
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new InvalidObjectException(e.getMessage(), e);
+        }
+        admin = roles.contains(ADMIN);
+    }
+
+    private void requireValid() {
+        if (Objects.requireNonNull(userId, "userId").isBlank()) {
+            throw new IllegalArgumentException("blank userId");
+        }
+        Objects.requireNonNull(expiresAt, "expiresAt");
+        // Generics are erased: the stream can put any class the filter allows into a List<String>.
+        for (Object role : Objects.requireNonNull(roles, "roles")) {
+            if (!(role instanceof String)) {
+                throw new IllegalArgumentException("role is not a String: " + describe(role));
+            }
+        }
+    }
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex3/RecordingFilter.java
+    @Override
+    public Status checkInput(FilterInfo info) {
+        Status status = delegate.checkInput(info);
+        if (status == Status.REJECTED && firstRejection == null) {
+            firstRejection = describe(info);
+        }
+        return status;
+    }
+```
+
+The exceptions are [`SessionDecodingException`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex3/SessionDecodingException.java), a checked `abstract sealed` class that permits exactly [`RejectedSessionException`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex3/RejectedSessionException.java), [`IncompatibleSessionException`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex3/IncompatibleSessionException.java) and [`CorruptSessionException`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex3/CorruptSessionException.java). The three names are the three decisions a cache client makes: alert on a rejection, treat an incompatible entry as a miss (it is expected during a rollout), and treat a corrupt one as a miss that is counted.
+
+**How each criterion is met** [Lab: SessionCodecTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/SessionCodecTest.java). Forged payloads come from a test helper, [`Payloads`](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/Payloads.java), which plays whoever writes the bytes: it serializes a valid `Session` through an `ObjectOutputStream` whose `replaceObject` swaps a marker `String`, or the first `ArrayList`, for another object. `ObjectOutputStream` calls `replaceObject` before it handles a `String` specially, so strings can be swapped too [Src: JDK 25, java.io.ObjectOutputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectOutputStream.java). No test bypasses a constructor with reflection.
+- (1) `Ex06.3 · (1) a session round-trips and readObject rebuilds the transient admin flag`: a session with roles `admin` and `support` decodes equal to, and not the same object as, the original, with `isAdmin()` true; one with only `support` decodes with it false. `Ex06.3 · (1) the serialized form declares serialVersionUID 1 and has no admin field`: `ObjectStreamClass.lookup(Session.class)` reports `1L` and exactly the fields `expiresAt`, `roles`, `userId`. `Ex06.3 · (1) readObject rejects a forged role that is not a String, which the filter allowed`: a role swapped for an empty `ArrayList` passes the filter (every class in it is listed) and fails in `readObject` with `CorruptSessionException` naming `java.util.ArrayList`, whose cause is an `InvalidObjectException`. `Ex06.3 · (1) readObject rejects a forged blank userId, which no constructor checks on read`: the user id swapped for a blank string gives `CorruptSessionException` with `blank userId`.
+- (2) `Ex06.3 · (2) a class outside the allow-list is rejected before its readObject runs`: a role swapped for a `Probe` (a serializable test class whose `readObject` counts its calls) gives `RejectedSessionException` naming `Probe`, its cause is an `InvalidClassException` with the message `filter status: REJECTED`, and the counter has not moved. `Ex06.3 · (2) the allow-list names runtime classes: a LinkedList in place of the ArrayList is rejected`: the same roles in a `LinkedList` are rejected, because the list names classes, not the declared `List` type. `Ex06.3 · (2) a stream of allowed classes that is not a Session is rejected, not cast`: a bare `ArrayList` of strings passes every check and is refused with `not a Session: java.util.ArrayList`. `Ex06.3 · (2) an honest session stream asks the filter about exactly the five allowed classes`: a filter that only records, on a session with two roles, sees `Session`, `java.time.Ser`, `java.time.Instant`, `java.util.ArrayList` and `[Ljava.lang.Object;`, in that order. `Ex06.3 · (2) without java.lang.Object in the list, a session with no roles passes and one role fails`: the trap from Hint 1; `ArrayList.readObject` checks the array only when the size is above zero, so a test suite that uses empty sessions would never see it.
+- (3) `Ex06.3 · (3) lists nested past maxdepth are rejected even though every class is allowed`: a role swapped for five nested lists is rejected at `depth=4`. `Ex06.3 · (3) a repeated role is a back-reference checked at depth 3, so maxdepth 2 would reject it`: a session whose two roles are one `String` instance decodes, and the same bytes fail under the pattern with `maxdepth=2`. `Ex06.3 · (3) maxarray allows 64 roles and rejects a forged list of 65`: 64 roles round-trip, a forged list of 65 is rejected with `arrayLength=65`, and the constructor refuses 65. `Ex06.3 · (3) a wide graph inside the depth and array limits is rejected by maxrefs`: the roles list swapped for four lists of 60 strings stays within depth 3 and arrays of 64, and is rejected at a check whose reference count is above 128. `Ex06.3 · (3) input over the byte limit is rejected before reading; maxbytes alone misses a long String`: a role swapped for a 16,384-character string makes the bytes longer than the limit; the codec refuses them before reading, while a stream with only the pattern filter reads them without complaint, and `encode` refuses a session with that role.
+- (4) Earlier releases are played by classes compiled in memory under the same name and loaded by a child-first class loader ([`OldRelease`](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/OldRelease.java), built on [01](01-java-oop-fundamentals.md)'s `InMemoryCompiler`). `Ex06.3 · (4) bytes from a release with another serialVersionUID become IncompatibleSessionException`: the cause is the `InvalidClassException` whose message contains `local class incompatible`, `stream classdesc serialVersionUID = 2` and `local class serialVersionUID = 1`. `Ex06.3 · (4) an entry whose class this release deleted fails with ClassNotFoundException as the cause`: an entry of a `LoyaltyBadge` class that only the old release has. `Ex06.3 · (4) a field whose class this release deleted is skipped, so the session still decodes`: an old `Session` with the same `serialVersionUID` and an extra `LoyaltyBadge` field decodes. That test was red on the first run, because the first version expected `ClassNotFoundException`; the specification says "values that appear in the stream, but not in the object, are discarded" [Doc: Java Object Serialization Specification, §3.1](https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/input.html#the-objectinputstream-class), and `ObjectInputStream` only propagates a missing class to an object whose local class has the field [Src: JDK 25, java.io.ObjectInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java). Note also that `!*` did not reject `LoyaltyBadge`: when a class cannot be resolved the filter is called with no class, and a pattern filter answers `UNDECIDED` for that [Src: JDK 25, java.io.ObjectInputFilter](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputFilter.java); a class the JVM does not have cannot run code, and the `ClassNotFoundException` stops it. `Ex06.3 · (4) truncated bytes become CorruptSessionException, with the EOFException as the cause`. `Ex06.3 · (4) every decoding failure is a checked SessionDecodingException with three sealed subtypes`.
+- (5) [Lab: SessionCodecGlobalStateTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/SessionCodecGlobalStateTest.java). `Ex06.3 · (5) decoding leaves the JVM-wide filter and filter factory as they were`: `Config.getSerialFilter()` and `Config.getSerialFilterFactory()` return the same objects after an accepted and a rejected decode. `Ex06.3 · (5) the codec's source never sets a JVM-wide filter, factory or property`: the seven source files of `m06.ex3` contain no `setSerialFilter`, `jdk.serialFilter` or `System.setProperty`, and do contain the per-stream call. `Ex06.3 · (5) under a JVM-wide jdk.serialFilter, the stream filter replaces it unless merged`: backs the first follow-up below.
+
+**Alternative approach:** a *serialization proxy*. `Session` declares `writeReplace` returning a private nested record that holds the three stored values, and a `readObject` that always throws `InvalidObjectException`, so a stream that names `Session` directly is refused. On read, the record is rebuilt through its canonical constructor ([§9](#9-java-serialization-and-its-risks)), whose checks then run, and its `readResolve` returns `new Session(…)`, so validation lives only in the constructors. **Trade-offs:** the proxy removes the hand-written `readObject` and its duplicated checks, and a forged field can never skip the constructor. But the stream now names the record class, so the allow-list lists the record and also `Session`, because the `readResolve` result is filtered too [Src: JDK 25, java.io.ObjectInputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputStream.java); and every entry already in the cache names `Session` with its own fields, so switching is a format migration with the same rollout plan as the second follow-up. For a cache that is being retired anyway, the `readObject` version is the smaller change.
+
+**Interviewer follow-ups.**
+- *Operations sets `-Djdk.serialFilter` for the whole JVM. Does your codec still apply it?* No. A stream starts with the JVM-wide filter, and `setObjectInputFilter` asks the filter factory for the new one; the built-in factory returns "the new Filter", replacing the old [Src: JDK 25, java.io.ObjectInputFilter](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputFilter.java). In the lab, a child JVM started with `-Djdk.serialFilter=!dev.interview.javalanguage.m06.ex3.*` rejects a plain read of a session, while the codec decodes it; reading with `ObjectInputFilter.merge(allowList, Config.getSerialFilter())` rejects it again, because a merged filter returns `REJECTED` if either filter does (`@since 17`) [Src: JDK 25, java.io.ObjectInputFilter](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectInputFilter.java) [Lab: SessionCodecGlobalStateTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/SessionCodecGlobalStateTest.java). If operations' rules must always hold, merge them in the codec, or let operations install a JEP 415 filter factory that does the merging for every stream ([§9](#9-java-serialization-and-its-risks)).
+- *How do you move this cache to JSON without signing everyone out?* Read both formats for one session lifetime. Write new entries as JSON with a version marker, read JSON first and fall back to `SessionCodec` for entries without the marker, and delete the codec once the longest session expiry has passed since the switch. Deploy the reading side everywhere before any instance writes JSON, so an old instance never meets an entry it cannot read; that is the rolling-deploy problem of [§9](#9-java-serialization-and-its-risks)'s failure modes in reverse. Redis as a session store is [27](27-redis.md)'s subject, and JSON mapping with Jackson is [18](18-spring-mvc-and-rest-controllers.md)'s.
+- *A `RejectedSessionException` appears in the logs. What now?* Treat it as a security signal, not a cache miss: the bytes asked for a class no release of this service writes, or broke a limit no honest entry reaches. The exception's message carries the filter's view (class, depth, references, bytes), and the JDK logs rejected checks to the `java.io.serialization` system logger at `DEBUG` and can record `jdk.Deserialization` JFR events ([§9](#9-java-serialization-and-its-risks)), which show who else in the process deserializes. Then find how the bytes got into the cache, since the cache is the trust boundary that failed.
+- *Why is `IncompatibleSessionException` not a subtype of `RejectedSessionException`?* Because the caller's response differs: an incompatible entry is expected during every rollout that changes `Session` and costs one re-login, while a rejection is an attack or a bug. A sealed hierarchy makes that split visible and lets a `switch` over the three types be checked for completeness, since a `switch` on an abstract sealed class is exhaustive when it covers every permitted subclass [Doc: JLS 25 §14.11.1.1](https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1.1) ([07](07-java-modern-language-features.md) covers sealed types); one exception with a reason code would push the decision into string comparisons.
+
+**Tests:** [SessionCodecTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/SessionCodecTest.java), [SessionCodecGlobalStateTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/SessionCodecGlobalStateTest.java).
+
+</details>
 <!-- /TASK: EX-M06-03 -->
 
 ## Check your understanding

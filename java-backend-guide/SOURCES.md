@@ -805,6 +805,11 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CharsetEncoder.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/StreamDecoder.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/UTF_8.java
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.1.1
+- https://docs.oracle.com/en/java/javase/25/docs/specs/serialization/input.html#the-objectinputstream-class
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/InvalidObjectException.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/time/Instant.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java
 
 ## 17 spring-transactions
 
