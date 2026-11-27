@@ -3,11 +3,11 @@
 Single source of truth for where the job stands (keep under 60 lines). Files on disk win over this file, then TASKS.md.
 
 - **Phase:** Phase C (remaining modules, ROADMAP order). Phase A pilot done; G1 ticked by Jorge (recorded S20261101-2100). Planning P1 to P8 is done ([PLANNING.md](PLANNING.md)).
-- **Current module:** 06 `java-exceptions-strings-io` (core, lab `java-language`), **closed** by CLOSE-M06 (S20261127-1201-claudecode-cloud): [M06](modules/M06.md), `modules/06-java-exceptions-strings-io.md` (0 TASK markers; 26 Q, 3 Ex, 3 PS questions); 85 ledger rows `written` (2 `architect-md` secondaries left to 44 and 42). Open: REVIEW-M06 (FIX-M06-01 done). Modules 17, 01, 02, 03, 04 and 05 closed, reviewed, fixed.
-- **In progress:** REVIEW-M06 (S20261127-1801-claudecode-cloud, 2026-11-27 18:40)
-- **Last finished task:** FIX-M06-01 (S20261127-1801-claudecode-cloud): second body `Production scenario` callout in §4 (after a deploy every request fails with `Could not initialize class`; JLS 12.4.2, instanceKlass.cpp, `Class.forName` Javadoc, new `StartupInitializationCheckTest`); B10 now 2. Earlier: CLOSE-M06 (S20261127-1201).
-- **Next task:** REVIEW-M06 (L; run in a session other than the M06 writers, or by a fresh read-only subagent).
-- **Counts:** modules done 0/55 (17, 01, 02, 03, 04 and 05 closed, reviewed, fixed; 06 closed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 7/55 (17, 01, 02, 03, 04, 05, 06); CLOSE 7/55 (17, 01, 02, 03, 04, 05, 06); REVIEW 6/55 (17, 01, 02, 03, 04, 05).
+- **Current module:** 06 `java-exceptions-strings-io` (core, lab `java-language`), **closed** by CLOSE-M06 (S20261127-1201-claudecode-cloud): [M06](modules/M06.md), `modules/06-java-exceptions-strings-io.md` (0 TASK markers; 26 Q, 3 Ex, 3 PS questions); 85 ledger rows `written` (2 `architect-md` secondaries left to 44 and 42). Open: FIX-M06-02..05 from REVIEW-M06. Modules 17, 01, 02, 03, 04 and 05 closed, reviewed, fixed.
+- **In progress:** none
+- **Last finished task:** REVIEW-M06 (S20261127-1801-claudecode-cloud, fresh read-only sonnet subagent): CHANGES_REQUIRED, 0 BLOCKER · 2 MAJOR · 8 MINOR · 6 NIT → FIX-M06-02..05 ([REVIEW-M06](reviews/REVIEW-M06.md)); finding 15 rejected. Earlier: FIX-M06-01 (same session, second §4 callout).
+- **Next task:** FIX-M06-02 (M; RUN.md §4 priority 2), then FIX-M06-03 (S), FIX-M06-04 (M), FIX-M06-05 (S); then PLAN-M07 (ROADMAP).
+- **Counts:** modules done 0/55 (17, 01, 02, 03, 04 and 05 closed, reviewed, fixed; 06 closed); sources consolidated 0/11; EXTRACT 47/47 chunks; SYLLABUS-REVISE done; PLAN 7/55 (17, 01, 02, 03, 04, 05, 06); CLOSE 7/55 (17, 01, 02, 03, 04, 05, 06); REVIEW 7/55 (17, 01, 02, 03, 04, 05, 06).
 - **Open UNVERIFIED:** 0 ([UNVERIFIED](UNVERIFIED.md)). U01 to U05 closed by VERIFY-01..05 (S20261025-0744-claudecode); U06 closed by VERIFY-06 (S20261029-0747-claudecode).
 - **Waiting gates (see [GATES](GATES.md)):**
   - G1 "Syllabus and pilot approved": **ticked** (noticed S20261101-2100); `PLAN-Mxx` tasks are eligible.

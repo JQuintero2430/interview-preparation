@@ -1741,10 +1741,38 @@ Appended by PLAN-M06 (S20261124-0601-claudecode-cloud). Plan: [M06](modules/M06.
 - Done by: S20261127-1801-claudecode-cloud (main session; model omitted in pushed files per the cloud harness rule). Callout in §4 (Failure modes and operations), the `Could not initialize class` deploy incident; new lab class `StartupInitializationCheckTest` (2 tests).
 
 ### REVIEW-M06 · L
-- Status: `in_progress` · Deps: CLOSE-M06 · needs: none
+- Status: `done` · Deps: CLOSE-M06 · needs: none
 - Files touched: `_meta/reviews/REVIEW-M06.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: RUN.md §4 (independent review); the module file; [M06](modules/M06.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: run in a session different from every `Done by` of M06's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M06; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection.
+- Done by: S20261127-1801-claudecode-cloud (a fresh read-only general-purpose subagent on sonnet, a model that wrote none of M06; the main session transcribed its verdict into [REVIEW-M06](reviews/REVIEW-M06.md): CHANGES_REQUIRED, 0 BLOCKER · 2 MAJOR · 8 MINOR · 6 NIT → FIX-M06-02..05; finding 15 rejected)
+
+### FIX-M06-02 · M · Factual accuracy (findings 1, 2, 3, 4, 5, 11, 16)
+- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Files touched: `modules/06-java-exceptions-strings-io.md` (Q06.01 Short answer; §7 line ~865, §7 Best practices, Q06.20 Short answer; Q06.06 prompt and Full explanation; §1 Version notes; Q06.16; §1 "Choosing checked or unchecked"; Q06.25 bullet), possibly a test in `labs/java-language/src/test/java/dev/interview/javalanguage/m06/s07/` (BMP emoji `length()`), `SOURCES.md` (finding 5's row, if unused elsewhere), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: each finding verified in its source first (JLS 25 §14.20 and §11.1.1, `javac` on the snippet, JDK 15 release notes, HotSpot jdk-25-ga `globals.hpp`, a lab assertion for U+2764/U+2705 `length()` 1), then applied or recorded as rejected with evidence in Resolutions; Standard checks rows 3 and 4 (if a test changed), 5, 6.
+- Done by: —
+
+### FIX-M06-03 · S · SOURCES.md 06 block (finding 6)
+- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Files touched: `SOURCES.md` (06 block), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: a script lists every URL in the module and finds each under the `06` heading of SOURCES.md (0 missing); row 5.
+- Done by: —
+
+### FIX-M06-04 · M · Teaching and format (findings 7, 8, 9)
+- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Files touched: `modules/06-java-exceptions-strings-io.md` (first uses of JIT/C2, CLDR, JFR, BMP, NFC/NFD, shutdown hooks; approach and steps before the snippets of Q06.09, Q06.14, Q06.22, Q06.23, Q06.25, Q06.26 and §1 `UncheckedThrow`; prompts for Q06.23–Q06.26), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: each term glossed (and linked to its owning module) at first use; each named snippet preceded by an approach and 2–4 numbered steps; each of Q06.23–Q06.26 has a prompt before `<details>`; any new claim tagged; rows 5, 6.
+- Done by: —
+
+### FIX-M06-05 · S · Rendering and nits (findings 10, 12, 13, 14)
+- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Files touched: `modules/06-java-exceptions-strings-io.md` (raw U+FFFF/U+FEFF at lines ~863, 877, 909; `File.toURL` marker; Ex06.3 criterion (4) sentence; Ex06.1 criterion (2) wording), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: `grep -P '\x{FFFF}|\x{FEFF}'` on the module → 0; `File.toURL`'s `@Deprecated` checked in JDK 25 `src.zip` before writing the marker; rows 5, 6.
 - Done by: —
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)
