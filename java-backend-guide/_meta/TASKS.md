@@ -1726,10 +1726,18 @@ Appended by PLAN-M06 (S20261124-0601-claudecode-cloud). Plan: [M06](modules/M06.
 - Done by: S20261127-0601-claudecode-cloud (main session; model omitted in pushed files per the cloud harness rule)
 
 ### CLOSE-M06 · M
-- Status: `todo` · Deps: every SEC, QB and EX task of M06 · needs: none
+- Status: `done` · Deps: every SEC, QB and EX task of M06 · needs: none
 - Files touched: `modules/06-java-exceptions-strings-io.md` (the three `CLOSE-M06` regions: Summary, Check your understanding, Connections), `PROGRESS.md` (row 06), `_meta/sources/*.md` (status `written` for every primary row of M06 §3), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: the whole module; [M06](modules/M06.md) §2, §3; STYLE-GUIDE §2.3, §9; [QUALITY-BAR](QUALITY-BAR.md) (all items).
 - Acceptance: QUALITY-BAR F1–F4 and every other item checked with its command, one line per item in the LOG; `grep -c 'TASK:' modules/06-java-exceptions-strings-io.md` prints 0; every ledger row of M06 §3 whose primary target is 06 is `written` with its question or section (the two `architect-md` secondary rows untouched); Standard checks row 8 (full build, `-DexcludedGroups=docker` if Docker is absent) plus rows 4, 5, 6; module-stats row 06 has no flag.
+- Done by: S20261127-1201-claudecode-cloud (main session; model omitted in pushed files per the cloud harness rule). QUALITY-BAR B10 failed (1 body callout, core needs ≥ 2) → FIX-M06-01.
+
+### FIX-M06-01 · M · QUALITY-BAR B10: a second `Production scenario` callout in the body
+- Status: `todo` · Deps: CLOSE-M06 · needs: none · found by CLOSE-M06 (S20261127-1201-claudecode-cloud)
+- Finding: `grep -c '\*\*Production scenario:' modules/06-java-exceptions-strings-io.md` → 1 (§3 only); QUALITY-BAR B10 and STYLE-GUIDE §6 require at least 2 in a core module. The plan (M06 §4) placed none in §5, §7 (their incidents are Q06.13 and Q06.22, which a callout must not repeat), §6 or §9.
+- Files touched: `modules/06-java-exceptions-strings-io.md` (one new callout inside the chosen section's "Failure modes and operations", inserted in one edit), possibly one new test class under `labs/java-language/src/test/java/dev/interview/javalanguage/m06/s0N/` if a claim needs a lab, `SOURCES.md` (new URLs), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: STYLE-GUIDE §6 (callout format: framing as the interviewer says it, then diagnosis evidence, fix, prevention); the chosen section in full; Q06.12, Q06.13, Q06.22, Q06.25 (so the callout does not repeat them). Candidates, best first: §4, a deploy after which every request fails with `NoClassDefFoundError: Could not initialize class …` while the JAR is present, and the real `ExceptionInInitializerError` is one earlier log line (evidence: the first occurrence in the log, the JDK 18+ cause; fix: make the initializer not throw, or initialize lazily and fail per call; prevention: a start-up readiness check that touches the class); §8, `Too many open files` from streams that are never closed (evidence: `/proc/<pid>/fd` count, `lsof`; fix: try-with-resources; prevention: a file-descriptor gauge); §9, a rolling deploy whose old and new instances share a cache and fail with `InvalidClassException` (link Ex06.3's follow-up rather than repeat it).
+- Acceptance: `grep -c '\*\*Production scenario:'` → 2; the callout follows STYLE-GUIDE §6 and every claim has a basis tag (lab test, JDK 25 source or Javadoc); no repetition of a Production scenario question; Standard checks rows 3 and 4 if a test is added, rows 5 and 6.
 - Done by: —
 
 ### REVIEW-M06 · L

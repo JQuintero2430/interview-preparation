@@ -2,7 +2,7 @@
 
 Human-facing dashboard, one row per module. Updated by `CLOSE`, `SYLLABUS-REVISE` and `DELETE` tasks. The job's working memory is in `_meta/`: [STATE](_meta/STATE.md) (where the job stands), [TASKS](_meta/TASKS.md) (queue), [ROADMAP](_meta/ROADMAP.md) (phases and module order), [GATES](_meta/GATES.md) (decisions for Jorge), [LOG](_meta/LOG.md) (session log).
 
-**Last updated:** 2026-11-24 (CLOSE-M05, S20261124-0001-claudecode-cloud)
+**Last updated:** 2026-11-27 (CLOSE-M06, S20261127-1201-claudecode-cloud)
 
 ## Phases
 
@@ -30,7 +30,7 @@ Status values: `planned`, `planning`, `writing`, `closed`, `reviewed`, `done` (c
 | 03 | [`java-generics`](modules/03-java-generics.md) | core | closed | 24/24 Q · 3/3 Ex |
 | 04 | [`java-collections-internals`](modules/04-java-collections-internals.md) | core | closed | 32/32 Q · 3/4 Ex |
 | 05 | [`java-lambdas-streams-optional`](modules/05-java-lambdas-streams-optional.md) | core | closed | 30/30 Q · 4/4 Ex |
-| 06 | [`java-exceptions-strings-io`](modules/06-java-exceptions-strings-io.md) | core | planned | 0/26 Q · 0/3 Ex |
+| 06 | [`java-exceptions-strings-io`](modules/06-java-exceptions-strings-io.md) | core | closed | 26/26 Q · 3/3 Ex |
 | 07 | [`java-modern-language-features`](modules/07-java-modern-language-features.md) | core | planned | 0/26 Q · 0/3 Ex |
 | 08 | [`jvm-memory-and-class-loading`](modules/08-jvm-memory-and-class-loading.md) | core | planned | 0/26 Q · 0/3 Ex |
 | 09 | [`jvm-garbage-collection`](modules/09-jvm-garbage-collection.md) | core | planned | 0/28 Q · 0/3 Ex |

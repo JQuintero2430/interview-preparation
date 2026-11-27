@@ -1046,7 +1046,6 @@ In the lab, a 100,000-byte upload is stored byte for byte under the base directo
 Questions that drill this section: [Q06.23](#q06-23), [Q06.24](#q06-24).
 
 ## 9. Java serialization and its risks
-<!-- TASK: SEC-M06-09 -->
 ### The problem it solves
 
 A ticketing service keeps user sessions in a shared cache as Java-serialized bytes, so any instance can pick up any user. The first deploy after a small change, a new convenience method on the `Cart` class, logs `InvalidClassException: … local class incompatible` for every user who logged in before it, and they are all signed out at once. A month later a security scan finds that the same service accepts a serialized object on an internal admin endpoint: anyone who can reach the port can send bytes that make the JVM build objects of any class on the classpath and run their deserialization code, before the endpoint's own code has looked at what arrived. The problem is to know what Java serialization writes and reads, which code runs while it reads, what decides whether yesterday's bytes are readable today, and why the JDK itself now says to avoid deserializing untrusted data.
@@ -1158,10 +1157,8 @@ In the lab, a reader allowing `Invoice` and `Link` with `maxdepth` 3 reads an `I
 - *"The constructor runs when an object is deserialized."* Only the no-arg constructor of the first non-serializable superclass runs (for `Externalizable`, the public no-arg constructor; for records, the canonical one); the serializable classes' constructors do not [Lab: SerializationBasicsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s09/SerializationBasicsTest.java) [Lab: ExternalizableTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/s09/ExternalizableTest.java). The idea comes from records and `Externalizable`, where a constructor does run.
 
 Questions that drill this section: [Q06.25](#q06-25).
-<!-- /TASK: SEC-M06-09 -->
 
 ## 10. Internationalization: `Locale`, `ResourceBundle` and locale-sensitive formatting
-<!-- TASK: SEC-M06-10 -->
 ### The problem it solves
 
 An invoicing service runs on servers whose default locale is German. A US customer's invoice shows the total as `1.234,50 €`, and a nightly CSV export written with `String.format("%.2f", amount)` produces `1234,50`, which the finance system's parser reads as two columns. A second team moves a service to a Turkish data center, and a check `header.toLowerCase().equals("title")` starts failing for the header `TITLE`, because in Turkish the lowercase of `I` is `ı`, not `i`. A third team adds Canadian French text and finds that Italian users now see German, the server's language, instead of the English base text. The problem is to know which APIs depend on a locale, which locale they use when you do not pass one, how `ResourceBundle` picks a translation, and why text meant for machines is formatted with `Locale.ROOT`.
@@ -1255,15 +1252,16 @@ In the lab, on a JVM whose default locale is Germany, `orderLine` gives `Order A
 - *"Formatted numbers are stable, so tests can compare them."* CLDR data changes between JDK releases, including the space characters [Src: JDK 25, java.util.spi.LocaleServiceProvider](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/spi/LocaleServiceProvider.java). The belief comes from tests written and run on one JDK, which pass until the upgrade.
 
 Questions that drill this section: [Q06.26](#q06-26).
-<!-- /TASK: SEC-M06-10 -->
 
 ## Summary
-<!-- TASK: CLOSE-M06 -->
-<!-- /TASK: CLOSE-M06 -->
+Every exception is a `Throwable`. `Error` sits beside `Exception`, not under it, and subclassing alone decides which exceptions are checked: `RuntimeException`, `Error` and their subclasses are unchecked, and everything else, `Throwable` itself included, is checked. Only `javac` enforces catch-or-declare; `throws` must list the checked exceptions only; an override may narrow its `throws` clause but may not add a checked exception; and an `Error` can be caught like anything else, although it usually means the program cannot safely carry on ([§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked)). The first compatible `catch` clause wins, so a subclass listed after its superclass does not compile. A `return` computes its value before `finally` runs, so `finally` cannot change a returned variable, but a `return` or `throw` inside `finally` replaces whatever was pending, an exception in flight included. `finally` runs whenever control leaves the `try`, which excludes `System.exit`, `halt`, daemon threads at JVM exit and a block that never finishes. A multi-catch parameter is final, and since Java 7 a rethrown effectively final parameter throws only what the `try` block can throw ([§2](#2-try-catch-and-finally-control-flow-and-compile-time-rules)). try-with-resources closes its resources in reverse order before any `catch` or `finally` of the same statement runs, keeps the body's exception as the primary one, and records each close failure in its `getSuppressed()`, where a log line that prints only the top exception's `toString()` never shows it. A wrapper must be given the cause, because `new RuntimeException(e.getMessage())` keeps only the text, and a layer translates a lower layer's exception into its own vocabulary by wrapping it, not by letting it escape ([§3](#3-try-with-resources-suppressed-exceptions-and-chaining)).
+
+A new exception class earns its place when some caller handles it differently from its superclass; its context goes in fields, not in a message to parse; and because every `Throwable` is `Serializable`, it declares a `serialVersionUID`. Inside one process an exception beats an error code, and across a process boundary a stable code in the response body replaces it. What costs is constructing an exception, because the constructor walks the stack through `fillInStackTrace()`, not throwing it; `writableStackTrace = false` skips the walk, and a trace missing in production may be one of HotSpot's preallocated fast-throw instances rather than a logging problem. A class whose static initializer fails throws `ExceptionInInitializerError` on first use and `NoClassDefFoundError: Could not initialize class …` on every later use, while `ClassNotFoundException` is the checked exception of a lookup by name; `StackOverflowError` and `OutOfMemoryError` are `VirtualMachineError`s, and an `OutOfMemoryError`'s message names the resource that ran out ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)). Catch where a decision can be made, at the boundary (a request handler, a message listener, a batch step), and log once there with the whole cause chain; restore the interrupt flag or propagate `InterruptedException`, because catching it clears the request to stop. An uncaught exception ends its thread, not the JVM: it goes to the thread's handler, else its `ThreadGroup`, then the default handler, then standard error, and only an exception from `main` gives the launcher a non-zero exit status. In a pool, a task that throws under `execute` kills its worker, whose handler sees the exception and which the pool replaces; under `submit` the exception is stored in the `Future` and nothing prints until `get()`; and a periodic task that throws once is never run again ([§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)).
+
+Literals and constant expressions are pooled, so equal ones are the same object; text built at run time is a new object until `intern()` returns the pooled one; `new String` always creates a new object; and the pool has lived in the main heap since JDK 7. Since Java 9 a `String` stores a `byte[]` with a Latin-1 or UTF-16 coder, while `length()` still counts UTF-16 code units. `javac` folds a constant `+` into one literal and turns any other `+` into an `invokedynamic` call site bootstrapped by `StringConcatFactory`, which makes one expression efficient but cannot merge the iterations of a loop, where `StringBuilder` is still the answer. `split` takes a regular expression and drops trailing empty strings, and a text block strips the incidental indentation, which the closing delimiter's line takes part in ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api)). Unicode code points run from U+0000 to U+10FFFF, and Unicode is not an encoding; a `char` is a UTF-16 code unit, so a supplementary character takes two `char`s, and what a user sees as one character can be several code points. `new String(bytes, charset)` silently replaces malformed input while a `CharsetDecoder` reports it by default; since Java 18 the default charset is UTF-8 on every platform unless `-Dfile.encoding=COMPAT`; and `Ã©` in place of `é` means UTF-8 bytes were decoded with a single-byte charset ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)). Byte streams and character streams meet only at `InputStreamReader` and `OutputStreamWriter`, which is where the charset enters; each decorator adds one job, and closing the outermost one closes the chain; unbuffered reads go to the file or socket one call at a time; `read()` returns an `int` so that -1 can mean the end; `Files` reports a failure as an exception that names the file where `File` returns `false`; and `normalize()` does not keep a client-supplied name inside a directory without the `startsWith` check that follows it ([§8](#8-io-byte-and-character-streams-buffering-and-nio2)). Java serialization writes the whole reachable graph except `transient` and `static` fields, rebuilds it without running the serializable classes' constructors, and fails on old bytes once an undeclared `serialVersionUID` changes. The bytes choose which classes are built and whose hooks run, all before your cast, so untrusted input needs an allow-list filter that ends with `!*` (Java 9, JEP 290; per-context filter factories since Java 17, JEP 415), which reduces the risk without removing it; between services, JSON and Protobuf replaced the format ([§9](#9-java-serialization-and-its-risks)). A `Locale` changes how data is rendered and parsed, never the data. The default locale is one value for the whole JVM; `toLowerCase()` without a locale turns `TITLE` into `tıtle` under Turkish, so text for programs uses `Locale.ROOT`; a missing bundle falls back to the default locale's bundles before the base one; property bundles are read as UTF-8 since Java 9; and formatted output can change with each JDK's CLDR data ([§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)).
 
 ## Question bank
 
-<!-- TASK: QB-M06-01 -->
 <a id="q06-01"></a>
 ### Q06.01 · Concept · The `Throwable` family: `Error`, `Exception` and `RuntimeException`, what `catch` may name, and which exceptions the JVM throws itself
 <!-- ledger: core-java-240-02-17, core-java-240-02-18, core-java-240-02-20, core-java-pdf-02-45, core-java-pdf-03-13, core-java-240-02-19, core-java-240-03-01, core-java-240-03-03, core-java-240-03-04 -->
@@ -1636,9 +1634,6 @@ Resources open left to right and close in reverse, `B` then `A`, before the `cat
 
 </details>
 
-<!-- /TASK: QB-M06-01 -->
-
-<!-- TASK: QB-M06-02 -->
 <a id="q06-08"></a>
 ### Q06.08 · Production scenario · The incident report says only "Failed to export batch": a wrapped exception that dropped its cause
 <!-- ledger: honeywell-optum-md-01-15 -->
@@ -2045,9 +2040,6 @@ The fix: the `catch` names only the checked exception it can translate, keeps it
 
 </details>
 
-<!-- /TASK: QB-M06-02 -->
-
-<!-- TASK: QB-M06-03 -->
 <a id="q06-15"></a>
 ### Q06.15 · Output · `==` between literals, constant expressions, runtime concatenation, `new String` and `intern()`: which comparisons print `true`?
 <!-- ledger: honeywell-optum-md-01-06, core-java-pdf-02-56, core-java-pdf-03-20 -->
@@ -2384,9 +2376,6 @@ The lab runs `main` and asserts the nine lines [Lab: Q06OutputsTest](../labs/jav
 
 </details>
 
-<!-- /TASK: QB-M06-03 -->
-
-<!-- TASK: QB-M06-04 -->
 <a id="q06-22"></a>
 ### Q06.22 · Production scenario · After a JDK upgrade and a move to containers, a partner's CSV import shows `Ã©` where customers' names had `é`
 <!-- ledger: core-java-pdf-03-36 -->
@@ -2699,11 +2688,8 @@ In the lab, with [§10](#10-internationalization-locale-resourcebundle-and-local
 
 </details>
 
-<!-- /TASK: QB-M06-04 -->
-
 ## Hands-on exercises
 
-<!-- TASK: EX-M06-01 -->
 <a id="ex06-1"></a>
 ### Exercise 06.1 · A batch exporter that never loses an error
 
@@ -2812,9 +2798,7 @@ The other files are short: the port [`Sink`](../labs/java-language/src/main/java
 **Tests:** [ExporterTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/ExporterTest.java), [FileSinkFactoryTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/FileSinkFactoryTest.java), [ExporterSourceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex1/ExporterSourceTest.java).
 
 </details>
-<!-- /TASK: EX-M06-01 -->
 
-<!-- TASK: EX-M06-02 -->
 <a id="ex06-2"></a>
 ### Exercise 06.2 · A Unicode-safe text toolkit
 
@@ -2939,9 +2923,7 @@ A `CharsetDecoder` that reports an error does not consume the bad bytes. Read wh
 **Tests:** [TextsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsTest.java), [TextsCharsetIndependenceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsCharsetIndependenceTest.java).
 
 </details>
-<!-- /TASK: EX-M06-02 -->
 
-<!-- TASK: EX-M06-03 -->
 <a id="ex06-3"></a>
 ### Exercise 06.3 · Safe deserialization of a legacy cache entry
 
@@ -3087,12 +3069,80 @@ The exceptions are [`SessionDecodingException`](../labs/java-language/src/main/j
 **Tests:** [SessionCodecTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/SessionCodecTest.java), [SessionCodecGlobalStateTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex3/SessionCodecGlobalStateTest.java).
 
 </details>
-<!-- /TASK: EX-M06-03 -->
 
 ## Check your understanding
-<!-- TASK: CLOSE-M06 -->
-<!-- /TASK: CLOSE-M06 -->
+**Explain it back.**
+1. To a colleague who says "checked exceptions are checked by the JVM": who enforces catch-or-declare, what alone decides whether an exception class is checked, and what an overriding method may and may not add to its `throws` clause.
+2. To a reviewer who finds `return` inside a `finally` block in a utility method: what happens to an exception in flight and to the value the `try` was returning, why the method still seems to work, and when `finally` does not run at all.
+3. To a teammate whose incident report says only "Failed to export batch": what `new RuntimeException(e.getMessage())` threw away, where try-with-resources puts a `close()` failure, and where the one log line should be written.
+4. To an on-call engineer whose pool job stopped with nothing in the logs: what happens when a task throws under `execute` and under `submit`, what a periodic task does after one failure, and where the exception can still be found.
+5. To a developer who says "Java strings are UTF-16 and UTF-8 is one byte per character": what `length()` counts, how many `char`s and UTF-8 bytes an emoji takes, what changed about the default charset in Java 18, and what `Ã©` in a stored name proves.
+6. To an architect deciding whether a cache may keep storing Java-serialized objects: why the bytes, not the code, choose the classes that are built, what an allow-list filter checks and what it cannot fix, and what a class change without a declared `serialVersionUID` does to old entries.
+
+**Flashcards.**
+
+<details><summary>Is a class that extends <code>Throwable</code> directly checked or unchecked?</summary>
+
+Checked: only `RuntimeException`, `Error` and their subclasses are unchecked ([Q06.01](#q06-01)).
+
+</details>
+
+<details><summary><code>int x = 1; try { return x; } finally { x = 2; }</code>: what does the method return?</summary>
+
+1: the `return` computes its value before `finally` runs, and `finally` only changes the variable ([Q06.03](#q06-03)).
+
+</details>
+
+<details><summary>Does a <code>finally</code> block run after <code>System.exit</code>?</summary>
+
+No: shutdown hooks run, `finally` blocks do not, and after `Runtime.halt` not even the hooks run ([Q06.04](#q06-04)).
+
+</details>
+
+<details><summary>In try-with-resources, the body throws and then <code>close()</code> throws: which exception reaches the caller?</summary>
+
+The body's; the close failure is in its `getSuppressed()` ([Q06.07](#q06-07)).
+
+</details>
+
+<details><summary>Which step makes an exception expensive: creating it or throwing it?</summary>
+
+Creating it: the constructor walks the stack through `fillInStackTrace()`; `throw` only transfers control ([Q06.11](#q06-11)).
+
+</details>
+
+<details><summary>A class's static initializer threw on first use. What does the second use throw?</summary>
+
+`NoClassDefFoundError: Could not initialize class …`; the first use threw `ExceptionInInitializerError` ([Q06.12](#q06-12)).
+
+</details>
+
+<details><summary>A task passed to <code>submit</code> throws. What appears in the logs?</summary>
+
+Nothing: the exception is stored in the `Future`, and `get()` throws an `ExecutionException` with it as the cause ([Q06.13](#q06-13)).
+
+</details>
+
+<details><summary>Is <code>"order" == "or" + "der"</code> true?</summary>
+
+Yes: a constant expression is folded at compile time into the same pooled string as the literal ([Q06.15](#q06-15)).
+
+</details>
+
+<details><summary>How many elements does <code>"25.0.5".split(".")</code> return?</summary>
+
+None: `.` is a regular expression that matches every character, and the trailing empty strings are discarded ([Q06.19](#q06-19)).
+
+</details>
+
+<details><summary>For the emoji U+1F600, what are <code>length()</code> and the UTF-8 byte count?</summary>
+
+2 UTF-16 code units, one code point, and 4 UTF-8 bytes ([Q06.21](#q06-21)).
+
+</details>
 
 ## Connections
-<!-- TASK: CLOSE-M06 -->
-<!-- /TASK: CLOSE-M06 -->
+- **Builds on:** [01. OOP fundamentals § 7. Inheritance, composition and `Object`](01-java-oop-fundamentals.md#7-inheritance-composition-and-object), because the exception hierarchy of [§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked) is an ordinary class hierarchy and a `catch` clause matches by subtyping; [§ 8. Polymorphism: overloading, overriding and dispatch](01-java-oop-fundamentals.md#8-polymorphism-overloading-overriding-and-dispatch), whose overriding rules [§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked) extends with the `throws` rule; [§ 5. Constructors and initialization order](01-java-oop-fundamentals.md#5-constructors-and-initialization-order), because the failing static initializer behind `ExceptionInInitializerError` in [§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors) runs during class initialization; [02. Equality, immutability and records § 5. Immutability](02-java-equality-immutability-records.md#5-immutability), because the string pool of [§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) can share objects only because `String` is immutable, and [§ 1. Identity vs equality](02-java-equality-immutability-records.md#1-identity-vs-equality-and-the-equals-contract), for the general `==` vs `equals` rule that [Q06.15](#q06-15) drills on strings; [03. Generics § 5. Type erasure](03-java-generics.md#5-type-erasure-and-bridge-methods), because a handler matches the thrown object's runtime class, which carries no type arguments; [05. Lambdas, streams and `Optional` § 9. Checked exceptions and resources in lambdas and streams](05-java-lambdas-streams-optional.md#9-checked-exceptions-and-resources-in-lambdas-and-streams), where the checked exceptions, `UncheckedIOException` and the `Files.lines` streams that [§3](#3-try-with-resources-suppressed-exceptions-and-chaining) and [§8](#8-io-byte-and-character-streams-buffering-and-nio2) explain in full were first worked around.
+- **Read next:** [07. Modern language features](07-java-modern-language-features.md), because the sealed exception hierarchy of [Exercise 06.3](#ex06-3), the exhaustive `switch` over it and `java.time` are its subject; [08. JVM memory and class loading](08-jvm-memory-and-class-loading.md), because the class loaders, linking and Metaspace behind `ClassNotFoundException` and `NoClassDefFoundError` ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)) are explained there from the JVM's side; [22. JDBC and connection pooling](22-jdbc-and-connection-pooling.md), the module that lists this one as a prerequisite, because `SQLException` chains and Spring's translation of vendor error codes apply [§3](#3-try-with-resources-suppressed-exceptions-and-chaining)'s chaining and translation to the database layer.
+- **Uses these ideas later:** [10. JVM performance and troubleshooting](10-jvm-performance-and-troubleshooting.md) (diagnosing the `OutOfMemoryError` kinds of [§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors) with heap and thread dumps, and the native memory of direct and mapped buffers from [§8](#8-io-byte-and-character-streams-buffering-and-nio2)); [11. Threads and the JMM](11-concurrency-threads-and-jmm.md) (the interruption mechanism behind [§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)'s `InterruptedException` rule, and `volatile`, which `transient` is not); [12. Locks, atomics and concurrent collections](12-concurrency-locks-atomics-collections.md) (`unlock` in `finally`, the [§2](#2-try-catch-and-finally-control-flow-and-compile-time-rules) pattern); [13. Executors and `CompletableFuture`](13-concurrency-executors-and-completablefuture.md) (`exceptionally`, `handle` and executor design, after [§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)'s `execute` vs `submit`); [17. Spring transactions § 5. Rollback rules](17-spring-transactions.md#5-rollback-rules-and-rollback-only) (why the checked/unchecked choice of [§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked) decides whether a transaction rolls back); [18. Spring MVC and REST controllers](18-spring-mvc-and-rest-controllers.md) (`@ControllerAdvice` and `ProblemDetail` at the HTTP boundary, JSON with Jackson instead of [§9](#9-java-serialization-and-its-risks)'s format, and per-request locale resolution instead of [§10](#10-internationalization-locale-resourcebundle-and-locale-sensitive-formatting)'s JVM-wide default); [21. Boot Actuator and operations](21-spring-boot-actuator-and-operations.md) (graceful shutdown, the shutdown-hook job of [Q06.04](#q06-04)); [34. gRPC](34-grpc.md) (Protobuf, one of the formats that replaced Java serialization); [39. API security and secrets](39-api-security-and-secrets.md) (error responses that leak nothing, and the path and Unicode checks of [§7](#7-unicode-and-charsets-char-code-points-and-encodings) and [§8](#8-io-byte-and-character-streams-buffering-and-nio2)); [42. Resilience patterns](42-resilience-patterns.md) (timeouts, retries and circuit breakers around the downstream failures that [Q06.14](#q06-14) refuses to swallow); [44. Observability](44-observability-logging-metrics-slos.md) (log format, levels and correlation for the single boundary log line of [§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)); [51. Design principles and patterns](51-design-principles-and-patterns.md) (the decorator pattern that `java.io` is built from).
+- **Comparisons:** [Angular guide, 05. Modules, memory and modern features § 6. Errors](../../angular-fullstack-guide/modules/05-js-modules-memory-modern-features.md#6-errors-subclasses-causes-aggregation-and-global-handlers), where `new Error(msg, { cause })` and the global handlers play the roles of [§3](#3-try-with-resources-suppressed-exceptions-and-chaining)'s causes and [§5](#5-exceptions-at-boundaries-and-uncaught-exceptions)'s uncaught-exception handlers; [§ 7. Explicit resource management](../../angular-fullstack-guide/modules/05-js-modules-memory-modern-features.md#7-explicit-resource-management-using-and-disposablestack), where `using` disposes in reverse order and keeps both errors in a `SuppressedError`, as try-with-resources keeps close failures in `getSuppressed()`; [Angular guide, 01. Values, types and coercion § 3. Strings and Unicode](../../angular-fullstack-guide/modules/01-js-values-types-coercion.md#3-strings-and-unicode), where a JavaScript string is also a sequence of UTF-16 code units, with the same emoji and combining-accent surprises as [§7](#7-unicode-and-charsets-char-code-points-and-encodings).
