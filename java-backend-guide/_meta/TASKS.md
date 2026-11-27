@@ -1733,15 +1733,15 @@ Appended by PLAN-M06 (S20261124-0601-claudecode-cloud). Plan: [M06](modules/M06.
 - Done by: S20261127-1201-claudecode-cloud (main session; model omitted in pushed files per the cloud harness rule). QUALITY-BAR B10 failed (1 body callout, core needs ≥ 2) → FIX-M06-01.
 
 ### FIX-M06-01 · M · QUALITY-BAR B10: a second `Production scenario` callout in the body
-- Status: `todo` · Deps: CLOSE-M06 · needs: none · found by CLOSE-M06 (S20261127-1201-claudecode-cloud)
+- Status: `done` · Deps: CLOSE-M06 · needs: none · found by CLOSE-M06 (S20261127-1201-claudecode-cloud)
 - Finding: `grep -c '\*\*Production scenario:' modules/06-java-exceptions-strings-io.md` → 1 (§3 only); QUALITY-BAR B10 and STYLE-GUIDE §6 require at least 2 in a core module. The plan (M06 §4) placed none in §5, §7 (their incidents are Q06.13 and Q06.22, which a callout must not repeat), §6 or §9.
 - Files touched: `modules/06-java-exceptions-strings-io.md` (one new callout inside the chosen section's "Failure modes and operations", inserted in one edit), possibly one new test class under `labs/java-language/src/test/java/dev/interview/javalanguage/m06/s0N/` if a claim needs a lab, `SOURCES.md` (new URLs), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: STYLE-GUIDE §6 (callout format: framing as the interviewer says it, then diagnosis evidence, fix, prevention); the chosen section in full; Q06.12, Q06.13, Q06.22, Q06.25 (so the callout does not repeat them). Candidates, best first: §4, a deploy after which every request fails with `NoClassDefFoundError: Could not initialize class …` while the JAR is present, and the real `ExceptionInInitializerError` is one earlier log line (evidence: the first occurrence in the log, the JDK 18+ cause; fix: make the initializer not throw, or initialize lazily and fail per call; prevention: a start-up readiness check that touches the class); §8, `Too many open files` from streams that are never closed (evidence: `/proc/<pid>/fd` count, `lsof`; fix: try-with-resources; prevention: a file-descriptor gauge); §9, a rolling deploy whose old and new instances share a cache and fail with `InvalidClassException` (link Ex06.3's follow-up rather than repeat it).
 - Acceptance: `grep -c '\*\*Production scenario:'` → 2; the callout follows STYLE-GUIDE §6 and every claim has a basis tag (lab test, JDK 25 source or Javadoc); no repetition of a Production scenario question; Standard checks rows 3 and 4 if a test is added, rows 5 and 6.
-- Done by: —
+- Done by: S20261127-1801-claudecode-cloud (main session; model omitted in pushed files per the cloud harness rule). Callout in §4 (Failure modes and operations), the `Could not initialize class` deploy incident; new lab class `StartupInitializationCheckTest` (2 tests).
 
 ### REVIEW-M06 · L
-- Status: `todo` · Deps: CLOSE-M06 · needs: none
+- Status: `in_progress` · Deps: CLOSE-M06 · needs: none
 - Files touched: `_meta/reviews/REVIEW-M06.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: RUN.md §4 (independent review); the module file; [M06](modules/M06.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: run in a session different from every `Done by` of M06's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M06; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection.
