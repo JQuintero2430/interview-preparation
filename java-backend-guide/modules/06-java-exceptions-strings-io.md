@@ -2817,6 +2817,128 @@ The other files are short: the port [`Sink`](../labs/java-language/src/main/java
 <!-- TASK: EX-M06-02 -->
 <a id="ex06-2"></a>
 ### Exercise 06.2 · A Unicode-safe text toolkit
+
+**Problem.** The sign-up service from [§7](#7-unicode-and-charsets-char-code-points-and-encodings) still cuts display names with `substring`, and its code reviews keep flagging the same five mistakes in different places: a name limit counted in `char`s that cuts an emoji in half, a "reverse the handle" helper in the test-data generator that breaks every surrogate pair, partner bytes decoded with `new String(bytes, UTF_8)` so bad rows turn into `�` and are stored anyway, a legacy column limited in bytes that rejects names `length()` said would fit, and a duplicate-account check that treats a precomposed `José` and a decomposed `José` as two people. Write one small utility, `Texts`, that does each of these correctly, so the reviews can point at it instead of explaining Unicode again.
+
+**Constraints.** JDK only. `Texts` is a `final` class with a private constructor and static methods: it holds no state and has no dependencies. Every method that turns bytes into text or text into bytes names its charset: no `getBytes()`, no one-argument `new String(bytes)`, no `Charset.defaultCharset()`, and none of the reader, writer, `PrintStream` or `Scanner` constructors that fall back to the default ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)'s JEP 400 list). A negative limit is a caller's bug and is rejected with `IllegalArgumentException`. The decoding failure is a checked exception, `MalformedTextException`, which callers at an import boundary must handle.
+
+**Acceptance criteria.**
+- [ ] (1) `truncate(s, maxCodePoints)` returns the first `maxCodePoints` code points, never splits a surrogate pair, and returns the same `String` instance when `s` is already short enough.
+- [ ] (2) `reverse(s)` reverses the code points, so an emoji keeps its high-low surrogate order and survives.
+- [ ] (3) `decodeStrict(bytes, charset)` decodes with a `CharsetDecoder` whose actions are `CodingErrorAction.REPORT`, and on bad input throws the checked `MalformedTextException`, naming the charset and the byte offset of the first malformed sequence, where `new String(bytes, charset)` would have produced U+FFFD.
+- [ ] (4) `fitsColumn(s, maxBytes)` answers whether the UTF-8 encoding of `s` fits a byte-limited column, and `truncateToBytes(s, maxBytes)` returns the longest prefix whose UTF-8 encoding fits, cut at a code-point boundary.
+- [ ] (5) `normalizedEquals(a, b)` compares after NFC normalization, so a precomposed and a decomposed `é` are equal.
+- [ ] (6) Every method names its charset explicitly: no call depends on the default charset, asserted by reading the source files and by running the methods in a JVM whose default charset is not UTF-8.
+
+<details><summary>Hint 1</summary>
+
+`length()` and `substring` count UTF-16 code units ([§6](#6-strings-the-pool-compact-strings-concatenation-and-the-string-api)). Which `String` method turns "n code points from here" into a `char` index you can give to `substring`, and which one counts code points so you know whether a cut is needed at all?
+
+</details>
+
+<details><summary>Hint 2</summary>
+
+A `CharsetDecoder` that reports an error does not consume the bad bytes. Read what the `CharsetDecoder` Javadoc says about the input buffer's position when a decoding step ends with a malformed-input result: the offset you need may already be in the `ByteBuffer` you passed in.
+
+</details>
+
+<details><summary>Worked solution</summary>
+
+**Approach.** Each method is a few lines once it counts the right unit; the work is choosing the unit and the JDK call that already knows it.
+1. **Count code points, cut by `char` index.** `truncate` asks `codePointCount(0, length())` whether a cut is needed and returns `s` itself when it is not; otherwise `offsetByCodePoints(0, max)` gives the `char` index after the last whole code point, which `substring` can use safely. `codePointCount` counts an unpaired surrogate "as one code point" [Src: JDK 25, java.lang.String](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/String.java), so even broken input is cut without throwing.
+2. **Reverse the code points.** `codePoints()` yields a supplementary character as one `int`, so reversing that array and building the result with `new String(int[], offset, count)` keeps each pair together.
+3. **Decode with a reporting decoder and read the position.** `charset.newDecoder()` with both actions set to `REPORT` (the default, written out so the reader does not have to know it), over `ByteBuffer.wrap(bytes)`. The convenience `decode(ByteBuffer)` throws `MalformedInputException` when "the byte sequence starting at the input buffer's current position is not legal for this charset", and for a malformed result the Javadoc says "the malformed bytes begin at the input buffer's (possibly incremented) position" [Src: JDK 25, java.nio.charset.CharsetDecoder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CharsetDecoder.java). So after the exception, `in.position()` is the offset. Bytes left over at the end of the input are reported too: when the input ends with bytes the decoder could not finish, it returns `CoderResult.malformedForLength(in.remaining())` [Src: JDK 25, java.nio.charset.CharsetDecoder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CharsetDecoder.java). A new decoder per call, because "instances of this class are not safe for use by multiple concurrent threads" [Src: JDK 25, java.nio.charset.CharsetDecoder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CharsetDecoder.java).
+4. **Measure bytes with the encoder that will write them.** `fitsColumn` compares `getBytes(UTF_8).length` with the limit. `truncateToBytes` walks the code points and adds up each one's UTF-8 length until the next would not fit. It measures each code point by encoding it alone with the same charset, so a lone surrogate counts as the one `?` byte that `getBytes` writes for it ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)), and the two methods always agree.
+5. **Normalize both sides.** `Normalizer.normalize(…, Form.NFC)` on each argument, then `equals`. NFC is the canonical composition the `Normalizer` Javadoc describes for treating composed and decomposed sequences "as equivalent" ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)); NFKC would also merge compatibility characters, which is a different decision (see the tests for (5)).
+6. **The exception.** `MalformedTextException` extends `IOException`, as the JDK's own `CharacterCodingException` does, so code that already handles I/O failures at a boundary handles it; it keeps the `MalformedInputException` as its cause, whose message carries the length of the bad sequence. It stores the charset's *name*: an exception is `Serializable` (`Throwable implements Serializable`) and `Charset` implements only `Comparable<Charset>` [Src: JDK 25, java.lang.Throwable](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Throwable.java) [Src: JDK 25, java.nio.charset.Charset](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/Charset.java), and `ObjectOutputStream` throws `NotSerializableException` for an object in the graph that does not implement it [Src: JDK 25, java.io.ObjectOutputStream](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/ObjectOutputStream.java), so a `Charset` field would make the exception fail to serialize ([§9](#9-java-serialization-and-its-risks)).
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex2/Texts.java
+    // The first maxCodePoints code points; the same instance when the text is already short enough.
+    public static String truncate(String s, int maxCodePoints) {
+        requireNonNegative(maxCodePoints);
+        if (s.codePointCount(0, s.length()) <= maxCodePoints) {
+            return s;
+        }
+        return s.substring(0, s.offsetByCodePoints(0, maxCodePoints));
+    }
+
+    // Reverses code points, so a surrogate pair stays in high-low order.
+    public static String reverse(String s) {
+        int[] codePoints = s.codePoints().toArray();
+        int[] reversed = new int[codePoints.length];
+        for (int i = 0; i < codePoints.length; i++) {
+            reversed[i] = codePoints[codePoints.length - 1 - i];
+        }
+        return new String(reversed, 0, reversed.length);
+    }
+
+    // Decodes or fails: never replaces a bad byte with U+FFFD the way new String(bytes, charset) does.
+    public static String decodeStrict(byte[] bytes, Charset charset) throws MalformedTextException {
+        CharsetDecoder decoder = charset.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
+        ByteBuffer in = ByteBuffer.wrap(bytes);
+        try {
+            return decoder.decode(in).toString();
+        } catch (CharacterCodingException e) {
+            // On a reported error the buffer's position is the first byte of the bad sequence.
+            throw new MalformedTextException(charset, in.position(), e);
+        }
+    }
+```
+
+```java
+// Excerpt of labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex2/Texts.java
+    // The longest prefix, cut between code points, whose UTF-8 encoding fits in maxBytes bytes.
+    public static String truncateToBytes(String s, int maxBytes) {
+        requireNonNegative(maxBytes);
+        int bytes = 0;
+        int end = 0;
+        while (end < s.length()) {
+            int codePoint = s.codePointAt(end);
+            bytes += utf8Length(codePoint);
+            if (bytes > maxBytes) {
+                return s.substring(0, end);
+            }
+            end += Character.charCount(codePoint);
+        }
+        return s;
+    }
+
+    // Equal after canonical composition (NFC): a precomposed and a decomposed é are the same text.
+    public static boolean normalizedEquals(String a, String b) {
+        return Normalizer.normalize(Objects.requireNonNull(a), Normalizer.Form.NFC)
+                .equals(Normalizer.normalize(Objects.requireNonNull(b), Normalizer.Form.NFC));
+    }
+
+    // Measured with the same encoder getBytes uses, so a lone surrogate counts as its one replacement byte.
+    private static int utf8Length(int codePoint) {
+        return Character.toString(codePoint).getBytes(StandardCharsets.UTF_8).length;
+    }
+```
+
+`fitsColumn` is the one-line comparison of step 4, and the exception is [`MalformedTextException`](../labs/java-language/src/main/java/dev/interview/javalanguage/m06/ex2/MalformedTextException.java), with `charsetName()` and `offset()` accessors and the message `invalid UTF-8 at byte offset 3`. `Character.toString(int)` exists since Java 11 [Src: JDK 25, java.lang.Character](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Character.java).
+
+**How each criterion is met** [Lab: TextsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsTest.java). The test strings use U+1F600 (one code point, two `char`s), `é` as U+00E9, and `é` as `e` plus U+0301.
+- (1) `Ex06.2 · (1) truncate keeps a surrogate pair whole, where substring cuts it in half`: `ana` plus the emoji plus `x` truncated to 4 code points is `ana` plus the whole emoji, to 3 is `ana`, to 0 is empty, while `substring(0, 4)` ends in a high surrogate. `Ex06.2 · (1) truncate returns the same instance when the text is short enough`: `ana` plus the emoji has length 5 but 4 code points, and both `truncate(name, 4)` and `truncate(name, 20)` are `isSameAs(name)`. `Ex06.2 · (1) a negative limit is rejected`: `IllegalArgumentException`.
+- (2) `Ex06.2 · (2) reverse keeps an emoji intact, where reversing chars breaks its surrogate pair`: `ab` plus the emoji reverses to the emoji plus `ba`, and reversing twice gives the original back; reversing the `char` array instead puts the low surrogate first, and its UTF-8 encoding starts with `?`, `?`, `b`. `Ex06.2 · (2) reverse works on code points, so a combining accent moves to the other letter`: `e` U+0301 `x` becomes `x` U+0301 `e`, so the accent now sits on the `x`. That is the boundary of this criterion, not a bug in the solution: code points are still not what the reader sees ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)); the first follow-up below goes one level up.
+- (3) `Ex06.2 · (3) decodeStrict decodes valid input with the charset it is given`: the UTF-8 bytes of `café` with `UTF_8`, its ISO-8859-1 bytes with `ISO_8859_1`, and an empty array. `Ex06.2 · (3) a malformed byte fails with its offset, where new String would give U+FFFD`: the ISO-8859-1 bytes of `cafés` decoded as UTF-8 throw `MalformedTextException` with `offset()` 3, `charsetName()` `UTF-8`, the message `invalid UTF-8 at byte offset 3`, and a `MalformedInputException` cause with the message `Input length = 1`; `new String` on the same bytes returns `caf` U+FFFD `s`. `Ex06.2 · (3) a sequence cut off at the end of the input is reported at its first byte`: `ab` plus the first two of the emoji's four bytes fails at offset 2, where `new String` gives `ab` plus one U+FFFD. `Ex06.2 · (3) the charset is a parameter: a byte above 0x7F is malformed US-ASCII`: `a` then `0xE9` fails at offset 1 for `US-ASCII`. `Ex06.2 · (3) MalformedTextException is checked: an IOException, not a RuntimeException`. `Ex06.2 · (3) a reader built from a Charset replaces bad bytes, one built from a REPORT decoder throws`: the contrast for streams, used in the second follow-up.
+- (4) `Ex06.2 · (4) fitsColumn counts UTF-8 bytes, not chars`: `Zoë Ångström` has length 12 and fits 15 bytes but not 14 or 12. `Ex06.2 · (4) truncateToBytes cuts between code points, where cutting the bytes leaves a broken sequence`: `a`, `é`, emoji is 1 + 2 + 4 = 7 bytes; limits 7, 6, 3, 2 and 0 give the same instance, `aé`, `aé`, `a` and the empty string, while the first 2 bytes of the encoding fail `decodeStrict`. `Ex06.2 · (4) every byte limit gives the longest code-point prefix that fits`: for `Zoë€` plus the emoji plus `x` (6 code points, 12 bytes), every limit from 0 to 12 gives a prefix that fits and whose next longer code-point prefix does not. `Ex06.2 · (4) a decomposed é takes 3 UTF-8 bytes and a composed one 2, so normalize before measuring`: `José` is 5 bytes composed and 6 decomposed; the decomposed one does not fit 5 bytes until it is normalized to NFC. `Ex06.2 · (4) a lone surrogate is measured as the one ? byte that getBytes writes for it`: `a`, U+D83D, `b` encodes to `a ? b`, fits 3 bytes, and cut to 2 keeps `a` and the lone surrogate.
+- (5) `Ex06.2 · (5) normalizedEquals treats a precomposed and a decomposed é as equal`: the two `José`s are not `equals` but are `normalizedEquals`, in both argument orders, and `Jose` is not. `Ex06.2 · (5) NFC keeps compatibility characters apart: the ﬁ ligature is not fi`: U+FB01 is not `normalizedEquals` to `fi`, while `Normalizer.normalize` with NFKC turns it into `fi`. Choosing NFKC for a username check would merge them, which is often what a security check wants ([§7](#7-unicode-and-charsets-char-code-points-and-encodings)'s **Security:** item) and rarely what a display name wants.
+- (6) `Ex06.2 · (6) no call in the solution falls back to the default charset` [Lab: TextsCharsetIndependenceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsCharsetIndependenceTest.java): the test reads the two source files of `m06.ex2`, strips line comments, finds none of `getBytes()`, a one-argument `new String(…)`, `Charset.defaultCharset`, or the `InputStreamReader`, `OutputStreamWriter`, `FileReader`, `FileWriter`, `PrintStream` and `Scanner` names, and finds `StandardCharsets.UTF_8`. `Ex06.2 · (6) every result is the same in a JVM whose default charset is US-ASCII`: a probe, [`TextsProbe`](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsProbe.java), runs every method on fixed inputs and prints the results as hex; started through [§7](#7-unicode-and-charsets-char-code-points-and-encodings)'s child-JVM helper in the POSIX `C` locale with `-Dfile.encoding=COMPAT`, it reports `default=US-ASCII` and then exactly the lines the same probe gives in the test's own UTF-8 JVM. The test is skipped by an assumption on a machine where that setup does not give US-ASCII; in this lab (Linux) it ran.
+
+**Alternative approach:** two methods have a shorter JDK answer. `reverse` can be `new StringBuilder(s).reverse().toString()`: "if there are any surrogate pairs included in the sequence, these are treated as single characters for the reverse operation", and the Javadoc adds that reversing can join unpaired surrogates into a valid pair, its example being `"\uDC00\uD800"` becoming `"𐀀"` [Src: JDK 25, java.lang.AbstractStringBuilder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/AbstractStringBuilder.java) ([Q06.18](#q06-18) uses it). `truncateToBytes` can avoid a small array per code point in two ways: compute the length from the code point (JDK 25's UTF-8 encoder writes 1 byte below U+0080, 2 below U+0800, 4 for a surrogate pair and 3 otherwise [Src: JDK 25, sun.nio.cs.UTF_8](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/UTF_8.java)), or encode once with `UTF_8.newEncoder()` into a `ByteBuffer` of `maxBytes` bytes and cut at the input position where it stopped, because that encoder returns overflow before consuming a character it has no room for. **Trade-offs:** `StringBuilder.reverse` is one line and documented, and the explicit version shows the idea the exercise is about; both give the same result for every input. The computed length is fastest, but it makes the lone-surrogate decision by hand (the table says 3 bytes, `getBytes` writes 1), so `fitsColumn` and `truncateToBytes` could disagree; the encoder version is one pass, but a lone surrogate is a malformed-input error unless the encoder is set to `REPLACE`, and it relies on the encoder's overflow behavior, which the source shows but the `CharsetEncoder` Javadoc describes only as "insufficient space in the output buffer to encode any more characters" [Src: JDK 25, java.nio.charset.CharsetEncoder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CharsetEncoder.java). The per-code-point `getBytes` is the simplest to trust; measure before replacing it.
+
+**Interviewer follow-ups.**
+- *Product says "20 characters" and means what the user sees.* Then count grapheme clusters, not code points: `BreakIterator.getCharacterInstance()`, `setText(s)`, then `next()` up to 20 times (or until it returns `BreakIterator.DONE`), and cut at the boundary it returns. Its default implementation follows Unicode's extended grapheme cluster rules, and in [§7](#7-unicode-and-charsets-char-code-points-and-encodings)'s lab it counts `e` plus U+0301 and a two-code-point flag as one character each. The same iterator fixes `reverse` for combining accents: reverse the clusters, not the code points.
+- *The partner file is 2 GB: decode it strictly without loading it.* Choose the reader carefully: `new InputStreamReader(in, charset)` builds its decoder with `REPLACE` for both errors [Src: JDK 25, sun.nio.cs.StreamDecoder](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/StreamDecoder.java), so it hides bad bytes like `new String`, while `new InputStreamReader(in, decoder)` uses yours; the lab shows the first returning `caf` U+FFFD and the second throwing `MalformedInputException` [Lab: TextsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsTest.java). `Files.newBufferedReader(path, cs)` reports too: its "Reader methods that read from the file throw `IOException` if a malformed or unmappable byte sequence is read" [Src: JDK 25, java.nio.file.Files](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/Files.java). A reader does not tell you the byte offset; for that, read chunks into a `ByteBuffer` and call the three-argument `decode(in, out, endOfInput)` in a loop, keeping the bytes it leaves (the Javadoc asks the caller to "preserve any bytes remaining in the input buffer" for the next call) and adding each chunk's consumed bytes to a running offset.
+- *The column is `VARCHAR(50)`: is that bytes or characters?* It depends on the database and its settings, so check what yours counts ([26](26-postgresql-internals.md) covers PostgreSQL's text types) and use `truncate` or `truncateToBytes` to match. Normalize to NFC before measuring and before storing: the decomposed `José` is one byte longer (test (4) above), so a check on one form does not hold for the other, and the stored text should be the text that was checked.
+- *Why is `MalformedTextException` checked when [Ex06.1](#ex06-1)'s exception is not?* The callers are different. Bad bytes from a partner are an expected input failure that the import code can act on row by row (quarantine the row, count it, continue), so the compiler reminding every caller is useful, which is [§1](#1-the-exception-hierarchy-throwable-error-checked-and-unchecked)'s rule; the exporter's caller could only retry or alert. Extending `IOException` keeps it with the JDK's own `CharacterCodingException`, and code that wants an unchecked failure can translate it at its boundary, keeping the cause ([§4](#4-custom-exceptions-the-cost-of-stack-traces-and-the-jvms-errors)).
+
+**Tests:** [TextsTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsTest.java), [TextsCharsetIndependenceTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m06/ex2/TextsCharsetIndependenceTest.java).
+
+</details>
 <!-- /TASK: EX-M06-02 -->
 
 <!-- TASK: EX-M06-03 -->

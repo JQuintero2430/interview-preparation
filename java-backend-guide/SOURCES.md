@@ -801,6 +801,10 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://openjdk.org/jeps/320
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/StandardOpenOption.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/file/spi/FileSystemProvider.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CharsetDecoder.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/nio/charset/CharsetEncoder.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/StreamDecoder.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/sun/nio/cs/UTF_8.java
 
 ## 17 spring-transactions
 
