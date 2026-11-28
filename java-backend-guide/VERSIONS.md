@@ -134,6 +134,34 @@ Sources: https://openjdk.org/jeps/444 , https://openjdk.org/jeps/491 , https://o
 
 Sources: https://openjdk.org/jeps/461 , https://openjdk.org/jeps/473 , https://openjdk.org/jeps/485 .
 
+### Java language JEPs (from openjdk.org JEP pages, checked 2026-11-28)
+
+Each JEP's Status and Release fields were read from its page on 2026-11-28 (SEC-M07-01). "Closed / Delivered" with a Release = delivered in that release.
+
+| Feature | JEPs: preview or incubator rounds (release) | Final JEP (release) | Status in JDK 25 (latest LTS) |
+|---|---|---|---|
+| Date and time API (`java.time`) | none | 150 (8) | final |
+| Module system | none | 261 (9) | final |
+| `var` for local variables | none | 286 (10) | final |
+| `var` in lambda parameters | none | 323 (11) | final |
+| HTTP Client (`java.net.http`) | 110 incubator (9) | 321 (11) | final |
+| Switch expressions | 325 (12), 354 (13) | 361 (14) | final |
+| Text blocks | 355 (13), 368 (14) | 378 (15) | final |
+| Pattern matching for `instanceof` | 305 (14), 375 (15) | 394 (16) | final |
+| Records | 359 (14), 384 (15) | 395 (16) | final |
+| Sealed classes | 360 (15), 397 (16) | 409 (17) | final |
+| Sequenced collections | none | 431 (21) | final |
+| Record patterns | 405 (19), 432 (20) | 440 (21) | final |
+| Pattern matching for `switch` | 406 (17), 420 (18), 427 (19), 433 (20) | 441 (21) | final |
+| Unnamed variables and patterns | 443 (21) | 456 (22) | final |
+| Module import declarations | 476 (23), 494 (24) | 511 (25) | final |
+| Compact source files and instance `main` methods | 445 (21), 463 (22), 477 (23), 495 (24) | 512 (25) | final |
+| Flexible constructor bodies | 447 (22), 482 (23), 492 (24) | 513 (25) | final |
+| Primitive types in patterns, `instanceof` and `switch` | 455 (23), 488 (24), 507 (25); 530 (26) | none yet | preview (3rd, JEP 507), needs `--enable-preview` |
+| String templates | 430 (21), 459 (22) | none: 465 "Preview Removed" is Closed / Withdrawn ("removed it from JDK 23") | absent |
+
+Process JEPs: JEP 3 (JDK release process) and JEP 12 (preview features) are "Active"; JEP 11 defines incubator modules. Sources: https://openjdk.org/jeps/3 , https://openjdk.org/jeps/11 , https://openjdk.org/jeps/12 , and https://openjdk.org/jeps/<number> for each JEP in the table.
+
 ### Value-based classes and value objects (from openjdk.org JEP and release pages, checked 2026-11-08)
 
 | Feature | JEP / issue | JDK 21 | JDK 25 (latest LTS) | JDK 27 (latest release) | JDK 28 (in development) |
