@@ -26,6 +26,25 @@ class CodePointsTest {
     }
 
     @Test
+    @DisplayName("M06 §7 · not every emoji is outside the BMP: U+2764 and U+2705 are one char")
+    void bmpEmoji_isOneChar() {
+        String heart = "\u2764"; // HEAVY BLACK HEART
+        String checkMark = "\u2705"; // WHITE HEAVY CHECK MARK
+        String redHeart = "\u2764\uFE0F"; // the heart followed by VARIATION SELECTOR-16
+
+        assertThat(heart.length()).isEqualTo(1);
+        assertThat(checkMark.length()).isEqualTo(1);
+        assertThat(Character.isBmpCodePoint(0x2764)).isTrue();
+        assertThat(Character.isBmpCodePoint(0x2705)).isTrue();
+        assertThat(Character.isBmpCodePoint(0x1F600)).isFalse();
+        // Two chars, but two BMP code points, not a surrogate pair.
+        assertThat(redHeart.length()).isEqualTo(2);
+        assertThat(redHeart.codePointCount(0, redHeart.length())).isEqualTo(2);
+        assertThat(redHeart.chars().noneMatch(c -> Character.isSurrogate((char) c)))
+                .isTrue();
+    }
+
+    @Test
     @DisplayName("M06 §7 · substring through a surrogate pair leaves a lone surrogate")
     void substringThroughPair_leavesLoneSurrogate() {
         String name = "ana" + GRINNING_FACE;

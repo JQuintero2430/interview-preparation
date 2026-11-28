@@ -77,6 +77,17 @@ class TryCompileRulesTest {
                 }
             }
             """;
+    private static final String COLLEAGUE_WITH_SINGLE_BAR = """
+            import java.io.*;
+            class Handlers {
+                IOException wrap(IOException e) { return e; }
+                void run() throws IOException {
+                    try { new FileInputStream("x").close(); }
+                    catch (FileNotFoundException | IOException e) { e = wrap(e); throw e; }
+                }
+            }
+            """;
+    private static final String COLLEAGUE_WITH_DOUBLE_BAR = COLLEAGUE_WITH_SINGLE_BAR.replace(" | ", " || ");
     private static final String TRY_WITHOUT_CATCH_OR_FINALLY = """
             class Handlers {
                 void run() {
@@ -162,6 +173,17 @@ class TryCompileRulesTest {
     @DisplayName("M06 §2 · reassigning the catch parameter turns precise rethrow off")
     void compile_fails_whenRethrownParameterWasReassigned() {
         assertErrors(RETHROW_AFTER_REASSIGNMENT, UNREPORTED);
+    }
+
+    @Test
+    @DisplayName("M06 §2 · javac reports the colleague's three mistakes one at a time")
+    void compile_reportsMultiCatchMistakesOneAtATime() {
+        var doubleBar = InMemoryCompiler.compile(Map.of(SOURCE_NAME, COLLEAGUE_WITH_DOUBLE_BAR));
+
+        assertThat(doubleBar.success()).isFalse();
+        assertThat(doubleBar.errorCodes()).isNotEmpty().doesNotContain(MULTICATCH_NOT_DISJOINT, MULTICATCH_ASSIGNED);
+        // With the parse error fixed, only the related alternatives are reported, not the assignment.
+        assertErrors(COLLEAGUE_WITH_SINGLE_BAR, MULTICATCH_NOT_DISJOINT);
     }
 
     private static void assertErrors(String source, String expectedKey) {

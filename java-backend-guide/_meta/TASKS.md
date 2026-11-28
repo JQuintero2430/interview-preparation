@@ -1748,31 +1748,173 @@ Appended by PLAN-M06 (S20261124-0601-claudecode-cloud). Plan: [M06](modules/M06.
 - Done by: S20261127-1801-claudecode-cloud (a fresh read-only general-purpose subagent on sonnet, a model that wrote none of M06; the main session transcribed its verdict into [REVIEW-M06](reviews/REVIEW-M06.md): CHANGES_REQUIRED, 0 BLOCKER · 2 MAJOR · 8 MINOR · 6 NIT → FIX-M06-02..05; finding 15 rejected)
 
 ### FIX-M06-02 · M · Factual accuracy (findings 1, 2, 3, 4, 5, 11, 16)
-- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Status: `done` · Deps: REVIEW-M06 · needs: none
 - Files touched: `modules/06-java-exceptions-strings-io.md` (Q06.01 Short answer; §7 line ~865, §7 Best practices, Q06.20 Short answer; Q06.06 prompt and Full explanation; §1 Version notes; Q06.16; §1 "Choosing checked or unchecked"; Q06.25 bullet), possibly a test in `labs/java-language/src/test/java/dev/interview/javalanguage/m06/s07/` (BMP emoji `length()`), `SOURCES.md` (finding 5's row, if unused elsewhere), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: each finding verified in its source first (JLS 25 §14.20 and §11.1.1, `javac` on the snippet, JDK 15 release notes, HotSpot jdk-25-ga `globals.hpp`, a lab assertion for U+2764/U+2705 `length()` 1), then applied or recorded as rejected with evidence in Resolutions; Standard checks rows 3 and 4 (if a test changed), 5, 6.
-- Done by: —
+- Done by: S20261128-0001-claudecode-cloud (main session)
 
 ### FIX-M06-03 · S · SOURCES.md 06 block (finding 6)
-- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Status: `done` · Deps: REVIEW-M06 · needs: none
 - Files touched: `SOURCES.md` (06 block), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: a script lists every URL in the module and finds each under the `06` heading of SOURCES.md (0 missing); row 5.
-- Done by: —
+- Done by: S20261128-0001-claudecode-cloud (main session)
 
 ### FIX-M06-04 · M · Teaching and format (findings 7, 8, 9)
-- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Status: `done` · Deps: REVIEW-M06 · needs: none
 - Files touched: `modules/06-java-exceptions-strings-io.md` (first uses of JIT/C2, CLDR, JFR, BMP, NFC/NFD, shutdown hooks; approach and steps before the snippets of Q06.09, Q06.14, Q06.22, Q06.23, Q06.25, Q06.26 and §1 `UncheckedThrow`; prompts for Q06.23–Q06.26), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: each term glossed (and linked to its owning module) at first use; each named snippet preceded by an approach and 2–4 numbered steps; each of Q06.23–Q06.26 has a prompt before `<details>`; any new claim tagged; rows 5, 6.
-- Done by: —
+- Done by: S20261128-0001-claudecode-cloud (main session)
 
 ### FIX-M06-05 · S · Rendering and nits (findings 10, 12, 13, 14)
-- Status: `todo` · Deps: REVIEW-M06 · needs: none
+- Status: `done` · Deps: REVIEW-M06 · needs: none
 - Files touched: `modules/06-java-exceptions-strings-io.md` (raw U+FFFF/U+FEFF at lines ~863, 877, 909; `File.toURL` marker; Ex06.3 criterion (4) sentence; Ex06.1 criterion (2) wording), `_meta/reviews/REVIEW-M06.md` (Resolutions), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
 - Inputs: [REVIEW-M06](reviews/REVIEW-M06.md) (the findings named); the module locations quoted there; STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
 - Acceptance: `grep -P '\x{FFFF}|\x{FEFF}'` on the module → 0; `File.toURL`'s `@Deprecated` checked in JDK 25 `src.zip` before writing the marker; rows 5, 6.
+- Done by: S20261128-0001-claudecode-cloud (main session)
+
+### PLAN-M07 · M
+- Status: `done` · Deps: G1 (ticked), REVIEW-M06 fixes done · needs: none
+- Files touched: `_meta/modules/M07.md`, `modules/07-java-modern-language-features.md` (skeleton with `<!-- TASK: <ID> -->` regions, STYLE-GUIDE §2.4), `labs/java-language/**` (package `dev.interview.javalanguage.m07`: one smoke test), `_meta/TASKS.md` (append SEC, QB, EX, CLOSE, REVIEW tasks), `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: RUN.md §9; SYLLABUS §1 row 07, §4 module 07 checklist (and its delegated boundaries); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md); ledger rows targeting 07; `labs/java-language/`; the `### Q` headings of modules 01 to 06 and 17; [M06](modules/M06.md) as the shape reference.
+- Acceptance: the RUN.md §9 outputs 1 to 4; breadth gate (every SYLLABUS 07 checkbox and every ledger row targeting 07 has a section, a question or a recorded reason); the skeleton has every heading and anchor; Standard checks rows 3 (no Docker needed), 4, 5, 6 pass for `java-language`; SEC, QB, EX, CLOSE tasks appended with inputs, files, `needs:` and acceptance.
+- Done by: S20261128-0001-claudecode-cloud (main session)
+
+Appended by PLAN-M07 (S20261128-0001-claudecode-cloud). Plan: [M07](modules/M07.md). Shared rules for every task below: write only inside the task's own `<!-- TASK: <ID> -->` region(s) of `modules/07-java-modern-language-features.md`, in one edit at the end; lab paths are under `labs/java-language/src/{main,test}/java/dev/interview/javalanguage/m07/` (main and test mirror each other); `m01.support.OutputCapture`, `m01.support.InMemoryCompiler`, `m05.support.ClassFileView` and `m06.support.ChildJvm` are read-only, and `m07.support.*` is read-only to every task except the one that creates each helper (SEC-M07-02: the separate-compilation helper, if built; SEC-M07-07: `ModuleWorkspace`); R2 tests assert diagnostic keys, never message text; preview code (JEP 507) is compiled only in memory with `--release 25 --enable-preview` and never appears in `src/main`; `java.time` tests use a fixed `Clock` or explicit `ZoneId`, and any test that sets `TimeZone.setDefault` restores it; `HttpClient` tests use a loopback `HttpServer` on port 0 and assert outcomes, never timing; module tests build their own `ModuleLayer` under a `@TempDir` and never touch the boot layer; `SOURCES.md` under a "07 java-modern-language-features" heading for every new URL; `VERSIONS.md` only to add a Java feature-status row the task verified (SEC-M07-01 adds the "Java language JEPs" table); `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md` for bookkeeping. No task needs Docker or vision. No dependency is added. No length target (SYLLABUS §9 decision 21). Every task that writes Java follows the java-workflow skill where the harness has it; otherwise tests first in the main session.
+
+### SEC-M07-01 · M · §1 The release model: cadence, LTS and preview features
+- Status: `todo` · Deps: none · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-01`), lab `m07/s01/**` (main and test), `SOURCES.md`; `VERSIONS.md` (new "Java language JEPs" table: the M07 header's JEPs, each read from its JEP page in this task)
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §1) and §4 entry §1; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`. VERSIONS.md gains the "Java language JEPs" table with a Source line and the date checked.
+- Done by: —
+
+### SEC-M07-02 · M · §2 `var` and `switch` expressions
+- Status: `todo` · Deps: SEC-M07-01 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-02`), lab `m07/s02/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules; `labs/java-language/src/test/java/dev/interview/javalanguage/m07/support/**` (the separate-compilation helper, only if this task builds it)
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §2) and §4 entry §2; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### SEC-M07-03 · M · §3 Sealed classes and interfaces
+- Status: `todo` · Deps: SEC-M07-02 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-03`), lab `m07/s03/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §3) and §4 entry §3; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### SEC-M07-04 · M · §4 Pattern matching: `instanceof`, record patterns and unnamed patterns
+- Status: `todo` · Deps: SEC-M07-03 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-04`), lab `m07/s04/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §4) and §4 entry §4; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### SEC-M07-05 · M · §5 Pattern matching for `switch`: guards, dominance, `null` and exhaustiveness
+- Status: `todo` · Deps: SEC-M07-04 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-05`), lab `m07/s05/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §5) and §4 entry §5; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### SEC-M07-06 · M · §6 The newest language features: module imports and primitive patterns
+- Status: `todo` · Deps: SEC-M07-05 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-06`), lab `m07/s06/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §6) and §4 entry §6; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### SEC-M07-07 · M · §7 The module system (JPMS)
+- Status: `todo` · Deps: SEC-M07-06 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-07`), lab `m07/s07/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules; `labs/java-language/src/test/java/dev/interview/javalanguage/m07/support/ModuleWorkspace.java` (created here, read-only afterwards)
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §7) and §4 entry §7; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`. `ModuleWorkspace` has its own test (`M07 support · …`) and no method over 20 lines.
+- Done by: —
+
+### SEC-M07-08 · M · §8 `HttpClient` and the library changes worth knowing
+- Status: `todo` · Deps: SEC-M07-07 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-08`), lab `m07/s08/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §8) and §4 entry §8; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### SEC-M07-09 · M · §9 Date and time: from `Date` and `Calendar` to `java.time`
+- Status: `todo` · Deps: SEC-M07-08 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-09`), lab `m07/s09/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §9) and §4 entry §9; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### SEC-M07-10 · M · §10 Migration paths from Java 8 to 25
+- Status: `todo` · Deps: SEC-M07-09 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `SEC-M07-10`), lab `m07/s10/**` (main and test), `SOURCES.md`; `VERSIONS.md` only per the shared rules
+- Inputs: [M07](modules/M07.md) §1 (lab design), §2 (boundaries), §3 (ledger rows homed in §10) and §4 entry §10; STYLE-GUIDE §2.2, §3, §4, §6, §7; [QUALITY-BAR](QUALITY-BAR.md) B, C; the last 40 lines of the preceding written section; [VERSIONS](../VERSIONS.md); src.zip for JDK sources; openjdk.org and docs.oracle.com (with `curl`) for JEPs, the JLS, the JVMS, the man pages and Javadoc.
+- Acceptance: the §2.2 subsections in order (a skipped Failure modes only where M07 §4 skips it, with the reason in the LOG line); every key claim of the plan entry verified by the named test or source, with basis tags, or dropped; claims marked "verify in the task" settled or removed; required callouts present, placed just before Best practices, and each Production scenario callout describing an incident no question repeats; every Misconception with its origin; boundaries of M07 §2 linked, not re-taught; every named test exists and passes; links to the questions that drill the section; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### QB-M07-01 · M · Q07.01–Q07.07
+- Status: `todo` · Deps: SEC-M07-01, -02, -03 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `QB-M07-01`), lab `m07/outputs/**` (main `Q07_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M07](modules/M07.md) §5 rows Q07.01–Q07.07 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M07 §5 lists rows (primary, secondary and duplicate IDs, and fixes the source errors in those rows' Notes), a prompt between the heading and `<details>`, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); every non-trivial snippet preceded by its approach and numbered steps (STYLE-GUIDE §2.2(4)); terms glossed or linked at first use; follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### QB-M07-02 · M · Q07.08–Q07.13
+- Status: `todo` · Deps: SEC-M07-03, -04, -05 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `QB-M07-02`), lab `m07/outputs/**` (main `Q07_mm` classes and their tests), `SOURCES.md`; `labs/java-language/src/test/java/dev/interview/javalanguage/m07/support/**` read-only (separate compilation for Q07.13)
+- Inputs: [M07](modules/M07.md) §5 rows Q07.08–Q07.13 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M07 §5 lists rows (primary, secondary and duplicate IDs, and fixes the source errors in those rows' Notes), a prompt between the heading and `<details>`, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); every non-trivial snippet preceded by its approach and numbered steps (STYLE-GUIDE §2.2(4)); terms glossed or linked at first use; follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### QB-M07-03 · M · Q07.14–Q07.20
+- Status: `todo` · Deps: SEC-M07-06, -07, -08 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `QB-M07-03`), lab `m07/outputs/**` (main `Q07_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M07](modules/M07.md) §5 rows Q07.14–Q07.20 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M07 §5 lists rows (primary, secondary and duplicate IDs, and fixes the source errors in those rows' Notes), a prompt between the heading and `<details>`, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); every non-trivial snippet preceded by its approach and numbered steps (STYLE-GUIDE §2.2(4)); terms glossed or linked at first use; follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### QB-M07-04 · M · Q07.21–Q07.26
+- Status: `todo` · Deps: SEC-M07-07, -08, -09, -10 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `QB-M07-04`), lab `m07/outputs/**` (main `Q07_mm` classes and their tests), `SOURCES.md`
+- Inputs: [M07](modules/M07.md) §5 rows Q07.21–Q07.26 and §3; STYLE-GUIDE §5, §7.3–7.5; [QUALITY-BAR](QUALITY-BAR.md) C, D; the sections each question drills.
+- Acceptance: each question keeps the skeleton's anchor and heading, has a `<!-- ledger: … -->` line where M07 §5 lists rows (primary, secondary and duplicate IDs, and fixes the source errors in those rows' Notes), a prompt between the heading and `<details>`, and all five answer parts (QUALITY-BAR D1); every `Output` answer asserted by a test whose `@DisplayName` starts with its ID; Production scenario answers follow D9 and do not repeat a section callout; each answer answers its question and links its section for the mechanism (no re-teaching, REVIEW-M03 G1); every non-trivial snippet preceded by its approach and numbered steps (STYLE-GUIDE §2.2(4)); terms glossed or linked at first use; follow-ups answered; Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### EX-M07-01 · M · Ex07.1 · Replace a legacy billing calendar with `java.time`
+- Status: `todo` · Deps: SEC-M07-08, -09 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `EX-M07-01`), lab `m07/ex1/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M07](modules/M07.md) §6 row Ex07.1; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses (§9, §8).
+- Acceptance: QUALITY-BAR E1 anatomy; every M07 §6 criterion has a test `@DisplayName("Ex07.1 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### EX-M07-02 · M · Ex07.2 · An expression evaluator with sealed types and pattern `switch`
+- Status: `todo` · Deps: SEC-M07-02, -03, -04, -05 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `EX-M07-02`), lab `m07/ex2/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M07](modules/M07.md) §6 row Ex07.2; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses (§3, §4, §5, §2).
+- Acceptance: QUALITY-BAR E1 anatomy; every M07 §6 criterion has a test `@DisplayName("Ex07.2 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### EX-M07-03 · M · Ex07.3 · A modular plugin host
+- Status: `todo` · Deps: SEC-M07-06, -07, -10 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (region `EX-M07-03`), lab `m07/ex3/**` (main: starting code if any, and the solution; test: one test per criterion), `SOURCES.md`
+- Inputs: [M07](modules/M07.md) §6 row Ex07.3; STYLE-GUIDE §7.1, §8.1; [QUALITY-BAR](QUALITY-BAR.md) E; the sections it uses (§7, §10, §6).
+- Acceptance: QUALITY-BAR E1 anatomy; every M07 §6 criterion has a test `@DisplayName("Ex07.3 · …")` and every such test maps to a criterion (E2); the solution follows STYLE-GUIDE §7.1 (E4); Standard checks rows 3, 4, 5, 6 for `java-language`.
+- Done by: —
+
+### CLOSE-M07 · M
+- Status: `todo` · Deps: every SEC, QB and EX task of M07 · needs: none
+- Files touched: `modules/07-java-modern-language-features.md` (the three `CLOSE-M07` regions: Summary, Check your understanding, Connections), `PROGRESS.md` (row 07), `_meta/sources/*.md` (status `written` for every primary row of M07 §3), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: the whole module; [M07](modules/M07.md) §2, §3; STYLE-GUIDE §2.3, §9; [QUALITY-BAR](QUALITY-BAR.md) (all items).
+- Acceptance: QUALITY-BAR F1–F4 and every other item checked with its command, one line per item in the LOG; `grep -c 'TASK:' modules/07-java-modern-language-features.md` prints 0; every ledger row of M07 §3 whose primary target is 07 is `written` with its question or section (secondary rows untouched); Standard checks row 8 (full build, `-DexcludedGroups=docker` if Docker is absent) plus rows 4, 5, 6; module-stats row 07 has no flag.
+- Done by: —
+
+### REVIEW-M07 · L
+- Status: `todo` · Deps: CLOSE-M07 · needs: none
+- Files touched: `_meta/reviews/REVIEW-M07.md`, `_meta/TASKS.md` (FIX tasks), `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: RUN.md §4 (independent review); the module file; [M07](modules/M07.md); STYLE-GUIDE; [QUALITY-BAR](QUALITY-BAR.md).
+- Acceptance: run in a session different from every `Done by` of M07's tasks, or by a fresh read-only subagent given only the module path, QUALITY-BAR, STYLE-GUIDE and M07; every finding has a severity, location and fix, and becomes a FIX task or a recorded rejection.
 - Done by: —
 
 ## Phase D: source removal tasks (RUN.md §10.2, gate G2)

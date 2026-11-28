@@ -783,7 +783,6 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.1
 - https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-5.html#jvms-5.4
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/services/diagnosticCommand.hpp
-- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/hotspot/share/utilities/globalDefinitions.hpp
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/AbstractStringBuilder.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/invoke/StringConcatFactory.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/regex/Matcher.java
@@ -810,6 +809,16 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/io/InvalidObjectException.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/time/Instant.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/ArrayList.java
+- https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/System.html
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-10.html#jls-10.7
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-14.html#jls-14.11.3
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-3.html#jls-3.8
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.1
+- https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.2
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Class.java
+- https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Double.java
+- https://docs.oracle.com/javase/1.5.0/docs/api/java/io/File.html
+- https://docs.oracle.com/javase/6/docs/api/java/io/File.html
 
 ## 17 spring-transactions
 
