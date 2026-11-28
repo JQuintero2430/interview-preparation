@@ -1057,6 +1057,13 @@ Appended by PLAN-M02 (S20261107-1313-claudecode). Plan: [M02](modules/M02.md). S
 - Acceptance: `HashMap.putVal` in JDK 25 `src.zip` read first (if it treeifies at the 8th node, reject finding 16 in REVIEW-M02); §2 tree-bin sentence corrected (after FIX-M02-06 if that ran first); Q02.08 L1704 and Q02.15 L1980 reworded; Standard checks rows 5 and 6 pass (02 flags none).
 - Done by: S20261116-0839-claudecode (claude-opus-5-5, main session)
 
+### FIX-M02-09 · S · Valhalla explanation kept, with the "not in an LTS" caveat
+- Status: `done` · Deps: none · needs: none · Source: Jorge, 2026-11-28 (SYLLABUS §9 decision 22 follow-up)
+- Files touched: `modules/02-java-equality-immutability-records.md` (§8 How it actually works, one paragraph added), `SOURCES.md` (02 block, if a URL is new), `SYLLABUS.md` (decision 22 effects), `_meta/TASKS.md`, `_meta/STATE.md`, `_meta/LOG.md`
+- Inputs: Jorge's instruction ("Deja la explicación pero matiza que entenderlas es un conocimiento ingenieril importante pero que no es una feature que sea útil en producción de manera segura ya que no está en una release LTS"); 02 §8; JEP 12.
+- Acceptance: the Valhalla paragraph is unchanged; a new paragraph right after it says value classes are worth understanding but not for production use, with the reasons (preview impermanence and release pinning per JEP 12, no LTS release) and links to 07 §1 and decision 22; every URL in the 02 block of SOURCES.md; `check-links --planned` exit 0.
+- Done by: S20261128-0602-claudecode-cloud (interactive follow-up, main session)
+
 ### PLAN-M03 · M
 - Status: `done` · Deps: G1 (ticked), REVIEW-M02 fixes done · needs: none
 - Files touched: `_meta/modules/M03.md`, `modules/03-java-generics.md` (skeleton with `<!-- TASK: <ID> -->` regions, STYLE-GUIDE §2.4), `labs/java-language/**` (package `dev.interview.javalanguage.m03`: one smoke test), `_meta/TASKS.md` (append SEC, QB, EX, CLOSE tasks), `_meta/STATE.md`, `_meta/LOG.md`

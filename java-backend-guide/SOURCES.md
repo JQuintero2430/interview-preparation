@@ -323,6 +323,7 @@ Official and primary sources cited by the guide so far, grouped by technology. E
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/net/URL.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Arrays.java
 - https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/util/Currency.java
+- https://openjdk.org/jeps/12
 
 ## 03 java-generics
 
