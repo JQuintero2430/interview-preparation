@@ -1,6 +1,6 @@
 # 07. Modern language features: Java 8 to 25
 
-> **What this covers:** what changed in the Java language and platform from Java 8 to Java 25, and how to use it: the release model and preview features, `var` and `switch` expressions, sealed types, pattern matching for `instanceof` and `switch` with records, the newest final and preview features of Java 25, and the module system. Then the library changes an interviewer expects (`HttpClient` above all), date and time with `java.time` against the legacy `Date` and `Calendar`, and how to migrate a service from Java 8 to 25.
+> **What this covers:** what changed in the Java language and platform from Java 8 to Java 25, limited to features that are final in an LTS release, and how to use it: the release model and preview features, `var` and `switch` expressions, sealed types, pattern matching for `instanceof` and `switch` with records, the language additions of Java 25, and the module system. Then the library changes an interviewer expects (`HttpClient` above all), date and time with `java.time` against the legacy `Date` and `Calendar`, and how to migrate a service from Java 8 to 25.
 > **Prerequisites:** [02. Equality, immutability and records § 6. Records](02-java-equality-immutability-records.md#6-records), [05. Lambdas, streams and Optional § 1. Functional interfaces and lambda expressions](05-java-lambdas-streams-optional.md#1-functional-interfaces-and-lambda-expressions), [01. OOP fundamentals § 12. Enums](01-java-oop-fundamentals.md#12-enums)
 > **Leads to:** [08. JVM memory and class loading](08-jvm-memory-and-class-loading.md), [14. Virtual threads](14-concurrency-virtual-threads.md), [20. Spring Boot auto-configuration and configuration](20-spring-boot-autoconfiguration-and-config.md)
 > **Applies to:** Java 25
@@ -15,7 +15,7 @@
 3. [Sealed classes and interfaces](#3-sealed-classes-and-interfaces)
 4. [Pattern matching: `instanceof`, record patterns and unnamed patterns](#4-pattern-matching-instanceof-record-patterns-and-unnamed-patterns)
 5. [Pattern matching for `switch`: guards, dominance, `null` and exhaustiveness](#5-pattern-matching-for-switch-guards-dominance-null-and-exhaustiveness)
-6. [The newest language features: module imports and primitive patterns](#6-the-newest-language-features-module-imports-and-primitive-patterns)
+6. [Java 25 language additions: module import declarations](#6-java-25-language-additions-module-import-declarations)
 7. [The module system (JPMS)](#7-the-module-system-jpms)
 8. [`HttpClient` and the library changes worth knowing](#8-httpclient-and-the-library-changes-worth-knowing)
 9. [Date and time: from `Date` and `Calendar` to `java.time`](#9-date-and-time-from-date-and-calendar-to-javatime)
@@ -37,21 +37,15 @@ Think of the JDK as a train that leaves the station every six months whether or 
 
 ```mermaid
 timeline
-    title Final release of each language feature, LTS releases marked
+    title Language and platform features, by the first LTS release that has them final
     8 LTS : lambdas : java.time
-    9 : module system
-    10 : var
-    11 LTS : var in lambda parameters : HttpClient
-    14 : switch expressions
-    15 : text blocks
-    16 : records : instanceof patterns
-    17 LTS : sealed classes
-    21 LTS : record patterns : switch patterns : virtual threads
-    22 : unnamed variables and patterns
-    25 LTS : module imports : compact source files : flexible constructor bodies
+    11 LTS : module system : var : HttpClient
+    17 LTS : switch expressions : text blocks : records : instanceof patterns : sealed classes
+    21 LTS : record patterns : switch patterns : sequenced collections : virtual threads
+    25 LTS : unnamed variables and patterns : stream gatherers : module imports : compact source files : flexible constructor bodies : scoped values
 ```
 
-What to notice: every language feature that became final from Java 14 on was previewed in one or more earlier releases first (the table below lists them), so a team that moves only from LTS to LTS meets several finished features at once.
+What to notice: every language feature that became final from Java 14 on was previewed first, usually in non-LTS releases, so a team that moves only from LTS to LTS meets several finished features at each step, and the questions an interviewer asks about "Java 17" or "Java 21" are about these groups.
 
 ### How it actually works
 
@@ -62,7 +56,7 @@ What to notice: every language feature that became final from Java 14 on was pre
 **Three kinds of not-yet-final.** JEP 12 defines a preview feature as one that is "fully specified, fully implemented, and yet impermanent": it exists to collect feedback and "may lead to it becoming permanent in a future Java SE Platform" [Doc: JEP 12](https://openjdk.org/jeps/12). It must not be experimental: "if an experimental feature in HotSpot is considered 25% 'done', then a preview feature in Java SE should be at least 95% 'done'". It uses the syntax intended for its final form, never a temporary package in `java.*`, and two rounds of preview are the norm [Doc: JEP 12](https://openjdk.org/jeps/12). An **incubator module** is different: it holds a non-final API in a `jdk.incubator.*` module, which is not part of Java SE and is not resolved by default, so an application on the class path must ask for it with `--add-modules` [Doc: JEP 11](https://openjdk.org/jeps/11). In the lab, `jdk.incubator.vector` [Incubator in Java 25, JEP 508] [Doc: JEP 508](https://openjdk.org/jeps/508) is present in the JDK's system modules but missing from the boot layer of a JVM started without that flag [Lab: ReleaseModelTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m07/s01/ReleaseModelTest.java). An **experimental** feature is a HotSpot (the OpenJDK JVM) option that must be unlocked at run time; JEP 12's example is ZGC in JDK 11, "enabled via `java -XX:+UnlockExperimentalVMOptions -XX:+UseZGC`" [Doc: JEP 12](https://openjdk.org/jeps/12). Garbage collectors themselves are [09](09-jvm-garbage-collection.md)'s topic.
 
 **At compile time, preview is all or nothing, and tied to one release.** All preview features are off by default, and an implementation "must not allow preview features to be enabled on an individual basis" [Doc: JEP 12](https://openjdk.org/jeps/12). `javac` takes `--enable-preview` "in conjunction with either `-source` or `--release`" [Doc: javac 25 man page](https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html), and JEP 12 adds that the operand must be the compiler's own release [Doc: JEP 12](https://openjdk.org/jeps/12). The lab shows the three outcomes on JDK 25 [Lab: ReleaseModelTest](../labs/java-language/src/test/java/dev/interview/javalanguage/m07/s01/ReleaseModelTest.java):
-- a primitive type pattern (`case byte b` on an `int`) [Preview in Java 25, JEP 507] without the flag fails with `compiler.err.preview.feature.disabled.plural`;
+- a primitive type pattern (`case byte b` on an `int`) [Preview in Java 25, JEP 507] [Doc: JEP 507](https://openjdk.org/jeps/507) without the flag fails with `compiler.err.preview.feature.disabled.plural`;
 - `--release 24 --enable-preview` fails with `compiler.err.preview.not.latest` ("preview language features are only supported for release 25"), and `--enable-preview` alone fails with `compiler.err.preview.without.source.or.release`;
 - `--release 25 --enable-preview` (or `-source 25 --enable-preview`) compiles, and `javac` still prints two notes, "uses preview features of Java SE 25" and "Recompile with -Xlint:preview for details". JEP 12 explains that this message cannot be suppressed "because developers must be unfailingly aware of their reliance on the Java SE $N version of a preview language feature".
 
@@ -74,35 +68,32 @@ What to notice: every language feature that became final from Java 14 on was pre
 
 JEP 12 also describes `-Xlog:class+preview`, which logs every loaded class that depends on preview features [Doc: JEP 12](https://openjdk.org/jeps/12).
 
-**The map from Java 8 to 25.** Each row names the JEPs, read from their openjdk.org pages; the release numbers are each JEP's Release field. The same data, with statuses, is in [VERSIONS.md "Java language JEPs"](../VERSIONS.md#java-language-jeps-from-openjdkorg-jep-pages-checked-2026-11-28). Rows taught in another module link there.
+**The map from Java 8 to 25, by LTS.** This guide teaches only features that are final in an LTS release (SYLLABUS §9 decision 22), so the map is grouped by the LTS step that brings each feature. A feature that became final in a non-LTS release belongs to the next LTS: records, final in 16, are a Java 17 feature for a team that moves from LTS to LTS. Each row names the final JEP and its release, read from the JEP's openjdk.org page; the previews are in [VERSIONS.md "Java language JEPs"](../VERSIONS.md#java-language-jeps-from-openjdkorg-jep-pages-checked-2026-11-28). Rows taught in another module link there.
 
-| Feature | Preview or incubator (release) | Final (release) | Taught in |
+| LTS step | Feature | Final JEP (release) | Taught in |
 |---|---|---|---|
-| Lambda expressions and default methods | none | [JEP 126](https://openjdk.org/jeps/126) (8) | [05 §1](05-java-lambdas-streams-optional.md#1-functional-interfaces-and-lambda-expressions) |
-| Date and time API (`java.time`) | none | [JEP 150](https://openjdk.org/jeps/150) (8) | [§9](#9-date-and-time-from-date-and-calendar-to-javatime) |
-| Module system | none | [JEP 261](https://openjdk.org/jeps/261) (9) | [§7](#7-the-module-system-jpms) |
-| `var` for local variables; in lambda parameters | none | [JEP 286](https://openjdk.org/jeps/286) (10); [JEP 323](https://openjdk.org/jeps/323) (11) | [§2](#2-var-and-switch-expressions) |
-| `HttpClient` | incubator [JEP 110](https://openjdk.org/jeps/110) (9) | [JEP 321](https://openjdk.org/jeps/321) (11) | [§8](#8-httpclient-and-the-library-changes-worth-knowing) |
-| Switch expressions | [JEP 325](https://openjdk.org/jeps/325) (12), [JEP 354](https://openjdk.org/jeps/354) (13) | [JEP 361](https://openjdk.org/jeps/361) (14) | [§2](#2-var-and-switch-expressions) |
-| Text blocks | [JEP 355](https://openjdk.org/jeps/355) (13), [JEP 368](https://openjdk.org/jeps/368) (14) | [JEP 378](https://openjdk.org/jeps/378) (15) | [06 §6](06-java-exceptions-strings-io.md#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) |
-| Pattern matching for `instanceof` | [JEP 305](https://openjdk.org/jeps/305) (14), [JEP 375](https://openjdk.org/jeps/375) (15) | [JEP 394](https://openjdk.org/jeps/394) (16) | [§4](#4-pattern-matching-instanceof-record-patterns-and-unnamed-patterns) |
-| Records | [JEP 359](https://openjdk.org/jeps/359) (14), [JEP 384](https://openjdk.org/jeps/384) (15) | [JEP 395](https://openjdk.org/jeps/395) (16) | [02 §6](02-java-equality-immutability-records.md#6-records) |
-| Sealed classes | [JEP 360](https://openjdk.org/jeps/360) (15), [JEP 397](https://openjdk.org/jeps/397) (16) | [JEP 409](https://openjdk.org/jeps/409) (17) | [§3](#3-sealed-classes-and-interfaces) |
-| Record patterns | [JEP 405](https://openjdk.org/jeps/405) (19), [JEP 432](https://openjdk.org/jeps/432) (20) | [JEP 440](https://openjdk.org/jeps/440) (21) | [§4](#4-pattern-matching-instanceof-record-patterns-and-unnamed-patterns) |
-| Pattern matching for `switch` | [JEP 406](https://openjdk.org/jeps/406) (17), [JEP 420](https://openjdk.org/jeps/420) (18), [JEP 427](https://openjdk.org/jeps/427) (19), [JEP 433](https://openjdk.org/jeps/433) (20) | [JEP 441](https://openjdk.org/jeps/441) (21) | [§5](#5-pattern-matching-for-switch-guards-dominance-null-and-exhaustiveness) |
-| Sequenced collections | none | [JEP 431](https://openjdk.org/jeps/431) (21) | [04 §1](04-java-collections-internals.md#1-the-collections-framework-interfaces-contracts-and-sequenced-collections) |
-| Virtual threads | [JEP 425](https://openjdk.org/jeps/425) (19), [JEP 436](https://openjdk.org/jeps/436) (20) | [JEP 444](https://openjdk.org/jeps/444) (21) | [14](14-concurrency-virtual-threads.md) |
-| String templates | [JEP 430](https://openjdk.org/jeps/430) (21), [JEP 459](https://openjdk.org/jeps/459) (22) | never: removed from 23 ([JEP 465](https://openjdk.org/jeps/465), Withdrawn) | this section only |
-| Unnamed variables and patterns | [JEP 443](https://openjdk.org/jeps/443) (21) | [JEP 456](https://openjdk.org/jeps/456) (22) | [§4](#4-pattern-matching-instanceof-record-patterns-and-unnamed-patterns) |
-| Stream gatherers | [JEP 461](https://openjdk.org/jeps/461) (22), [JEP 473](https://openjdk.org/jeps/473) (23) | [JEP 485](https://openjdk.org/jeps/485) (24) | [05](05-java-lambdas-streams-optional.md) |
-| Compact source files and instance `main` methods | [JEP 445](https://openjdk.org/jeps/445) (21), [JEP 463](https://openjdk.org/jeps/463) (22), [JEP 477](https://openjdk.org/jeps/477) (23), [JEP 495](https://openjdk.org/jeps/495) (24) | [JEP 512](https://openjdk.org/jeps/512) (25) | [Q01.02](01-java-oop-fundamentals.md#q01-02) |
-| Flexible constructor bodies | [JEP 447](https://openjdk.org/jeps/447) (22), [JEP 482](https://openjdk.org/jeps/482) (23), [JEP 492](https://openjdk.org/jeps/492) (24) | [JEP 513](https://openjdk.org/jeps/513) (25) | [01 §5](01-java-oop-fundamentals.md#5-constructors-and-initialization-order) |
-| Module import declarations | [JEP 476](https://openjdk.org/jeps/476) (23), [JEP 494](https://openjdk.org/jeps/494) (24) | [JEP 511](https://openjdk.org/jeps/511) (25) | [§6](#6-the-newest-language-features-module-imports-and-primitive-patterns) |
-| Scoped values | [JEP 446](https://openjdk.org/jeps/446) (21) and later previews | [JEP 506](https://openjdk.org/jeps/506) (25) | [14](14-concurrency-virtual-threads.md) |
-| Structured concurrency | previews since 21; fifth preview in 25 ([JEP 505](https://openjdk.org/jeps/505)) | not final in 25 | [14](14-concurrency-virtual-threads.md) |
-| Primitive types in patterns, `instanceof` and `switch` | [JEP 455](https://openjdk.org/jeps/455) (23), [JEP 488](https://openjdk.org/jeps/488) (24), [JEP 507](https://openjdk.org/jeps/507) (25) | not final in 25 | [§6](#6-the-newest-language-features-module-imports-and-primitive-patterns) |
+| Java 8 | Lambda expressions and default methods | [JEP 126](https://openjdk.org/jeps/126) (8) | [05 §1](05-java-lambdas-streams-optional.md#1-functional-interfaces-and-lambda-expressions) |
+| Java 8 | Date and time API (`java.time`) | [JEP 150](https://openjdk.org/jeps/150) (8) | [§9](#9-date-and-time-from-date-and-calendar-to-javatime) |
+| 8 → 11 | Module system | [JEP 261](https://openjdk.org/jeps/261) (9) | [§7](#7-the-module-system-jpms) |
+| 8 → 11 | `var` for local variables; in lambda parameters | [JEP 286](https://openjdk.org/jeps/286) (10); [JEP 323](https://openjdk.org/jeps/323) (11) | [§2](#2-var-and-switch-expressions) |
+| 8 → 11 | `HttpClient` (incubator in 9, [JEP 110](https://openjdk.org/jeps/110)) | [JEP 321](https://openjdk.org/jeps/321) (11) | [§8](#8-httpclient-and-the-library-changes-worth-knowing) |
+| 11 → 17 | Switch expressions | [JEP 361](https://openjdk.org/jeps/361) (14) | [§2](#2-var-and-switch-expressions) |
+| 11 → 17 | Text blocks | [JEP 378](https://openjdk.org/jeps/378) (15) | [06 §6](06-java-exceptions-strings-io.md#6-strings-the-pool-compact-strings-concatenation-and-the-string-api) |
+| 11 → 17 | Pattern matching for `instanceof` | [JEP 394](https://openjdk.org/jeps/394) (16) | [§4](#4-pattern-matching-instanceof-record-patterns-and-unnamed-patterns) |
+| 11 → 17 | Records | [JEP 395](https://openjdk.org/jeps/395) (16) | [02 §6](02-java-equality-immutability-records.md#6-records) |
+| 11 → 17 | Sealed classes | [JEP 409](https://openjdk.org/jeps/409) (17) | [§3](#3-sealed-classes-and-interfaces) |
+| 17 → 21 | Record patterns | [JEP 440](https://openjdk.org/jeps/440) (21) | [§4](#4-pattern-matching-instanceof-record-patterns-and-unnamed-patterns) |
+| 17 → 21 | Pattern matching for `switch` | [JEP 441](https://openjdk.org/jeps/441) (21) | [§5](#5-pattern-matching-for-switch-guards-dominance-null-and-exhaustiveness) |
+| 17 → 21 | Sequenced collections | [JEP 431](https://openjdk.org/jeps/431) (21) | [04 §1](04-java-collections-internals.md#1-the-collections-framework-interfaces-contracts-and-sequenced-collections) |
+| 17 → 21 | Virtual threads | [JEP 444](https://openjdk.org/jeps/444) (21) | [14](14-concurrency-virtual-threads.md) |
+| 21 → 25 | Unnamed variables and patterns | [JEP 456](https://openjdk.org/jeps/456) (22) | [§4](#4-pattern-matching-instanceof-record-patterns-and-unnamed-patterns) |
+| 21 → 25 | Stream gatherers | [JEP 485](https://openjdk.org/jeps/485) (24) | [05](05-java-lambdas-streams-optional.md) |
+| 21 → 25 | Module import declarations | [JEP 511](https://openjdk.org/jeps/511) (25) | [§6](#6-java-25-language-additions-module-import-declarations) |
+| 21 → 25 | Compact source files and instance `main` methods | [JEP 512](https://openjdk.org/jeps/512) (25) | [Q01.02](01-java-oop-fundamentals.md#q01-02) |
+| 21 → 25 | Flexible constructor bodies | [JEP 513](https://openjdk.org/jeps/513) (25) | [01 §5](01-java-oop-fundamentals.md#5-constructors-and-initialization-order) |
+| 21 → 25 | Scoped values | [JEP 506](https://openjdk.org/jeps/506) (25) | [14](14-concurrency-virtual-threads.md) |
 
-Garbage-collector changes over the same releases are [09](09-jvm-garbage-collection.md)'s. Only the last two rows are not final in Java 25: primitive patterns [Preview in Java 25, JEP 507] and structured concurrency [Preview in Java 25, JEP 505] [Doc: JEP 507](https://openjdk.org/jeps/507) [Doc: JEP 505](https://openjdk.org/jeps/505).
+Garbage-collector changes over the same releases are [09](09-jvm-garbage-collection.md)'s. Features that are not final in any LTS are outside the guide: primitive types in patterns [Preview in Java 25, JEP 507] [Doc: JEP 507](https://openjdk.org/jeps/507), structured concurrency [Preview in Java 25, JEP 505] [Doc: JEP 505](https://openjdk.org/jeps/505), the Vector API (an incubator module, below) and string templates, which never reached a final release [Doc: JEP 465](https://openjdk.org/jeps/465). This section uses a primitive pattern only as a specimen of a preview feature, to show the mechanism.
 
 ### Code
 
@@ -180,7 +171,7 @@ java --enable-preview -cp out PreviewMain
 Load has no part in this topic: the release model decides what runs, not how fast; the start-up checks above are the only runtime behavior.
 
 > [!NOTE]
-> **Version notes.** Java 9: `--release N` compiles against the API of release N [Final since Java 9, JEP 247] [Doc: JEP 247](https://openjdk.org/jeps/247); the version string loses its `1.` prefix and `Runtime.version()` appears [Doc: JEP 223](https://openjdk.org/jeps/223) [Src: JDK 25, java.lang.Runtime](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java). Java 10: time-based versioning with `feature()`, `interim()`, `update()` [Final since Java 10, JEP 322] [Doc: JEP 322](https://openjdk.org/jeps/322). Java 12: preview features arrive with the first preview language feature, switch expressions, and class files get minor version 65535 for them [Doc: JEP 12](https://openjdk.org/jeps/12) [Doc: JEP 325](https://openjdk.org/jeps/325) [Doc: JVMS 25 §4.1](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.1); in Java 12 and 13 the APIs tied to preview features were "terminally deprecated at birth", a practice later dropped [Doc: JEP 12](https://openjdk.org/jeps/12). Java 23: string templates removed after two previews [Doc: JEP 465](https://openjdk.org/jeps/465). Java 25 (default): primitive patterns in their third preview [Doc: JEP 507](https://openjdk.org/jeps/507). Java 26 and 27: still preview, fourth and fifth rounds ([VERSIONS.md](../VERSIONS.md#java-concurrency-jeps-from-openjdkorg-jep-and-release-pages)).
+> **Version notes.** Java 9: `--release N` compiles against the API of release N [Final since Java 9, JEP 247] [Doc: JEP 247](https://openjdk.org/jeps/247); the version string loses its `1.` prefix and `Runtime.version()` appears [Doc: JEP 223](https://openjdk.org/jeps/223) [Src: JDK 25, java.lang.Runtime](https://github.com/openjdk/jdk/blob/jdk-25-ga/src/java.base/share/classes/java/lang/Runtime.java). Java 10: time-based versioning with `feature()`, `interim()`, `update()` [Final since Java 10, JEP 322] [Doc: JEP 322](https://openjdk.org/jeps/322). Java 12: preview features arrive with the first preview language feature, switch expressions, and class files get minor version 65535 for them [Doc: JEP 12](https://openjdk.org/jeps/12) [Doc: JEP 325](https://openjdk.org/jeps/325) [Doc: JVMS 25 §4.1](https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-4.html#jvms-4.1); in Java 12 and 13 the APIs tied to preview features were "terminally deprecated at birth", a practice later dropped [Doc: JEP 12](https://openjdk.org/jeps/12). Java 23: string templates removed after two previews [Doc: JEP 465](https://openjdk.org/jeps/465).
 
 ### Best practices and anti-patterns
 
@@ -247,7 +238,7 @@ Questions that drill this section: [Q07.01](#q07-01), [Q07.02](#q07-02), [Q07.03
 ### Misconceptions and traps
 <!-- /TASK: SEC-M07-05 -->
 
-## 6. The newest language features: module imports and primitive patterns
+## 6. Java 25 language additions: module import declarations
 <!-- TASK: SEC-M07-06 -->
 ### The problem it solves
 ### Mental model
@@ -353,7 +344,7 @@ Questions that drill this section: [Q07.01](#q07-01), [Q07.02](#q07-02), [Q07.03
 
 <!-- TASK: QB-M07-03 -->
 <a id="q07-14"></a>
-### Q07.14 · Concept · Primitive types in patterns (preview in Java 25): what `case byte b` means for an `int`, and why it is not in production code
+### Q07.14 · Concept · What each LTS step added to the language, 8 → 11 → 17 → 21 → 25, and why preview features stay out of production code
 
 <a id="q07-15"></a>
 ### Q07.15 · Difference · `import module java.base;` vs `import java.util.*;`: what each imports, how ambiguities resolve, and where module imports belong

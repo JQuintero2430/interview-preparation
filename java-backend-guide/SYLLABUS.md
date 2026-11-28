@@ -318,7 +318,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 
 **07 `java-modern-language-features`**: Java 8 → 25 and what changed
 - [ ] The release model: six-month cadence, LTS releases, preview/incubator/experimental features and `--enable-preview`
-- [ ] A map of language changes 8 → 25: `var`, switch expressions, text blocks, records, sealed types, pattern matching for `instanceof` and `switch`, record patterns, unnamed variables and patterns, flexible constructor bodies, module import declarations, primitive patterns (each with its status per VERSIONS.md)
+- [ ] A map of language changes 8 → 25, grouped by LTS step (§9 decision 22): `var`, switch expressions, text blocks, records, sealed types, pattern matching for `instanceof` and `switch`, record patterns, unnamed variables and patterns, flexible constructor bodies, module import declarations (each with its status per VERSIONS.md)
 - [ ] Sealed classes and interfaces: permits, exhaustiveness, algebraic data types with records
 - [ ] Pattern matching for `switch`: guards, dominance, `null` handling, exhaustiveness and the `MatchException`
 - [ ] The module system (JPMS): `module-info.java`, exports/opens, reflection and frameworks, the classpath vs module path in practice
@@ -405,7 +405,7 @@ Every module also contains, by template (STYLE-GUIDE §2): the question bank, th
 - [ ] When they do not help: CPU-bound work, pooled resources (connection pools as the real limit)
 - [ ] Pinning: `synchronized` before and after JEP 491, native frames; detecting pinning (JFR)
 - [ ] `ThreadLocal` costs with millions of threads; scoped values (status per VERSIONS.md)
-- [ ] Structured concurrency (`StructuredTaskScope`, preview status per VERSIONS.md): fork/join, cancellation, joiners
+- [ ] Structured concurrency: one sentence with its status only (preview in Java 25, per VERSIONS.md); not taught, per §9 decision 22
 - [ ] Spring Boot with virtual threads (`spring.threads.virtual.enabled`) and what it changes in Tomcat, `@Async`, schedulers
 - [ ] Virtual threads vs reactive: a trade-off table
 - [ ] Testing virtual-thread code: invariants, not interleavings
@@ -996,6 +996,7 @@ The difference between the rows is mostly who does the work: the conservative ro
 19. **Prose caps removed as limits** (decided by Jorge, 2026-11-07, session S20261107-0959-claudecode: "remove the word restriction, as it will be frequently violated"). The §1 "Prose cap" column stays as an advisory size target for planning. No module needs a cap exception, `module-stats.mjs` no longer flags prose (also under `--strict`), and QUALITY-BAR G1 checks only for redundancy and filler. Supersedes the limit parts of decisions 3, 12, 17 and 18.
 20. **Module 03 gets a `Trade-off` question, Q03.24** (decided by Jorge, 2026-11-20, session S20261120-0602-claudecode-cloud: "agrega una pregunta adicional", answering the QUALITY-BAR D3 gap). Q03.24 compares `Class<T>` keys, typed keys and super type token keys for a heterogeneous container; the module now has 24 questions, its ceiling. In the same message Jorge left the `LaunchProtocolTest` question to the session, which chose to strip `JAVA_TOOL_OPTIONS`, `_JAVA_OPTIONS` and `JDK_JAVA_OPTIONS` from the launched JVM's environment (HOUSE-09).
 21. **Prose length targets eliminated** (decided by Jorge, 2026-11-20, after session S20261120-1201-claudecode-cloud: "Eliminate the 18,000-word targets rule. Keep the text easy to follow, but if you need more text no worries"). The §1 "Prose cap" column is removed; module plans no longer set word budgets; word counts are never a review finding or a reason to cut. Repetition is cut only where it makes the text harder to follow. Supersedes decisions 3 (prose part), 12, 15, 17, 18 and 19.
+22. **Only features final in an LTS release are in scope** (decided by Jorge, 2026-11-28, after session S20261128-0602-claudecode-cloud: "Solo mantendremos features LTS dentro del scope", then accepting the recommended reading). (a) The guide teaches a Java feature only if it is final in an LTS release (8, 11, 17, 21, 25); a feature final in a non-LTS release counts from the next LTS (records, final in 16, are a Java 17 feature). (b) Feature maps are grouped by LTS step (8 → 11 → 17 → 21 → 25), not release by release. (c) Preview, incubator and experimental features, and features that never reached a final release (string templates), get at most one sentence with their status marker; they are not taught, drilled or used in examples. (d) The preview mechanism itself (JEP 12, `--enable-preview`, class-file minor version 65535) stays in 07 §1, because it is in the 07 checklist and interviews ask about it; the lab uses a Java 25 preview feature only as a specimen of that mechanism. Effects: 07 §6 drops primitive patterns (retitled "Java 25 language additions: module import declarations") and Q07.14 becomes the LTS-step question; 14's structured-concurrency item becomes a status mention (§4, module 14); the closed module 02's Valhalla passages (JEP 401, not delivered) are an open question for Jorge, not changed.
 
 ## 10. Open questions for G1
 
